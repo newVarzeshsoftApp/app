@@ -1,3 +1,142 @@
+@font-face {
+  font-family: 'Poppins-Regular';
+  src: url('./src/assets/font/Poppins-Regular.ttf') format('truetype');
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: 'Poppins-Bold';
+  src: url('./src/assets/font/Poppins-Bold.ttf') format('truetype');
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: 'Poppins-SemiBold';
+  src: url('./src/assets/font/Poppins-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: 'YekanBakhFaNum-Regular';
+  src: url('./src/assets/font/YekanBakhFaNum-Regular.ttf') format('truetype');
+  font-weight: normal;
+}
+
+@font-face {
+  font-family: 'YekanBakhFaNum-Bold';
+  src: url('./src/assets/font/YekanBakhFaNum-Bold.ttf') format('truetype');
+  font-weight: bold;
+}
+
+@font-face {
+  font-family: 'YekanBakhFaNum-SemiBold';
+  src: url('./src/assets/font/YekanBakhFaNum-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+@layer components {
+  .Fill {
+    @apply bg-primary-500 hover:bg-primary-400 border border-transparent;
+  }
+  .Tonal {
+    @apply bg-primary-200 dark:bg-primary-dark-200 hover:bg-primary-100 dark:hover:bg-primary-dark-100 border border-transparent;
+  }
+}
+.Outline {
+  @apply bg-transparent border border-primary-500 hover:border-primary-400;
+}
+@layer utilities {
+  /* Typography */
+  .title1 {
+    @apply font-bold leading-[2rem] text-[1.5rem] lg:leading-[2.5rem] lg:text-[2rem];
+  }
+  .title2 {
+    @apply font-bold leading-[1.5rem] text-[1.25rem] lg:leading-[2rem] lg:text-[1.75rem];
+  }
+  .title3 {
+    @apply font-bold leading-[1.5rem] text-[1.125rem] lg:leading-[2rem] lg:text-[1.5rem];
+  }
+  .title4 {
+    @apply font-semibold leading-[1.25rem] text-[0.875rem] lg:leading-[1.5rem] lg:text-[1rem];
+  }
+  .subtitle1 {
+    @apply font-semibold leading-[1.5rem] text-[1rem] lg:leading-[1.5rem] lg:text-[1.25rem];
+  }
+  .subtitle2 {
+    @apply font-semibold leading-[1.25rem] text-[0.875rem] lg:leading-[1.25rem] lg:text-[0.875rem];
+  }
+  .subtitle3 {
+    @apply font-semibold leading-[1rem] text-[0.75rem] lg:leading-[1.25rem] lg:text-[0.875rem];
+  }
+  .button1 {
+    @apply font-semibold leading-[1.25rem] text-[0.875rem] lg:leading-[1.5rem] lg:text-[1rem];
+  }
+  .button2 {
+    @apply font-semibold leading-[1.25rem] text-[0.875rem] lg:leading-[1.25rem] lg:text-[0.875rem];
+  }
+  .body1 {
+    @apply font-semibold leading-[1.5rem] text-[1.125rem] lg:leading-[1.5rem] lg:text-[1.25rem];
+  }
+  .body2 {
+    @apply font-semibold leading-[1.5rem] text-[1rem] lg:leading-[1.5rem] lg:text-[1.125rem];
+  }
+  .body3 {
+    @apply font-semibold leading-[1.25rem] text-[0.875rem] lg:leading-[1.5rem] lg:text-[1rem];
+  }
+  .caption {
+    @apply font-normal leading-[1.25rem] text-[0.875rem] lg:leading-[1.25rem] lg:text-[0.875rem];
+  }
+  .placeholder {
+    @apply font-semibold leading-[1.25rem] text-[0.875rem] lg:leading-[1.5rem] lg:text-[1rem];
+  }
+  .badge {
+    @apply font-semibold leading-[0.75rem] text-[0.625rem] lg:leading-[0.75rem] lg:text-[0.625rem];
+  }
+  .en_title1 {
+    @apply font-bold leading-[24px] text-[20px] lg:leading-[32px] lg:text-[28px];
+  }
+  .en_title2 {
+    @apply font-bold leading-[24px] text-[18px] lg:leading-[32px] lg:text-[24px];
+  }
+  .en_title3 {
+    @apply font-bold leading-[24px] text-[16px] lg:leading-[24px] lg:text-[20px];
+  }
+  .en_title4 {
+    @apply font-semibold leading-[20px] text-[14px] lg:leading-[24px] lg:text-[16px];
+  }
+  .en_subtitle1 {
+    @apply font-medium leading-[24px] text-[16px] lg:leading-[24px] lg:text-[18px];
+  }
+  .en_subtitle2 {
+    @apply font-medium leading-[24px] text-[14px] lg:leading-[24px] lg:text-[16px];
+  }
+  .en_subtitle3 {
+    @apply font-medium leading-[16px] text-[12px] lg:leading-[20px] lg:text-[14px];
+  }
+  .en_button1 {
+    @apply font-semibold leading-[20px] text-[14px] lg:leading-[24px] lg:text-[16px];
+  }
+  .en_button2 {
+    @apply font-semibold leading-[20px] text-[14px] lg:leading-[20px] lg:text-[14px];
+  }
+  .en_body1 {
+    @apply font-medium leading-[24px] text-[18px] lg:leading-[24px] lg:text-[20px];
+  }
+  .en_body2 {
+    @apply font-medium leading-[24px] text-[16px] lg:leading-[24px] lg:text-[18px];
+  }
+  .en_body3 {
+    @apply font-medium leading-[20px] text-[14px] lg:leading-[24px] lg:text-[16px];
+  }
+  .en_caption {
+    @apply font-medium leading-[20px] text-[14px] lg:leading-[20px] lg:text-[14px];
+  }
+  .en_placeholder {
+    @apply font-semibold leading-[20px] text-[14px] lg:leading-[24px] lg:text-[16px];
+  }
+  .en_badge {
+    @apply font-semibold leading-[12px] text-[10px] lg:leading-[12px] lg:text-[10px];
+  }
+}

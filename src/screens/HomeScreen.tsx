@@ -1,21 +1,24 @@
-import React, {useEffect} from 'react';
-import {View, Text, TouchableOpacity, Button} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View, Text, TouchableOpacity, Button, Pressable} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../App';
 import {useTranslation} from 'react-i18next';
 import {switchLanguage} from '../utils/helpers/languageUtils';
 import {useTheme} from '../utils/ThemeContext';
+import BaseText from '../components/BaseText';
+import BaseButton from '../components/Button/BaseButton';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
 const HomeScreen: React.FC<Props> = ({navigation}) => {
   const {t, i18n} = useTranslation('translation', {keyPrefix: 'Global'});
-  const {theme, switchTheme, toggleTheme} = useTheme();
+  const {theme, toggleTheme} = useTheme();
+  const [isPressed, setIsPressed] = useState(false);
+
   return (
-    <View className="flex-1 items-center justify-center bg-neutral-0 dark:bg-neutral-dark-0">
-      <Text className="text-2xl font-bold mb-5 text-text-base dark:text-text-base-dark">
-        {t('Home Screen')}
-      </Text>
+    <View className="flex-1 items-center justify-center  dark:bg-neutral-dark-0 bg-neutral-0">
+      <BaseText>{t('Home Screen')}</BaseText>
+      {/* <Text className="en_title1 text-text-active">{t('Home Screen')}</Text> */}
       <TouchableOpacity
         className="bg-secondary-400 py-3 px-6 rounded-lg mt-5 shadow-lg"
         onPress={() => navigation.navigate('Details')}>
@@ -40,13 +43,22 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
         </TouchableOpacity>
       </View>
       <View className="flex flex-row w-full justify-center items-center mt-6 gap-4">
-        <TouchableOpacity
-          className="bg-primary-700 dark:bg-primary-dark-700  py-3 px-6 rounded-lg mt-5 shadow-lg disabled:opacity-20"
-          onPress={() => toggleTheme()}>
+        <BaseButton
+          onPress={toggleTheme}
+          color="Primary"
+          type="Fill"
+          size="Large"
+          text=" Toggle Theme Curent"
+        />
+        {/* <Pressable
+          onPressIn={() => setIsPressed(true)}
+          onPressOut={() => setIsPressed(false)}
+          className="bg-primary-700 pressed:bg-red-500 dark:bg-primary-dark-700  py-3 px-6 rounded-lg mt-5 shadow-lg disabled:opacity-20"
+          >
           <Text className="text-text-base  font-semibold">
-            Toggle Theme Curent {theme}
+            {theme}
           </Text>
-        </TouchableOpacity>
+        </Pressable> */}
       </View>
     </View>
   );

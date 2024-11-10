@@ -3,9 +3,71 @@ module.exports = {
   content: [
     './App.{js,jsx,ts,tsx}',
     './src/**/*.{js,jsx,ts,tsx}', // Adjust this to your file structure
+    './index.web.js',
   ],
   presets: [require('nativewind/preset')],
   darkMode: 'class',
+  safelist: [
+    // Title Types for English and Persian
+    'en_title1',
+    'en_title2',
+    'en_title3',
+    'en_title4',
+    'fa_title1',
+    'fa_title2',
+    'fa_title3',
+    'fa_title4',
+
+    // Subtitle Types for English and Persian
+    'en_subtitle1',
+    'en_subtitle2',
+    'en_subtitle3',
+    'fa_subtitle1',
+    'fa_subtitle2',
+    'fa_subtitle3',
+
+    // Button Types for English and Persian
+    'en_button1',
+    'en_button2',
+    'fa_button1',
+    'fa_button2',
+
+    // Body Types for English and Persian
+    'en_body1',
+    'en_body2',
+    'en_body3',
+    'fa_body1',
+    'fa_body2',
+    'fa_body3',
+
+    // Caption, Placeholder, and Badge Types for English and Persian
+    'en_caption',
+    'en_placeholder',
+    'en_badge',
+    'fa_caption',
+    'fa_placeholder',
+    'fa_badge',
+
+    // Text Colors for Light and Dark Themes
+    'text-text-base',
+    'text-text-secondary',
+    'text-text-muted',
+    'text-text-active',
+    'text-text-warning',
+    'text-text-success',
+    'text-text-error',
+    'text-text-button',
+
+    'text-text-base-dark',
+    'text-text-secondary-dark',
+    'text-text-muted-dark',
+    'text-text-active-dark',
+    'text-text-warning-dark',
+    'text-text-success-dark',
+    'text-text-error-dark',
+    'text-text-button-dark',
+  ],
+
   theme: {
     extend: {
       fontFamily: {

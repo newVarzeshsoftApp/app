@@ -6,11 +6,12 @@ const appDirectory = path.resolve(__dirname);
 const {presets} = require(`${appDirectory}/babel.config.js`);
 
 const babelLoaderConfiguration = {
-  test: /\.js$|tsx?$/,
+  test: /\.(js|jsx|ts|tsx)$/,
   include: [
     path.resolve(__dirname, 'index.web.js'),
     path.resolve(__dirname, 'App.tsx'),
     path.resolve(__dirname, 'src'),
+    path.resolve(__dirname, 'node_modules/react-native-css-interop'),
   ],
   use: {
     loader: 'babel-loader',
@@ -52,15 +53,24 @@ const imageLoaderConfiguration = {
     },
   },
 };
+const fontLoaderConfiguration = {
+  test: /\.(ttf|woff|woff2|eot)$/,
+  type: 'asset/resource',
+  generator: {
+    filename: 'assets/font/[name][ext]',
+  },
+};
 
 module.exports = {
+  mode: 'development',
+
   entry: {
     app: path.join(__dirname, 'index.web.js'),
   },
   output: {
     path: path.resolve(appDirectory, 'dist'),
     publicPath: '/',
-    filename: 'rnw_blogpost.bundle.js',
+    filename: 'bundle.js',
   },
   resolve: {
     extensions: ['.web.tsx', '.web.ts', '.tsx', '.ts', '.web.js', '.js'],
@@ -71,7 +81,8 @@ module.exports = {
   module: {
     rules: [
       babelLoaderConfiguration,
-      cssLoaderConfiguration, // Add the cssLoaderConfiguration here
+      cssLoaderConfiguration,
+      fontLoaderConfiguration,
       imageLoaderConfiguration,
       svgLoaderConfiguration,
     ],

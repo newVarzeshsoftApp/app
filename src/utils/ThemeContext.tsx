@@ -1,5 +1,11 @@
 import {colorScheme, useColorScheme} from 'nativewind';
-import React, {createContext, useContext, useState, ReactNode} from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from 'react';
 import {Appearance} from 'react-native';
 
 type ThemeContextType = {
