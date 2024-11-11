@@ -7,6 +7,7 @@ import {switchLanguage} from '../utils/helpers/languageUtils';
 import {useTheme} from '../utils/ThemeContext';
 import BaseText from '../components/BaseText';
 import BaseButton from '../components/Button/BaseButton';
+import {Home} from 'iconsax-react-native';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -42,23 +43,112 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           </Text>
         </TouchableOpacity>
       </View>
-      <View className="flex flex-row w-full justify-center items-center mt-6 gap-4">
+      <View className="flex px-3     flex-row w-full justify-center items-center mt-6 gap-4">
         <BaseButton
           onPress={toggleTheme}
-          color="Primary"
           type="Fill"
-          size="Large"
-          text=" Toggle Theme Curent"
+          color="Black"
+          LeftIconVariant="Bold"
+          LeftIcon={Home}
+          text="Toggle"
         />
-        {/* <Pressable
-          onPressIn={() => setIsPressed(true)}
-          onPressOut={() => setIsPressed(false)}
-          className="bg-primary-700 pressed:bg-red-500 dark:bg-primary-dark-700  py-3 px-6 rounded-lg mt-5 shadow-lg disabled:opacity-20"
-          >
-          <Text className="text-text-base  font-semibold">
-            {theme}
-          </Text>
-        </Pressable> */}
+        <BaseButton
+          onPress={toggleTheme}
+          type="Tonal"
+          color="Black"
+          LeftIconVariant="Bold"
+          LeftIcon={Home}
+          text="Theme"
+        />
+        <BaseButton
+          onPress={toggleTheme}
+          type="Outline"
+          color="Black"
+          LeftIconVariant="Bold"
+          LeftIcon={Home}
+          text="Curent"
+        />
+      </View>
+      <View className="flex px-3     flex-row w-full justify-center items-center mt-6 gap-4">
+        <BaseButton
+          onPress={toggleTheme}
+          type="Fill"
+          color="Primary"
+          LeftIconVariant="Bold"
+          LeftIcon={Home}
+          text="Toggle"
+          isLoading
+        />
+        <BaseButton
+          onPress={toggleTheme}
+          type="Tonal"
+          color="Primary"
+          LeftIconVariant="Bold"
+          LeftIcon={Home}
+          text="Theme"
+          isLoading
+        />
+        <BaseButton
+          onPress={toggleTheme}
+          type="Outline"
+          color="Primary"
+          LeftIconVariant="Bold"
+          LeftIcon={Home}
+          text="Curent"
+          isLoading
+        />
+      </View>
+      <View className="flex px-3     flex-row w-full justify-center items-center mt-6 gap-4">
+        <BaseButton
+          onPress={toggleTheme}
+          type="Fill"
+          color="Success"
+          LeftIconVariant="Bold"
+          LeftIcon={Home}
+          text="Toggle"
+        />
+        <BaseButton
+          onPress={toggleTheme}
+          type="Tonal"
+          color="Success"
+          LeftIconVariant="Bold"
+          LeftIcon={Home}
+          text="Theme"
+        />
+        <BaseButton
+          onPress={toggleTheme}
+          type="Outline"
+          color="Success"
+          LeftIconVariant="Bold"
+          LeftIcon={Home}
+          text="Curent"
+        />
+      </View>
+      <View className="flex px-3     flex-row w-full justify-center items-center mt-6 gap-4">
+        <BaseButton
+          onPress={toggleTheme}
+          type="TextButton"
+          color="Primary"
+          LeftIconVariant="Bold"
+          LeftIcon={Home}
+          text="Toggle"
+        />
+        <BaseButton
+          onPress={toggleTheme}
+          type="TextButton"
+          color="Black"
+          LeftIconVariant="Bold"
+          LeftIcon={Home}
+          text="Theme"
+        />
+        <BaseButton
+          onPress={toggleTheme}
+          type="TextButton"
+          color="Success"
+          LeftIconVariant="Bold"
+          LeftIcon={Home}
+          text="Curent"
+        />
       </View>
     </View>
   );

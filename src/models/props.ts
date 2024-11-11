@@ -15,9 +15,9 @@ export type IText = {
 };
 export interface IButtonProps extends PressableProps {
   type: IStyle‌TypeButton;             // Custom style type for the button
-  rounded?:boolean
-  size:ISizeButton
+  size?:ISizeButton
   color:IColorButton;
+  rounded?:boolean
   text?: string;                           // Text to display inside the button
   noText?: boolean;                        // If true, hides the text
   isLoading?: boolean;                     // If true, shows a loading indicator

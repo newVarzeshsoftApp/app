@@ -1,4 +1,5 @@
 import React, {useEffect} from 'react';
+import {Platform} from 'react-native';
 import Svg, {Circle} from 'react-native-svg';
 import Animated, {
   useSharedValue,
@@ -16,7 +17,35 @@ interface ISpinnerProps {
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 function Loading({size = 60, circleClassName = 'white'}: ISpinnerProps) {
-  // Shared values to control opacity and vertical position (translateY) for each circle
+  if (Platform.OS === 'web') {
+    return (
+      <Svg width={size} height={size} viewBox="0 0 200 200">
+        <Circle
+          cx="40"
+          cy="100"
+          r="15"
+          strokeWidth="15"
+          fill={circleClassName}
+        />
+        <Circle
+          cx="100"
+          cy="100"
+          r="15"
+          strokeWidth="15"
+          fill={circleClassName}
+        />
+        <Circle
+          cx="160"
+          cy="100"
+          r="15"
+          strokeWidth="15"
+          fill={circleClassName}
+        />
+      </Svg>
+    );
+  }
+
+  // Continue with animation setup if not Web
   const opacity1 = useSharedValue(1);
   const opacity2 = useSharedValue(1);
   const opacity3 = useSharedValue(1);
@@ -25,7 +54,6 @@ function Loading({size = 60, circleClassName = 'white'}: ISpinnerProps) {
   const translateY2 = useSharedValue(0);
   const translateY3 = useSharedValue(0);
 
-  // Set up animated props for each circle
   const animatedProps1 = useAnimatedProps(() => ({
     opacity: opacity1.value,
     transform: [{translateY: translateY1.value}],
@@ -39,7 +67,6 @@ function Loading({size = 60, circleClassName = 'white'}: ISpinnerProps) {
     transform: [{translateY: translateY3.value}],
   }));
 
-  // Run the animation loops on mount
   useEffect(() => {
     opacity1.value = withRepeat(
       withTiming(0, {duration: 800, easing: Easing.linear}),

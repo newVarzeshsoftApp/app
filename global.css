@@ -37,11 +37,46 @@
 @tailwind components;
 @tailwind utilities;
 @layer components {
-  .Fill {
-    @apply bg-primary-500 hover:bg-primary-400 border border-transparent;
+  /* Primary */
+  .Fill-Primary {
+    @apply bg-primary-500 hover:bg-primary-400 border-2 border-transparent;
   }
-  .Tonal {
-    @apply bg-primary-200 dark:bg-primary-dark-200 hover:bg-primary-100 dark:hover:bg-primary-dark-100 border border-transparent;
+  .Tonal-Primary {
+    @apply bg-primary-200 dark:bg-primary-dark-200 hover:bg-primary-100 dark:hover:bg-primary-dark-100 border-2 border-transparent;
+  }
+  .Outline-Primary {
+    @apply bg-transparent border border-primary-500 hover:border-primary-400;
+  }
+  .TextButton-Primary {
+    @apply bg-transparent border border-transparent;
+  }
+
+  /* Black */
+  .Fill-Black {
+    @apply bg-neutral-900  hover:bg-neutral-800 dark:bg-neutral-dark-900 hover:dark:bg-neutral-dark-800 border-2 border-transparent;
+  }
+  .Tonal-Black {
+    @apply bg-neutral-200  hover:bg-neutral-100 dark:bg-neutral-dark-200 hover:dark:bg-neutral-dark-100 border-2 border-transparent;
+  }
+  .Outline-Black {
+    @apply bg-transparent border border-neutral-900 dark:border-neutral-dark-900 hover:border-neutral-800 hover:dark:border-neutral-dark-800;
+  }
+  .TextButton-Black {
+    @apply bg-transparent border border-transparent;
+  }
+
+  /* Success */
+  .Fill-Success {
+    @apply bg-success-500 hover:bg-success-400 border-2 border-transparent text-text-button dark:text-text-button-dark;
+  }
+  .Tonal-Success {
+    @apply bg-success-100 dark:bg-success-dark-100 hover:bg-success-50 dark:hover:bg-success-dark-50 border-2 border-transparent;
+  }
+  .Outline-Success {
+    @apply bg-transparent border border-success-500 hover:border-success-400;
+  }
+  .TextButton-Success {
+    @apply bg-transparent border border-transparent;
   }
 }
 .Outline {

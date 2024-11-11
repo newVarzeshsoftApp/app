@@ -57,7 +57,11 @@ module.exports = {
     'text-text-success',
     'text-text-error',
     'text-text-button',
+    'text-text-Success600',
+    'text-text-Success500',
+    'text-text-Primary600',
 
+    'text-text-tonal-dark',
     'text-text-base-dark',
     'text-text-secondary-dark',
     'text-text-muted-dark',
@@ -66,6 +70,22 @@ module.exports = {
     'text-text-success-dark',
     'text-text-error-dark',
     'text-text-button-dark',
+    'text-text-Success600-dark',
+    'text-text-Success500-dark',
+    'text-text-Primary600-dark',
+
+    'Fill-Primary',
+    'Fill-Black',
+    'Fill-Success',
+    'Tonal-Primary',
+    'Tonal-Black',
+    'Tonal-Success',
+    'Outline-Primary',
+    'Outline-Black',
+    'Outline-Success',
+    'TextButton-Primary',
+    'TextButton-Black',
+    'TextButton-Success',
   ],
 
   theme: {
@@ -184,23 +204,23 @@ module.exports = {
         },
         // Success Colors
         success: {
-          50: '#c1dde5',
-          100: '#a3e6c0',
-          200: '#79dba3',
-          300: '#51d491',
-          400: '#37c976',
-          500: '#32b76b', // Base
-          600: '#278f54',
-          700: '#278f54',
+          50: '#EBFAF1',
+          100: '#C1EED5',
+          200: '#A3E6C0',
+          300: '#79DBA3',
+          400: '#5FD491',
+          500: '#37C976', // Base
+          600: '#32B76B',
+          700: '#278F54',
           dark: {
-            50: '#174f32',
-            100: '#1e6f41',
-            200: '#278f54',
-            300: '#32b76b',
-            400: '#37c976',
-            500: '#51d491', // Base
-            600: '#79dba3',
-            700: '#5defc6',
+            50: '#124629',
+            100: '#175432',
+            200: '#1E6F41',
+            300: '#278F54',
+            400: '#32B76B',
+            500: '#37C976', // Base
+            600: '#5FD491',
+            700: '#79DBA3',
           },
         },
         // Supportive1-Yellow Colors
@@ -349,6 +369,18 @@ module.exports = {
           button: {
             DEFAULT: '#ffffff', // Light - Neutral-0
             dark: '#16181b', // Dark - Neutral-0
+          },
+          Primary600: {
+            DEFAULT: '#abc95b', // Light - Primary600
+            dark: '#c9e483', // Dark - Primary600
+          },
+          Success600: {
+            DEFAULT: '#32b76b', // Light - Success600
+            dark: '#5fd491', // Dark - Success600
+          },
+          Success500: {
+            DEFAULT: '#37c976', // Light - Success
+            dark: '#37c976', // Dark - Success
           },
         },
         // Background Colors
