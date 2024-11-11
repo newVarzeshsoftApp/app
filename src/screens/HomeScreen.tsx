@@ -28,27 +28,32 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
         </Text>
       </TouchableOpacity>
       <View className="flex flex-row w-full justify-center items-center mt-6 gap-4">
-        <TouchableOpacity
-          className="bg-neutral-1000 dark:bg-neutral-dark-1000 py-3 px-6 rounded-lg mt-5 shadow-lg disabled:opacity-20"
+        <BaseButton
+          text={t('en')}
           onPress={() => switchLanguage('en')}
-          disabled={i18n.resolvedLanguage === 'en'}>
-          <Text className="text-text-error   font-semibold">{t('en')}</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
+          disabled={i18n.resolvedLanguage === 'en'}
+          size="Large"
+          color="Success"
+          type="Outline"
+          rounded
+        />
+        <BaseButton
+          text={t('fa')}
           onPress={() => switchLanguage('fa')}
-          className="bg-neutral-1000 dark:bg-neutral-dark-1000 py-3 px-6 rounded-lg mt-5 shadow-lg disabled:opacity-20"
-          disabled={i18n.resolvedLanguage === 'fa'}>
-          <Text className="text-text-error text-base font-semibold">
-            {t('fa')}
-          </Text>
-        </TouchableOpacity>
+          disabled={i18n.resolvedLanguage === 'fa'}
+          size="Large"
+          color="Success"
+          type="Outline"
+          rounded
+        />
       </View>
       <View className="flex px-3     flex-row w-full justify-center items-center mt-6 gap-4">
         <BaseButton
           onPress={toggleTheme}
-          type="Fill"
+          type="Tonal"
           color="Black"
           LeftIconVariant="Bold"
+          size="Small"
           LeftIcon={Home}
           text="Toggle"
         />
@@ -86,7 +91,6 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           LeftIconVariant="Bold"
           LeftIcon={Home}
           text="Theme"
-          isLoading
         />
         <BaseButton
           onPress={toggleTheme}
@@ -95,7 +99,6 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           LeftIconVariant="Bold"
           LeftIcon={Home}
           text="Curent"
-          isLoading
         />
       </View>
       <View className="flex px-3     flex-row w-full justify-center items-center mt-6 gap-4">
