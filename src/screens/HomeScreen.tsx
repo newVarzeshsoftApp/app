@@ -8,6 +8,10 @@ import {useTheme} from '../utils/ThemeContext';
 import BaseText from '../components/BaseText';
 import BaseButton from '../components/Button/BaseButton';
 import {Home} from 'iconsax-react-native';
+import Checkbox from '../components/Checkbox/Checkbox';
+import RadioButton from '../components/Button/RadioButton/RadioButton';
+import SwitchButton from '../components/Button/SwitchButton/SwitchButton';
+import ThemeSwitchButton from '../components/Button/SwitchButton/ThemeSwitchButton';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -152,6 +156,17 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           LeftIcon={Home}
           text="Curent"
         />
+      </View>
+      <View className="flex flex-row items-center justify-between gap-10 my-10">
+        <Checkbox checked={isPressed} onPress={setIsPressed} />
+        <RadioButton checked={isPressed} onPress={setIsPressed} />
+        <SwitchButton
+          status={isPressed}
+          onPress={() => setIsPressed(!isPressed)}
+        />
+      </View>
+      <View className="flex flex-row items-center justify-between gap-10 my-10">
+        <ThemeSwitchButton />
       </View>
     </View>
   );
