@@ -49,6 +49,11 @@ module.exports = {
     'fa_placeholder',
     'fa_badge',
 
+    'bg-primary-500',
+    'bg-secondary-500',
+    'bg-warning-500',
+    'bg-success-500',
+    'bg-error-500',
     // Text Colors for Light and Dark Themes
     'text-text-base',
     'text-text-secondary',

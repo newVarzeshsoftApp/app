@@ -22,6 +22,7 @@ import ThemeSwitchButton from '../components/Button/SwitchButton/ThemeSwitchButt
 import ControlledInput from '../components/Input/ControlledInput';
 import OTPCode from '../components/OTP/OTPCode';
 import CountdownTimer from '../components/CountDown/CountDownTimer';
+import Badge from '../components/Badge/Badge';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -113,6 +114,8 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           status={isPressed}
           onPress={() => setIsPressed(!isPressed)}
         />
+        <Badge value="5" rounded color="primary" />
+        <Badge value="100" color="secondary" />
       </View>
       <View className="flex flex-row items-center justify-between gap-10 my-4">
         <ThemeSwitchButton />

@@ -1,5 +1,5 @@
 import { PressableProps, TextStyle } from 'react-native';
-import {IColorButton, IIconVariant, ISizeButton, IStyle‌TypeButton, ITextType, TypeTextColor} from './stylingTypes';
+import {IColorButton, IIconVariant, ISizeButton, IStyle‌TypeButton, ITextType, TypeBadgeColor, TypeTextColor} from './stylingTypes';
 import { FieldValues, Path, UseFormRegister, UseFormWatch } from 'react-hook-form';
 export type ISpinnerProps = {
   svgClassName?: string;
@@ -13,6 +13,13 @@ export type IText = {
   type?: ITextType;
   className?: string;
   color?: TypeTextColor;
+  style?: TextStyle;
+};
+export type IBadge = {
+  value:string
+  className?: string;
+  rounded?:boolean
+  color?: TypeBadgeColor;
   style?: TextStyle;
 };
 export interface IButtonProps extends PressableProps {
