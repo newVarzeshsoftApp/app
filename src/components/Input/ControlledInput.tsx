@@ -86,7 +86,7 @@ const ControlledInput = <T extends FieldValues>({
         {!text && (
           <BaseText
             type="placeholder"
-            className="absolute left-[54px] text-[#B0B0B0] text"
+            className="absolute left-[54px] text-text-muted dark:text-text-muted-dark text"
             style={{pointerEvents: 'none'}}>
             {PlaceHolder}
           </BaseText>

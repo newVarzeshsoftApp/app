@@ -9,6 +9,7 @@
     "start": "react-native start",
     "build": "rm -rf dist/ && webpack --mode=production --config webpack.config.js --port 3000",
     "web": "webpack serve --mode=development --config webpack.config.js --port 3000",
+     "clean": "rm -rf node_modules && rm -f package-lock.json && npm cache clean --force",
     "test": "jest"
   },
   "dependencies": {

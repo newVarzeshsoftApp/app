@@ -2,8 +2,9 @@
 module.exports = {
   content: [
     './App.{js,jsx,ts,tsx}',
-    './src/**/*.{js,jsx,ts,tsx}', // Adjust this to your file structure
+    './src/**/*.{js,jsx,ts,tsx}',
     './index.web.js',
+    './public/index.html',
   ],
   presets: [require('nativewind/preset')],
   darkMode: 'class',

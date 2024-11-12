@@ -12,6 +12,8 @@ const babelLoaderConfiguration = {
     path.resolve(__dirname, 'App.tsx'),
     path.resolve(__dirname, 'src'),
     path.resolve(__dirname, 'node_modules/react-native-css-interop'),
+    path.resolve(__dirname, 'node_modules/@react-native'),
+    path.resolve(__dirname, 'node_modules/react-native-svg'),
   ],
   use: {
     loader: 'babel-loader',
@@ -29,9 +31,14 @@ const cssLoaderConfiguration = {
     'style-loader',
     {
       loader: 'css-loader',
-      options: {importLoaders: 1},
+      options: {
+        importLoaders: 1,
+        modules: {
+          auto: true, // Enable CSS Modules for all CSS files
+        },
+      },
     },
-    'postcss-loader', // Add postcss-loader to handle Tailwind CSS
+    'postcss-loader',
   ],
 };
 
@@ -40,6 +47,9 @@ const svgLoaderConfiguration = {
   use: [
     {
       loader: '@svgr/webpack',
+      options: {
+        svgo: false,
+      },
     },
   ],
 };
@@ -53,6 +63,7 @@ const imageLoaderConfiguration = {
     },
   },
 };
+
 const fontLoaderConfiguration = {
   test: /\.(ttf|woff|woff2|eot)$/,
   type: 'asset/resource',
@@ -94,6 +105,8 @@ module.exports = {
     new webpack.HotModuleReplacementPlugin(),
     new webpack.DefinePlugin({
       __DEV__: JSON.stringify(true),
+      'process.env': JSON.stringify({}),
+      process: {env: {}},
     }),
   ],
 };
