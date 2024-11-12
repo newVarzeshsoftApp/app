@@ -1,5 +1,12 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, TouchableOpacity, Button, Pressable} from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Button,
+  Pressable,
+  ScrollView,
+} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {RootStackParamList} from '../../App';
 import {useTranslation} from 'react-i18next';
@@ -13,6 +20,8 @@ import RadioButton from '../components/Button/RadioButton/RadioButton';
 import SwitchButton from '../components/Button/SwitchButton/SwitchButton';
 import ThemeSwitchButton from '../components/Button/SwitchButton/ThemeSwitchButton';
 import ControlledInput from '../components/Input/ControlledInput';
+import OTPCode from '../components/OTP/OTPCode';
+import CountdownTimer from '../components/CountDown/CountDownTimer';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -20,7 +29,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
   const {t, i18n} = useTranslation('translation', {keyPrefix: 'Global'});
   const {theme, toggleTheme} = useTheme();
   const [isPressed, setIsPressed] = useState(false);
-
+  const [value, setvalue] = useState('');
   return (
     <View className="flex-1 items-center justify-center  dark:bg-neutral-dark-0 bg-neutral-0">
       <BaseText>{t('Home Screen')}</BaseText>
@@ -53,7 +62,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
         />
       </View>
 
-      <View className="flex px-3     flex-row w-full justify-center items-center mt-6 gap-4">
+      <View className="flex px-3 flex-row w-full justify-center items-center mt-6 gap-4">
         <BaseButton
           onPress={toggleTheme}
           type="Fill"
@@ -79,37 +88,12 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           text="Curent"
         />
       </View>
-      <View className="flex px-3     flex-row w-full justify-center items-center mt-6 gap-4">
-        <BaseButton
-          onPress={toggleTheme}
-          type="TextButton"
-          color="Primary"
-          LeftIconVariant="Bold"
-          LeftIcon={Home}
-          text="Toggle"
-        />
-        <BaseButton
-          onPress={toggleTheme}
-          type="TextButton"
-          color="Black"
-          LeftIconVariant="Bold"
-          LeftIcon={Home}
-          text="Theme"
-        />
-        <BaseButton
-          onPress={toggleTheme}
-          type="TextButton"
-          color="Success"
-          LeftIconVariant="Bold"
-          LeftIcon={Home}
-          text="Curent"
-        />
-      </View>
+
       <View className="w-full px-6">
         <ControlledInput
           id="test"
-          type="password"
           label="Name"
+          PlaceHolder="HiitsForTest"
           error="Error Test"
           LeftIcon={Home}
         />
@@ -122,7 +106,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           LeftIcon={Home}
         />
       </View>
-      <View className="flex flex-row items-center justify-between gap-10 my-10">
+      <View className="flex flex-row items-center justify-between gap-10 ">
         <Checkbox checked={isPressed} onPress={setIsPressed} />
         <RadioButton checked={isPressed} onPress={setIsPressed} />
         <SwitchButton
@@ -130,11 +114,18 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           onPress={() => setIsPressed(!isPressed)}
         />
       </View>
-      <View className="flex flex-row items-center justify-between gap-10 my-10">
+      <View className="flex flex-row items-center justify-between gap-10 my-4">
         <ThemeSwitchButton />
+      </View>
+      <View className="px-4">
+        <OTPCode length={5} onChange={e => setvalue(e)} value={value} />
+      </View>
+      <View className="mt-2">
+        <CountdownTimer initialTime={1000} />
       </View>
     </View>
   );
 };
+2;
 
 export default HomeScreen;

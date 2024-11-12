@@ -86,7 +86,7 @@ const ControlledInput = <T extends FieldValues>({
         {!text && (
           <BaseText
             type="placeholder"
-            className="absolute left-[50px] text-[#B0B0B0] text"
+            className="absolute left-[54px] text-[#B0B0B0] text"
             style={{pointerEvents: 'none'}}>
             {PlaceHolder}
           </BaseText>
@@ -105,6 +105,7 @@ const ControlledInput = <T extends FieldValues>({
         />
         {type === 'password' ? (
           <TouchableOpacity
+            disabled={disabled}
             onPress={toggleVisibilityHandler}
             className=" text-gray-400">
             {showPassword ? (
