@@ -12,6 +12,7 @@ import Checkbox from '../components/Checkbox/Checkbox';
 import RadioButton from '../components/Button/RadioButton/RadioButton';
 import SwitchButton from '../components/Button/SwitchButton/SwitchButton';
 import ThemeSwitchButton from '../components/Button/SwitchButton/ThemeSwitchButton';
+import ControlledInput from '../components/Input/ControlledInput';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -51,60 +52,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           rounded
         />
       </View>
-      <View className="flex px-3     flex-row w-full justify-center items-center mt-6 gap-4">
-        <BaseButton
-          onPress={toggleTheme}
-          type="Tonal"
-          color="Black"
-          LeftIconVariant="Bold"
-          size="Small"
-          LeftIcon={Home}
-          text="Toggle"
-        />
-        <BaseButton
-          onPress={toggleTheme}
-          type="Tonal"
-          color="Black"
-          LeftIconVariant="Bold"
-          LeftIcon={Home}
-          text="Theme"
-        />
-        <BaseButton
-          onPress={toggleTheme}
-          type="Outline"
-          color="Black"
-          LeftIconVariant="Bold"
-          LeftIcon={Home}
-          text="Curent"
-        />
-      </View>
-      <View className="flex px-3     flex-row w-full justify-center items-center mt-6 gap-4">
-        <BaseButton
-          onPress={toggleTheme}
-          type="Fill"
-          color="Primary"
-          LeftIconVariant="Bold"
-          LeftIcon={Home}
-          text="Toggle"
-          isLoading
-        />
-        <BaseButton
-          onPress={toggleTheme}
-          type="Tonal"
-          color="Primary"
-          LeftIconVariant="Bold"
-          LeftIcon={Home}
-          text="Theme"
-        />
-        <BaseButton
-          onPress={toggleTheme}
-          type="Outline"
-          color="Primary"
-          LeftIconVariant="Bold"
-          LeftIcon={Home}
-          text="Curent"
-        />
-      </View>
+
       <View className="flex px-3     flex-row w-full justify-center items-center mt-6 gap-4">
         <BaseButton
           onPress={toggleTheme}
@@ -155,6 +103,23 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
           LeftIconVariant="Bold"
           LeftIcon={Home}
           text="Curent"
+        />
+      </View>
+      <View className="w-full px-6">
+        <ControlledInput
+          id="test"
+          type="password"
+          label="Name"
+          error="Error Test"
+          LeftIcon={Home}
+        />
+        <ControlledInput
+          id="test2"
+          type="password"
+          label="Test"
+          info="some text"
+          PlaceHolder="Placeholder"
+          LeftIcon={Home}
         />
       </View>
       <View className="flex flex-row items-center justify-between gap-10 my-10">
