@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import i18n from '../../../i18n.config';
+import {I18nManager} from 'react-native';
 
 export const switchLanguage = async (lang: string) => {
   await i18n.changeLanguage(lang);

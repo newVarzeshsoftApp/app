@@ -1,7 +1,6 @@
 import {AppRegistry} from 'react-native';
 import {name as appName} from './app.json';
 import App from './App';
-// import 'nativewind/tailwind.css';
 import './global.css';
 import './i18n.config';
 if (module.hot) {

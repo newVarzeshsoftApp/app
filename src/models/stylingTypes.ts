@@ -26,6 +26,12 @@ export type TypeTextColor =
   | "Primary600"
   | "Success600"
   | "Success500";
+export type TypeBadgeColor =
+  | 'primary'
+  | 'secondary'
+  | 'warning'
+  | 'success'
+  | 'error';
 
 
   export type IStyle‌TypeButton ="Fill" | "Tonal" |"Outline"| "TextButton" 

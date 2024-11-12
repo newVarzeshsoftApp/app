@@ -8,6 +8,8 @@ function BaseText({
   children,
   type = 'body1',
   color = 'base',
+  className,
+  style,
 }: IText): JSX.Element {
   const {theme} = useTheme();
   const {i18n} = useTranslation();
@@ -25,7 +27,14 @@ function BaseText({
   }
 
   return (
-    <Text className={getTextClass(type, theme, color, i18n.language)}>
+    <Text
+      style={style}
+      className={`${getTextClass(
+        type,
+        theme,
+        color,
+        i18n.language,
+      )} ${className}`}>
       {children}
     </Text>
   );

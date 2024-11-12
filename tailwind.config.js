@@ -2,8 +2,9 @@
 module.exports = {
   content: [
     './App.{js,jsx,ts,tsx}',
-    './src/**/*.{js,jsx,ts,tsx}', // Adjust this to your file structure
+    './src/**/*.{js,jsx,ts,tsx}',
     './index.web.js',
+    './public/index.html',
   ],
   presets: [require('nativewind/preset')],
   darkMode: 'class',
@@ -48,6 +49,11 @@ module.exports = {
     'fa_placeholder',
     'fa_badge',
 
+    'bg-primary-500',
+    'bg-secondary-500',
+    'bg-warning-500',
+    'bg-success-500',
+    'bg-error-500',
     // Text Colors for Light and Dark Themes
     'text-text-base',
     'text-text-secondary',
