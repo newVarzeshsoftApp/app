@@ -6,7 +6,7 @@ import React, {
   ReactNode,
   useEffect,
 } from 'react';
-import {Appearance} from 'react-native';
+import {Appearance, Platform} from 'react-native';
 
 type ThemeContextType = {
   theme: 'light' | 'dark' | undefined;
@@ -22,7 +22,13 @@ type ThemeProviderProps = {
 
 export const ThemeProvider = ({children}: ThemeProviderProps) => {
   const {colorScheme, setColorScheme, toggleColorScheme} = useColorScheme();
-
+  useEffect(() => {
+    if (Platform.OS === 'web' && typeof document !== 'undefined') {
+      document.documentElement.classList.add(
+        colorScheme ? colorScheme : 'dark',
+      );
+    }
+  }, []);
   return (
     <ThemeContext.Provider
       value={{

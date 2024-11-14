@@ -22,6 +22,11 @@ export type IBadge = {
   color?: TypeBadgeColor;
   style?: TextStyle;
 };
+export interface IWheelProps {
+  items: {value:string,label:string}[]; 
+  onSelect: (value: string) => void;
+  initialIndex: number;
+}
 export interface IButtonProps extends PressableProps {
   type: IStyle‌TypeButton;             // Custom style type for the button
   size?:ISizeButton

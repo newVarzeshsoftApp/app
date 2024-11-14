@@ -55,7 +55,7 @@ const OTPCode: React.FC<OtpProps> = ({value, length, onChange, error}) => {
         <TextInput
           key={index}
           ref={ref => (inputRefs.current[index] = ref!)}
-          className={`text-text-base dark:text-text-base-dark ${
+          className={`text-text-base dark:text-text-base-dark outline-none ${
             error
               ? 'border-error-500'
               : focusedIndex === index

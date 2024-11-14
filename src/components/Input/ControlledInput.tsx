@@ -60,14 +60,16 @@ const ControlledInput = <T extends FieldValues>({
 
   return (
     <View
-      className={`flex flex-col my-2 gap-1 w-full ${
+      className={`flex flex-col  my-2 gap-1 w-full ${
         disabled ? 'opacity-50' : ''
       }`}>
-      {label && (
-        <BaseText type="title4" className="!capitalize">
-          {label}
-        </BaseText>
-      )}
+      <View>
+        {label && (
+          <BaseText type="title4" className="!capitalize w-fit rtl:text-left  ">
+            {label}
+          </BaseText>
+        )}
+      </View>
       <View
         className={`w-full h-12 relative px-4 flex flex-row items-center overflow-hidden  justify-center gap-2 rounded-2xl border ${
           disabled && 'bg-neutral-100 dark:bg-neutral-dark-100'
@@ -86,7 +88,7 @@ const ControlledInput = <T extends FieldValues>({
         {!text && (
           <BaseText
             type="placeholder"
-            className="absolute left-[54px] text-text-muted dark:text-text-muted-dark text"
+            className="absolute left-[54px] rtl:right-[54px] rtl:text-left text-text-muted dark:text-text-muted-dark w-fit"
             style={{pointerEvents: 'none'}}>
             {PlaceHolder}
           </BaseText>
