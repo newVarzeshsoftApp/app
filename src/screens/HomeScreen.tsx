@@ -23,6 +23,7 @@ import ControlledInput from '../components/Input/ControlledInput';
 import OTPCode from '../components/OTP/OTPCode';
 import CountdownTimer from '../components/CountDown/CountDownTimer';
 import Badge from '../components/Badge/Badge';
+import {Picker} from '@react-native-picker/picker';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Home'>;
 
@@ -31,6 +32,7 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
   const {theme, toggleTheme} = useTheme();
   const [isPressed, setIsPressed] = useState(false);
   const [value, setvalue] = useState('');
+  const [selectedLanguage, setSelectedLanguage] = useState();
   return (
     <View className="flex-1 items-center justify-center  dark:bg-neutral-dark-0 bg-neutral-0">
       <BaseText>{t('Home Screen')}</BaseText>
@@ -38,9 +40,9 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
       <TouchableOpacity
         className="bg-secondary-400 py-3 px-6 rounded-lg mt-5 shadow-lg"
         onPress={() => navigation.navigate('Details')}>
-        <Text className="text-white text-base  font-yekan">
-          Go to Detail Page
-        </Text>
+        <BaseText className="text-white text-base  font-yekan">
+          Detail Page
+        </BaseText>
       </TouchableOpacity>
       <View className="flex flex-row w-full justify-center items-center mt-6 gap-4">
         <BaseButton
@@ -119,6 +121,16 @@ const HomeScreen: React.FC<Props> = ({navigation}) => {
       </View>
       <View className="flex flex-row items-center justify-between gap-10 my-4">
         <ThemeSwitchButton />
+      </View>
+      <View className="w-full h-">
+        <Picker
+          selectedValue={selectedLanguage}
+          onValueChange={(itemValue, itemIndex) =>
+            setSelectedLanguage(itemValue)
+          }>
+          <Picker.Item label="Java" value="java" />
+          <Picker.Item label="JavaScript" value="js" />
+        </Picker>
       </View>
       <View className="px-4">
         <OTPCode length={5} onChange={e => setvalue(e)} value={value} />
