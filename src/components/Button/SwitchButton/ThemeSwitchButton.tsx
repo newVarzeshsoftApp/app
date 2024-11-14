@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {Pressable, View, Platform} from 'react-native';
+import {Pressable, View, Platform, I18nManager} from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -11,16 +11,22 @@ import {Moon, Sun1} from 'iconsax-react-native';
 const ThemeSwitchButton = () => {
   const {toggleTheme, theme} = useTheme();
   const isDarkMode = theme === 'dark';
+  const IsRTL = I18nManager.isRTL;
 
   // For mobile animation
-  const translateX = useSharedValue(isDarkMode ? 50 : 4);
+  const translateX = useSharedValue(
+    isDarkMode ? (IsRTL ? -50 : 50) : IsRTL ? -4 : 4,
+  );
 
   useEffect(() => {
     if (Platform.OS === 'web') {
       return; // Skip reanimated logic on web
     }
     // Animate the circle to move based on the theme change on mobile
-    translateX.value = withTiming(isDarkMode ? 50 : 4, {duration: 200});
+    translateX.value = withTiming(
+      isDarkMode ? (IsRTL ? -50 : 50) : IsRTL ? -4 : 4,
+      {duration: 200},
+    );
   }, [isDarkMode]);
 
   // Animated translation for mobile

@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react';
-import {Pressable, Platform, View} from 'react-native';
+import {Pressable, Platform, View, I18nManager} from 'react-native';
 import CheckIcon from '../../../assets/icons/check.svg';
 import CrossIcon from '../../../assets/icons/cross.svg';
 import Animated, {
@@ -19,9 +19,9 @@ const SwitchButton: React.FC<SwitchButtonProps> = ({
   isDisabled = false,
   onPress,
 }) => {
+  const isRTL = I18nManager.isRTL;
   // For mobile animation
   const translateX = useSharedValue(status ? 30 : 4);
-
   // Handle Press
   const handlePress = () => {
     if (!isDisabled && onPress) {
@@ -34,7 +34,10 @@ const SwitchButton: React.FC<SwitchButtonProps> = ({
       return; // Skip reanimated logic on web
     }
     // Animate the circle to move based on the status change for mobile
-    translateX.value = withTiming(status ? 30 : 4, {duration: 200});
+    translateX.value = withTiming(
+      status ? (isRTL ? -30 : 30) : isRTL ? -4 : 4,
+      {duration: 200},
+    );
   }, [status]);
 
   // Apply the animated translation style for mobile
