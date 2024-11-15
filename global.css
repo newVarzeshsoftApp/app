@@ -47,6 +47,9 @@ textarea:-webkit-autofill:focus {
 @tailwind components;
 @tailwind utilities;
 @layer components {
+  .Container {
+    @apply px-4 w-full h-full;
+  }
   /* Primary */
   .Fill-Primary {
     @apply bg-primary-500 hover:bg-primary-400 border-2 border-transparent;

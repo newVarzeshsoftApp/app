@@ -20,7 +20,7 @@ const babelLoaderConfiguration = {
     options: {
       cacheDirectory: true,
       presets,
-      plugins: ['react-native-web'],
+      plugins: ['react-native-web', 'react-native-reanimated/plugin'],
     },
   },
 };
@@ -34,7 +34,7 @@ const cssLoaderConfiguration = {
       options: {
         importLoaders: 1,
         modules: {
-          auto: true, // Enable CSS Modules for all CSS files
+          auto: true,
         },
       },
     },
@@ -108,5 +108,6 @@ module.exports = {
       'process.env': JSON.stringify({}),
       process: {env: {}},
     }),
+    new webpack.EnvironmentPlugin({JEST_WORKER_ID: null}),
   ],
 };

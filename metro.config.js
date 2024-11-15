@@ -1,11 +1,14 @@
 const {getDefaultConfig, mergeConfig} = require('@react-native/metro-config');
 const {withNativeWind} = require('nativewind/metro');
+const {
+  wrapWithReanimatedMetroConfig,
+} = require('react-native-reanimated/metro-config');
 
 module.exports = (async () => {
   // Get the default configuration
   const defaultConfig = await getDefaultConfig(__dirname);
 
-  // Merge the default configuration with custom settings
+  // Merge the default configuration with your custom settings
   const config = mergeConfig(defaultConfig, {
     transformer: {
       babelTransformerPath: require.resolve('react-native-svg-transformer'), // SVG transformer
@@ -17,5 +20,8 @@ module.exports = (async () => {
   });
 
   // Apply NativeWind configuration with your custom settings
-  return withNativeWind(config, {input: './global.css'});
+  const nativeWindConfig = withNativeWind(config, {input: './global.css'});
+
+  // Wrap the configuration with Reanimated's Metro config
+  return wrapWithReanimatedMetroConfig(nativeWindConfig);
 })();
