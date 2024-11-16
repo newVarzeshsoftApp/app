@@ -5,22 +5,29 @@ import {
   Theme,
 } from '@react-navigation/native';
 import {loadLanguage} from './src/utils/helpers/languageUtils';
-import {ThemeProvider} from './src/utils/ThemeContext';
+import {ThemeProvider, useTheme} from './src/utils/ThemeContext';
 import {RootNavigator} from './src/navigation/RootNavigator';
 import {AuthProvider} from './src/store/context/AuthProvider';
-import {View} from 'react-native';
+import {useColorScheme, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
-const MinimalTheme: Theme = {
-  ...DefaultTheme,
-  colors: {
-    ...DefaultTheme.colors,
-    background: 'transparent',
-    primary: 'black',
-    text: 'black',
-    border: 'transparent',
-  },
-};
+
 export default function App() {
+  useEffect(() => {
+    loadLanguage();
+  }, []);
+  const colorScheme = useColorScheme();
+
+  const MinimalTheme: Theme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      background: colorScheme === 'dark' ? '#16181b' : '#ffffff', // Dark or Light
+      primary: 'black',
+      text: 'black',
+      border: 'transparent',
+    },
+  };
+
   useEffect(() => {
     loadLanguage();
   }, []);

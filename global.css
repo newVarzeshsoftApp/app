@@ -46,9 +46,57 @@ textarea:-webkit-autofill:focus {
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  /* Poppins Font Family */
+  @font-face {
+    font-family: 'Poppins-Regular';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('./src/assets/font/Poppins-Regular.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: 'Poppins-Bold';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('./src/assets/font/Poppins-Bold.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: 'Poppins-SemiBold';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('./src/assets/font/Poppins-SemiBold.ttf') format('truetype');
+  }
+
+  /* YekanBakhFaNum Font Family */
+  @font-face {
+    font-family: 'YekanBakhFaNum-Regular';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('./src/assets/font/YekanBakhFaNum-Regular.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: 'YekanBakhFaNum-Bold';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('./src/assets/font/YekanBakhFaNum-Bold.ttf') format('truetype');
+  }
+  @font-face {
+    font-family: 'YekanBakhFaNum-SemiBold';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('./src/assets/font/YekanBakhFaNum-SemiBold.ttf') format('truetype');
+  }
+}
 @layer components {
   .Container {
-    @apply px-4 w-full h-full;
+    @apply px-5 w-full;
   }
   /* Primary */
   .Fill-Primary {
@@ -98,7 +146,7 @@ textarea:-webkit-autofill:focus {
 @layer utilities {
   /* Typography */
   .title1 {
-    @apply font-bold leading-[2rem] text-[1.5rem] lg:leading-[2.5rem] lg:text-[2rem];
+    @apply font-bold  leading-[2rem] text-[1.5rem] lg:leading-[2.5rem] lg:text-[2rem];
   }
   .title2 {
     @apply font-bold leading-[1.5rem] text-[1.25rem] lg:leading-[2rem] lg:text-[1.75rem];

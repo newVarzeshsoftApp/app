@@ -1,53 +1,138 @@
-import React from 'react';
-import {View, Text, Button, Dimensions, Image, Platform} from 'react-native';
-import {useAuth} from '../../store/context/AuthProvider';
+import React, {useState} from 'react';
+import {View, TouchableOpacity, Dimensions, Platform} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {AuthStackParamList} from '../../utils/types/NavigationTypes';
-import LinearGradient from 'react-native-linear-gradient';
-import {useTheme} from '../../utils/ThemeContext';
+import {
+  LoginSchema,
+  LoginSchemaType,
+} from '../../utils/validation/auth/LoginSchema';
+import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
+import ControlledInput from '../../components/Input/ControlledInput';
+import {zodResolver} from '@hookform/resolvers/zod';
+import {useTranslation} from 'react-i18next';
+import BaseText from '../../components/BaseText';
+import Checkbox from '../../components/Checkbox/Checkbox';
+import BaseButton from '../../components/Button/BaseButton';
+import Banner from './Banner';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {KeyboardAvoidingView} from 'react-native';
+import {ScrollView} from 'react-native-gesture-handler';
+
 type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
-const {width: screenWidth, height: screenHeight} = Dimensions.get('window');
-
 const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
-  const {login} = useAuth();
-  const {theme, toggleTheme} = useTheme();
+  const [Rememberme, setRememberme] = useState(false);
+  const {t} = useTranslation('translation', {keyPrefix: 'Input'});
+  const {t: placeholders} = useTranslation('translation', {
+    keyPrefix: 'Input.placeholders',
+  });
+  const {t: auth} = useTranslation('translation', {
+    keyPrefix: 'Auth',
+  });
+  const onSubmit: SubmitHandler<LoginSchemaType> = async data => {};
 
+  const methods = useForm<LoginSchemaType>({
+    resolver: zodResolver(LoginSchema),
+    defaultValues: {
+      username: '',
+      password: '',
+    },
+  });
+
+  const {
+    handleSubmit,
+    control,
+    formState: {errors, isValid},
+  } = methods;
+
+  const screenHeight = Dimensions.get('screen').height;
+  const bottomPadding = screenHeight > 800 ? '' : 'pb-6';
   return (
-    <View className="flex-1 justify-start items-center ">
-      <View
-        style={{height: screenHeight * 0.4}}
-        className={`w-full rounded-b-3xl overflow-hidden`}>
-        <Image
-          source={require('../../assets/testImage.jpeg')}
-          resizeMode="cover"
-          style={{
-            width: '100%',
-            height: screenHeight * 0.6,
-          }}
-        />
-        {Platform.OS !== 'web' && (
-          <LinearGradient
-            colors={['transparent', theme === 'dark' ? '#16181b' : '#ffffff']} // Gradient from transparent to black
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              width: '100%',
-              height: screenHeight * 0.4,
-            }}
+    <View className="flex-1">
+      <Banner />
+      <SafeAreaView className="flex-1">
+        <KeyboardAvoidingView
+          className=" flex-1"
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <ScrollView
+            contentContainerStyle={{paddingHorizontal: 16, paddingBottom: 20}}
+            showsVerticalScrollIndicator={false}>
+            <View className="w-full flex flex-col gap-9  flex-1">
+              <BaseText type="title2">{auth('login')}</BaseText>
+              <FormProvider {...methods}>
+                <View className="flex flex-col gap-4">
+                  <ControlledInput
+                    control={control}
+                    name="username"
+                    label={t('username')}
+                    PlaceHolder={placeholders('phoneOrEmail')}
+                    type="text"
+                    accessibilityLabel="Username input field"
+                    accessibilityHint="Enter your phone number or email"
+                    error={errors.username?.message}
+                  />
+                  <ControlledInput
+                    control={control}
+                    name="password"
+                    label={t('password')}
+                    PlaceHolder={placeholders('password')}
+                    type="password"
+                    error={errors.password?.message}
+                    accessibilityLabel="Password input field"
+                    accessibilityHint="Enter your password"
+                  />
+                </View>
+              </FormProvider>
+              <View className="flex flex-row justify-between w-full items-center">
+                <Checkbox
+                  onCheckedChange={setRememberme}
+                  checked={Rememberme}
+                  label={auth('RememberMe')}
+                  accessibilityLabel="Remember me checkbox"
+                  accessibilityHint="Toggle to remember your login credentials"
+                />
+                <TouchableOpacity
+                  accessibilityLabel="Navigate to Forget Password screen"
+                  onPress={() => navigation.navigate('ForgetPassword')}>
+                  <BaseText type="button2" color="active">
+                    {auth('ForgetPassword')}
+                  </BaseText>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
+        <View className={`w-full Container ${bottomPadding}  gap-6 `}>
+          <BaseButton
+            onPress={handleSubmit(onSubmit)}
+            type="Fill"
+            color="Black"
+            rounded
+            size="Large"
+            text={auth('login')}
+            disabled={!isValid}
+            accessibilityLabel="Login button"
+            accessibilityRole="button"
+            accessibilityHint="Submits the login form"
           />
-        )}
-      </View>
-
-      <View className="px-5">
-        <Button title="Login" onPress={toggleTheme} />
-        <Button title="Sign Up" onPress={() => navigation.navigate('Signup')} />
-        <Button
-          title="Forget Password"
-          onPress={() => navigation.navigate('ForgetPassword')}
-        />
-      </View>
+          <View className="flex items-center flex-row justify-center gap-2">
+            <BaseText
+              type="button1"
+              color="muted"
+              accessibilityLabel="Not registered text">
+              {auth('notRegistered')}
+            </BaseText>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Signup')}
+              accessibilityLabel="Navigate to Signup screen"
+              accessibilityRole="button">
+              <BaseText type="button1" color="active">
+                {auth('signup')}
+              </BaseText>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </SafeAreaView>
     </View>
   );
 };

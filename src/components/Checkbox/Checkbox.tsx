@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {Pressable, View, Text, Platform} from 'react-native';
+import {Pressable, View, Text, Platform, PressableProps} from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,8 +10,15 @@ import Animated, {
 import Check from '../../assets/icons/check.svg';
 import {useTheme} from '../../utils/ThemeContext';
 import {ICheckboxProps} from '../../models/props';
+import BaseText from '../BaseText';
 
-const Checkbox: React.FC<ICheckboxProps> = ({id, checked, onPress, label}) => {
+const Checkbox: React.FC<ICheckboxProps & PressableProps> = ({
+  id,
+  checked,
+  onCheckedChange,
+  label,
+  ...props
+}) => {
   const {theme} = useTheme();
 
   // For web pop effect
@@ -22,8 +29,8 @@ const Checkbox: React.FC<ICheckboxProps> = ({id, checked, onPress, label}) => {
   const checkboxScale = useSharedValue(1);
 
   const handlePress = () => {
-    if (onPress) {
-      onPress(!checked);
+    if (onCheckedChange) {
+      onCheckedChange(!checked);
     }
 
     if (Platform.OS === 'web') {
@@ -54,8 +61,8 @@ const Checkbox: React.FC<ICheckboxProps> = ({id, checked, onPress, label}) => {
   }));
 
   return (
-    <View className="flex-row items-center space-x-2">
-      <Pressable onPress={handlePress} className="relative">
+    <View className="flex-row items-center space-x-2 gap-2">
+      <Pressable {...props} onPress={handlePress} className="relative">
         {/* Background circle */}
         {Platform.OS === 'web' ? (
           <View
@@ -107,9 +114,9 @@ const Checkbox: React.FC<ICheckboxProps> = ({id, checked, onPress, label}) => {
       </Pressable>
 
       {label && (
-        <Text className={`text-${theme === 'dark' ? 'white' : 'gray-700'}`}>
+        <BaseText onPress={handlePress} type="button2" color="muted">
           {label}
-        </Text>
+        </BaseText>
       )}
     </View>
   );
