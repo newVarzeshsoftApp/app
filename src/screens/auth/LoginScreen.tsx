@@ -52,9 +52,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
       <Banner />
       <SafeAreaView className="flex-1">
         <KeyboardAvoidingView
-          className=" flex-1"
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          className="flex-1"
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 50 : 0}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <ScrollView
+            keyboardShouldPersistTaps="handled"
             contentContainerStyle={{paddingHorizontal: 16, paddingBottom: 20}}
             showsVerticalScrollIndicator={false}>
             <View className="w-full flex flex-col gap-9  flex-1">

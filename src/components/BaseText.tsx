@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text} from 'react-native';
+import {Platform, Text} from 'react-native';
 import {IText} from '../models/props';
 import {useTheme} from '../utils/ThemeContext';
 import {useTranslation} from 'react-i18next';
@@ -32,12 +32,9 @@ function BaseText({
     <Text
       {...props}
       style={style}
-      className={`rtl:text-left ${getTextClass(
-        type,
-        theme,
-        color,
-        i18n.language,
-      )} ${className}`}>
+      className={`${
+        Platform.OS === 'ios' ? 'rtl:text-left' : ''
+      } ${getTextClass(type, theme, color, i18n.language)} ${className}`}>
       {children}
     </Text>
   );

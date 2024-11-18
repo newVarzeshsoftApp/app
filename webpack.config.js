@@ -60,6 +60,7 @@ const imageLoaderConfiguration = {
     loader: 'url-loader',
     options: {
       name: '[name].[ext]',
+      esModule: false,
     },
   },
 };
@@ -87,6 +88,7 @@ module.exports = {
     extensions: ['.web.tsx', '.web.ts', '.tsx', '.ts', '.web.js', '.js'],
     alias: {
       'react-native$': 'react-native-web',
+      'react-native-linear-gradient': 'react-native-web-linear-gradient',
     },
   },
   module: {
@@ -110,4 +112,11 @@ module.exports = {
     }),
     new webpack.EnvironmentPlugin({JEST_WORKER_ID: null}),
   ],
+  devServer: {
+    static: path.join(__dirname, 'public'),
+    compress: true,
+    hot: true,
+    port: 3000,
+    historyApiFallback: true,
+  },
 };

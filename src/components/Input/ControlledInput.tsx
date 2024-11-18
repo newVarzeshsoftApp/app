@@ -65,7 +65,9 @@ const ControlledInput = <T extends FieldValues>({
               <BaseText
                 type="caption"
                 className={`absolute ${
-                  LeftIcon ? 'left-[20%] rtl:right-[20%]' : 'left-[6%] rtl:[6%]'
+                  LeftIcon
+                    ? 'left-[20%] rtl:right-[20%]'
+                    : 'left-[6%] rtl:right-[6%]'
                 }  rtl:text-left text-text-muted dark:text-text-muted-dark w-fit`}
                 style={{pointerEvents: 'none'}}>
                 {PlaceHolder}
