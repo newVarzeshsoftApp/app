@@ -4,6 +4,7 @@ import {Controller, FieldValues} from 'react-hook-form';
 import {Eye, EyeSlash, InfoCircle} from 'iconsax-react-native';
 import BaseText from '../BaseText';
 import {InputProps} from '../../models/props';
+import {useTranslation} from 'react-i18next';
 
 const ControlledInput = <T extends FieldValues>({
   control,
@@ -18,6 +19,7 @@ const ControlledInput = <T extends FieldValues>({
   RightIcon,
   RightIconVariant,
   PlaceHolder,
+  optional,
   ...props
 }: InputProps<T> & TextInputProps) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -25,6 +27,7 @@ const ControlledInput = <T extends FieldValues>({
   const togglePasswordVisibility = () => {
     setShowPassword(prev => !prev);
   };
+  const {t} = useTranslation('translation', {keyPrefix: 'Input'});
 
   return (
     <View
@@ -32,7 +35,7 @@ const ControlledInput = <T extends FieldValues>({
       {/* Label */}
       {label && (
         <BaseText type="title4" className="!capitalize w-fit rtl:text-left">
-          {label}
+          {label} {optional && `(${t('optional')})`}
         </BaseText>
       )}
       <Controller
@@ -114,26 +117,27 @@ const ControlledInput = <T extends FieldValues>({
           </View>
         )}
       />
+      <View className="h-[14px]">
+        {/* Info Text */}
+        {info && (
+          <View className="flex flex-row items-center gap-2">
+            <InfoCircle size={14} color="#7F8185" />
+            <BaseText color="secondary" type="caption">
+              {info}
+            </BaseText>
+          </View>
+        )}
 
-      {/* Info Text */}
-      {info && (
-        <View className="flex flex-row items-center gap-2">
-          <InfoCircle size={20} color="#7F8185" />
-          <BaseText color="secondary" type="caption">
-            {info}
-          </BaseText>
-        </View>
-      )}
-
-      {/* Error Text */}
-      {error && (
-        <View className="flex flex-row items-center gap-2">
-          <InfoCircle size={20} color="#FD504F" />
-          <BaseText color="error" type="placeholder">
-            {error}
-          </BaseText>
-        </View>
-      )}
+        {/* Error Text */}
+        {error && (
+          <View className="flex flex-row items-center gap-2">
+            <InfoCircle size={14} color="#FD504F" />
+            <BaseText color="error" type="caption">
+              {error}
+            </BaseText>
+          </View>
+        )}
+      </View>
     </View>
   );
 };

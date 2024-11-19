@@ -8,6 +8,8 @@ import BaseButton from '../../components/Button/BaseButton';
 import {ArrowRight2} from 'iconsax-react-native';
 import {useTheme} from '../../utils/ThemeContext';
 
+import {Platform, View} from 'react-native';
+
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 const AuthNavigator: React.FC = () => {
@@ -23,14 +25,16 @@ const AuthNavigator: React.FC = () => {
           headerShadowVisible: false,
           headerTranslucent: true,
           headerLeft: () => (
-            <BaseButton
-              onPress={() => navigation.navigate('Login')}
-              noText
-              LeftIcon={ArrowRight2}
-              type="Outline"
-              color="Black"
-              rounded
-            />
+            <View className={Platform.OS === 'ios' ? '' : 'px-3'}>
+              <BaseButton
+                onPress={() => navigation.navigate('Login')}
+                noText
+                LeftIcon={ArrowRight2}
+                type="Outline"
+                color="Black"
+                rounded
+              />
+            </View>
           ),
           headerTitle: '',
           headerStyle: {

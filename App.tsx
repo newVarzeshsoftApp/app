@@ -5,11 +5,12 @@ import {
   Theme,
 } from '@react-navigation/native';
 import {loadLanguage} from './src/utils/helpers/languageUtils';
-import {ThemeProvider, useTheme} from './src/utils/ThemeContext';
+import {ThemeProvider} from './src/utils/ThemeContext';
 import {RootNavigator} from './src/navigation/RootNavigator';
-import {AuthProvider} from './src/store/context/AuthProvider';
 import {useColorScheme, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
+import TenstackProvider from './src/utils/Providers/TenstackProvider';
+import ToastProvider from './src/components/Toast/Toast';
 
 export default function App() {
   useEffect(() => {
@@ -27,20 +28,17 @@ export default function App() {
       border: 'transparent',
     },
   };
-
-  useEffect(() => {
-    loadLanguage();
-  }, []);
   return (
     <GestureHandlerRootView style={{flex: 1}}>
       <ThemeProvider>
-        <AuthProvider>
-          <View className="flex-1 bg-neutral-0 dark:bg-neutral-dark-0">
+        <TenstackProvider>
+          <View className="flex-1 bg-neutral-0 dark:bg-neutral-dark-0 max-w-[450px] mx-auto w-full">
             <NavigationContainer theme={MinimalTheme}>
               <RootNavigator />
             </NavigationContainer>
+            <ToastProvider />
           </View>
-        </AuthProvider>
+        </TenstackProvider>
       </ThemeProvider>
     </GestureHandlerRootView>
   );

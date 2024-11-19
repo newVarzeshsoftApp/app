@@ -69,4 +69,5 @@ export type InputProps<T extends FieldValues> = {
   RightIcon?: React.ElementType;          // Optional right icon component
   RightIconVariant?: IIconVariant;        // Variant type for the right icon
   LeftIconVariant?: IIconVariant;         // Variant type for the left icon
+  optional?:boolean
 };

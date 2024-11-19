@@ -17,6 +17,7 @@ import Banner from './Banner';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {KeyboardAvoidingView} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
+import {showToast} from '../../components/Toast/Toast';
 
 type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -46,7 +47,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
   } = methods;
 
   const screenHeight = Dimensions.get('screen').height;
-  const bottomPadding = screenHeight > 800 ? '' : 'pb-6';
+
   return (
     <View className="flex-1">
       <Banner />
@@ -62,7 +63,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
             <View className="w-full flex flex-col gap-9  flex-1">
               <BaseText type="title2">{auth('login')}</BaseText>
               <FormProvider {...methods}>
-                <View className="flex flex-col gap-4">
+                <View className="flex flex-col gap-0">
                   <ControlledInput
                     control={control}
                     name="username"
@@ -104,15 +105,21 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-        <View className={`w-full Container ${bottomPadding}  gap-6 `}>
+        <View className={`w-full Container pb-6  gap-6 `}>
           <BaseButton
-            onPress={handleSubmit(onSubmit)}
+            onPress={() =>
+              showToast({
+                type: 'success',
+                text1: 'Operation Successful',
+                text2: 'Your data has been saved!',
+              })
+            }
+            // onPress={handleSubmit(onSubmit)}
             type="Fill"
             color="Black"
             rounded
             size="Large"
             text={auth('login')}
-            disabled={!isValid}
             accessibilityLabel="Login button"
             accessibilityRole="button"
             accessibilityHint="Submits the login form"

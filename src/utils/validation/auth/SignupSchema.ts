@@ -7,7 +7,8 @@ import {
 import i18n from '../../../../i18n.config';
 
 export const SignupSchema = z.object({
-  fullName: z.string().min(1, {message: i18n.t('Validation.nameIsRequired')}),
+  Name: z.string().min(1, {message: i18n.t('Validation.nameIsRequired')}),
+  lastName: z.string().min(1, {message: i18n.t('Validation.lastNameRequired')}),
   password: validatePassword,
   phone: validatePhoneNumber,
   email: z

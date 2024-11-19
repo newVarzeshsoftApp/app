@@ -38,7 +38,8 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
     resolver: zodResolver(SignupSchema),
     defaultValues: {
       email: '',
-      fullName: '',
+      lastName: '',
+      Name: '',
       password: '',
       phone: '',
     },
@@ -70,16 +71,26 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
           <View className="w-full flex flex-col gap-9 ">
             <BaseText type="title2">{auth('signup')}</BaseText>
             <FormProvider {...methods}>
-              <View className="flex flex-col gap-4">
+              <View className="flex flex-col gap-0">
                 <ControlledInput
                   control={control}
-                  name="fullName"
-                  label={t('Name')}
-                  PlaceHolder={placeholders('name')}
+                  name="Name"
+                  label={t('firstName')}
+                  PlaceHolder={placeholders('Name')}
                   type="text"
                   accessibilityLabel="full Name input field"
                   accessibilityHint="Enter your full Name"
-                  error={errors.fullName?.message}
+                  error={errors.Name?.message}
+                />
+                <ControlledInput
+                  control={control}
+                  name="Name"
+                  label={t('lastName')}
+                  PlaceHolder={placeholders('lastName')}
+                  type="text"
+                  accessibilityLabel="full Name input field"
+                  accessibilityHint="Enter your full Name"
+                  error={errors.lastName?.message}
                 />
                 {/* Password Input */}
                 <ControlledInput
@@ -107,6 +118,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
                   label={t('email')}
                   PlaceHolder={placeholders('email')}
                   type="email"
+                  optional
                   error={errors.email?.message}
                   accessibilityLabel="email input field"
                   accessibilityHint="Enter your email"

@@ -13,6 +13,7 @@ const babelLoaderConfiguration = {
     path.resolve(__dirname, 'src'),
     path.resolve(__dirname, 'node_modules/react-native-css-interop'),
     path.resolve(__dirname, 'node_modules/@react-native'),
+    path.resolve(__dirname, 'node_modules/react-native-toast-message'),
     path.resolve(__dirname, 'node_modules/react-native-svg'),
   ],
   use: {
