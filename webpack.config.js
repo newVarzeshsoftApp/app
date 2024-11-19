@@ -13,6 +13,7 @@ const babelLoaderConfiguration = {
     path.resolve(__dirname, 'src'),
     path.resolve(__dirname, 'node_modules/react-native-css-interop'),
     path.resolve(__dirname, 'node_modules/@react-native'),
+    path.resolve(__dirname, 'node_modules/react-native-toast-message'),
     path.resolve(__dirname, 'node_modules/react-native-svg'),
   ],
   use: {
@@ -20,7 +21,7 @@ const babelLoaderConfiguration = {
     options: {
       cacheDirectory: true,
       presets,
-      plugins: ['react-native-web'],
+      plugins: ['react-native-web', 'react-native-reanimated/plugin'],
     },
   },
 };
@@ -34,7 +35,7 @@ const cssLoaderConfiguration = {
       options: {
         importLoaders: 1,
         modules: {
-          auto: true, // Enable CSS Modules for all CSS files
+          auto: true,
         },
       },
     },
@@ -60,6 +61,7 @@ const imageLoaderConfiguration = {
     loader: 'url-loader',
     options: {
       name: '[name].[ext]',
+      esModule: false,
     },
   },
 };
@@ -87,6 +89,7 @@ module.exports = {
     extensions: ['.web.tsx', '.web.ts', '.tsx', '.ts', '.web.js', '.js'],
     alias: {
       'react-native$': 'react-native-web',
+      'react-native-linear-gradient': 'react-native-web-linear-gradient',
     },
   },
   module: {
@@ -108,5 +111,13 @@ module.exports = {
       'process.env': JSON.stringify({}),
       process: {env: {}},
     }),
+    new webpack.EnvironmentPlugin({JEST_WORKER_ID: null}),
   ],
+  devServer: {
+    static: path.join(__dirname, 'public'),
+    compress: true,
+    hot: true,
+    port: 3000,
+    historyApiFallback: true,
+  },
 };

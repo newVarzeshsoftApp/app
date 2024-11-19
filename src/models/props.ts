@@ -1,14 +1,16 @@
 import { PressableProps, TextStyle } from 'react-native';
 import {IColorButton, IIconVariant, ISizeButton, IStyle‌TypeButton, ITextType, TypeBadgeColor, TypeTextColor} from './stylingTypes';
-import { FieldValues, Path, UseFormRegister, UseFormWatch } from 'react-hook-form';
+import { Control, FieldValues, Path, UseFormRegister, UseFormWatch } from 'react-hook-form';
+import { TextProps } from 'react-native/Libraries/Text/Text';
+
 export type ISpinnerProps = {
   svgClassName?: string;
   primaryPathClassName?: string;
   secondaryPathClassName?: string;
   circleClassName?:string
  };
- 
-export type IText = {
+
+ export interface IText extends TextProps  {
   children: React.ReactNode;
   type?: ITextType;
   className?: string;
@@ -43,30 +45,29 @@ export interface IButtonProps extends PressableProps {
   LeftIconVariant?: IIconVariant;          // Variant type for the left icon
 }
 
-export interface ICheckboxProps {
+export interface ICheckboxProps extends PressableProps {
   id?: string;
   checked: boolean;
-  onPress?: (checked: boolean) => void;
+  onCheckedChange?: (checked: boolean) => void;
   label?: string;
 }
 
 export type InputProps<T extends FieldValues> = {
-  label?: string;
-  id: Path<T>;
-  type?: string;
-  register?: UseFormRegister<T>;
-  watch?: UseFormWatch<T>;
-  setValue?: any;
-  required?: boolean;
-  error?: string | undefined;
-  PlaceHolder?: string;
-  length?: number;
-  disabled?: boolean;
-  value?: number | string;
-  onChange?: () => void;
-  info?:string
-  LeftIcon?: React.ElementType;            // Optional left icon component
-  RightIcon?: React.ElementType;           // Optional right icon component
-  RightIconVariant?: IIconVariant;         // Variant type for the right icon
-  LeftIconVariant?: IIconVariant;          // Variant type for the left icon
+  label?: string;                         // Label for the input field
+  name: Path<T>;                            // Unique identifier (field name) for the input
+  type?: string;                          // Type of the input field (e.g., text, password, number)
+  control?: Control<T>;                   // Control object from React Hook Form
+  required?: boolean;                     // Indicates if the field is required
+  error?: string;                         // Error message for the field
+  PlaceHolder?: string;                   // Placeholder text for the input field
+  length?: number;                        // Maximum length of the input value
+  disabled?: boolean;                     // Disables the input field
+  value?: number | string;                // Current value of the input field
+  onChange?: (value: any) => void;        // Callback triggered on input value change
+  info?: string;                          // Additional information or hint for the field
+  LeftIcon?: React.ElementType;           // Optional left icon component
+  RightIcon?: React.ElementType;          // Optional right icon component
+  RightIconVariant?: IIconVariant;        // Variant type for the right icon
+  LeftIconVariant?: IIconVariant;         // Variant type for the left icon
+  optional?:boolean
 };
