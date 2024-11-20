@@ -28,7 +28,6 @@ const OTPCode: React.FC<OtpProps> = ({value, length, onChange, error}) => {
     const newOtpValue = value.split('');
     newOtpValue[index] = text;
     onChange(newOtpValue.join(''));
-
     // Move to the next input if available and input is not empty
     if (text && index < length - 1) {
       inputRefs.current[index + 1]?.focus();
@@ -50,7 +49,7 @@ const OTPCode: React.FC<OtpProps> = ({value, length, onChange, error}) => {
   const handleFocus = (index: number) => setFocusedIndex(index);
 
   return (
-    <View className="flex flex-row gap-4 w-full">
+    <View className="flex flex-row rtl:flex-row-reverse gap-4 w-full">
       {Array.from({length}).map((_, index) => (
         <TextInput
           key={index}

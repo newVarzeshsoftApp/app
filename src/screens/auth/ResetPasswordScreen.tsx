@@ -23,17 +23,22 @@ import ControlledInput from '../../components/Input/ControlledInput';
 import {useTranslation} from 'react-i18next';
 import BaseButton from '../../components/Button/BaseButton';
 import {ArrowLeft, ArrowRight2} from 'iconsax-react-native';
-import {useMutation} from '@tanstack/react-query';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
 import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
+import {
+  ResetPasswordSchema,
+  ResetPasswordSchemaType,
+} from '../../utils/validation/auth/ResetPasswordSchema';
 
-type ForgetPasswordScreenProps = NativeStackScreenProps<
+type ResetPasswordScreenProps = NativeStackScreenProps<
   AuthStackParamList,
-  'ForgetPassword'
+  'ResetPassword'
 >;
 
-const ForgetPasswordScreen: React.FC<ForgetPasswordScreenProps> = ({
+const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
   navigation,
+  route,
 }) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Input'});
   const {t: placeholders} = useTranslation('translation', {
@@ -42,24 +47,23 @@ const ForgetPasswordScreen: React.FC<ForgetPasswordScreenProps> = ({
   const {t: auth} = useTranslation('translation', {
     keyPrefix: 'Auth',
   });
-  const RequestOTP = useMutation({
-    mutationFn: AuthService.RequestOTP,
+  const queryClient = useQueryClient();
+  const UpdatePassword = useMutation({
+    mutationFn: AuthService.UpdatePassword,
     onSuccess(data, variables) {
-      navigation.navigate('OTP', {
-        username: variables.username,
-        resetPassword: true,
-      });
+      queryClient.invalidateQueries({queryKey: ['Tokens']});
+      navigation.getParent()?.navigate('Home');
     },
     onError: handleMutationError,
   });
-  const onSubmit: SubmitHandler<ForgetPasswordSchemaType> = async data => {
-    RequestOTP.mutate({organization: 1, username: data.username});
+  const onSubmit: SubmitHandler<ResetPasswordSchemaType> = async data => {
+    UpdatePassword.mutate({password: data.newPassword});
   };
-
-  const methods = useForm<ForgetPasswordSchemaType>({
-    resolver: zodResolver(ForgetPasswordSchema),
+  const methods = useForm<ResetPasswordSchemaType>({
+    resolver: zodResolver(ResetPasswordSchema),
     defaultValues: {
-      username: '',
+      ConfirmNewPassword: '',
+      newPassword: '',
     },
   });
   const {
@@ -69,7 +73,6 @@ const ForgetPasswordScreen: React.FC<ForgetPasswordScreenProps> = ({
   } = methods;
   const {width: screenWidth, height: screenHeight} = Dimensions.get('screen');
   const bigScreen = screenHeight > 800;
-
   return (
     <SafeAreaView className="flex-1">
       <View
@@ -88,22 +91,32 @@ const ForgetPasswordScreen: React.FC<ForgetPasswordScreenProps> = ({
           showsVerticalScrollIndicator={false}>
           <View className="w-full flex flex-col gap-9 ">
             <View className="gap-3">
-              <BaseText type="title2">{auth('ForgetPassword')}</BaseText>
+              <BaseText type="title2">{auth('ChangePassword')}</BaseText>
               <BaseText type="subtitle2" color="muted">
-                {auth('ForgetPasswordInfo')}
+                {auth('AddNewPassword')}
               </BaseText>
             </View>
             <FormProvider {...methods}>
-              <View className="flex flex-col gap-4">
+              <View className="flex flex-col gap-0">
                 <ControlledInput
                   control={control}
-                  name="username"
-                  label={t('username')}
-                  PlaceHolder={placeholders('username')}
-                  type="text"
-                  accessibilityLabel="username input field"
-                  accessibilityHint="Enter your username"
-                  error={errors.username?.message}
+                  name="newPassword"
+                  label={t('New Password')}
+                  PlaceHolder={placeholders('newPassword')}
+                  type="password"
+                  accessibilityLabel="newPassword input field"
+                  accessibilityHint="Enter your newPassword"
+                  error={errors.newPassword?.message}
+                />
+                <ControlledInput
+                  control={control}
+                  name="ConfirmNewPassword"
+                  label={t('confirmpassword')}
+                  PlaceHolder={placeholders('confirmPassword')}
+                  type="password"
+                  accessibilityLabel="ConfirmNewPassword input field"
+                  accessibilityHint="Enter your ConfirmNewPassword"
+                  error={errors.ConfirmNewPassword?.message}
                 />
                 {/* Password Input */}
               </View>
@@ -122,8 +135,7 @@ const ForgetPasswordScreen: React.FC<ForgetPasswordScreenProps> = ({
           rounded
           size="Large"
           text={auth('Continue')}
-          isLoading={RequestOTP.isPending}
-          disabled={RequestOTP.isPending}
+          disabled={!isValid}
           accessibilityLabel="Login button"
           accessibilityRole="button"
           accessibilityHint="Submits the login form"
@@ -133,4 +145,4 @@ const ForgetPasswordScreen: React.FC<ForgetPasswordScreenProps> = ({
   );
 };
 
-export default ForgetPasswordScreen;
+export default ResetPasswordScreen;

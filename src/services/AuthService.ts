@@ -76,7 +76,7 @@ const AuthService = {
         throw new Error(`Request failed with status ${response}`);
       }
     } catch (error) {
-      console.error('Error in SignIN function:', error);
+      console.error('Error in SignUp function:', error);
       if (axios.isAxiosError(error) && error.response) {
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
@@ -113,6 +113,10 @@ const AuthService = {
         AxiosResponse<SignInResponse>
       >(baseUrl + verifyToken(), body);
       if (response.status === Status.Ok || Status.Created) {
+        await storeTokens(
+          response.data.accessToken,
+          response.data.refreshToken,
+        );
         return response.data;
       } else {
         throw new Error(`Request failed with status ${response.status}`);

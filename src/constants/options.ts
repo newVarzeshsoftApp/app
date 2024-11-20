@@ -6,3 +6,8 @@ export const resources = {
   en: {translation: en},
   fa: {translation: fa},
 };
+
+export const Config = {
+  OTPLength: 5,
+  CountDownTimer: 60,
+};

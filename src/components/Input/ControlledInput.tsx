@@ -34,7 +34,7 @@ const ControlledInput = <T extends FieldValues>({
       className={`flex flex-col  gap-1 w-full ${disabled ? 'opacity-50' : ''}`}>
       {/* Label */}
       {label && (
-        <BaseText type="title4" className="!capitalize w-fit rtl:text-left">
+        <BaseText type="title4" className="!capitalize ">
           {label} {optional && `(${t('optional')})`}
         </BaseText>
       )}

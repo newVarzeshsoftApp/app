@@ -9,6 +9,8 @@ import {ArrowRight2} from 'iconsax-react-native';
 import {useTheme} from '../../utils/ThemeContext';
 
 import {Platform, View} from 'react-native';
+import VerifyOTPScreen from '../../screens/auth/VerifyOTPScreen';
+import ResetPasswordScreen from '../../screens/auth/ResetPasswordScreen';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
@@ -18,6 +20,9 @@ const AuthNavigator: React.FC = () => {
     <Stack.Navigator screenOptions={{headerShown: false}}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
+      <Stack.Screen name="OTP" component={VerifyOTPScreen} />
+      <Stack.Screen name="ResetPassword" component={ResetPasswordScreen} />
+
       <Stack.Screen
         name="ForgetPassword"
         options={({navigation}) => ({
@@ -25,7 +30,8 @@ const AuthNavigator: React.FC = () => {
           headerShadowVisible: false,
           headerTranslucent: true,
           headerLeft: () => (
-            <View className={Platform.OS === 'ios' ? '' : 'px-3'}>
+            <View
+              className={Platform.OS === 'ios' ? '' : 'px-3 rtl:justify-start'}>
               <BaseButton
                 onPress={() => navigation.navigate('Login')}
                 noText

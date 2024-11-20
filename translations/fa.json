@@ -8,11 +8,18 @@
     "login": "ورود",
     "RememberMe": "مرا به خاطر بسپار",
     "ForgetPassword": "فراموشی رمز عبور",
+    "ChangePassword": "تغییر رمز عبور",
+    "AddNewPassword": "رمز عبور جدید را وارد نمایید",
     "ForgetPasswordInfo": "برای تغییر رمز عبور شماره موبایل خود را وارد کنید",
     "notRegistered": "آیا تا به حال ثبت نام نکرده اید؟",
     "alredyRegistered": "در حال حاضر حساب کاربری دارید؟",
     "signup": "ثبت نام",
-    "Continue": "ادامه"
+    "Continue": "ادامه",
+    "Enter the verification code": "کد تایید را وارد نمایید",
+    "Code on": "کد به شماره ی",
+    "was send": "ارسال شد",
+    "Didn't get the code": "کد را دریافت نکرده اید؟",
+    "Resend the code": "ارسال مجدد کد"
   },
   "Input": {
     "username": "ایمیل / شماره تلفن",

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -17,12 +17,17 @@ import ControlledInput from '../../components/Input/ControlledInput';
 import BaseButton from '../../components/Button/BaseButton';
 import Logo from '../../assets/icons/Logo.svg';
 import LogoWithText from '../../assets/icons/LogoWithText.svg';
+
 import {
   SignupSchema,
   SignupSchemaType,
 } from '../../utils/validation/auth/SignupSchema';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {KeyboardAvoidingView} from 'react-native';
+import {useMutation} from '@tanstack/react-query';
+import AuthService from '../../services/AuthService';
+import {handleMutationError} from '../../utils/helpers/errorHandler';
+import {Picker, PickerIOS} from '@react-native-picker/picker';
 type SignupScreenProps = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
 const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Input'});
@@ -32,7 +37,24 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
   const {t: auth} = useTranslation('translation', {
     keyPrefix: 'Auth',
   });
-  const onSubmit: SubmitHandler<SignupSchemaType> = async data => {};
+  const SignUpMutation = useMutation({
+    mutationFn: AuthService.SignUp,
+    onSuccess(data, variables, context) {
+      navigation.navigate('OTP', {username: variables.username!});
+    },
+    onError: handleMutationError,
+  });
+  const onSubmit: SubmitHandler<SignupSchemaType> = async data => {
+    SignUpMutation.mutate({
+      email: data.email,
+      firstName: data.Name,
+      gender: 0,
+      lastName: data.lastName,
+      username: data.phone,
+      organization: 1,
+      password: data.password,
+    });
+  };
 
   const methods = useForm<SignupSchemaType>({
     resolver: zodResolver(SignupSchema),
@@ -50,7 +72,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
     formState: {errors, isValid},
   } = methods;
   const {width: screenWidth, height: screenHeight} = Dimensions.get('screen');
-
+  const [selectedLanguage, setSelectedLanguage] = useState();
   const bigScreen = screenHeight > 800;
   return (
     <SafeAreaView className="flex-1">
@@ -84,7 +106,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
                 />
                 <ControlledInput
                   control={control}
-                  name="Name"
+                  name="lastName"
                   label={t('lastName')}
                   PlaceHolder={placeholders('lastName')}
                   type="text"
@@ -138,8 +160,8 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
           color="Black"
           rounded
           size="Large"
+          isLoading={SignUpMutation.isPending}
           text={auth('signup')}
-          disabled={!isValid}
           accessibilityLabel="signup button"
           accessibilityRole="button"
           accessibilityHint="Submits the signup form"
