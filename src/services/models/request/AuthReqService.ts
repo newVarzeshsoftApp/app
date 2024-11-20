@@ -9,7 +9,7 @@ export interface UpdatePasswordBody {
 export interface SignUpBody {
   firstName?: string;
   lastName?: string;
-  mobile?: string;
+  username?: string;
   password?: string;
   email?: string;
   gender?: 0 | 1;

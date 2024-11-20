@@ -1,6 +1,7 @@
 const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const Dotenv = require('dotenv-webpack'); // Import dotenv-webpack
 
 const appDirectory = path.resolve(__dirname);
 const {presets} = require(`${appDirectory}/babel.config.js`);
@@ -106,10 +107,12 @@ module.exports = {
       template: path.join(__dirname, '/public/index.html'),
     }),
     new webpack.HotModuleReplacementPlugin(),
+    new Dotenv({
+      path: path.resolve(__dirname, '.env'),
+      safe: false,
+    }),
     new webpack.DefinePlugin({
       __DEV__: JSON.stringify(true),
-      'process.env': JSON.stringify({}),
-      process: {env: {}},
     }),
     new webpack.EnvironmentPlugin({JEST_WORKER_ID: null}),
   ],

@@ -18,19 +18,37 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {KeyboardAvoidingView} from 'react-native';
 import {ScrollView} from 'react-native-gesture-handler';
 import {showToast} from '../../components/Toast/Toast';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
+import AuthService from '../../services/AuthService';
+import {handleMutationError} from '../../utils/helpers/errorHandler';
 
 type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
   const [Rememberme, setRememberme] = useState(false);
   const {t} = useTranslation('translation', {keyPrefix: 'Input'});
+  const queryClient = useQueryClient();
   const {t: placeholders} = useTranslation('translation', {
     keyPrefix: 'Input.placeholders',
   });
   const {t: auth} = useTranslation('translation', {
     keyPrefix: 'Auth',
   });
-  const onSubmit: SubmitHandler<LoginSchemaType> = async data => {};
+  const loginMutation = useMutation({
+    mutationFn: AuthService.SignIN,
+    onSuccess(data, variables, context) {
+      queryClient.invalidateQueries({queryKey: ['Tokens']});
+      navigation.getParent()?.navigate('Home');
+    },
+    onError: handleMutationError,
+  });
+  const onSubmit: SubmitHandler<LoginSchemaType> = async data => {
+    loginMutation.mutate({
+      organization: 1,
+      password: data.password,
+      username: data.username,
+    });
+  };
 
   const methods = useForm<LoginSchemaType>({
     resolver: zodResolver(LoginSchema),
@@ -107,17 +125,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
         </KeyboardAvoidingView>
         <View className={`w-full Container pb-6  gap-6 `}>
           <BaseButton
-            onPress={() =>
-              showToast({
-                type: 'success',
-                text1: 'Operation Successful',
-                text2: 'Your data has been saved!',
-              })
-            }
-            // onPress={handleSubmit(onSubmit)}
+            onPress={handleSubmit(onSubmit)}
             type="Fill"
             color="Black"
             rounded
+            isLoading={loginMutation.isPending}
             size="Large"
             text={auth('login')}
             accessibilityLabel="Login button"

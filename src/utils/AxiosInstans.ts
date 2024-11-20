@@ -15,42 +15,36 @@ axiosInstance.interceptors.request.use(async config => {
 });
 
 axiosInstance.interceptors.response.use(
-  response => response,
+  response => {
+    // Log successful responses
+    console.log('Axios Response:', {
+      status: response.status,
+      data: response.data,
+      headers: response.headers,
+    });
+    return response;
+  },
   async error => {
     const originalRequest = error.config;
 
+    // Log detailed error information
+    if (error.response) {
+      console.error('Axios Error Response:', {
+        status: error.response.status,
+        data: error.response.data,
+        headers: error.response.headers,
+      });
+    } else if (error.request) {
+      console.error('Axios Error Request:', error.request);
+    } else {
+      console.error('Axios Error Message:', error.message);
+    }
+
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
+      console.warn('Unauthorized (401), removing tokens...');
       await removeTokens();
       throw error;
-      //   const tokens = await getTokens();
-
-      //   if (tokens.refreshToken) {
-      //     try {
-      //       // Attempt to refresh the access token
-      //       const response = await axios.post('https://your-api-url.com/auth/refresh-token', {
-      //         refreshToken: tokens.refreshToken,
-      //       });
-
-      //       const { accessToken, refreshToken } = response.data;
-
-      //       // Store the new tokens
-      //       await storeTokens(accessToken, refreshToken);
-
-      //       // Retry the original request with the new access token
-      //       originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-      //       return api(originalRequest);
-      //     } catch (refreshError) {
-      //       console.error('Failed to refresh token:', refreshError);
-      //       // Optionally, log out the user if refresh fails
-      //       await removeTokens();
-      //       throw refreshError;
-      //     }
-      //   } else {
-      //     // No refresh token available, log out the user
-      //     await removeTokens();
-      //     throw error;
-      //   }
     }
 
     throw error;

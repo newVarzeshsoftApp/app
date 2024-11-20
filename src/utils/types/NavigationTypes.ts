@@ -2,6 +2,8 @@ export type AuthStackParamList = {
   Login: undefined;
   Signup: undefined;
   ForgetPassword: undefined;
+  OTP: {username: string; resetPassword?: boolean};
+  ResetPassword: undefined;
 };
 
 export type HomeStackParamList = {
