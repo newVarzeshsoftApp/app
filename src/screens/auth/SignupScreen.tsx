@@ -76,20 +76,20 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
   const bigScreen = screenHeight > 800;
   return (
     <SafeAreaView className="flex-1">
-      <View
-        style={{height: screenHeight * (bigScreen ? 0.21 : 0.11)}}
-        className=" w-full flex items-center justify-center">
-        <View className="flex flex-row gap-4">
-          <LogoWithText width={155} height={55} />
-          <Logo width={55} height={55} />
+      <ScrollView
+        contentContainerStyle={{paddingHorizontal: 16, paddingBottom: 20}}
+        showsVerticalScrollIndicator={false}>
+        <View
+          style={{height: screenHeight * (bigScreen ? 0.21 : 0.11)}}
+          className=" w-full flex items-center justify-center">
+          <View className="flex flex-row gap-4">
+            <LogoWithText width={155} height={55} />
+            <Logo width={55} height={55} />
+          </View>
         </View>
-      </View>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{flex: 1}}>
-        <ScrollView
-          contentContainerStyle={{paddingHorizontal: 16, paddingBottom: 20}}
-          showsVerticalScrollIndicator={false}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{flex: 1}}>
           <View className="w-full flex flex-col gap-9 ">
             <BaseText type="title2">{auth('signup')}</BaseText>
             <FormProvider {...methods}>
@@ -148,10 +148,10 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
               </View>
             </FormProvider>
           </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+        </KeyboardAvoidingView>
+      </ScrollView>
       <View
-        className={`flex flex-col gap-7 Container ${
+        className={`flex flex-col gap-7 web:sticky web:bottom-0 Container ${
           bigScreen ? 'pb-6' : 'pb-6'
         } `}>
         <BaseButton
@@ -166,7 +166,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
           accessibilityRole="button"
           accessibilityHint="Submits the signup form"
         />
-        <View className="flex items-center flex-row justify-center gap-2">
+        <View className="flex items-center flex-row justify-center gap-2 ">
           <BaseText
             type="button1"
             color="muted"

@@ -7,7 +7,6 @@ import ForgetPasswordScreen from '../../screens/auth/ForgetPasswordScreen';
 import BaseButton from '../../components/Button/BaseButton';
 import {ArrowRight2} from 'iconsax-react-native';
 import {useTheme} from '../../utils/ThemeContext';
-
 import {Platform, View} from 'react-native';
 import VerifyOTPScreen from '../../screens/auth/VerifyOTPScreen';
 import ResetPasswordScreen from '../../screens/auth/ResetPasswordScreen';
@@ -44,7 +43,7 @@ const AuthNavigator: React.FC = () => {
           ),
           headerTitle: '',
           headerStyle: {
-            backgroundColor: theme === 'dark' ? '#16181b' : '#ffffff',
+            backgroundColor: theme === 'dark' ? '#16181b' : '#F4F4F5',
           },
         })}
         component={ForgetPasswordScreen}

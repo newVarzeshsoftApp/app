@@ -2,7 +2,11 @@
   "Global": {
     "Home Screen": "صفحه خانه",
     "fa": "فارسی",
-    "en": "انگلیسی"
+    "en": "انگلیسی",
+    "Home": "خانه",
+    "ticket": "تیکت",
+    "cart": "سبدخرید",
+    "wallet": "کیف پول"
   },
   "Auth": {
     "login": "ورود",
@@ -20,6 +24,13 @@
     "was send": "ارسال شد",
     "Didn't get the code": "کد را دریافت نکرده اید؟",
     "Resend the code": "ارسال مجدد کد"
+  },
+  "Home": {
+    "WalletBalance": "موجودی کیف پول",
+    "rial": "ریال",
+    "Insurance": "بیمه",
+    "Closet": "کمد",
+    "Membership": "عضویت"
   },
   "Input": {
     "username": "ایمیل / شماره تلفن",

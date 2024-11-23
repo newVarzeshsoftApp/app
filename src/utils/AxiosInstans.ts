@@ -3,11 +3,14 @@ import {getTokens, removeTokens} from './helpers/tokenStorage';
 
 const axiosInstance = axios.create({
   baseURL: process.env.BASE_URL,
-  timeout: 10000,
+  // timeout: 10000,
 });
 
 axiosInstance.interceptors.request.use(async config => {
   const tokens = await getTokens();
+  console.log('====================================');
+  console.log(tokens.accessToken);
+  console.log('====================================');
   if (tokens.accessToken) {
     config.headers.Authorization = `Bearer ${tokens.accessToken}`;
   }

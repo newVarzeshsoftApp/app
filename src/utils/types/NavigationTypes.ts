@@ -8,7 +8,9 @@ export type AuthStackParamList = {
 
 export type HomeStackParamList = {
   Home: undefined;
-  Profile: undefined;
+  ticket: undefined;
+  cart: undefined;
+  wallet: undefined;
 };
 
 export type RootStackParamList = {

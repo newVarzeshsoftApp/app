@@ -174,7 +174,7 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
             accessibilityLabel="Resend the code"
             accessibilityRole="button"
             disabled={!CanResend}>
-            <BaseText type="button1" color="active">
+            <BaseText type="button1" color={!CanResend ? 'muted' : 'active'}>
               {auth('Resend the code')}
             </BaseText>
           </TouchableOpacity>

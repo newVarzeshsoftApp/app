@@ -12,8 +12,8 @@ function Banner() {
 
   return (
     <View
-      style={{height: screenHeight * 0.4}}
-      className={`w-full rounded-b-3xl   overflow-hidden relative`}>
+      style={{height: screenHeight * 0.3}}
+      className={`w-full rounded-b-3xl  overflow-hidden relative`}>
       <Image
         source={require('../../assets/testImage.png')}
         resizeMode="cover"
@@ -31,7 +31,7 @@ function Banner() {
       </View>
 
       <LinearGradient
-        colors={['transparent', theme === 'dark' ? '#16181b' : '#ffffff']} // Gradient from transparent to black
+        colors={['transparent', theme === 'dark' ? '#16181b' : '#F4F4F5']} // Gradient from transparent to black
         style={{
           position: 'absolute',
           zIndex: 1,
