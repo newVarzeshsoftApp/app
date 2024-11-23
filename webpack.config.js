@@ -75,52 +75,58 @@ const fontLoaderConfiguration = {
   },
 };
 
-module.exports = {
-  mode: 'development',
+module.exports = (env, argv) => {
+  const isProduction = argv.mode === 'production';
 
-  entry: {
-    app: path.join(__dirname, 'index.web.js'),
-  },
-  output: {
-    path: path.resolve(appDirectory, 'dist'),
-    publicPath: '/',
-    filename: 'bundle.js',
-  },
-  resolve: {
-    extensions: ['.web.tsx', '.web.ts', '.tsx', '.ts', '.web.js', '.js'],
-    alias: {
-      'react-native$': 'react-native-web',
-      'react-native-linear-gradient': 'react-native-web-linear-gradient',
+  return {
+    mode: isProduction ? 'production' : 'development',
+    entry: {
+      app: path.join(__dirname, 'index.web.js'),
     },
-  },
-  module: {
-    rules: [
-      babelLoaderConfiguration,
-      cssLoaderConfiguration,
-      fontLoaderConfiguration,
-      imageLoaderConfiguration,
-      svgLoaderConfiguration,
+    output: {
+      path: path.resolve(appDirectory, 'dist'),
+      publicPath: '/',
+      filename: 'bundle.js',
+    },
+    resolve: {
+      extensions: ['.web.tsx', '.web.ts', '.tsx', '.ts', '.web.js', '.js'],
+      alias: {
+        'react-native$': 'react-native-web',
+        'react-native-linear-gradient': 'react-native-web-linear-gradient',
+      },
+    },
+    module: {
+      rules: [
+        babelLoaderConfiguration,
+        cssLoaderConfiguration,
+        fontLoaderConfiguration,
+        imageLoaderConfiguration,
+        svgLoaderConfiguration,
+      ],
+    },
+    plugins: [
+      new HtmlWebpackPlugin({
+        template: path.join(__dirname, '/public/index.html'),
+      }),
+      new webpack.HotModuleReplacementPlugin(),
+      new Dotenv({
+        path: path.resolve(
+          __dirname,
+          isProduction ? '.env.production' : '.env.development',
+        ),
+        safe: false,
+      }),
+      new webpack.DefinePlugin({
+        __DEV__: JSON.stringify(!isProduction),
+      }),
+      new webpack.EnvironmentPlugin({JEST_WORKER_ID: null}),
     ],
-  },
-  plugins: [
-    new HtmlWebpackPlugin({
-      template: path.join(__dirname, '/public/index.html'),
-    }),
-    new webpack.HotModuleReplacementPlugin(),
-    new Dotenv({
-      path: path.resolve(__dirname, '.env'),
-      safe: false,
-    }),
-    new webpack.DefinePlugin({
-      __DEV__: JSON.stringify(true),
-    }),
-    new webpack.EnvironmentPlugin({JEST_WORKER_ID: null}),
-  ],
-  devServer: {
-    static: path.join(__dirname, 'public'),
-    compress: true,
-    hot: true,
-    port: 3000,
-    historyApiFallback: true,
-  },
+    devServer: {
+      static: path.join(__dirname, 'public'),
+      compress: true,
+      hot: true,
+      port: 3000,
+      historyApiFallback: true,
+    },
+  };
 };

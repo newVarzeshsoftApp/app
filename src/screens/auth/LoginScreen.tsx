@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View, TouchableOpacity, Dimensions, Platform} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {AuthStackParamList} from '../../utils/types/NavigationTypes';
@@ -21,6 +21,7 @@ import {showToast} from '../../components/Toast/Toast';
 import {useMutation, useQueryClient} from '@tanstack/react-query';
 import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
+import {useTheme} from '../../utils/ThemeContext';
 
 type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -67,17 +68,16 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
   const screenHeight = Dimensions.get('screen').height;
 
   return (
-    <View className="flex-1">
-      <Banner />
-      <SafeAreaView className="flex-1">
-        <KeyboardAvoidingView
-          className="flex-1"
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 50 : 0}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-          <ScrollView
-            keyboardShouldPersistTaps="handled"
-            contentContainerStyle={{paddingHorizontal: 16, paddingBottom: 20}}
-            showsVerticalScrollIndicator={false}>
+    <View className="flex-1 justify-between">
+      <ScrollView
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+        <Banner />
+        <View className="flex-1">
+          <KeyboardAvoidingView
+            className="flex-1 Container pb-6"
+            keyboardVerticalOffset={Platform.OS === 'ios' ? 50 : 0}
+            behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <View className="w-full flex flex-col gap-9  flex-1">
               <BaseText type="title2">{auth('login')}</BaseText>
               <FormProvider {...methods}>
@@ -121,39 +121,39 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
                 </TouchableOpacity>
               </View>
             </View>
-          </ScrollView>
-        </KeyboardAvoidingView>
-        <View className={`w-full Container pb-6  gap-6 `}>
-          <BaseButton
-            onPress={handleSubmit(onSubmit)}
-            type="Fill"
-            color="Black"
-            rounded
-            isLoading={loginMutation.isPending}
-            size="Large"
-            text={auth('login')}
-            accessibilityLabel="Login button"
-            accessibilityRole="button"
-            accessibilityHint="Submits the login form"
-          />
-          <View className="flex items-center flex-row justify-center gap-2">
-            <BaseText
-              type="button1"
-              color="muted"
-              accessibilityLabel="Not registered text">
-              {auth('notRegistered')}
-            </BaseText>
-            <TouchableOpacity
-              onPress={() => navigation.navigate('Signup')}
-              accessibilityLabel="Navigate to Signup screen"
-              accessibilityRole="button">
-              <BaseText type="button1" color="active">
-                {auth('signup')}
-              </BaseText>
-            </TouchableOpacity>
-          </View>
+          </KeyboardAvoidingView>
         </View>
-      </SafeAreaView>
+      </ScrollView>
+      <View className={`w-full Container pb-6  gap-6 web:sticky web:bottom-0 `}>
+        <BaseButton
+          onPress={handleSubmit(onSubmit)}
+          type="Fill"
+          color="Black"
+          rounded
+          isLoading={loginMutation.isPending}
+          size="Large"
+          text={auth('login')}
+          accessibilityLabel="Login button"
+          accessibilityRole="button"
+          accessibilityHint="Submits the login form"
+        />
+        <View className="flex items-center flex-row justify-center gap-2">
+          <BaseText
+            type="button1"
+            color="muted"
+            accessibilityLabel="Not registered text">
+            {auth('notRegistered')}
+          </BaseText>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('Signup')}
+            accessibilityLabel="Navigate to Signup screen"
+            accessibilityRole="button">
+            <BaseText type="button1" color="active">
+              {auth('signup')}
+            </BaseText>
+          </TouchableOpacity>
+        </View>
+      </View>
     </View>
   );
 };

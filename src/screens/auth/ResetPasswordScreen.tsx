@@ -125,7 +125,7 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
         </ScrollView>
       </KeyboardAvoidingView>
       <View
-        className={`flex flex-col gap-7 Container ${
+        className={`flex flex-col gap-7 Container web:sticky web:bottom-0 ${
           bigScreen ? 'pb-6' : 'pb-6'
         } `}>
         <BaseButton

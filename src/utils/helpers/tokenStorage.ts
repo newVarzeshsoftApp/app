@@ -8,12 +8,6 @@ if (Platform.OS !== 'web') {
   EncryptedStorage = require('react-native-encrypted-storage').default;
 }
 
-// const PREFIX = 'app_';
-// export const StorageKeys = {
-//   token: `${PREFIX}token`,
-//   refreshToken: `${PREFIX}refreshToken`,
-// };
-
 // Store Access and Refresh Tokens
 export const storeTokens = async (
   accessToken: string,

@@ -7,12 +7,24 @@ import {
   UpdatePasswordBody,
   VerifyTokenBody,
 } from './models/request/AuthReqService';
-import {SignInResponse, SignUpResponse} from './models/response/AuthResService';
+import {
+  ProfileResponse,
+  SignInResponse,
+  SignUpResponse,
+} from './models/response/AuthResService';
 import axiosInstance from '../utils/AxiosInstans';
 import {Status} from '../models/enums';
 import {storeTokens} from '../utils/helpers/tokenStorage';
 const {
-  auth: {signIn, signUp, requestOTP, verifyToken, updatePassword, logout},
+  auth: {
+    signIn,
+    signUp,
+    requestOTP,
+    verifyToken,
+    updatePassword,
+    logout,
+    profile,
+  },
   baseUrl,
 } = routes;
 
@@ -34,6 +46,26 @@ const AuthService = {
       }
     } catch (error) {
       console.error('Error in SignIN function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(
+          error.response.data.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+  GetProfile: async (): Promise<ProfileResponse> => {
+    try {
+      const response = await axiosInstance.get<ProfileResponse>(
+        baseUrl + profile(),
+      );
+      if (response.status === Status.Ok) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error in GetProfile function:', error);
       if (axios.isAxiosError(error) && error.response) {
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
