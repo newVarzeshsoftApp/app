@@ -27,7 +27,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
   };
 
   return (
-    <View className="flex-row absolute bottom-7  max-w-[420px] mx-auto  left-[18px] right-[18px] web:fixed web:bottom-2 justify-around items-center dark:bg-neutral-dark-300/80 bg-neutral-0/80 border border-neutral-0 dark:border-neutral-dark-400/40 p-4 rounded-full shadow gap-1">
+    <View className="flex-row absolute bottom-7  web:backdrop-blur max-w-[420px] mx-auto  left-[18px] right-[18px] web:fixed web:bottom-2 justify-around items-center dark:bg-neutral-dark-300/80 bg-neutral-0/80 border border-neutral-0 dark:border-neutral-dark-400/40 p-4 rounded-full shadow gap-1">
       {state.routes.map((route, index) => {
         const {options} = descriptors[route.key];
         const label =

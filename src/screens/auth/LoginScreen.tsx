@@ -22,11 +22,13 @@ import {useMutation, useQueryClient} from '@tanstack/react-query';
 import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useTheme} from '../../utils/ThemeContext';
+import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
 
 type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
   const [Rememberme, setRememberme] = useState(false);
+  const {data: organization} = useGetOrganizationBySKU();
   const {t} = useTranslation('translation', {keyPrefix: 'Input'});
   const queryClient = useQueryClient();
   const {t: placeholders} = useTranslation('translation', {
@@ -45,7 +47,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
   });
   const onSubmit: SubmitHandler<LoginSchemaType> = async data => {
     loginMutation.mutate({
-      organization: 1,
+      organization: organization!.id,
       password: data.password,
       username: data.username,
     });
@@ -73,7 +75,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
         <Banner />
-        <View className="flex-1">
+        <View className="flex-1 pt-2">
           <KeyboardAvoidingView
             className="flex-1 Container pb-6"
             keyboardVerticalOffset={Platform.OS === 'ios' ? 50 : 0}
@@ -102,6 +104,13 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
                     accessibilityLabel="Password input field"
                     accessibilityHint="Enter your password"
                   />
+                  <TouchableOpacity
+                    accessibilityLabel="Navigate to Forget Password screen"
+                    onPress={() => navigation.navigate('LoginWithOTP')}>
+                    <BaseText type="button2" color="muted">
+                      {auth('LoginWithOTP')}
+                    </BaseText>
+                  </TouchableOpacity>
                 </View>
               </FormProvider>
               <View className="flex flex-row justify-between w-full items-center">
@@ -124,7 +133,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
           </KeyboardAvoidingView>
         </View>
       </ScrollView>
-      <View className={`w-full Container pb-6  gap-6 web:sticky web:bottom-0 `}>
+      <View className={`w-full Container pb-6  gap-6  `}>
         <BaseButton
           onPress={handleSubmit(onSubmit)}
           type="Fill"
