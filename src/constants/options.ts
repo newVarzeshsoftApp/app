@@ -9,5 +9,5 @@ export const resources = {
 
 export const Config = {
   OTPLength: 5,
-  CountDownTimer: 60,
+  CountDownTimer: 120,
 };

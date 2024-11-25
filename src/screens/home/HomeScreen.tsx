@@ -27,7 +27,7 @@ const HomeScreen: React.FC = () => {
     <ScrollView
       showsVerticalScrollIndicator={false}
       showsHorizontalScrollIndicator={false}>
-      <View className="Container py-5 pb-32  web:pb-[200px] gap-5  ">
+      <View className="Container py-5 pb-32 web:pt-[120px]  web:pb-[200px] gap-5  ">
         <BaseButton
           color="Primary"
           type="Fill"

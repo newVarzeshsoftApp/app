@@ -21,6 +21,9 @@
     "Continue": "ادامه",
     "Enter the verification code": "کد تایید را وارد نمایید",
     "Code on": "کد به شماره ی",
+    "LoginWithOTP": "ورود با رمز یکبار مصرف",
+    "LoginWithOTPInfo": "برای ورود با رمز یکبار مصرف شماره موبایل خود را وارد کنید",
+
     "was send": "ارسال شد",
     "Didn't get the code": "کد را دریافت نکرده اید؟",
     "Resend the code": "ارسال مجدد کد"

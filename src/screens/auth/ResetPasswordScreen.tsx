@@ -10,19 +10,12 @@ import {
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {AuthStackParamList} from '../../utils/types/NavigationTypes';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
-import {
-  ForgetPasswordSchema,
-  ForgetPasswordSchemaType,
-} from '../../utils/validation/auth/ForgetPasswordSchema';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import Logo from '../../assets/icons/Logo.svg';
-import LogoWithText from '../../assets/icons/LogoWithText.svg';
 import BaseText from '../../components/BaseText';
 import ControlledInput from '../../components/Input/ControlledInput';
 import {useTranslation} from 'react-i18next';
 import BaseButton from '../../components/Button/BaseButton';
-import {ArrowLeft, ArrowRight2} from 'iconsax-react-native';
 import {useMutation, useQueryClient} from '@tanstack/react-query';
 import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
@@ -30,6 +23,8 @@ import {
   ResetPasswordSchema,
   ResetPasswordSchemaType,
 } from '../../utils/validation/auth/ResetPasswordSchema';
+import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
+import ResponsiveImage from '../../components/ResponsiveImage';
 
 type ResetPasswordScreenProps = NativeStackScreenProps<
   AuthStackParamList,
@@ -40,6 +35,7 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
   navigation,
   route,
 }) => {
+  const {data: OrganizationBySKU} = useGetOrganizationBySKU();
   const {t} = useTranslation('translation', {keyPrefix: 'Input'});
   const {t: placeholders} = useTranslation('translation', {
     keyPrefix: 'Input.placeholders',
@@ -74,13 +70,16 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
   const {width: screenWidth, height: screenHeight} = Dimensions.get('screen');
   const bigScreen = screenHeight > 800;
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 justify-between">
       <View
         style={{height: screenHeight * (bigScreen ? 0.21 : 0.11)}}
         className=" w-full flex items-center justify-center">
-        <View className="flex flex-row gap-4">
-          <LogoWithText width={155} height={55} />
-          <Logo width={55} height={55} />
+        <View className="flex flex-row gap-4  w-[185px] h-[55px]">
+          <ResponsiveImage
+            customSource={OrganizationBySKU?.brandedLogo.srcset}
+            fallback={require('../../assets/images/testImage.png')}
+            resizeMode="contain"
+          />
         </View>
       </View>
       <KeyboardAvoidingView
@@ -125,7 +124,7 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
         </ScrollView>
       </KeyboardAvoidingView>
       <View
-        className={`flex flex-col gap-7 Container web:sticky web:bottom-0 ${
+        className={`flex flex-col gap-7 Container  ${
           bigScreen ? 'pb-6' : 'pb-6'
         } `}>
         <BaseButton

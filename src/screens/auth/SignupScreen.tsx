@@ -28,6 +28,8 @@ import {useMutation} from '@tanstack/react-query';
 import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {Picker, PickerIOS} from '@react-native-picker/picker';
+import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
+import ResponsiveImage from '../../components/ResponsiveImage';
 type SignupScreenProps = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
 const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Input'});
@@ -44,6 +46,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
     },
     onError: handleMutationError,
   });
+  const {data: OrganizationBySKU} = useGetOrganizationBySKU();
   const onSubmit: SubmitHandler<SignupSchemaType> = async data => {
     SignUpMutation.mutate({
       email: data.email,
@@ -51,7 +54,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
       gender: 0,
       lastName: data.lastName,
       username: data.phone,
-      organization: 1,
+      organization: OrganizationBySKU!.id,
       password: data.password,
     });
   };
@@ -72,19 +75,24 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
     formState: {errors, isValid},
   } = methods;
   const {width: screenWidth, height: screenHeight} = Dimensions.get('screen');
-  const [selectedLanguage, setSelectedLanguage] = useState();
+
   const bigScreen = screenHeight > 800;
   return (
-    <SafeAreaView className="flex-1">
+    <SafeAreaView className="flex-1 justify-between">
       <ScrollView
-        contentContainerStyle={{paddingHorizontal: 16, paddingBottom: 20}}
+        contentContainerStyle={{paddingHorizontal: 20, paddingBottom: 20}}
         showsVerticalScrollIndicator={false}>
         <View
           style={{height: screenHeight * (bigScreen ? 0.21 : 0.11)}}
-          className=" w-full flex items-center justify-center">
+          className=" w-full flex items-center justify-cente ">
           <View className="flex flex-row gap-4">
-            <LogoWithText width={155} height={55} />
-            <Logo width={55} height={55} />
+            <ResponsiveImage
+              customSource={OrganizationBySKU?.brandedLogo.srcset}
+              fallback={require('../../assets/images/testImage.png')}
+              resizeMode="contain"
+              width={185}
+              height={55}
+            />
           </View>
         </View>
         <KeyboardAvoidingView
@@ -151,7 +159,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
         </KeyboardAvoidingView>
       </ScrollView>
       <View
-        className={`flex flex-col gap-7 web:sticky web:bottom-0 Container ${
+        className={`flex flex-col gap-7 Container ${
           bigScreen ? 'pb-6' : 'pb-6'
         } `}>
         <BaseButton

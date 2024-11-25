@@ -23,6 +23,8 @@ import {Config} from '../../constants/options';
 import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {showToast} from '../../components/Toast/Toast';
+import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
+import ResponsiveImage from '../../components/ResponsiveImage';
 type VerifyOTPScreenProps = NativeStackScreenProps<AuthStackParamList, 'OTP'>;
 
 const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
@@ -34,6 +36,8 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
   const [OTP, setOTP] = useState<string>('');
   const [error, setError] = useState(false);
   const queryClient = useQueryClient();
+  const {data: OrganizationBySKU} = useGetOrganizationBySKU();
+
   const {width: screenWidth, height: screenHeight} = Dimensions.get('screen');
   const bigScreen = screenHeight > 800;
   const {t: auth} = useTranslation('translation', {
@@ -74,66 +78,77 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
     if (OTP.length === Config.OTPLength) {
       VerifyToken.mutate({
         code: OTP,
-        organization: 1,
+        organization: OrganizationBySKU!.id,
         username: route.params.username,
       });
     }
   }, [OTP]);
 
   return (
-    <SafeAreaView className="flex-1">
-      <View
-        style={{height: screenHeight * (bigScreen ? 0.21 : 0.11)}}
-        className=" w-full flex items-center justify-center">
-        <View className="flex flex-row gap-4">
-          <LogoWithText width={155} height={55} />
-          <Logo width={55} height={55} />
+    <SafeAreaView className="flex-1 justify-between ">
+      <View>
+        <View
+          style={{height: screenHeight * (bigScreen ? 0.21 : 0.11)}}
+          className=" w-full flex items-center justify-center">
+          <View className="flex flex-row gap-4 w-[185px] h-[55px]">
+            <ResponsiveImage
+              customSource={OrganizationBySKU?.brandedLogo.srcset}
+              fallback={require('../../assets/images/testImage.png')}
+              resizeMode="contain"
+            />
+          </View>
         </View>
-      </View>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{flex: 1}}>
-        <ScrollView
-          contentContainerStyle={{paddingHorizontal: 16, paddingBottom: 20}}
-          showsVerticalScrollIndicator={false}>
-          <View className="w-full flex flex-col gap-16 ">
-            <View className="gap-4">
-              <BaseText type="title2">
-                {auth('Enter the verification code')}
-              </BaseText>
-              <View className="flex-row items-center gap-2">
-                <BaseText type="subtitle2" color="muted">
-                  {auth('Code on')}
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={{flex: 1}}>
+          <ScrollView
+            contentContainerStyle={{paddingHorizontal: 16}}
+            showsVerticalScrollIndicator={false}>
+            <View className="w-full flex flex-col gap-16 ">
+              <View className="gap-4">
+                <BaseText type="title2">
+                  {auth('Enter the verification code')}
                 </BaseText>
-                <TouchableOpacity
-                  onPress={() => navigation.navigate('Signup')}
-                  className="flex-row gap-1">
-                  <Edit2 size="14" color="#BCDD64" variant="Bold" />
-                  <BaseText type="subtitle2" color="active">
-                    {route.params.username}
+                <View className="flex-row items-center gap-2">
+                  <BaseText type="subtitle2" color="muted">
+                    {auth('Code on')}
                   </BaseText>
-                </TouchableOpacity>
-                <BaseText type="subtitle2" color="muted">
-                  {auth('was send')}
-                </BaseText>
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate(
+                        route.params.LoginWithOTP
+                          ? 'LoginWithOTP'
+                          : 'ForgetPassword',
+                      )
+                    }
+                    className="flex-row gap-1">
+                    <Edit2 size="14" color="#BCDD64" variant="Bold" />
+                    <BaseText type="subtitle2" color="active">
+                      {route.params.username}
+                    </BaseText>
+                  </TouchableOpacity>
+                  <BaseText type="subtitle2" color="muted">
+                    {auth('was send')}
+                  </BaseText>
+                </View>
+              </View>
+              <View className="mx-auto items-center  gap-16">
+                <OTPCode
+                  error={error}
+                  onChange={setOTP}
+                  value={OTP}
+                  length={Config.OTPLength}
+                />
+                <CountdownTimer
+                  reset={reset}
+                  initialTime={Config.CountDownTimer}
+                  onComplete={() => setCanResend(true)}
+                />
               </View>
             </View>
-            <View className="mx-auto items-center  gap-16">
-              <OTPCode
-                error={error}
-                onChange={setOTP}
-                value={OTP}
-                length={Config.OTPLength}
-              />
-              <CountdownTimer
-                reset={reset}
-                initialTime={Config.CountDownTimer}
-                onComplete={() => setCanResend(true)}
-              />
-            </View>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </View>
       <View
         className={`flex flex-col gap-7 Container ${
           bigScreen ? 'pb-6' : 'pb-6'

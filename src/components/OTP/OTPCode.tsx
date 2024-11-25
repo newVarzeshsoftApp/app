@@ -48,10 +48,18 @@ const OTPCode: React.FC<OtpProps> = ({value, length, onChange, error}) => {
 
   const handleFocus = (index: number) => setFocusedIndex(index);
 
+  const handlePaste = (e: any) => {
+    const pastedText = e.clipboardData?.getData('Text') || '';
+    if (pastedText.length === length) {
+      onChange(pastedText);
+    }
+  };
+
   return (
     <View className="flex flex-row rtl:flex-row-reverse gap-4 w-full">
       {Array.from({length}).map((_, index) => (
         <TextInput
+          // onPaste={Platform.OS === 'web' ? handlePaste : undefined}
           key={index}
           ref={ref => (inputRefs.current[index] = ref!)}
           className={`text-text-base dark:text-text-base-dark outline-none ${
@@ -77,7 +85,7 @@ const OTPCode: React.FC<OtpProps> = ({value, length, onChange, error}) => {
           onKeyPress={e => handleKeyPress(e, index)}
           value={value[index] || ''}
           autoFocus={index === 0}
-          autoComplete={Platform.OS === 'android' ? 'sms-otp' : undefined}
+          autoComplete={Platform.OS === 'web' ? 'one-time-code' : undefined}
           textContentType={Platform.OS === 'ios' ? 'oneTimeCode' : undefined}
         />
       ))}

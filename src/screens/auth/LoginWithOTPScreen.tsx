@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Dimensions,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
+import {View, Dimensions, KeyboardAvoidingView, Platform} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {AuthStackParamList} from '../../utils/types/NavigationTypes';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
@@ -16,24 +9,22 @@ import {
 } from '../../utils/validation/auth/ForgetPasswordSchema';
 import {zodResolver} from '@hookform/resolvers/zod';
 import {SafeAreaView} from 'react-native-safe-area-context';
-
 import BaseText from '../../components/BaseText';
 import ControlledInput from '../../components/Input/ControlledInput';
 import {useTranslation} from 'react-i18next';
 import BaseButton from '../../components/Button/BaseButton';
-import {ArrowLeft, ArrowRight2} from 'iconsax-react-native';
 import {useMutation} from '@tanstack/react-query';
 import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
 import ResponsiveImage from '../../components/ResponsiveImage';
 
-type ForgetPasswordScreenProps = NativeStackScreenProps<
+type LoginWithOTPScreenProps = NativeStackScreenProps<
   AuthStackParamList,
-  'ForgetPassword'
+  'LoginWithOTP'
 >;
 
-const ForgetPasswordScreen: React.FC<ForgetPasswordScreenProps> = ({
+const LoginWithOTPScreen: React.FC<LoginWithOTPScreenProps> = ({
   navigation,
 }) => {
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
@@ -50,7 +41,7 @@ const ForgetPasswordScreen: React.FC<ForgetPasswordScreenProps> = ({
     onSuccess(data, variables) {
       navigation.navigate('OTP', {
         username: variables.username,
-        resetPassword: true,
+        LoginWithOTP: true,
       });
     },
     onError: handleMutationError,
@@ -77,12 +68,12 @@ const ForgetPasswordScreen: React.FC<ForgetPasswordScreenProps> = ({
   const bigScreen = screenHeight > 800;
 
   return (
-    <View className="flex-1  justify-between pt-20 Container">
-      <View className="flex-1">
+    <View className="flex-1 justify-between pt-20 Container">
+      <View>
         <View
           style={{height: screenHeight * (bigScreen ? 0.21 : 0.11)}}
           className=" w-full flex items-center justify-center">
-          <View className="flex flex-row gap-4  w-[185px] h-[55px] ">
+          <View className="flex flex-row gap-4 w-[185px] h-[55px]">
             <ResponsiveImage
               customSource={OrganizationBySKU?.brandedLogo.srcset}
               fallback={require('../../assets/images/testImage.png')}
@@ -90,34 +81,37 @@ const ForgetPasswordScreen: React.FC<ForgetPasswordScreenProps> = ({
             />
           </View>
         </View>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{flex: 1}}>
-          <View className="w-full flex flex-col gap-9 ">
-            <View className="gap-3">
-              <BaseText type="title2">{auth('ForgetPassword')}</BaseText>
-              <BaseText type="subtitle2" color="muted">
-                {auth('ForgetPasswordInfo')}
-              </BaseText>
-            </View>
-            <FormProvider {...methods}>
-              <View className="flex flex-col gap-4">
-                <ControlledInput
-                  control={control}
-                  name="username"
-                  label={t('username')}
-                  PlaceHolder={placeholders('username')}
-                  type="text"
-                  accessibilityLabel="username input field"
-                  accessibilityHint="Enter your username"
-                  error={errors.username?.message}
-                />
-                {/* Password Input */}
+        <SafeAreaView className="flex-1 justify-between Container">
+          <KeyboardAvoidingView
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+            style={{flex: 1}}>
+            <View className="w-full flex flex-col gap-9 ">
+              <View className="gap-3">
+                <BaseText type="title2">{auth('login')}</BaseText>
+                <BaseText type="subtitle2" color="muted">
+                  {auth('LoginWithOTPInfo')}
+                </BaseText>
               </View>
-            </FormProvider>
-          </View>
-        </KeyboardAvoidingView>
+              <FormProvider {...methods}>
+                <View className="flex flex-col gap-4">
+                  <ControlledInput
+                    control={control}
+                    name="username"
+                    label={t('username')}
+                    PlaceHolder={placeholders('username')}
+                    type="text"
+                    accessibilityLabel="username input field"
+                    accessibilityHint="Enter your username"
+                    error={errors.username?.message}
+                  />
+                  {/* Password Input */}
+                </View>
+              </FormProvider>
+            </View>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
       </View>
+
       <View className={`flex flex-col gap-7  ${bigScreen ? 'pb-6' : 'pb-6'} `}>
         <BaseButton
           type="Fill"
@@ -137,4 +131,4 @@ const ForgetPasswordScreen: React.FC<ForgetPasswordScreenProps> = ({
   );
 };
 
-export default ForgetPasswordScreen;
+export default LoginWithOTPScreen;

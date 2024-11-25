@@ -93,6 +93,10 @@ module.exports = (env, argv) => {
       alias: {
         'react-native$': 'react-native-web',
         'react-native-linear-gradient': 'react-native-web-linear-gradient',
+        '@react-native-community/blur': path.resolve(
+          __dirname,
+          'src/mocks/BlurViewMock.js',
+        ),
       },
     },
     module: {
