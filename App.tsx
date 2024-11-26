@@ -1,5 +1,4 @@
 import React, {useEffect} from 'react';
-
 import {loadLanguage} from './src/utils/helpers/languageUtils';
 import {RootNavigator} from './src/navigation/RootNavigator';
 import {View} from 'react-native';

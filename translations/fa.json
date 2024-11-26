@@ -6,7 +6,10 @@
     "Home": "خانه",
     "ticket": "تیکت",
     "cart": "سبدخرید",
-    "wallet": "کیف پول"
+    "wallet": "کیف پول",
+    "start": "شروع",
+    "end": "پایان",
+    "MettingRemaining": "مانده جلسات"
   },
   "Auth": {
     "login": "ورود",
@@ -33,7 +36,13 @@
     "rial": "ریال",
     "Insurance": "بیمه",
     "Closet": "کمد",
-    "Membership": "عضویت"
+    "Membership": "عضویت",
+    "myService": "سرویس های من",
+    "all": "همه",
+    "Days to completion": "روز تا اتمام",
+    "endTime": "تمام شده",
+    "start": "شروع",
+    "end": "پایان"
   },
   "Input": {
     "username": "ایمیل / شماره تلفن",

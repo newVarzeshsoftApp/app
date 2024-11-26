@@ -1,3 +1,9 @@
+export type RootStackParamList = {
+  Auth: undefined;
+  Home: {
+    screen?: keyof HomeStackParamList;
+  };
+};
 export type AuthStackParamList = {
   Login: undefined;
   Signup: undefined;
@@ -12,9 +18,4 @@ export type HomeStackParamList = {
   ticket: undefined;
   cart: undefined;
   wallet: undefined;
-};
-
-export type RootStackParamList = {
-  Auth: undefined;
-  Home: undefined;
 };

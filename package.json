@@ -30,6 +30,7 @@
     "i18next": "^23.16.5",
     "iconsax-react-native": "^0.0.8",
     "intl-pluralrules": "^2.0.1",
+    "jalali-moment": "^3.3.11",
     "nativewind": "^4.1.23",
     "postcss": "^8.4.47",
     "postcss-loader": "^8.1.1",

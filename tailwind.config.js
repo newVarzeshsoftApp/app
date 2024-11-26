@@ -350,7 +350,7 @@ module.exports = {
           },
           secondary: {
             DEFAULT: '#55575c', // Light - Neutral-600
-            dark: '#f4f4f5', // Dark - Neutral-600
+            dark: '#AAABAD', // Dark - Neutral-600
           },
           muted: {
             DEFAULT: '#aaabad', // Light - Neutral-400

@@ -18,7 +18,7 @@ export type ISpinnerProps = {
   style?: TextStyle;
 };
 export type IBadge = {
-  value:string
+  value:string | number
   className?: string;
   rounded?:boolean
   color?: TypeBadgeColor;

@@ -41,7 +41,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
     mutationFn: AuthService.SignIN,
     onSuccess(data, variables, context) {
       queryClient.invalidateQueries({queryKey: ['Tokens']});
-      navigation.getParent()?.navigate('Home');
+      navigation.getParent()?.navigate('Home', {screen: 'Home'});
     },
     onError: handleMutationError,
   });
@@ -104,23 +104,24 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
                     accessibilityLabel="Password input field"
                     accessibilityHint="Enter your password"
                   />
-                  <TouchableOpacity
-                    accessibilityLabel="Navigate to Forget Password screen"
-                    onPress={() => navigation.navigate('LoginWithOTP')}>
-                    <BaseText type="button2" color="muted">
-                      {auth('LoginWithOTP')}
-                    </BaseText>
-                  </TouchableOpacity>
+
+                  <Checkbox
+                    onCheckedChange={setRememberme}
+                    checked={Rememberme}
+                    label={auth('RememberMe')}
+                    accessibilityLabel="Remember me checkbox"
+                    accessibilityHint="Toggle to remember your login credentials"
+                  />
                 </View>
               </FormProvider>
               <View className="flex flex-row justify-between w-full items-center">
-                <Checkbox
-                  onCheckedChange={setRememberme}
-                  checked={Rememberme}
-                  label={auth('RememberMe')}
-                  accessibilityLabel="Remember me checkbox"
-                  accessibilityHint="Toggle to remember your login credentials"
-                />
+                <TouchableOpacity
+                  accessibilityLabel="Navigate to Forget Password screen"
+                  onPress={() => navigation.navigate('LoginWithOTP')}>
+                  <BaseText type="button2" color="secondary">
+                    {auth('LoginWithOTP')}
+                  </BaseText>
+                </TouchableOpacity>
                 <TouchableOpacity
                   accessibilityLabel="Navigate to Forget Password screen"
                   onPress={() => navigation.navigate('ForgetPassword')}>

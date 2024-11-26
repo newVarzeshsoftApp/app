@@ -11,10 +11,28 @@ function Banner() {
   const IsRtl = I18nManager.isRTL;
   const {theme, toggleTheme} = useTheme();
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
+  function generateGradient() {
+    const colors = [];
+    const locations = [];
+
+    for (let i = 0; i <= 100; i++) {
+      const opacity = i / 100;
+      const color =
+        theme === 'dark'
+          ? `rgba(22, 24, 27, ${opacity})`
+          : `rgba(244, 244, 245, ${opacity})`;
+      colors.push(color);
+      locations.push(opacity);
+    }
+
+    return {colors, locations};
+  }
+  const {colors, locations} = generateGradient();
+
   return (
     <View
       style={{height: screenHeight * 0.3}}
-      className={`w-full   overflow-hidden relative`}>
+      className={`w-full overflow-hidden relative`}>
       <ResponsiveImage
         customSource={OrganizationBySKU?.banners[0]?.srcset}
         fallback={require('../../assets/images/testImage.png')}
@@ -24,7 +42,6 @@ function Banner() {
           height: screenHeight * 0.6,
         }}
       />
-
       <View
         className={`absolute flex items-center bottom-10 flex-row gap-4 left-1/2  ${
           IsRtl ? 'translate-x-1/2' : '-translate-x-1/2'
@@ -41,7 +58,7 @@ function Banner() {
         <BlurView
           style={{
             position: 'absolute',
-            zIndex: 1,
+            zIndex: 0,
             bottom: -100,
             width: '100%',
             height: screenHeight * 0.6,
@@ -53,13 +70,14 @@ function Banner() {
       )}
 
       <LinearGradient
-        colors={['transparent', theme === 'dark' ? '#16181b' : '#f4f4f5']} // Gradient from transparent to black
+        colors={colors}
+        locations={locations}
         style={{
           position: 'absolute',
           zIndex: 1,
           bottom: 0,
           width: '100%',
-          height: screenHeight * 0.2,
+          height: 60,
         }}
       />
     </View>

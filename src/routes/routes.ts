@@ -18,4 +18,8 @@ export const routes = {
     getOrganizationBySKU: (sku: string) => `organization/by-sku/${sku}`,
     getOrganizationByID: (id: number) => `organization/by-sku/${id}`,
   },
+  user: {
+    getUserCredit: () => `user/credit`,
+    getUserDashboard: () => `user/dashbord`,
+  },
 };

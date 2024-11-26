@@ -12,9 +12,9 @@ function Header() {
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
 
   return (
-    <SafeAreaView className="dark:bg-neutral-dark-300/90 web:backdrop-blur max-w-[450px] mx-auto  bg-neutral-0/80 border web:justify-center  android:justify-center border-neutral-0 rounded-b-[32px] dark:border-neutral-dark-400/40 -translate-y-1 shadow android:h-[100px] web:h-[100px] web:fixed web:left-1/2 web:-translate-x-1/2  w-full ios:h-[120px]  ">
+    <SafeAreaView className="dark:bg-neutral-dark-300/90 web:backdrop-blur max-w-[450px] mx-auto  bg-neutral-0/80 border web:justify-center  android:justify-center border-neutral-0 rounded-b-[32px] dark:border-neutral-dark-400/40 -translate-y-1 shadow android:h-[100px] web:h-[80px] web:fixed web:left-1/2 web:-translate-x-1/2  w-full ios:h-[120px]  ">
       <View className="px-5 flex-row justify-between">
-        <View className="w-[43px] h-[43px]">
+        <View className="w-[45px] h-[45px]">
           <ResponsiveImage
             customSource={OrganizationBySKU?.officialLogo.srcset}
             fallback={require('../assets/images/testImage.png')}

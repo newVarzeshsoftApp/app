@@ -13,7 +13,7 @@ function Badge({value, className, color, style, rounded}: IBadge) {
           : 'px-2 py-1'
       } ${className}`}
       style={style}>
-      <BaseText type="caption" color="button">
+      <BaseText type="badge" color="button">
         {value}
       </BaseText>
     </View>
