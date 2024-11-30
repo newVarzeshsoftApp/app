@@ -2,27 +2,27 @@
   "migIndex": 1,
   "data": [
     {
-      "path": "src/assets/font/Poppins-Bold.ttf",
+      "path": "src/assets/font/Poppins-Bold.woff2",
       "sha1": "875cf0cecd647bcf22e79d633d868c1b1ec98dfa"
     },
     {
-      "path": "src/assets/font/Poppins-Regular.ttf",
+      "path": "src/assets/font/Poppins-Regular.woff2",
       "sha1": "fdd3002e7d814ee47c1c1b8487c72c6bbb3a2d00"
     },
     {
-      "path": "src/assets/font/Poppins-SemiBold.ttf",
+      "path": "src/assets/font/Poppins-SemiBold.woff2",
       "sha1": "8a4ace9392d06bcb7f8ea2f5169b07e4c383a90d"
     },
     {
-      "path": "src/assets/font/YekanBakhFaNum-Bold.ttf",
+      "path": "src/assets/font/YekanBakhFaNum-Bold.woff2",
       "sha1": "70e96a95ff0b12c2d0d60b32533d9b0886ce7f6b"
     },
     {
-      "path": "src/assets/font/YekanBakhFaNum-Regular.ttf",
+      "path": "src/assets/font/YekanBakhFaNum-Regular.woff2",
       "sha1": "07b5e29004d9281c4d6cf22d70f5288665382ecb"
     },
     {
-      "path": "src/assets/font/YekanBakhFaNum-SemiBold.ttf",
+      "path": "src/assets/font/YekanBakhFaNum-SemiBold.woff2",
       "sha1": "1accd542b1537886c4d1c89805309a1c1933c407"
     }
   ]

@@ -41,34 +41,34 @@ export const prepareQuery = (queryObject: object): string => {
  * @param number - The number to format.
  * @returns {string} - Formatted number as a string with appropriate suffixes.
  */
-export const formatNumber = (number: number): string => {
-  const absNumber = Math.abs(number);
-  let abbreviatedNumber: string | number = absNumber;
+// export const formatNumber = (number: number): string => {
+//   const absNumber = Math.abs(number);
+//   let abbreviatedNumber: string | number = absNumber;
 
-  if (absNumber >= 1e3 && absNumber < 1e6) {
-    abbreviatedNumber = absNumber / 1e3;
-    abbreviatedNumber = Number.isInteger(abbreviatedNumber)
-      ? `${abbreviatedNumber}K`
-      : `${abbreviatedNumber.toFixed(2)}K`;
-  } else if (absNumber >= 1e6 && absNumber < 1e9) {
-    abbreviatedNumber = absNumber / 1e6;
-    abbreviatedNumber = Number.isInteger(abbreviatedNumber)
-      ? `${abbreviatedNumber}M`
-      : `${abbreviatedNumber.toFixed(2)}M`;
-  } else if (absNumber >= 1e9 && absNumber < 1e12) {
-    abbreviatedNumber = absNumber / 1e9;
-    abbreviatedNumber = Number.isInteger(abbreviatedNumber)
-      ? `${abbreviatedNumber}B`
-      : `${abbreviatedNumber.toFixed(2)}B`;
-  } else if (absNumber >= 1e12) {
-    abbreviatedNumber = absNumber / 1e12;
-    abbreviatedNumber = Number.isInteger(abbreviatedNumber)
-      ? `${abbreviatedNumber}T`
-      : `${abbreviatedNumber.toFixed(2)}T`;
-  }
+//   if (absNumber >= 1e3 && absNumber < 1e6) {
+//     abbreviatedNumber = absNumber / 1e3;
+//     abbreviatedNumber = Number.isInteger(abbreviatedNumber)
+//       ? `${abbreviatedNumber}K`
+//       : `${abbreviatedNumber.toFixed(2)}K`;
+//   } else if (absNumber >= 1e6 && absNumber < 1e9) {
+//     abbreviatedNumber = absNumber / 1e6;
+//     abbreviatedNumber = Number.isInteger(abbreviatedNumber)
+//       ? `${abbreviatedNumber}M`
+//       : `${abbreviatedNumber.toFixed(2)}M`;
+//   } else if (absNumber >= 1e9 && absNumber < 1e12) {
+//     abbreviatedNumber = absNumber / 1e9;
+//     abbreviatedNumber = Number.isInteger(abbreviatedNumber)
+//       ? `${abbreviatedNumber}B`
+//       : `${abbreviatedNumber.toFixed(2)}B`;
+//   } else if (absNumber >= 1e12) {
+//     abbreviatedNumber = absNumber / 1e12;
+//     abbreviatedNumber = Number.isInteger(abbreviatedNumber)
+//       ? `${abbreviatedNumber}T`
+//       : `${abbreviatedNumber.toFixed(2)}T`;
+//   }
 
-  return (number < 0 ? '-' : '') + abbreviatedNumber;
-};
+//   return (number < 0 ? '-' : '') + abbreviatedNumber;
+// };
 
 /**
  * Preloads images by creating new Image objects for each source in the array.
@@ -101,6 +101,53 @@ export function queryToJSON(query: string): object {
   });
 
   return queryObject;
+}
+
+export const formatNumber = (num: any) => {
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
+export function calculateRemainingDays(subscription: {
+  start: string;
+  end: string;
+}): number {
+  const startDate = new Date(subscription.start);
+  const endDate = new Date(subscription.end);
+
+  // Calculate the difference in milliseconds between start and end
+  const differenceInMilliseconds = endDate.getTime() - startDate.getTime();
+
+  // Convert milliseconds to days
+  const totalDays = Math.ceil(differenceInMilliseconds / (1000 * 60 * 60 * 24));
+
+  // Calculate how many days have passed since the start date
+  const currentDate = new Date();
+  const elapsedMilliseconds = currentDate.getTime() - startDate.getTime();
+  const elapsedDays = Math.ceil(elapsedMilliseconds / (1000 * 60 * 60 * 24));
+
+  // Calculate remaining days
+  const remainingDays = totalDays - elapsedDays;
+
+  return remainingDays >= 0 ? remainingDays : 0; // Ensure no negative days
+}
+export function convertToPersianTimeLabel(value: number): string {
+  if (value < 0 || value > 1800) {
+    throw new Error('Value must be between 0 and 1800 (up to 5 years).');
+  }
+
+  const years = Math.floor(value / 360); // Each year is 360
+  const months = Math.floor((value % 360) / 30); // Each month is 30
+
+  let result = '';
+
+  if (years > 0) {
+    result += `${years} سال`;
+  }
+  if (months > 0) {
+    if (result) result += ' و '; // Add 'و' if both years and months are present
+    result += `${months} ماه`;
+  }
+
+  return result || '0 ماه'; // If no valid year or month, default to "0 ماه"
 }
 
 /**

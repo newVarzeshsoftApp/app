@@ -18,11 +18,14 @@ export type ISpinnerProps = {
   style?: TextStyle;
 };
 export type IBadge = {
-  value:string
+  value:string | number
   className?: string;
   rounded?:boolean
   color?: TypeBadgeColor;
+  defaultMode?:boolean
   style?: TextStyle;
+  textColor?:TypeTextColor
+  CreditMode?:boolean
 };
 export interface IWheelProps {
   items: {value:string,label:string}[]; 

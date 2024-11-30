@@ -33,7 +33,18 @@
     "rial": "ریال",
     "Insurance": "بیمه",
     "Closet": "کمد",
-    "Membership": "عضویت"
+    "Membership": "عضویت",
+    "myService": "سرویس های من",
+    "all": "همه",
+    "Days to completion": "روز تا اتمام",
+    "endTime": "تمام شده",
+    "start": "شروع",
+    "end": "پایان",
+    "MettingRemaining": "مانده جلسات",
+    "noLimit": "بدون محدودیت"
+  },
+  "SaleItem": {
+    "saleItem": "سرویس های من"
   },
   "Input": {
     "username": "ایمیل / شماره تلفن",

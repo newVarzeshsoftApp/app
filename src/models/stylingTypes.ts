@@ -23,6 +23,13 @@ export type TypeTextColor =
   | 'success'
   | 'error'
   | 'button' 
+  |  "secondaryPurple"
+  |  "supportive1"
+  |"supportive2"
+  |"supportive3"
+  |"supportive4"
+  |"supportive5"
+  |"supportive6"
   | "Primary600"
   | "Success600"
   | "Success500";

@@ -9,21 +9,21 @@
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: url('./src/assets/font/Poppins-Regular.ttf') format('truetype');
+    src: url('./src/assets/font/Poppins-Regular.woff2');
   }
   @font-face {
     font-family: 'Poppins-Bold';
     font-style: normal;
     font-weight: 700;
     font-display: swap;
-    src: url('./src/assets/font/Poppins-Bold.ttf') format('truetype');
+    src: url('./src/assets/font/Poppins-Bold.woff2');
   }
   @font-face {
     font-family: 'Poppins-SemiBold';
     font-style: normal;
     font-weight: 600;
     font-display: swap;
-    src: url('./src/assets/font/Poppins-SemiBold.ttf') format('truetype');
+    src: url('./src/assets/font/Poppins-SemiBold.woff2');
   }
 
   /* YekanBakhFaNum Font Family */
@@ -32,21 +32,21 @@
     font-style: normal;
     font-weight: 400;
     font-display: swap;
-    src: url('./src/assets/font/YekanBakhFaNum-Regular.ttf') format('truetype');
+    src: url('./src/assets/font/YekanBakhFaNum-Regular.woff2');
   }
   @font-face {
     font-family: 'YekanBakhFaNum-Bold';
     font-style: normal;
     font-weight: 700;
     font-display: swap;
-    src: url('./src/assets/font/YekanBakhFaNum-Bold.ttf') format('truetype');
+    src: url('./src/assets/font/YekanBakhFaNum-Bold.woff2');
   }
   @font-face {
     font-family: 'YekanBakhFaNum-SemiBold';
     font-style: normal;
     font-weight: 600;
     font-display: swap;
-    src: url('./src/assets/font/YekanBakhFaNum-SemiBold.ttf') format('truetype');
+    src: url('./src/assets/font/YekanBakhFaNum-SemiBold.woff2');
   }
 }
 @layer components {
@@ -94,10 +94,14 @@
   .TextButton-Success {
     @apply bg-transparent border border-transparent;
   }
+  .BaseServiceCard {
+    @apply dark:bg-neutral-dark-300/50 bg-neutral-0/50  w-full  p-4 rounded-3xl  border border-neutral-0 dark:border-neutral-dark-400/50;
+  }
 }
 .Outline {
   @apply bg-transparent border border-primary-500 hover:border-primary-400;
 }
+
 @layer utilities {
   /* Typography */
   .title1 {

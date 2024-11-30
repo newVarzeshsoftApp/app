@@ -1,4 +1,7 @@
-import {AllOrganizationQuery} from '../services/models/requestQueries';
+import {
+  AllOrganizationQuery,
+  UserSaleItemQuey,
+} from '../services/models/requestQueries';
 import {prepareQuery} from '../utils/helpers/helpers';
 
 export const routes = {
@@ -17,5 +20,11 @@ export const routes = {
       'organization' + prepareQuery(query),
     getOrganizationBySKU: (sku: string) => `organization/by-sku/${sku}`,
     getOrganizationByID: (id: number) => `organization/by-sku/${id}`,
+  },
+  user: {
+    getUserCredit: () => `user/credit`,
+    getUserDashboard: () => `user/dashbord`,
+    getUserSaleItem: (query: UserSaleItemQuey) =>
+      `user/sale-item` + prepareQuery(query),
   },
 };

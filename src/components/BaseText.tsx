@@ -32,7 +32,7 @@ function BaseText({
     <Text
       {...props}
       style={style}
-      className={`${
+      className={` ${
         Platform.OS === 'ios' ? 'rtl:text-left' : ''
       } ${getTextClass(type, theme, color, i18n.language)} ${className}`}>
       {children}

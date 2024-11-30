@@ -6,8 +6,10 @@ import {useProfile} from '../../utils/hooks/useProfile';
 import WalletBalance from './components/WalletBalance';
 import {useTheme} from '../../utils/ThemeContext';
 import {useTranslation} from 'react-i18next';
-import InfoCards from '../../components/cards/InfoCards';
+
 import BaseButton from '../../components/Button/BaseButton';
+import MyServise from './components/MyServise';
+import InfoCards from '../../components/cards/infoCards/InfoCards';
 
 const HomeScreen: React.FC = () => {
   const queryClient = useQueryClient();
@@ -27,7 +29,7 @@ const HomeScreen: React.FC = () => {
     <ScrollView
       showsVerticalScrollIndicator={false}
       showsHorizontalScrollIndicator={false}>
-      <View className="Container py-5 pb-32 web:pt-[120px]  web:pb-[200px] gap-5  ">
+      <View className="Container py-5 pb-32 web:pt-[85px]  web:pb-[200px] gap-5  ">
         <BaseButton
           color="Primary"
           type="Fill"
@@ -54,19 +56,10 @@ const HomeScreen: React.FC = () => {
             <InfoCards type="BMIInfo" />
           </View>
         </View>
-
-        {/* <Text>Home Screen</Text> */}
-        {/* <BaseButton
-        color="Primary"
-        type="Fill"
-        text="Remove Tokens"
-        onPress={handleRemoveTokens}
-      /> */}
+        <MyServise />
       </View>
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({});
 
 export default HomeScreen;

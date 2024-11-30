@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import HomeNavigator from './home/HomeNavigator';
 import AuthNavigator from './auth/AuthNavigator';
@@ -9,12 +9,11 @@ import {
   DefaultTheme,
   NavigationContainer,
   Theme,
+  useNavigationContainerRef,
 } from '@react-navigation/native';
-
-type RootStackParamList = {
-  Auth: undefined;
-  Home: undefined;
-};
+import {Platform} from 'react-native';
+import {RootStackParamList} from '../utils/types/NavigationTypes';
+import SaleItemNavigator from './Saleitem/SaleItemStackNatigator';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -24,6 +23,17 @@ export const RootNavigator: React.FC = () => {
     queryFn: getTokens,
   });
 
+  const navigationRef = useNavigationContainerRef();
+  useEffect(() => {
+    if (Platform.OS === 'web') {
+      const unsubscribe = navigationRef?.addListener('state', () => {
+        // This scrolls to the top when route changes
+        window.scrollTo(0, 0);
+      });
+
+      return unsubscribe;
+    }
+  }, [navigationRef]);
   if (isLoading) {
     return null;
   }
@@ -40,10 +50,13 @@ export const RootNavigator: React.FC = () => {
     },
   };
   return (
-    <NavigationContainer theme={MinimalTheme}>
+    <NavigationContainer theme={MinimalTheme} ref={navigationRef}>
       <Stack.Navigator screenOptions={{headerShown: false}}>
         {data?.accessToken ? (
-          <Stack.Screen name="Home" component={HomeNavigator} />
+          <>
+            <Stack.Screen name="Home" component={HomeNavigator} />
+            <Stack.Screen name="SaleItem" component={SaleItemNavigator} />
+          </>
         ) : (
           <Stack.Screen name="Auth" component={AuthNavigator} />
         )}

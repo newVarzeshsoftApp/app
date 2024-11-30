@@ -15,9 +15,6 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import BaseText from '../../components/BaseText';
 import ControlledInput from '../../components/Input/ControlledInput';
 import BaseButton from '../../components/Button/BaseButton';
-import Logo from '../../assets/icons/Logo.svg';
-import LogoWithText from '../../assets/icons/LogoWithText.svg';
-
 import {
   SignupSchema,
   SignupSchemaType,
@@ -27,7 +24,6 @@ import {KeyboardAvoidingView} from 'react-native';
 import {useMutation} from '@tanstack/react-query';
 import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
-import {Picker, PickerIOS} from '@react-native-picker/picker';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
 import ResponsiveImage from '../../components/ResponsiveImage';
 type SignupScreenProps = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
@@ -58,7 +54,6 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
       password: data.password,
     });
   };
-
   const methods = useForm<SignupSchemaType>({
     resolver: zodResolver(SignupSchema),
     defaultValues: {
@@ -78,120 +73,125 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
 
   const bigScreen = screenHeight > 800;
   return (
-    <SafeAreaView className="flex-1 justify-between">
+    <View style={{flex: 1}} className="flex-1">
       <ScrollView
-        contentContainerStyle={{paddingHorizontal: 20, paddingBottom: 20}}
-        showsVerticalScrollIndicator={false}>
-        <View
-          style={{height: screenHeight * (bigScreen ? 0.21 : 0.11)}}
-          className=" w-full flex items-center justify-cente ">
-          <View className="flex flex-row gap-4">
-            <ResponsiveImage
-              customSource={OrganizationBySKU?.brandedLogo.srcset}
-              fallback={require('../../assets/images/testImage.png')}
-              resizeMode="contain"
-              width={185}
-              height={55}
-            />
-          </View>
-        </View>
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          style={{flex: 1}}>
-          <View className="w-full flex flex-col gap-9 ">
-            <BaseText type="title2">{auth('signup')}</BaseText>
-            <FormProvider {...methods}>
-              <View className="flex flex-col gap-0">
-                <ControlledInput
-                  control={control}
-                  name="Name"
-                  label={t('firstName')}
-                  PlaceHolder={placeholders('Name')}
-                  type="text"
-                  accessibilityLabel="full Name input field"
-                  accessibilityHint="Enter your full Name"
-                  error={errors.Name?.message}
-                />
-                <ControlledInput
-                  control={control}
-                  name="lastName"
-                  label={t('lastName')}
-                  PlaceHolder={placeholders('lastName')}
-                  type="text"
-                  accessibilityLabel="full Name input field"
-                  accessibilityHint="Enter your full Name"
-                  error={errors.lastName?.message}
-                />
-                {/* Password Input */}
-                <ControlledInput
-                  control={control}
-                  name="password"
-                  label={t('password')}
-                  PlaceHolder={placeholders('password')}
-                  type="password"
-                  error={errors.password?.message}
-                  accessibilityLabel="Password input field"
-                  accessibilityHint="Enter your password"
-                />
-                <ControlledInput
-                  control={control}
-                  name="phone"
-                  label={t('phone')}
-                  PlaceHolder={placeholders('phoneNumber')}
-                  error={errors.phone?.message}
-                  accessibilityLabel="phone input field"
-                  accessibilityHint="Enter your phone number"
-                />
-                <ControlledInput
-                  control={control}
-                  name="email"
-                  label={t('email')}
-                  PlaceHolder={placeholders('email')}
-                  type="email"
-                  optional
-                  error={errors.email?.message}
-                  accessibilityLabel="email input field"
-                  accessibilityHint="Enter your email"
+        contentContainerStyle={{paddingHorizontal: 20}}
+        showsVerticalScrollIndicator={false}
+        style={{
+          flex: 1,
+        }}>
+        <SafeAreaView className="flex-1  justify-between">
+          <View>
+            <View
+              style={{height: screenHeight * 0.1}}
+              className=" w-full flex items-center justify-center ">
+              <View className="flex flex-row gap-4 w-[185px] h-[55px] ">
+                <ResponsiveImage
+                  customSource={OrganizationBySKU?.brandedLogo.srcset}
+                  fallback={require('../../assets/images/testImage.png')}
+                  resizeMode="contain"
                 />
               </View>
-            </FormProvider>
+            </View>
+            <KeyboardAvoidingView
+              behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+              style={{flex: 1}}>
+              <View className="w-full flex flex-col gap-9 ">
+                <BaseText type="title2">{auth('signup')}</BaseText>
+                <FormProvider {...methods}>
+                  <View className="flex flex-col gap-0">
+                    <ControlledInput
+                      control={control}
+                      name="Name"
+                      label={t('firstName')}
+                      PlaceHolder={placeholders('Name')}
+                      type="text"
+                      accessibilityLabel="full Name input field"
+                      accessibilityHint="Enter your full Name"
+                      error={errors.Name?.message}
+                    />
+                    <ControlledInput
+                      control={control}
+                      name="lastName"
+                      label={t('lastName')}
+                      PlaceHolder={placeholders('lastName')}
+                      type="text"
+                      accessibilityLabel="full Name input field"
+                      accessibilityHint="Enter your full Name"
+                      error={errors.lastName?.message}
+                    />
+                    {/* Password Input */}
+                    <ControlledInput
+                      control={control}
+                      name="password"
+                      label={t('password')}
+                      PlaceHolder={placeholders('password')}
+                      type="password"
+                      error={errors.password?.message}
+                      accessibilityLabel="Password input field"
+                      accessibilityHint="Enter your password"
+                    />
+                    <ControlledInput
+                      control={control}
+                      name="phone"
+                      label={t('phone')}
+                      PlaceHolder={placeholders('phoneNumber')}
+                      error={errors.phone?.message}
+                      accessibilityLabel="phone input field"
+                      accessibilityHint="Enter your phone number"
+                    />
+                    <ControlledInput
+                      control={control}
+                      name="email"
+                      label={t('email')}
+                      PlaceHolder={placeholders('email')}
+                      type="email"
+                      optional
+                      error={errors.email?.message}
+                      accessibilityLabel="email input field"
+                      accessibilityHint="Enter your email"
+                    />
+                  </View>
+                </FormProvider>
+              </View>
+            </KeyboardAvoidingView>
           </View>
-        </KeyboardAvoidingView>
+          <View
+            className={`flex flex-col gap-7 ${
+              bigScreen ? 'pb-6' : 'pb-6'
+            } mt-auto `}>
+            <BaseButton
+              onPress={handleSubmit(onSubmit)}
+              type="Fill"
+              color="Black"
+              rounded
+              size="Large"
+              isLoading={SignUpMutation.isPending}
+              text={auth('signup')}
+              accessibilityLabel="signup button"
+              accessibilityRole="button"
+              accessibilityHint="Submits the signup form"
+            />
+            <View className="flex items-center flex-row justify-center gap-2 ">
+              <BaseText
+                type="button1"
+                color="muted"
+                accessibilityLabel="Not registered text">
+                {auth('alredyRegistered')}
+              </BaseText>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('Login')}
+                accessibilityLabel="Navigate to login screen"
+                accessibilityRole="button">
+                <BaseText type="button1" color="active">
+                  {auth('login')}
+                </BaseText>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </SafeAreaView>
       </ScrollView>
-      <View
-        className={`flex flex-col gap-7 Container ${
-          bigScreen ? 'pb-6' : 'pb-6'
-        } `}>
-        <BaseButton
-          onPress={handleSubmit(onSubmit)}
-          type="Fill"
-          color="Black"
-          rounded
-          size="Large"
-          isLoading={SignUpMutation.isPending}
-          text={auth('signup')}
-          accessibilityLabel="signup button"
-          accessibilityRole="button"
-          accessibilityHint="Submits the signup form"
-        />
-        <View className="flex items-center flex-row justify-center gap-2 ">
-          <BaseText
-            type="button1"
-            color="muted"
-            accessibilityLabel="Not registered text">
-            {auth('alredyRegistered')}
-          </BaseText>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Login')}
-            accessibilityLabel="Navigate to login screen"
-            accessibilityRole="button">
-            <BaseText type="button1" color="active">
-              {auth('login')}
-            </BaseText>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </SafeAreaView>
+    </View>
   );
 };
 
