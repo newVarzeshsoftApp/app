@@ -6,10 +6,7 @@
     "Home": "خانه",
     "ticket": "تیکت",
     "cart": "سبدخرید",
-    "wallet": "کیف پول",
-    "start": "شروع",
-    "end": "پایان",
-    "MettingRemaining": "مانده جلسات"
+    "wallet": "کیف پول"
   },
   "Auth": {
     "login": "ورود",
@@ -42,7 +39,12 @@
     "Days to completion": "روز تا اتمام",
     "endTime": "تمام شده",
     "start": "شروع",
-    "end": "پایان"
+    "end": "پایان",
+    "MettingRemaining": "مانده جلسات",
+    "noLimit": "بدون محدودیت"
+  },
+  "SaleItem": {
+    "saleItem": "سرویس های من"
   },
   "Input": {
     "username": "ایمیل / شماره تلفن",

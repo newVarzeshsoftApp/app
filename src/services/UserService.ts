@@ -5,11 +5,13 @@ import axiosInstance from '../utils/AxiosInstans';
 import {
   GetUserCreditRes,
   GetUserDashboardRes,
+  GetUserSaleItemRes,
 } from './models/response/UseResrService';
+import {UserSaleItemQuey} from './models/requestQueries';
 
 const {
   baseUrl,
-  user: {getUserCredit, getUserDashboard},
+  user: {getUserCredit, getUserDashboard, getUserSaleItem},
 } = routes;
 
 const UserService = {
@@ -38,6 +40,28 @@ const UserService = {
     try {
       const response = await axiosInstance.get<GetUserDashboardRes>(
         baseUrl + getUserDashboard(),
+      );
+      if (response.status === Status.Ok) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error in GetUserDashboard function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(
+          error.response.data.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+  GetUserSaleItem: async (
+    query: UserSaleItemQuey,
+  ): Promise<GetUserSaleItemRes> => {
+    try {
+      const response = await axiosInstance.get<GetUserSaleItemRes>(
+        baseUrl + getUserSaleItem(query),
       );
       if (response.status === Status.Ok) {
         return response.data;

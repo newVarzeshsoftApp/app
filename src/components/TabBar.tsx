@@ -91,7 +91,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
         const iconElement = tabIcons[route.name] || <Home2 size="24" />;
 
         return (
-          <TouchableOpacity key={route.key} onPress={onPress}>
+          <TouchableOpacity key={index} onPress={onPress}>
             <Animated.View
               style={[
                 {

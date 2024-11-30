@@ -12,11 +12,8 @@ import {
   useNavigationContainerRef,
 } from '@react-navigation/native';
 import {Platform} from 'react-native';
-
-type RootStackParamList = {
-  Auth: undefined;
-  Home: undefined;
-};
+import {RootStackParamList} from '../utils/types/NavigationTypes';
+import SaleItemNavigator from './Saleitem/SaleItemStackNatigator';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -56,7 +53,10 @@ export const RootNavigator: React.FC = () => {
     <NavigationContainer theme={MinimalTheme} ref={navigationRef}>
       <Stack.Navigator screenOptions={{headerShown: false}}>
         {data?.accessToken ? (
-          <Stack.Screen name="Home" component={HomeNavigator} />
+          <>
+            <Stack.Screen name="Home" component={HomeNavigator} />
+            <Stack.Screen name="SaleItem" component={SaleItemNavigator} />
+          </>
         ) : (
           <Stack.Screen name="Auth" component={AuthNavigator} />
         )}

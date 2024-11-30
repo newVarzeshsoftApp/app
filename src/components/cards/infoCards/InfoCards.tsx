@@ -199,13 +199,14 @@ function InfoCards({
     if (type === 'ClosetInfo' && isSuccess) {
       return (
         <View className="gap-1">
-          <View className="flex-row gap-2 items-center">
-            <BaseText type="subtitle2" color="active">
+          <View className="flex-row gap-2  items-center">
+            <BaseText type="subtitle2" color="secondaryPurple">
               VIP
             </BaseText>
             <Badge
+              defaultMode
               className="w-fit"
-              color="primary"
+              textColor="secondaryPurple"
               value={data?.vipLocker?.locker?.lockerId}
             />
             <BaseText type="subtitle3" color="secondary">
@@ -217,7 +218,8 @@ function InfoCards({
               <Badge
                 key={index}
                 className="w-fit"
-                color="secondary"
+                defaultMode
+                textColor="secondary"
                 value={item}
               />
             ))}

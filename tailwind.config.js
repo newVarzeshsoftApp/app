@@ -66,6 +66,13 @@ module.exports = {
     'text-text-Success600',
     'text-text-Success500',
     'text-text-Primary600',
+    'text-text-secondaryPurple',
+    'text-text-supportive1',
+    'text-text-supportive2',
+    'text-text-supportive3',
+    'text-text-supportive4',
+    'text-text-supportive5',
+    'text-text-supportive6',
 
     'text-text-tonal-dark',
     'text-text-base-dark',
@@ -79,6 +86,13 @@ module.exports = {
     'text-text-Success600-dark',
     'text-text-Success500-dark',
     'text-text-Primary600-dark',
+    'text-text-secondaryPurple-dark',
+    'text-text-supportive1-dark',
+    'text-text-supportive2-dark',
+    'text-text-supportive3-dark',
+    'text-text-supportive4-dark',
+    'text-text-supportive5-dark',
+    'text-text-supportive6-dark',
 
     'Fill-Primary',
     'Fill-Black',
@@ -387,6 +401,34 @@ module.exports = {
           Success500: {
             DEFAULT: '#37c976', // Light - Success
             dark: '#37c976', // Dark - Success
+          },
+          secondaryPurple: {
+            DEFAULT: '#7676ee', // Light - Success
+            dark: '#7676ee', // Dark - Success
+          },
+          supportive1: {
+            DEFAULT: '#fed376', // Light - Success
+            dark: '#fed376', // Dark - Success
+          },
+          supportive2: {
+            DEFAULT: '#b28bc9', // Light - Success
+            dark: '#b28bc9', // Dark - Success
+          },
+          supportive3: {
+            DEFAULT: '#ff4a74', // Light - Success
+            dark: '#ff4a74', // Dark - Success
+          },
+          supportive4: {
+            DEFAULT: '#1327d6', // Light - Success
+            dark: '#1327d6', // Dark - Success
+          },
+          supportive5: {
+            DEFAULT: '#5bc8ff', // Light - Success
+            dark: '#5bc8ff', // Dark - Success
+          },
+          supportive6: {
+            DEFAULT: '#0de7aa', // Light - Success
+            dark: '#0de7aa', // Dark - Success
           },
         },
         // Background Colors

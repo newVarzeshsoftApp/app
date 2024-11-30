@@ -94,10 +94,14 @@
   .TextButton-Success {
     @apply bg-transparent border border-transparent;
   }
+  .BaseServiceCard {
+    @apply dark:bg-neutral-dark-300/50 bg-neutral-0/50  w-full  p-4 rounded-3xl  border border-neutral-0 dark:border-neutral-dark-400/50;
+  }
 }
 .Outline {
   @apply bg-transparent border border-primary-500 hover:border-primary-400;
 }
+
 @layer utilities {
   /* Typography */
   .title1 {

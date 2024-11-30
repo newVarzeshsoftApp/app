@@ -55,12 +55,12 @@
 	<false/>
 	<key>UIAppFonts</key>
 	<array>
-		<string>Poppins-Bold.ttf</string>
-		<string>Poppins-Regular.ttf</string>
-		<string>Poppins-SemiBold.ttf</string>
-		<string>YekanBakhFaNum-Bold.ttf</string>
-		<string>YekanBakhFaNum-Regular.ttf</string>
-		<string>YekanBakhFaNum-SemiBold.ttf</string>
+		<string>Poppins-Bold.woff2</string>
+		<string>Poppins-Regular.woff2</string>
+		<string>Poppins-SemiBold.woff2</string>
+		<string>YekanBakhFaNum-Bold.woff2</string>
+		<string>YekanBakhFaNum-Regular.woff2</string>
+		<string>YekanBakhFaNum-SemiBold.woff2</string>
 	</array>
 </dict>
 </plist>

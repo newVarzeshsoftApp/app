@@ -3,7 +3,7 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {HomeStackParamList} from '../../utils/types/NavigationTypes';
 import HomeScreen from '../../screens/home/HomeScreen';
 import Header from '../../components/Header';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import TabBar from '../../components/TabBar';
 
 const Tab = createBottomTabNavigator<HomeStackParamList>();

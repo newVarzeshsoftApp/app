@@ -22,7 +22,10 @@ export type IBadge = {
   className?: string;
   rounded?:boolean
   color?: TypeBadgeColor;
+  defaultMode?:boolean
   style?: TextStyle;
+  textColor?:TypeTextColor
+  CreditMode?:boolean
 };
 export interface IWheelProps {
   items: {value:string,label:string}[]; 

@@ -1,7 +1,10 @@
 const path = require('path');
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
-const Dotenv = require('dotenv-webpack'); // Import dotenv-webpack
+const Dotenv = require('dotenv-webpack');
+const TerserPlugin = require('terser-webpack-plugin');
+const CompressionPlugin = require('compression-webpack-plugin');
+const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 
 const appDirectory = path.resolve(__dirname);
 const {presets} = require(`${appDirectory}/babel.config.js`);
@@ -16,6 +19,7 @@ const babelLoaderConfiguration = {
     path.resolve(__dirname, 'node_modules/@react-native'),
     path.resolve(__dirname, 'node_modules/react-native-toast-message'),
     path.resolve(__dirname, 'node_modules/react-native-svg'),
+    path.resolve(__dirname, 'node_modules/react-native-progress'),
   ],
   use: {
     loader: 'babel-loader',
@@ -61,7 +65,8 @@ const imageLoaderConfiguration = {
   use: {
     loader: 'url-loader',
     options: {
-      name: '[name].[ext]',
+      limit: 8192, // Inline images smaller than 8kb
+      name: 'assets/images/[name].[hash].[ext]',
       esModule: false,
     },
   },
@@ -71,7 +76,7 @@ const fontLoaderConfiguration = {
   test: /\.(ttf|woff|woff2|eot)$/,
   type: 'asset/resource',
   generator: {
-    filename: 'assets/font/[name][ext]',
+    filename: 'assets/font/[name][hash][ext]',
   },
 };
 
@@ -86,7 +91,8 @@ module.exports = (env, argv) => {
     output: {
       path: path.resolve(appDirectory, 'dist'),
       publicPath: '/',
-      filename: 'bundle.js',
+      filename: '[name].[contenthash].js', // Cache busting
+      clean: true, // Automatically clean the output directory
     },
     resolve: {
       extensions: ['.web.tsx', '.web.ts', '.tsx', '.ts', '.web.js', '.js'],
@@ -124,13 +130,44 @@ module.exports = (env, argv) => {
         __DEV__: JSON.stringify(!isProduction),
       }),
       new webpack.EnvironmentPlugin({JEST_WORKER_ID: null}),
-    ],
+      isProduction && new CompressionPlugin(), // Gzip compression for assets
+      isProduction &&
+        new BundleAnalyzerPlugin({
+          analyzerMode: 'static',
+          openAnalyzer: false,
+          reportFilename: path.join(__dirname, 'bundle-report.html'),
+        }),
+    ].filter(Boolean), // Remove false plugins
+    optimization: {
+      splitChunks: {
+        chunks: 'all', // Splits all chunks (e.g., node_modules, app code)
+        minSize: 20000, // Minimum size in bytes before splitting
+        maxSize: 244000, // Maximum chunk size to align with Webpack recommendations
+      },
+
+      minimize: isProduction, // Minify only in production
+      minimizer: [
+        new TerserPlugin({
+          parallel: true, // Use multi-process for minification
+          terserOptions: {
+            compress: {
+              drop_console: true, // Remove console.logs in production
+            },
+          },
+        }),
+      ],
+    },
     devServer: {
       static: path.join(__dirname, 'public'),
       compress: true,
       hot: true,
       port: 3000,
       historyApiFallback: true,
+    },
+    performance: {
+      hints: isProduction ? 'warning' : false,
+      maxEntrypointSize: 512000, // Customize limits
+      maxAssetSize: 512000,
     },
   };
 };

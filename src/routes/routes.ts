@@ -1,4 +1,7 @@
-import {AllOrganizationQuery} from '../services/models/requestQueries';
+import {
+  AllOrganizationQuery,
+  UserSaleItemQuey,
+} from '../services/models/requestQueries';
 import {prepareQuery} from '../utils/helpers/helpers';
 
 export const routes = {
@@ -21,5 +24,7 @@ export const routes = {
   user: {
     getUserCredit: () => `user/credit`,
     getUserDashboard: () => `user/dashbord`,
+    getUserSaleItem: (query: UserSaleItemQuey) =>
+      `user/sale-item` + prepareQuery(query),
   },
 };
