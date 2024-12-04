@@ -28,6 +28,19 @@
     "Didn't get the code": "کد را دریافت نکرده اید؟",
     "Resend the code": "ارسال مجدد کد"
   },
+  "Drawer": {
+    "shop": "فروشگاه",
+    "creditService": "سروییس شارژی",
+    "Service": "سرویس جلسه ای",
+    "package": "پکیج",
+    "history": "تاریخچه",
+    "receptions": "پذیرش ها",
+    "transactions": "تراکنش ها",
+    "orders": "سفارش ها",
+    "payments": "پرداخت ها",
+    "logout": "خروج",
+    "changeTheme": "تغییر تم"
+  },
   "Home": {
     "WalletBalance": "موجودی کیف پول",
     "rial": "ریال",

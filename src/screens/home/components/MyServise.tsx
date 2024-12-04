@@ -19,8 +19,8 @@ import PackageCard from '../../../components/cards/Service/PackageCard';
 import {useGetUserSaleItem} from '../../../utils/hooks/User/useGetUserSaleItem';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../../../utils/types/NavigationTypes';
-type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'Home'>;
+import {DrawerStackParamList} from '../../../utils/types/NavigationTypes';
+type NavigationProp = NativeStackNavigationProp<DrawerStackParamList, 'Home'>;
 function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
   const cardComponentMapping: Record<number, React.FC<{data: Content}>> = {
     0: ProductCard,
@@ -130,7 +130,9 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
           </BaseText>
           {(fetchedData?.total ?? 1) > 4 && (
             <TouchableOpacity
-              onPress={() => navigation.navigate('SaleItem')}
+              onPress={() =>
+                navigation.navigate('SaleItem', {screen: 'saleItem'})
+              }
               className="flex-row gap-1 items-center ">
               <BaseText type="title3" color="secondary">
                 {t('all')}

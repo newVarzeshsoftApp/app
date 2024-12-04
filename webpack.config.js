@@ -20,6 +20,7 @@ const babelLoaderConfiguration = {
     path.resolve(__dirname, 'node_modules/react-native-toast-message'),
     path.resolve(__dirname, 'node_modules/react-native-svg'),
     path.resolve(__dirname, 'node_modules/react-native-progress'),
+    path.resolve(__dirname, 'node_modules/react-native-collapsible'),
   ],
   use: {
     loader: 'babel-loader',

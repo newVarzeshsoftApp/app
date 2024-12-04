@@ -14,6 +14,7 @@ export const routes = {
     updatePassword: () => 'auth/chawnge-password',
     profile: () => 'auth/profile',
     logout: () => 'auth/logout',
+    refresh: () => 'auth/refresh',
   },
   organization: {
     getAllOrganization: (query: AllOrganizationQuery) =>

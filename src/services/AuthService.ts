@@ -24,6 +24,7 @@ const {
     updatePassword,
     logout,
     profile,
+    refresh,
   },
   baseUrl,
 } = routes;
@@ -109,6 +110,27 @@ const AuthService = {
       }
     } catch (error) {
       console.error('Error in SignUp function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(
+          error.response.data.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+  Logout: async (): Promise<SignUpResponse> => {
+    try {
+      const response = await axiosInstance.post<
+        any,
+        AxiosResponse<SignUpResponse>
+      >(baseUrl + logout());
+      if (response.status === Status.Ok || Status.Created) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response}`);
+      }
+    } catch (error) {
+      console.error('Error in Logout function:', error);
       if (axios.isAxiosError(error) && error.response) {
         throw new Error(
           error.response.data.message || 'Unknown error occurred',

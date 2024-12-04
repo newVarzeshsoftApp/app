@@ -14,6 +14,7 @@ import {
 import {Platform} from 'react-native';
 import {RootStackParamList} from '../utils/types/NavigationTypes';
 import SaleItemNavigator from './Saleitem/SaleItemStackNatigator';
+import DrawerNavigator from './DrawerNavigator';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -54,8 +55,7 @@ export const RootNavigator: React.FC = () => {
       <Stack.Navigator screenOptions={{headerShown: false}}>
         {data?.accessToken ? (
           <>
-            <Stack.Screen name="Home" component={HomeNavigator} />
-            <Stack.Screen name="SaleItem" component={SaleItemNavigator} />
+            <Stack.Screen name="Root" component={DrawerNavigator} />
           </>
         ) : (
           <Stack.Screen name="Auth" component={AuthNavigator} />

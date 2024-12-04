@@ -8,13 +8,13 @@ import TabBar from '../../components/TabBar';
 
 const Tab = createBottomTabNavigator<HomeStackParamList>();
 
-const HomeNavigator: React.FC = () => {
+const HomeNavigator: React.FC = ({navigation}: any) => {
   return (
     <Tab.Navigator
       tabBar={props => <TabBar {...props} />}
       screenOptions={({route}) => ({
         headerShown: route.name === 'Home' || route.name === 'wallet', // Show Header only for Home and Wallet
-        header: () => <Header />,
+        header: () => <Header navigation={navigation} />,
         tabBarStyle: {
           display:
             route.name === 'Home' || route.name === 'wallet' ? 'flex' : 'none', // Show TabBar only for Home and Wallet
