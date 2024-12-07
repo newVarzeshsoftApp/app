@@ -24,6 +24,7 @@ const {
     updatePassword,
     logout,
     profile,
+    refresh,
   },
   baseUrl,
 } = routes;
@@ -35,7 +36,7 @@ const AuthService = {
         SignInBody,
         AxiosResponse<SignInResponse>
       >(baseUrl + signIn(), body);
-      if (response.status === Status.Ok || Status.Created) {
+      if (response.status === Status.Ok || response.status === Status.Created) {
         await storeTokens(
           response.data.accessToken,
           response.data.refreshToken,
@@ -54,6 +55,32 @@ const AuthService = {
       throw error;
     }
   },
+  Refresh: async (): Promise<SignInResponse> => {
+    try {
+      const response = await axiosInstance.get<
+        any,
+        AxiosResponse<SignInResponse>
+      >(baseUrl + refresh());
+      if (response.status === Status.Ok || response.status === Status.Created) {
+        // await storeTokens(
+        //   response.data.accessToken,
+        //   response.data.refreshToken,
+        // );
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response}`);
+      }
+    } catch (error) {
+      console.error('Error in Refresh function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(
+          error.response.data.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+
   GetProfile: async (): Promise<ProfileResponse> => {
     try {
       const response = await axiosInstance.get<ProfileResponse>(
@@ -80,7 +107,7 @@ const AuthService = {
         UpdatePasswordBody,
         AxiosResponse<SignInResponse>
       >(baseUrl + updatePassword(), body);
-      if (response.status === Status.Ok || Status.Created) {
+      if (response.status === Status.Ok || response.status === Status.Created) {
         return response.data;
       } else {
         throw new Error(`Request failed with status ${response}`);
@@ -102,7 +129,7 @@ const AuthService = {
         SignUpBody,
         AxiosResponse<SignUpResponse>
       >(baseUrl + signUp(), body);
-      if (response.status === Status.Ok || Status.Created) {
+      if (response.status === Status.Ok || response.status === Status.Created) {
         return response.data;
       } else {
         throw new Error(`Request failed with status ${response}`);
@@ -117,13 +144,34 @@ const AuthService = {
       throw error;
     }
   },
+  Logout: async (): Promise<SignUpResponse> => {
+    try {
+      const response = await axiosInstance.post<
+        any,
+        AxiosResponse<SignUpResponse>
+      >(baseUrl + logout());
+      if (response.status === Status.Ok || response.status === Status.Created) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response}`);
+      }
+    } catch (error) {
+      console.error('Error in Logout function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(
+          error.response.data.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
   RequestOTP: async (body: RequestOTPBody): Promise<SignUpResponse> => {
     try {
       const response = await axiosInstance.post<
         SignUpBody,
         AxiosResponse<SignUpResponse>
       >(baseUrl + requestOTP(), body);
-      if (response.status === Status.Ok || Status.Created) {
+      if (response.status === Status.Ok || response.status === Status.Created) {
         return response.data;
       } else {
         throw new Error(`Request failed with status ${response}`);
@@ -144,7 +192,7 @@ const AuthService = {
         VerifyTokenBody,
         AxiosResponse<SignInResponse>
       >(baseUrl + verifyToken(), body);
-      if (response.status === Status.Ok || Status.Created) {
+      if (response.status === Status.Ok || response.status === Status.Created) {
         await storeTokens(
           response.data.accessToken,
           response.data.refreshToken,

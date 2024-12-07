@@ -5,6 +5,7 @@ const Dotenv = require('dotenv-webpack');
 const TerserPlugin = require('terser-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
+const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 
 const appDirectory = path.resolve(__dirname);
 const {presets} = require(`${appDirectory}/babel.config.js`);
@@ -20,6 +21,7 @@ const babelLoaderConfiguration = {
     path.resolve(__dirname, 'node_modules/react-native-toast-message'),
     path.resolve(__dirname, 'node_modules/react-native-svg'),
     path.resolve(__dirname, 'node_modules/react-native-progress'),
+    path.resolve(__dirname, 'node_modules/react-native-collapsible'),
   ],
   use: {
     loader: 'babel-loader',
@@ -91,8 +93,8 @@ module.exports = (env, argv) => {
     output: {
       path: path.resolve(appDirectory, 'dist'),
       publicPath: '/',
-      filename: '[name].[contenthash].js', // Cache busting
-      clean: true, // Automatically clean the output directory
+      filename: '[name].[contenthash].js',
+      clean: true,
     },
     resolve: {
       extensions: ['.web.tsx', '.web.ts', '.tsx', '.ts', '.web.js', '.js'],
@@ -105,6 +107,11 @@ module.exports = (env, argv) => {
         ),
       },
     },
+    cache: {
+      type: 'filesystem',
+      cacheDirectory: path.resolve(__dirname, '.webpack_cache'),
+    },
+    devtool: isProduction ? 'source-map' : 'eval-source-map',
     module: {
       rules: [
         babelLoaderConfiguration,
@@ -118,55 +125,47 @@ module.exports = (env, argv) => {
       new HtmlWebpackPlugin({
         template: path.join(__dirname, '/public/index.html'),
       }),
-      new webpack.HotModuleReplacementPlugin(),
+      !isProduction && new ReactRefreshWebpackPlugin(), // React Fast Refresh for development
       new Dotenv({
         path: path.resolve(
           __dirname,
           isProduction ? '.env.production' : '.env.development',
         ),
-        safe: false,
       }),
       new webpack.DefinePlugin({
         __DEV__: JSON.stringify(!isProduction),
       }),
-      new webpack.EnvironmentPlugin({JEST_WORKER_ID: null}),
-      isProduction && new CompressionPlugin(), // Gzip compression for assets
+      isProduction && new CompressionPlugin(), // Gzip compression in production
       isProduction &&
         new BundleAnalyzerPlugin({
           analyzerMode: 'static',
           openAnalyzer: false,
-          reportFilename: path.join(__dirname, 'bundle-report.html'),
         }),
-    ].filter(Boolean), // Remove false plugins
+    ].filter(Boolean), // Remove falsy plugins
     optimization: {
-      splitChunks: {
-        chunks: 'all', // Splits all chunks (e.g., node_modules, app code)
-        minSize: 20000, // Minimum size in bytes before splitting
-        maxSize: 244000, // Maximum chunk size to align with Webpack recommendations
-      },
-
-      minimize: isProduction, // Minify only in production
+      minimize: isProduction,
       minimizer: [
         new TerserPlugin({
-          parallel: true, // Use multi-process for minification
-          terserOptions: {
-            compress: {
-              drop_console: true, // Remove console.logs in production
-            },
-          },
+          parallel: true, // Use multiple processes for minification
         }),
       ],
+      splitChunks: {
+        chunks: 'all', // Split vendor and app code
+      },
     },
     devServer: {
-      static: path.join(__dirname, 'public'),
+      static: {
+        directory: path.join(__dirname, 'public'),
+        watch: false,
+      },
       compress: true,
-      hot: true,
+      hot: true, // Enable HMR
       port: 3000,
-      historyApiFallback: true,
+      historyApiFallback: true, // Handle React Router
     },
     performance: {
       hints: isProduction ? 'warning' : false,
-      maxEntrypointSize: 512000, // Customize limits
+      maxEntrypointSize: 512000, // Performance budget
       maxAssetSize: 512000,
     },
   };

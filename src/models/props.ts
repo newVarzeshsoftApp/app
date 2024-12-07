@@ -32,6 +32,13 @@ export interface IWheelProps {
   onSelect: (value: string) => void;
   initialIndex: number;
 }
+
+export type MenuItem = {
+  title: string;
+  Icon: React.ElementType;
+  slug:string
+  children: { title: string,slug:string }[];
+};
 export interface IButtonProps extends PressableProps {
   type: IStyle‌TypeButton;             // Custom style type for the button
   size?:ISizeButton
@@ -46,6 +53,7 @@ export interface IButtonProps extends PressableProps {
   RightIcon?: React.ElementType;           // Optional right icon component
   RightIconVariant?: IIconVariant;         // Variant type for the right icon
   LeftIconVariant?: IIconVariant;          // Variant type for the left icon
+  Extraclass?:string
 }
 
 export interface ICheckboxProps extends PressableProps {

@@ -60,7 +60,7 @@ const CreditCard: React.FC<{data: Content}> = ({data}) => {
           )}
         </View>
         <View className="flex-row items-center justify-between">
-          <BaseText type="body3" color="muted">
+          <BaseText type="body3" color="secondary">
             {t('start')} {''} : {''}
             {moment(data.start)
               .local(
@@ -69,7 +69,7 @@ const CreditCard: React.FC<{data: Content}> = ({data}) => {
               )
               .format('jYYYY/jMM/jDD')}
           </BaseText>
-          <BaseText type="body3" color="muted">
+          <BaseText type="body3" color="secondary">
             {t('end')} {''} : {''}
             {moment(data.end)
               .local(

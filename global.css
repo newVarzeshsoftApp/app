@@ -1,7 +1,9 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
+.ReactCollapse--collapse {
+  transition: height 500ms;
+}
 @layer base {
   /* Poppins Font Family */
   @font-face {

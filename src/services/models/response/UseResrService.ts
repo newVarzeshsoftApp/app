@@ -293,3 +293,19 @@ export interface GetUserSaleItemRes {
   total: number;
   content: Content[];
 }
+export interface SessionDetail {
+  start?: string; // ISO date string
+  end?: string; // ISO date string
+  submitAt?: string; // ISO date string
+  lockers?: Locker[];
+  contractor?: User;
+  quantity?: number;
+}
+
+export type SessionDetails = SessionDetail[];
+export interface ChargingServiceByIDRes {
+  order: number;
+  submitAt: string;
+  amount: number;
+  remain: number;
+}

@@ -28,6 +28,19 @@
     "Didn't get the code": "کد را دریافت نکرده اید؟",
     "Resend the code": "ارسال مجدد کد"
   },
+  "Drawer": {
+    "shop": "فروشگاه",
+    "creditService": "سروییس شارژی",
+    "Service": "سرویس جلسه ای",
+    "package": "پکیج",
+    "history": "تاریخچه",
+    "receptions": "پذیرش ها",
+    "transactions": "تراکنش ها",
+    "orders": "سفارش ها",
+    "payments": "پرداخت ها",
+    "logout": "خروج",
+    "changeTheme": "تغییر تم"
+  },
   "Home": {
     "WalletBalance": "موجودی کیف پول",
     "rial": "ریال",
@@ -40,8 +53,41 @@
     "endTime": "تمام شده",
     "start": "شروع",
     "end": "پایان",
+    "noServicesFound": "هیچ سرویسی پیدا نشد",
     "MettingRemaining": "مانده جلسات",
+    "without": "بدون",
     "noLimit": "بدون محدودیت"
+  },
+
+  "Detail": {
+    "Days to completion": "روز تا اتمام",
+    "endTime": "تمام شده",
+    "start": "شروع",
+    "date": "تاریخ",
+    "Renewal": "تمدید",
+    "description": "توضیحات",
+    "end": "پایان",
+    "entry": "ورود",
+    "exit": "خروج",
+    "Metting": "جلسه",
+    "MettingRemaining": "جلسه باقیمانده",
+    "noLimit": "بدون محدودیت",
+    "AllCredit": "تعداد کل",
+    "usedHistory": "تاریخچه استفاده",
+    "NoHistory": "تاریخچه استفاده ای وجود ندارد",
+    "MettingsCredit": "تعداد جلسات",
+    "contractor": "مربی",
+    "MettingCredit": "تعداد جلسه",
+    "uses": "موارد استفاده",
+    "orderNumber": "شماره سفارش",
+    "DateAndTime": "تاریخ و زمان",
+    "Amount": "مقدار",
+    "RemainingAmout": "مانده اعتبار",
+    "Initial charge": "شارژ  اولیه ",
+    "Package items": "آیتم های پکیج"
+  },
+  "History": {
+    "transactions": "تراکنش ها"
   },
   "SaleItem": {
     "saleItem": "سرویس های من"
