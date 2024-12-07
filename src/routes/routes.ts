@@ -27,5 +27,9 @@ export const routes = {
     getUserDashboard: () => `user/dashbord`,
     getUserSaleItem: (query: UserSaleItemQuey) =>
       `user/sale-item` + prepareQuery(query),
+    getSaleItemByID: (id: number) => `user/sale-item/${id}`,
+    getUserSessionByID: (id: number) => `user/sessions/${id}`,
+    getUserChargingServiceByID: (id: number) =>
+      `user/charging-service/sessions/${id}`,
   },
 };

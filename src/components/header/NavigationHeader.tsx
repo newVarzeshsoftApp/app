@@ -1,44 +1,90 @@
 import React from 'react';
-import {Platform, View, Text, StyleSheet} from 'react-native';
-import {useTheme} from '@react-navigation/native';
+import {View, StyleSheet, Platform} from 'react-native';
 import {ArrowRight2} from 'iconsax-react-native';
 import BaseButton from '../Button/BaseButton';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import BaseText from '../BaseText';
+import Animated, {
+  Extrapolate,
+  interpolate,
+  interpolateColor,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
+import {useTheme} from '../../utils/ThemeContext';
+
+// Make SafeAreaView animatable
+const AnimatedSafeAreaView = Animated.createAnimatedComponent(SafeAreaView);
 
 type NavigationHeaderProps = {
   navigation: NativeStackNavigationProp<any, any>;
-  title?: string;
+  title?: string | undefined;
   onBackPress?: () => void;
+  scrollY?: Animated.SharedValue<number>;
+  range?: number[];
+  rangeColor?: any;
+  CenterText?: Boolean;
 };
 
 const NavigationHeader: React.FC<NavigationHeaderProps> = ({
   navigation,
   title = '',
   onBackPress,
+  range,
+  scrollY,
+  rangeColor,
+  CenterText,
 }) => {
-  const {colors} = useTheme();
+  const {theme} = useTheme();
+  const baseRange = theme === 'dark' ? '#1b1d21' : '#f4f4f5';
 
   const handleBackPress = () => {
     if (onBackPress) {
       onBackPress();
     } else if (navigation.canGoBack()) {
       navigation.goBack();
-    } else {
-      console.warn('Cannot go back!');
     }
   };
 
+  // Animated style for the SafeAreaView
+  const SafeAreaAnimatedStyle = useAnimatedStyle(() => {
+    if (scrollY && range) {
+      return {
+        backgroundColor: interpolateColor(
+          scrollY.value,
+          range,
+          rangeColor ? rangeColor : ['rgba(0, 0, 0, 0)', baseRange],
+        ),
+      };
+    }
+    return {};
+  });
+
+  const TextAnimatedStyle = useAnimatedStyle(() => {
+    if (scrollY && range && !CenterText) {
+      const opacity = interpolate(
+        scrollY.value,
+        range,
+        [0, 1],
+        Extrapolate.CLAMP,
+      );
+      const translateX = interpolate(
+        scrollY.value,
+        range,
+        [-20, 0],
+        Extrapolate.CLAMP,
+      );
+      return {
+        opacity,
+        transform: [{translateX}],
+      };
+    }
+    return {};
+  });
+
   return (
-    <SafeAreaView edges={['top']}>
-      <View
-        style={[
-          styles.container,
-          {
-            backgroundColor: 'trasparent',
-          },
-        ]}>
+    <AnimatedSafeAreaView edges={['top']} style={[SafeAreaAnimatedStyle]}>
+      <Animated.View style={[styles.container]}>
         <View style={styles.leftButton}>
           <BaseButton
             onPress={handleBackPress}
@@ -50,18 +96,25 @@ const NavigationHeader: React.FC<NavigationHeaderProps> = ({
           />
         </View>
         {title ? (
-          <>
+          <Animated.View
+            style={[
+              TextAnimatedStyle,
+              CenterText ? styles.centeredTitle : styles.defaultTitle,
+            ]}>
             <BaseText type="body3">{title}</BaseText>
-          </>
+          </Animated.View>
         ) : null}
-      </View>
-    </SafeAreaView>
+      </Animated.View>
+    </AnimatedSafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: Platform.OS === 'web' ? 20 : 10,
+    paddingBottom: Platform.OS === 'web' ? 20 : 10,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -72,9 +125,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  title: {
-    fontSize: 18,
-    textAlign: 'center',
+  defaultTitle: {
+    alignSelf: 'center',
+  },
+  centeredTitle: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    left: 0,
+    right: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
 

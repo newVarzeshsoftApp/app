@@ -75,12 +75,13 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
   return (
     <View style={{flex: 1}} className="flex-1">
       <ScrollView
-        contentContainerStyle={{paddingHorizontal: 20}}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{paddingHorizontal: 20, flexGrow: 1}}
         showsVerticalScrollIndicator={false}
         style={{
           flex: 1,
         }}>
-        <SafeAreaView className="flex-1  justify-between">
+        <SafeAreaView className="flex-1 justify-between">
           <View>
             <View
               style={{height: screenHeight * 0.1}}

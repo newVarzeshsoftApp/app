@@ -86,6 +86,7 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{flex: 1}}>
         <ScrollView
+          showsHorizontalScrollIndicator={false}
           contentContainerStyle={{paddingHorizontal: 16, paddingBottom: 20}}
           showsVerticalScrollIndicator={false}>
           <View className="w-full flex flex-col gap-9 ">

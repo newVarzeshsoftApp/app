@@ -73,7 +73,9 @@ module.exports = {
     'text-text-supportive4',
     'text-text-supportive5',
     'text-text-supportive6',
+    'text-text-neutral600',
 
+    'text-text-neutral600-dark',
     'text-text-tonal-dark',
     'text-text-base-dark',
     'text-text-secondary-dark',
@@ -110,6 +112,9 @@ module.exports = {
 
   theme: {
     extend: {
+      boxShadow: {
+        custom: '4px 4px 10px rgba(0,0,0,0.05)',
+      },
       fontFamily: {
         poppins: ['Poppins-Regular', 'Poppins-Bold', 'Poppins-SemiBold'],
         yekan: [
@@ -374,6 +379,7 @@ module.exports = {
             DEFAULT: '#bcdc64', // Light - Primary-500
             dark: '#8ac14f', // Dark - Primary-500
           },
+
           warning: {
             DEFAULT: '#ff9134', // Light - Warning-500
             dark: '#ff7a1a', // Dark - Warning-500

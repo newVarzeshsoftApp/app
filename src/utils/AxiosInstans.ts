@@ -1,5 +1,8 @@
 import axios from 'axios';
-import {getTokens, removeTokens} from './helpers/tokenStorage';
+import {getTokens, removeTokens, storeTokens} from './helpers/tokenStorage';
+import {SignInResponse} from '../services/models/response/AuthResService';
+import AuthService from '../services/AuthService';
+import {navigate} from '../navigation/navigationRef';
 
 const axiosInstance = axios.create({
   baseURL: process.env.BASE_URL,
@@ -17,7 +20,6 @@ axiosInstance.interceptors.request.use(async config => {
 
 axiosInstance.interceptors.response.use(
   response => {
-    // Log successful responses
     console.log('Axios Response:', {
       status: response.status,
       data: response.data,
@@ -40,14 +42,33 @@ axiosInstance.interceptors.response.use(
     } else {
       console.error('Axios Error Message:', error.message);
     }
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      console.warn('Unauthorized (401), removing tokens...');
+    if (originalRequest.url?.includes('auth/refresh')) {
       await removeTokens();
+      navigate('Auth');
+      window?.location.reload();
       throw error;
     }
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      console.warn('Unauthorized (401), attempting to refresh tokens...');
 
+      try {
+        const refreshedTokens: SignInResponse = await AuthService.Refresh();
+        await storeTokens(
+          refreshedTokens.accessToken,
+          refreshedTokens.refreshToken,
+        );
+
+        originalRequest.headers.Authorization = `Bearer ${refreshedTokens.accessToken}`;
+        return axiosInstance(originalRequest);
+      } catch (refreshError) {
+        console.warn('Token refresh failed, removing tokens...');
+        await removeTokens();
+        navigate('Auth');
+        window?.location.reload();
+        throw refreshError;
+      }
+    }
     throw error;
   },
 );

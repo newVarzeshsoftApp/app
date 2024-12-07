@@ -19,6 +19,7 @@ function BaseButton({
   noText,
   RightIcon,
   srcRight,
+  Extraclass,
   RightIconVariant,
   ...props
 }: IButtonProps) {
@@ -178,11 +179,11 @@ function BaseButton({
       onPressIn={() => setIsPressed(true)}
       onPressOut={() => setIsPressed(false)}
       {...props}
-      className={`flex items-center justify-center flex-row gap-2  ${
+      className={` flex items-center justify-center flex-row gap-2  ${
         disabled && !isLoading && 'opacity-30'
       }  ${type}-${color} ${GetPressedDesign()} ${getSizeStyles()} ${
         rounded ? '!rounded-full' : ''
-      }`}>
+      } ${Extraclass}`}>
       {isLoading ? (
         <Loading size={32} circleClassName={getIconColor()} />
       ) : (

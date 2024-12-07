@@ -60,7 +60,7 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
       <View className="pt-3 gap-3">
         <View className="flex-row items-center justify-between">
           {data?.contractor ? (
-            <View className="dark:bg-neutral-dark-100 bg-neutral-100 flex-row w-fit gap-2 pl-3  rounded-full p-1">
+            <View className="dark:bg-neutral-dark-100 bg-neutral-100 flex-row w-fit gap-2 ios:pr-3 web:pl-3  rounded-full p-1">
               <View className="h-6 w-6 rounded-full overflow-hidden ">
                 {/* <ResponsiveImage customSource={data.contractor}/> */}
                 <Image
@@ -79,13 +79,13 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
           ) : (
             <View></View>
           )}
-          <BaseText type="body3" color="muted">
+          <BaseText type="body3" color="secondary">
             {t('MettingRemaining')} :{' '}
             {(data?.credit ?? 0) - (data?.usedCredit ?? 0)}
           </BaseText>
         </View>
         <View className="flex-row items-center justify-between ">
-          <BaseText type="body3" color="muted">
+          <BaseText type="body3" color="secondary">
             {t('start')} {''} : {''}
             {moment(data.start)
               .local(
@@ -94,7 +94,7 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
               )
               .format('jYYYY/jMM/jDD')}
           </BaseText>
-          <BaseText type="body3" color="muted">
+          <BaseText type="body3" color="secondary">
             {t('end')} {''} : {''}
             {moment(data.end)
               .local(

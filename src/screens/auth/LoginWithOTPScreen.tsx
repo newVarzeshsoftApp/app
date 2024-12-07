@@ -68,25 +68,25 @@ const LoginWithOTPScreen: React.FC<LoginWithOTPScreenProps> = ({
   const bigScreen = screenHeight > 800;
 
   return (
-    <View className="flex-1 justify-between pt-20 Container">
-      <View>
-        <View
-          style={{height: screenHeight * (bigScreen ? 0.21 : 0.11)}}
-          className=" w-full flex items-center justify-center">
-          <View className="flex flex-row gap-4 w-[185px] h-[55px]">
-            <ResponsiveImage
-              customSource={OrganizationBySKU?.brandedLogo.srcset}
-              fallback={require('../../assets/images/testImage.png')}
-              resizeMode="contain"
-            />
+    <View className="flex-1  pt-20">
+      <SafeAreaView className="flex-1 justify-between ">
+        <View className="flex-1">
+          <View
+            style={{height: screenHeight * (bigScreen ? 0.21 : 0.11)}}
+            className=" w-full flex items-center justify-center">
+            <View className="flex flex-row gap-4 w-[185px] h-[55px]">
+              <ResponsiveImage
+                customSource={OrganizationBySKU?.brandedLogo.srcset}
+                fallback={require('../../assets/images/testImage.png')}
+                resizeMode="contain"
+              />
+            </View>
           </View>
-        </View>
-        <SafeAreaView className="flex-1 justify-between Container">
           <KeyboardAvoidingView
             behavior={Platform.OS === 'ios' ? 'padding' : undefined}
             style={{flex: 1}}>
-            <View className="w-full flex flex-col gap-9 ">
-              <View className="gap-3">
+            <View className="w-full flex flex-col gap-9 Container ">
+              <View className="gap-3 ">
                 <BaseText type="title2">{auth('login')}</BaseText>
                 <BaseText type="subtitle2" color="muted">
                   {auth('LoginWithOTPInfo')}
@@ -104,29 +104,28 @@ const LoginWithOTPScreen: React.FC<LoginWithOTPScreenProps> = ({
                     accessibilityHint="Enter your username"
                     error={errors.username?.message}
                   />
-                  {/* Password Input */}
                 </View>
               </FormProvider>
             </View>
           </KeyboardAvoidingView>
-        </SafeAreaView>
-      </View>
+        </View>
 
-      <View className={`flex flex-col gap-7  ${bigScreen ? 'pb-6' : 'pb-6'} `}>
-        <BaseButton
-          type="Fill"
-          onPress={handleSubmit(onSubmit)}
-          color="Black"
-          rounded
-          size="Large"
-          text={auth('Continue')}
-          isLoading={RequestOTP.isPending}
-          disabled={RequestOTP.isPending}
-          accessibilityLabel="Login button"
-          accessibilityRole="button"
-          accessibilityHint="Submits the login form"
-        />
-      </View>
+        <View className={`flex flex-col gap-7 Container  web:pb-6`}>
+          <BaseButton
+            type="Fill"
+            onPress={handleSubmit(onSubmit)}
+            color="Black"
+            rounded
+            size="Large"
+            text={auth('Continue')}
+            isLoading={RequestOTP.isPending}
+            disabled={RequestOTP.isPending}
+            accessibilityLabel="Login button"
+            accessibilityRole="button"
+            accessibilityHint="Submits the login form"
+          />
+        </View>
+      </SafeAreaView>
     </View>
   );
 };

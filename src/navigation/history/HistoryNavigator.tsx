@@ -12,7 +12,8 @@ const HistoryNavigator: React.FC = ({navigation}: any) => {
   return (
     <Stack.Navigator
       screenOptions={{
-        header: () => <Header navigation={navigation} />,
+        headerTransparent: true,
+        headerShown: false,
       }}>
       <Stack.Screen name="orders" component={OrdersScreen} />
       <Stack.Screen name="payments" component={PaymentsScreen} />

@@ -23,8 +23,9 @@ export type TypeTextColor =
   | 'success'
   | 'error'
   | 'button' 
-  |  "secondaryPurple"
-  |  "supportive1"
+  |"neutral600"
+  | "secondaryPurple"
+  | "supportive1"
   |"supportive2"
   |"supportive3"
   |"supportive4"

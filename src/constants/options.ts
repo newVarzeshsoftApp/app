@@ -17,7 +17,7 @@ export const Config = {
 export const menuItems: MenuItem[] = [
   {
     title: 'shop',
-    slug: 'Shop',
+    slug: 'ShopNavigator',
     Icon: Shop,
     children: [
       {title: 'creditService', slug: 'creditService'},
@@ -27,7 +27,7 @@ export const menuItems: MenuItem[] = [
   },
   {
     title: 'history',
-    slug: 'History',
+    slug: 'HistoryNavigator',
     Icon: HambergerMenu,
     children: [
       {title: 'receptions', slug: 'reception'},

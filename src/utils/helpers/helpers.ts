@@ -112,7 +112,6 @@ export function calculateRemainingDays(subscription: {
 }): number {
   const startDate = new Date(subscription.start);
   const endDate = new Date(subscription.end);
-
   // Calculate the difference in milliseconds between start and end
   const differenceInMilliseconds = endDate.getTime() - startDate.getTime();
 

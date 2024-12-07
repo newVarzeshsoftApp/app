@@ -20,7 +20,10 @@ import {useGetUserSaleItem} from '../../../utils/hooks/User/useGetUserSaleItem';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {DrawerStackParamList} from '../../../utils/types/NavigationTypes';
-type NavigationProp = NativeStackNavigationProp<DrawerStackParamList, 'Home'>;
+type NavigationProp = NativeStackNavigationProp<
+  DrawerStackParamList,
+  'HomeNavigator'
+>;
 function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
   const cardComponentMapping: Record<number, React.FC<{data: Content}>> = {
     0: ProductCard,
@@ -33,7 +36,7 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
   const {t} = useTranslation('translation', {keyPrefix: 'Home'});
   const navigation = useNavigation<NavigationProp>();
   // Infinite scroll states
-  const [limit] = useState(4);
+  const [limit] = useState(5);
   const [offset, setOffset] = useState(1);
   const [data, setData] = useState<Content[]>([]);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
@@ -106,13 +109,17 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
       if (CardComponent) {
         return (
           <TouchableOpacity
+            key={item.product?.id}
             onPress={() =>
-              navigation.navigate('SaleItem', {
+              navigation.navigate('SaleItemNavigator', {
                 screen: 'saleItemDetail',
-                params: {id: item.id.toString(), title: item.title},
+                params: {
+                  id: item.id,
+                  title: item.title || 'undefined',
+                },
               })
             }>
-            <CardComponent key={item.id} data={item} />
+            <CardComponent data={item} />
           </TouchableOpacity>
         );
       }
@@ -131,7 +138,7 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
           {(fetchedData?.total ?? 1) > 4 && (
             <TouchableOpacity
               onPress={() =>
-                navigation.navigate('SaleItem', {screen: 'saleItem'})
+                navigation.navigate('SaleItemNavigator', {screen: 'saleItem'})
               }
               className="flex-row gap-1 items-center ">
               <BaseText type="title3" color="secondary">
@@ -146,12 +153,13 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
       )}
       <FlatList
         data={data}
-        keyExtractor={item => item.id.toString()}
         renderItem={renderItem}
         ItemSeparatorComponent={() => <View style={{height: 16}} />}
         onEndReached={loadMore}
         showsVerticalScrollIndicator={false}
-        onEndReachedThreshold={0.5}
+        onEndReachedThreshold={100}
+        initialNumToRender={5}
+        maxToRenderPerBatch={5}
         ListFooterComponent={
           isFetchingMore || isLoading ? (
             <View style={{marginTop: 16, alignItems: 'center'}}>
@@ -160,7 +168,13 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
           ) : null
         }
         ListEmptyComponent={
-          !isLoading && !isError ? <Text>{t('noServicesFound')}</Text> : null
+          !isLoading && !isError ? (
+            <View className="flex-1 items-center justify-center flex-row py-10">
+              <BaseText type="subtitle1" color="secondary">
+                {t('noServicesFound')}
+              </BaseText>
+            </View>
+          ) : null
         }
         ListFooterComponentStyle={{
           paddingBottom: Platform.OS === 'web' ? 60 : 20,

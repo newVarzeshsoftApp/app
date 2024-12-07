@@ -9,4 +9,5 @@ export interface UserSaleItemQuey {
   limit?: number;
   offset?: number;
   type?: number;
+  parent?: number;
 }

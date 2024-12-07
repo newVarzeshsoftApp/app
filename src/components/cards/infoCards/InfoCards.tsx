@@ -41,54 +41,73 @@ function InfoCards({
   let endDate = '';
   let subscriptionServiceRemainingDays = 0;
   let insuranceServiceRemainingDays = 0;
+  let isDataAvailable = true;
   if (isSuccess) {
     switch (type) {
       case 'MembershipInfo':
-        subscriptionServiceRemainingDays = calculateRemainingDays({
-          start: data?.subscriptionService?.start,
-          end: data?.subscriptionService?.end,
-        });
-        remainingDays = subscriptionServiceRemainingDays;
-        duration = convertToPersianTimeLabel(
-          data?.subscriptionService?.duration,
-        );
-        endDate = data?.subscriptionService?.end;
-        isWarning = remainingDays > 0 && remainingDays <= 7;
-        isExpired =
-          remainingDays === 0 ||
-          data?.subscriptionService?.status === 1 ||
-          data?.subscriptionService?.status === 3;
+        if (data?.subscriptionService) {
+          subscriptionServiceRemainingDays = calculateRemainingDays({
+            start: data?.subscriptionService?.start,
+            end: data?.subscriptionService?.end,
+          });
+          remainingDays = subscriptionServiceRemainingDays;
+          duration = convertToPersianTimeLabel(
+            data?.subscriptionService?.duration,
+          );
+          endDate = data?.subscriptionService?.end;
+          isWarning = remainingDays > 0 && remainingDays <= 7;
+          isExpired =
+            remainingDays === 0 ||
+            data?.subscriptionService?.status === 1 ||
+            data?.subscriptionService?.status === 3;
+        } else {
+          isDataAvailable = false;
+        }
         break;
 
       case 'InsuranceInfo':
-        insuranceServiceRemainingDays = calculateRemainingDays({
-          start: data?.insuranceService?.start,
-          end: data?.insuranceService?.end,
-        });
-        remainingDays = insuranceServiceRemainingDays;
-        duration = convertToPersianTimeLabel(data?.insuranceService?.duration);
-        endDate = data?.insuranceService?.end;
-        isWarning = remainingDays > 0 && remainingDays <= 7;
-        isExpired =
-          remainingDays === 0 ||
-          data?.insuranceService?.status === 1 ||
-          data?.insuranceService?.status === 3;
+        if (data?.insuranceService) {
+          insuranceServiceRemainingDays = calculateRemainingDays({
+            start: data?.insuranceService?.start,
+            end: data?.insuranceService?.end,
+          });
+          remainingDays = insuranceServiceRemainingDays;
+          duration = convertToPersianTimeLabel(
+            data?.insuranceService?.duration,
+          );
+          endDate = data?.insuranceService?.end;
+          isWarning = remainingDays > 0 && remainingDays <= 7;
+          isExpired =
+            remainingDays === 0 ||
+            data?.insuranceService?.status === 1 ||
+            data?.insuranceService?.status === 3;
+        } else {
+          isDataAvailable = false;
+        }
         break;
 
       case 'ClosetInfo':
-        isWarning = data?.vipLocker?.duration <= 7; // Example check
-        isExpired = data?.vipLocker?.duration === 0;
+        if (data?.vipLocker) {
+          isWarning = data?.vipLocker?.duration <= 7; // Example check
+          isExpired = data?.vipLocker?.duration === 0;
+        } else {
+          isDataAvailable = false;
+        }
         break;
 
       case 'BMIInfo':
-        // const bmiValue = data?.bmi?.value;
-        // isWarning = bmiValue && (bmiValue < 18.5 || bmiValue > 25); // Example: Outside healthy range
-        // isExpired = false; // No expiration logic for BMI
+        // Assuming data?.bmi?.value logic is available, handle accordingly
+        // if (!data?.bmi) {
+        //   isDataAvailable = false;
+        // }
         break;
 
       default:
+        isDataAvailable = false;
         break;
     }
+  } else {
+    isDataAvailable = false;
   }
 
   // Colors for gradient
@@ -199,31 +218,35 @@ function InfoCards({
     if (type === 'ClosetInfo' && isSuccess) {
       return (
         <View className="gap-1">
-          <View className="flex-row gap-2  items-center">
-            <BaseText type="subtitle2" color="secondaryPurple">
-              VIP
-            </BaseText>
-            <Badge
-              defaultMode
-              className="w-fit"
-              textColor="secondaryPurple"
-              value={data?.vipLocker?.locker?.lockerId}
-            />
-            <BaseText type="subtitle3" color="secondary">
-              {convertToPersianTimeLabel(data?.vipLocker?.duration)}
-            </BaseText>
-          </View>
-          <View className="flex flex-row gap-1">
-            {data.lockers.map((item, index) => (
+          {data?.vipLocker?.locker?.lockerId && (
+            <View className="flex-row gap-2  items-center">
+              <BaseText type="subtitle2" color="secondaryPurple">
+                VIP
+              </BaseText>
               <Badge
-                key={index}
-                className="w-fit"
                 defaultMode
-                textColor="secondary"
-                value={item}
+                className="w-fit"
+                textColor="secondaryPurple"
+                value={data?.vipLocker?.locker?.lockerId}
               />
-            ))}
-          </View>
+              <BaseText type="subtitle3" color="secondary">
+                {convertToPersianTimeLabel(data?.vipLocker?.duration)}
+              </BaseText>
+            </View>
+          )}
+          {data.lockers && (
+            <View className="flex flex-row gap-1">
+              {data.lockers.map((item, index) => (
+                <Badge
+                  key={index}
+                  className="w-fit"
+                  defaultMode
+                  textColor="secondary"
+                  value={item}
+                />
+              ))}
+            </View>
+          )}
         </View>
       );
     }
@@ -253,6 +276,14 @@ function InfoCards({
             </View>
             {isSuccess && (
               <>
+                {!isDataAvailable && (
+                  <View className="items-center justify-center flex-row flex-1 w-full">
+                    <BaseText type="subtitle3" color="secondary">
+                      {t('without')} {''}
+                      {renderTitle()}
+                    </BaseText>
+                  </View>
+                )}
                 {(type === 'MembershipInfo' || type === 'InsuranceInfo') && (
                   <View className="flex-row items-center gap-1">
                     {isExpired ? (
@@ -260,8 +291,11 @@ function InfoCards({
                     ) : isWarning ? (
                       <Danger size="16" color="#FF9134" variant="Bold" />
                     ) : (
-                      <TickCircle size="16" color="#37C976" variant="Bold" />
+                      isDataAvailable && (
+                        <TickCircle size="16" color="#37C976" variant="Bold" />
+                      )
                     )}
+
                     <View className="flex-row gap-1">
                       <BaseText type="subtitle3" color="secondary">
                         {duration}

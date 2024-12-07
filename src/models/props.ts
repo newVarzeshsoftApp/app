@@ -53,6 +53,7 @@ export interface IButtonProps extends PressableProps {
   RightIcon?: React.ElementType;           // Optional right icon component
   RightIconVariant?: IIconVariant;         // Variant type for the right icon
   LeftIconVariant?: IIconVariant;          // Variant type for the left icon
+  Extraclass?:string
 }
 
 export interface ICheckboxProps extends PressableProps {

@@ -11,23 +11,29 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
 import ResponsiveImage from '../ResponsiveImage';
 import {Add, LogoutCurve} from 'iconsax-react-native';
-import {useTheme} from '../../utils/ThemeContext';
 import BaseText from '../BaseText';
 import ProfileDrawer from './ProfileDrawer';
 import {useTranslation} from 'react-i18next';
 import MenuDrawer from './MenuDrawer';
 import ThemeSwitchButton from '../Button/SwitchButton/ThemeSwitchButton';
-import {useMutation} from '@tanstack/react-query';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
 import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
+import {removeTokens} from '../../utils/helpers/tokenStorage';
 
 const CustomDrawerContent: React.FC<DrawerContentComponentProps> = props => {
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
   const {t} = useTranslation('translation', {keyPrefix: 'Drawer'});
+  const queryClient = useQueryClient();
   const Logout = useMutation({
     mutationFn: AuthService.Logout,
-    onSuccess(data, variables, context) {
-      props.navigation.navigate('Home');
+    onSuccess: async (data, variables, context) => {
+      await removeTokens();
+      queryClient.invalidateQueries({queryKey: ['Tokens']});
+      props.navigation.reset({
+        index: 0,
+        routes: [{name: 'Auth'}],
+      });
     },
     onError: handleMutationError,
   });
@@ -58,7 +64,9 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = props => {
               </TouchableOpacity>
             </View>
             {/* Header */}
-            <ScrollView>
+            <ScrollView
+              showsHorizontalScrollIndicator={false}
+              showsVerticalScrollIndicator={false}>
               <View className="gap-4">
                 <ProfileDrawer />
                 <MenuDrawer {...props} />

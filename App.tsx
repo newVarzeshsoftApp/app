@@ -16,7 +16,7 @@ export default function App() {
     <GestureHandlerRootView style={{flex: 1}}>
       <ThemeProvider>
         <TenstackProvider>
-          <View className="flex-1 bg-neutral-100 dark:bg-neutral-dark-100 max-w-[450px] mx-auto w-full">
+          <View className="flex-1 bg-neutral-100 dark:bg-neutral-dark-100 max-w-[450px] sm:overflow-hidden mx-auto w-full">
             <RootNavigator />
             <ToastProvider />
           </View>

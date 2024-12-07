@@ -6,6 +6,7 @@ import HistoryNavigator from './history/HistoryNavigator';
 import HomeNavigator from './home/HomeNavigator';
 import SaleItemNavigator from './Saleitem/SaleItemStackNatigator';
 import {DrawerStackParamList} from '../utils/types/NavigationTypes';
+import {Platform} from 'react-native';
 import CustomDrawerContent from '../components/Drawer/CustomDrawerContent';
 
 const Drawer = createDrawerNavigator<DrawerStackParamList>();
@@ -21,10 +22,10 @@ const DrawerNavigator: React.FC = () => {
         // swipeEnabled: true,
       }}
       drawerContent={props => <CustomDrawerContent {...props} />}>
-      <Drawer.Screen name="Home" component={HomeNavigator} />
-      <Drawer.Screen name="SaleItem" component={SaleItemNavigator} />
-      <Drawer.Screen name="Shop" component={ShopNavigator} />
-      <Drawer.Screen name="History" component={HistoryNavigator} />
+      <Drawer.Screen name="HomeNavigator" component={HomeNavigator} />
+      <Drawer.Screen name="SaleItemNavigator" component={SaleItemNavigator} />
+      <Drawer.Screen name="ShopNavigator" component={ShopNavigator} />
+      <Drawer.Screen name="HistoryNavigator" component={HistoryNavigator} />
     </Drawer.Navigator>
   );
 };
