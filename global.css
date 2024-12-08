@@ -73,6 +73,12 @@
   .Fill-Black {
     @apply bg-neutral-900  hover:bg-neutral-800 dark:bg-neutral-dark-900 hover:dark:bg-neutral-dark-800 border-2 border-transparent;
   }
+  .Fill-Supportive1-Yellow {
+    @apply bg-supportive1-500  hover:bg-supportive1-400  hover:dark:bg-supportive1-dark-400 border-2 border-transparent;
+  }
+  .Fill-Supportive5-Blue {
+    @apply bg-supportive5-500  hover:bg-supportive5-400  hover:dark:bg-supportive5-dark-400 border-2 border-transparent;
+  }
   .Tonal-Black {
     @apply bg-neutral-200  hover:bg-neutral-100 dark:bg-neutral-dark-200 hover:dark:bg-neutral-dark-100 border-2 border-transparent;
   }

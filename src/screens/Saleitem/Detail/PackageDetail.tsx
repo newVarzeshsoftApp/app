@@ -135,8 +135,8 @@ const PackageDetail: React.FC<PackageDetailProps> = ({
                 </BaseText>
                 <BaseButton
                   type="Fill"
-                  color="Black"
-                  size="Large"
+                  color="Supportive5-Blue"
+                  size="Medium"
                   text={t('Renewal')}
                   LeftIcon={RepeatCircle}
                   rounded

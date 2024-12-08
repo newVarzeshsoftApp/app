@@ -38,6 +38,8 @@ function BaseButton({
           case 'Primary':
             return DarkMode ? '#8ac14f' : '#bcdc64';
           case 'Black':
+          case 'Supportive1-Yellow':
+          case 'Supportive5-Blue':
             return DarkMode ? '#ffffff' : '#16181b';
           case 'Success':
             return '#37c976';
@@ -71,6 +73,8 @@ function BaseButton({
           case 'Primary':
             return 'active';
           case 'Black':
+          case 'Supportive1-Yellow':
+          case 'Supportive5-Blue':
             return 'base';
           case 'Success':
             return 'Success500';
@@ -122,6 +126,14 @@ function BaseButton({
               return DarkMode
                 ? '!border-success-dark-300  !bg-success-dark-700'
                 : '!border-success-300 !bg-success-700';
+            case 'Supportive1-Yellow':
+              return DarkMode
+                ? '!border-supportive1-dark-300 !bg-supportive1-dark-700  '
+                : '!border-supportive1-300 !bg-supportive1-700 ';
+            case 'Supportive5-Blue':
+              return DarkMode
+                ? '!border-supportive5-dark-300 !bg-supportive5-dark-700  '
+                : '!border-supportive5-300 !bg-supportive5-700 ';
             default:
               return 'border-gray-500';
           }
@@ -179,7 +191,7 @@ function BaseButton({
       onPressIn={() => setIsPressed(true)}
       onPressOut={() => setIsPressed(false)}
       {...props}
-      className={` flex items-center justify-center flex-row gap-2  ${
+      className={`flex items-center justify-center flex-row gap-2 duration-150  ${
         disabled && !isLoading && 'opacity-30'
       }  ${type}-${color} ${GetPressedDesign()} ${getSizeStyles()} ${
         rounded ? '!rounded-full' : ''

@@ -126,8 +126,8 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
               <View className="flex-1 w-full max-w-[160px] ">
                 <BaseButton
                   type="Fill"
-                  color="Black"
-                  size="Large"
+                  color="Supportive1-Yellow"
+                  size="Medium"
                   text={t('Renewal')}
                   LeftIcon={RepeatCircle}
                   rounded

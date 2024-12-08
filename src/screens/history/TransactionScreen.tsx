@@ -64,7 +64,7 @@ const TransactionScreen: React.FC<SaleItemDetailProps> = ({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{flexGrow: 1}}
         onScroll={scrollHandler}
-        scrollEventThrottle={16}
+        scrollEventThrottle={10}
         style={{flex: 1}}>
         <View className="flex-1">
           <Text>rest</Text>
