@@ -97,6 +97,8 @@ module.exports = {
     'text-text-supportive6-dark',
 
     'Fill-Primary',
+    'Fill-Supportive1-Yellow',
+    'Fill-Supportive5-Blue',
     'Fill-Black',
     'Fill-Success',
     'Tonal-Primary',

@@ -1,5 +1,11 @@
 import React, {useEffect, useState} from 'react';
-import {View, TouchableOpacity, Dimensions, Platform} from 'react-native';
+import {
+  View,
+  TouchableOpacity,
+  Dimensions,
+  Platform,
+  I18nManager,
+} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {AuthStackParamList} from '../../utils/types/NavigationTypes';
 import {
@@ -23,6 +29,15 @@ import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useTheme} from '../../utils/ThemeContext';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
+import Animated, {
+  Extrapolate,
+  interpolate,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
+import ResponsiveImage from '../../components/ResponsiveImage';
+import {BlurView} from '@react-native-community/blur';
 
 type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -66,18 +81,119 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
     control,
     formState: {errors, isValid},
   } = methods;
+  const IsRtl = I18nManager.isRTL;
 
   const screenHeight = Dimensions.get('screen').height;
+  const scrollY = useSharedValue(0);
+  const IMageHight = screenHeight * 0.3;
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: event => {
+      scrollY.value = event.contentOffset.y;
+    },
+  });
+  const ImageAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          translateY: interpolate(
+            scrollY.value,
+            [-IMageHight, 0, IMageHight],
+            [-IMageHight / 2, 0, IMageHight * 0.75],
+          ),
+        },
+        {
+          scale: interpolate(
+            scrollY.value,
+            [-IMageHight, 0, IMageHight],
+            [2, 1, 1],
+          ),
+        },
+      ],
+    };
+  });
+  const LogoAnimatedStyle = useAnimatedStyle(() => {
+    return {
+      bottom: interpolate(
+        scrollY.value,
+        [0, IMageHight],
+        [40, screenHeight * 0.25],
+        Extrapolate.CLAMP,
+      ),
+    };
+  });
 
   return (
-    <View className="flex-1 justify-between">
-      <ScrollView
+    <View className="flex-1">
+      <Animated.ScrollView
+        onScroll={scrollHandler}
+        scrollEventThrottle={10}
         keyboardShouldPersistTaps="handled"
-        showsVerticalScrollIndicator={false}>
-        <Banner />
-        <View className="flex-1 pt-2">
+        contentContainerStyle={{flexGrow: 1}}
+        showsVerticalScrollIndicator={false}
+        style={{flex: 1}}>
+        <View className="flex-1">
+          <Animated.View
+            style={[
+              {
+                width: '100%',
+                height: IMageHight,
+                overflow: 'hidden',
+              },
+              ImageAnimatedStyle,
+            ]}
+            className={`w-full overflow-hidden relative`}>
+            <ResponsiveImage
+              customSource={organization?.banners[0]?.srcset}
+              resizeMode="cover"
+              style={{
+                width: '100%',
+                height: screenHeight * 0.6,
+              }}
+            />
+            <Animated.View
+              style={[
+                {
+                  position: 'absolute',
+                  flexDirection: 'row',
+                  gap: 4,
+                  zIndex: 20,
+                  height: 55,
+                  left: 0,
+                  right: 0,
+                  width: '100%',
+                  marginHorizontal: 'auto',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                },
+                LogoAnimatedStyle,
+              ]}>
+              <ResponsiveImage
+                customSource={organization?.brandedLogo.srcset}
+                resizeMode="contain"
+                style={{
+                  width: 185,
+                  height: 55,
+                }}
+              />
+            </Animated.View>
+            {Platform.OS === 'web' ? (
+              <View className="w-full absolute  top-0 left-0 h-full backdrop-blur bg-black/40"></View>
+            ) : (
+              <BlurView
+                style={{
+                  position: 'absolute',
+                  zIndex: 0,
+                  bottom: -100,
+                  width: '100%',
+                  height: screenHeight * 0.6,
+                }}
+                // blurType="chromeMaterial"
+                blurAmount={16}
+              />
+            )}
+          </Animated.View>
           <KeyboardAvoidingView
-            className="flex-1 Container pb-6"
+            className="flex-1 Container border-t bg-neutral-0 dark:bg-neutral-dark-0  border-white dark:border-neutral-dark-300 pt-4 pb-6"
             keyboardVerticalOffset={Platform.OS === 'ios' ? 50 : 0}
             behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
             <View className="w-full flex flex-col gap-9  flex-1">
@@ -133,37 +249,37 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
             </View>
           </KeyboardAvoidingView>
         </View>
-      </ScrollView>
-      <View className={`w-full Container pb-6  gap-6  `}>
-        <BaseButton
-          onPress={handleSubmit(onSubmit)}
-          type="Fill"
-          color="Black"
-          rounded
-          isLoading={loginMutation.isPending}
-          size="Large"
-          text={auth('login')}
-          accessibilityLabel="Login button"
-          accessibilityRole="button"
-          accessibilityHint="Submits the login form"
-        />
-        <View className="flex items-center flex-row justify-center gap-2">
-          <BaseText
-            type="button1"
-            color="muted"
-            accessibilityLabel="Not registered text">
-            {auth('notRegistered')}
-          </BaseText>
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Signup')}
-            accessibilityLabel="Navigate to Signup screen"
-            accessibilityRole="button">
-            <BaseText type="button1" color="active">
-              {auth('signup')}
+        <View className={`w-full Container pb-6  gap-6  `}>
+          <BaseButton
+            onPress={handleSubmit(onSubmit)}
+            type="Fill"
+            color="Black"
+            rounded
+            isLoading={loginMutation.isPending}
+            size="Large"
+            text={auth('login')}
+            accessibilityLabel="Login button"
+            accessibilityRole="button"
+            accessibilityHint="Submits the login form"
+          />
+          <View className="flex items-center flex-row justify-center gap-2">
+            <BaseText
+              type="button1"
+              color="muted"
+              accessibilityLabel="Not registered text">
+              {auth('notRegistered')}
             </BaseText>
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Signup')}
+              accessibilityLabel="Navigate to Signup screen"
+              accessibilityRole="button">
+              <BaseText type="button1" color="active">
+                {auth('signup')}
+              </BaseText>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </Animated.ScrollView>
     </View>
   );
 };

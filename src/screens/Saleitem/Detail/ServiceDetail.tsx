@@ -100,7 +100,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{flexGrow: 1}}
         onScroll={scrollHandler}
-        scrollEventThrottle={16}
+        scrollEventThrottle={7}
         style={{flex: 1}}>
         <View className="flex-1">
           <Animated.Image

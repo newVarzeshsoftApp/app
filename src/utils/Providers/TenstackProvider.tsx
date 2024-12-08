@@ -24,7 +24,7 @@ function TenstackProvider({children}: {children: React.ReactNode}) {
       {children}
       {/* <ReactQueryDevtools initialIsOpen={false} /> */}
 
-      {Platform.OS === 'web' && <ReactQueryDevtools initialIsOpen={false} />}
+      {/* {Platform.OS === 'web' && <ReactQueryDevtools initialIsOpen={false} />} */}
     </QueryClientProvider>
   );
 }

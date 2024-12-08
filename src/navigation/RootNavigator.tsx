@@ -43,6 +43,7 @@ export const RootNavigator: React.FC = () => {
 
   const MinimalTheme: Theme = {
     ...DefaultTheme,
+
     colors: {
       ...DefaultTheme.colors,
       background: theme === 'dark' ? '#16181b' : '#F4F4F5',
@@ -54,9 +55,13 @@ export const RootNavigator: React.FC = () => {
   return (
     <NavigationContainer
       theme={MinimalTheme}
-      // linking={linking}
+      // linking={linking}}
+
       ref={navigationRef}>
-      <Stack.Navigator screenOptions={{headerShown: false}}>
+      <Stack.Navigator
+        screenOptions={{
+          headerShown: false,
+        }}>
         {data?.accessToken ? (
           <>
             <Stack.Screen name="Root" component={DrawerNavigator} />

@@ -18,7 +18,8 @@ const AuthNavigator: React.FC = () => {
   const {theme} = useTheme();
 
   return (
-    <Stack.Navigator screenOptions={{headerShown: false}}>
+    <Stack.Navigator
+      screenOptions={{headerShown: false, contentStyle: {height: 300}}}>
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
       <Stack.Screen name="OTP" component={VerifyOTPScreen} />
