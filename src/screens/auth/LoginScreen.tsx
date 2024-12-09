@@ -62,7 +62,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
   });
   const onSubmit: SubmitHandler<LoginSchemaType> = async data => {
     loginMutation.mutate({
-      organization: organization!.id,
+      organization: organization?.id ?? 0,
       password: data.password,
       username: data.username,
     });
@@ -81,8 +81,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
     control,
     formState: {errors, isValid},
   } = methods;
-  const IsRtl = I18nManager.isRTL;
-
   const screenHeight = Dimensions.get('screen').height;
   const scrollY = useSharedValue(0);
   const IMageHight = screenHeight * 0.3;
@@ -144,6 +142,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
             className={`w-full overflow-hidden relative`}>
             <ResponsiveImage
               customSource={organization?.banners[0]?.srcset}
+              fallback={'../../assets/images/testImage.png'}
               resizeMode="cover"
               style={{
                 width: '100%',
@@ -169,6 +168,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
               ]}>
               <ResponsiveImage
                 customSource={organization?.brandedLogo.srcset}
+                fallback={'../../assets/images/testImage.png'}
                 resizeMode="contain"
                 style={{
                   width: 185,
