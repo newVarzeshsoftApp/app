@@ -53,7 +53,11 @@
 }
 @layer components {
   .Container {
-    @apply px-5 w-full;
+    @apply px-5 w-full max-w-[450px];
+  }
+
+  .CardBase {
+    @apply p-4 rounded-3xl gap-3 bg-white/40 dark:bg-neutral-dark-300/40 shadow-custom  border border-white dark:border-neutral-dark-300;
   }
   /* Primary */
   .Fill-Primary {
@@ -105,9 +109,10 @@
   .BaseServiceCard {
     @apply dark:bg-neutral-dark-300/50 bg-neutral-0/50  w-full  p-4 rounded-3xl  border border-neutral-0 dark:border-neutral-dark-400/50;
   }
-}
-.Outline {
-  @apply bg-transparent border border-primary-500 hover:border-primary-400;
+
+  .Outline-Supportive5-Blue {
+    @apply bg-transparent border border-supportive5-500 hover:border-supportive5-400;
+  }
 }
 
 @layer utilities {

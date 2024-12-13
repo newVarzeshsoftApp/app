@@ -16,7 +16,7 @@ export type SaleItemStackParamList = {
 };
 
 export type DrawerStackParamList = {
-  HomeNavigator: undefined;
+  HomeNavigator: NavigatorScreenParams<HomeStackParamList> | undefined;
   SaleItemNavigator: NavigatorScreenParams<SaleItemStackParamList> | undefined;
   ShopNavigator: NavigatorScreenParams<ShopStackParamList> | undefined;
   HistoryNavigator: NavigatorScreenParams<OrderStackParamList> | undefined;
@@ -46,6 +46,9 @@ export type ShopStackParamList = {
 export type OrderStackParamList = {
   reception: undefined;
   transaction: undefined;
+  WithdrawDetail: {id: number};
+  DepositDetail: {id: number};
   orders: undefined;
+  orderDetail: {id: number; reception?: boolean};
   payments: undefined;
 };

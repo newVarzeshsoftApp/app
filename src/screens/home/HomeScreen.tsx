@@ -26,9 +26,10 @@ const HomeScreen: React.FC = () => {
       data={[]}
       renderItem={null}
       nestedScrollEnabled
+      keyExtractor={(item, index) => index.toString()}
       ListHeaderComponent={renderHeader}
       ListFooterComponent={
-        <View className="flex-1 pb-32  Container  web:pb-[200px]">
+        <View className="flex-1   Container  web:pb-[200px]">
           <MyServise />
         </View>
       }

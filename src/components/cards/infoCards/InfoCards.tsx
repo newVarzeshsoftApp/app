@@ -45,7 +45,10 @@ function InfoCards({
   if (isSuccess) {
     switch (type) {
       case 'MembershipInfo':
-        if (data?.subscriptionService) {
+        if (
+          data?.subscriptionService &&
+          Object.keys(data.subscriptionService).length > 0
+        ) {
           subscriptionServiceRemainingDays = calculateRemainingDays({
             start: data?.subscriptionService?.start,
             end: data?.subscriptionService?.end,
@@ -66,7 +69,10 @@ function InfoCards({
         break;
 
       case 'InsuranceInfo':
-        if (data?.insuranceService) {
+        if (
+          data?.insuranceService &&
+          Object.keys(data.insuranceService).length > 0
+        ) {
           insuranceServiceRemainingDays = calculateRemainingDays({
             start: data?.insuranceService?.start,
             end: data?.insuranceService?.end,
@@ -87,7 +93,10 @@ function InfoCards({
         break;
 
       case 'ClosetInfo':
-        if (data?.vipLocker) {
+        if (
+          (data?.vipLocker && Object.keys(data.vipLocker).length > 0) ||
+          Object.keys(data.lockers).length > 0
+        ) {
           isWarning = data?.vipLocker?.duration <= 7; // Example check
           isExpired = data?.vipLocker?.duration === 0;
         } else {

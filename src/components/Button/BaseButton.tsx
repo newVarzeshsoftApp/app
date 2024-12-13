@@ -4,7 +4,7 @@ import {Image, Pressable, View} from 'react-native';
 import Loading from '../Spinner/Loading';
 import BaseText from '../BaseText';
 import {useTheme} from '../../utils/ThemeContext';
-
+import ArrowUp from '../../assets/icons/ArrowUp.svg';
 function BaseButton({
   size = 'Medium',
   color = 'Primary',
@@ -21,6 +21,7 @@ function BaseButton({
   srcRight,
   Extraclass,
   RightIconVariant,
+  LinkButton,
   ...props
 }: IButtonProps) {
   const [isPressed, setIsPressed] = useState(false);
@@ -191,8 +192,10 @@ function BaseButton({
       onPressIn={() => setIsPressed(true)}
       onPressOut={() => setIsPressed(false)}
       {...props}
-      className={`flex items-center justify-center flex-row gap-2 duration-150  ${
-        disabled && !isLoading && 'opacity-30'
+      className={`flex items-center justify-center flex-row ${
+        LinkButton ? 'gap-0' : 'gap-2'
+      } duration-150  ${
+        disabled && !isLoading ? '!opacity-30' : '!opacity-100'
       }  ${type}-${color} ${GetPressedDesign()} ${getSizeStyles()} ${
         rounded ? '!rounded-full' : ''
       } ${Extraclass}`}>
@@ -203,7 +206,7 @@ function BaseButton({
           {LeftIcon ? (
             <View>
               <LeftIcon
-                size={size === 'Medium' || size === 'Small' ? 20 : 24}
+                size={size === 'Medium' || size === 'Small' ? 16 : 24}
                 color={getIconColor()}
                 variant={LeftIconVariant}
               />
@@ -223,7 +226,7 @@ function BaseButton({
           {RightIcon ? (
             <View>
               <RightIcon
-                size={size === 'Medium' || size === 'Small' ? 20 : 24}
+                size={size === 'Medium' || size === 'Small' ? 16 : 24}
                 color={getIconColor()}
                 variant={RightIconVariant}
               />
@@ -232,6 +235,15 @@ function BaseButton({
             srcRight && (
               <Image src={srcRight} width={20} height={20} alt={srcRight} />
             )
+          )}
+          {LinkButton && (!LeftIcon || !RightIcon) && (
+            <View>
+              <ArrowUp
+                stroke={getIconColor()}
+                width={size === 'Medium' || size === 'Small' ? 20 : 32}
+                height={size === 'Medium' || size === 'Small' ? 20 : 32}
+              />
+            </View>
           )}
         </>
       )}

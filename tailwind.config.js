@@ -106,6 +106,7 @@ module.exports = {
     'Tonal-Success',
     'Outline-Primary',
     'Outline-Black',
+    'Outline-Supportive5-Blue',
     'Outline-Success',
     'TextButton-Primary',
     'TextButton-Black',
@@ -220,7 +221,7 @@ module.exports = {
           600: '#e64948',
           700: '#b43938',
           dark: {
-            100: '#6a3221',
+            100: '#6a2221',
             200: '#8b2c2b',
             300: '#b43938',
             400: '#e64948',

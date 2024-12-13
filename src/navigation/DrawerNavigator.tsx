@@ -19,7 +19,7 @@ const DrawerNavigator: React.FC = () => {
         drawerType: 'slide',
         headerShown: false,
         drawerPosition: 'right',
-        // swipeEnabled: true,
+        swipeEnabled: true,
       }}
       drawerContent={props => <CustomDrawerContent {...props} />}>
       <Drawer.Screen name="HomeNavigator" component={HomeNavigator} />

@@ -1,6 +1,8 @@
 import {
   AllOrganizationQuery,
   UserSaleItemQuey,
+  UserTransactionQuery,
+  UserWalletTransactionQuery,
 } from '../services/models/requestQueries';
 import {prepareQuery} from '../utils/helpers/helpers';
 
@@ -31,5 +33,13 @@ export const routes = {
     getUserSessionByID: (id: number) => `user/sessions/${id}`,
     getUserChargingServiceByID: (id: number) =>
       `user/charging-service/sessions/${id}`,
+    getUserSaleOrder: (query: UserSaleItemQuey) =>
+      `user/sale-order` + prepareQuery(query),
+    getUserSaleOrderByID: (id: number) => `user/sale-order/${id}`,
+    getUserTransaction: (query: UserTransactionQuery) =>
+      `user/transaction` + prepareQuery(query),
+    getUserWalletTransaction: (query: UserWalletTransactionQuery) =>
+      `user/wallet` + prepareQuery(query),
+    getUserTransactionById: (id: number) => `user/transaction/${id}`,
   },
 };

@@ -43,6 +43,7 @@ export interface IButtonProps extends PressableProps {
   type: IStyle‌TypeButton;             // Custom style type for the button
   size?:ISizeButton
   color:IColorButton;
+  LinkButton?:boolean;
   rounded?:boolean
   text?: string;                           // Text to display inside the button
   noText?: boolean;                        // If true, hides the text
