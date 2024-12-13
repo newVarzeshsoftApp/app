@@ -11,3 +11,29 @@ export interface UserSaleItemQuey {
   type?: number;
   parent?: number;
 }
+export interface UserSaleOrderQuery {
+  end?: string;
+  start?: string;
+  limit?: number;
+  offset?: number;
+  reception?: {
+    equals: boolean;
+  };
+}
+export interface UserTransactionQuery {
+  end?: string;
+  start?: string;
+  limit?: number;
+  offset?: number;
+  type?: {
+    equals?: 0 | 1 | 2;
+  };
+  submitAt?: {
+    lte?: string;
+    gte?: string;
+  };
+}
+export interface UserWalletTransactionQuery {
+  limit?: number;
+  offset?: number;
+}

@@ -1,5 +1,5 @@
-import React, {useLayoutEffect} from 'react';
-import {Image, Text, View} from 'react-native';
+import React, {useEffect, useLayoutEffect, useState} from 'react';
+import {ActivityIndicator, Image, Text, View} from 'react-native';
 import Animated, {
   interpolate,
   useAnimatedScrollHandler,
@@ -9,10 +9,17 @@ import Animated, {
 import NavigationHeader from '../../components/header/NavigationHeader';
 import {useTranslation} from 'react-i18next';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {OrderStackParamList} from '../../utils/types/NavigationTypes';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import {useGetTransaction} from '../../utils/hooks/User/useGetTransaction';
+import {limit} from '../../constants/options';
 import {
-  OrderStackParamList,
-  SaleItemStackParamList,
-} from '../../utils/types/NavigationTypes';
+  SaleTransaction,
+  Transaction,
+} from '../../services/models/response/UseResrService';
+import BaseText from '../../components/BaseText';
+import TransactionCard from './components/TransactionCard';
+
 type SaleItemDetailProps = NativeStackScreenProps<
   OrderStackParamList,
   'transaction'
@@ -22,7 +29,24 @@ const TransactionScreen: React.FC<SaleItemDetailProps> = ({
   route,
 }) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
+  const [offset, setOffset] = useState(0);
+  const [items, setItems] = useState<SaleTransaction[] | []>([]);
+  const {data, isLoading, isFetching, isError} = useGetTransaction({
+    limit: limit,
+    offset,
+  });
+  useEffect(() => {
+    if (data?.content) {
+      setItems(prevItems => [...prevItems, ...data.content]);
+    }
+  }, [data]);
+  const loadMore = () => {
+    if (!isFetching && items.length < (data?.total ?? 5)) {
+      setOffset(prevOffset => prevOffset + 1);
+    }
+  };
   const scrollY = useSharedValue(0);
+
   useLayoutEffect(() => {
     navigation.setOptions({
       headerTransparent: true,
@@ -59,17 +83,38 @@ const TransactionScreen: React.FC<SaleItemDetailProps> = ({
         />
       </View>
 
-      <Animated.ScrollView
-        showsHorizontalScrollIndicator={false}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{flexGrow: 1}}
-        onScroll={scrollHandler}
-        scrollEventThrottle={10}
-        style={{flex: 1}}>
-        <View className="flex-1">
-          <Text>rest</Text>
-        </View>
-      </Animated.ScrollView>
+      <View className="flex-1 Container pt-[30%] web:pt-20">
+        <Animated.FlatList
+          data={items}
+          keyExtractor={(item, index) => item.id.toString() || index.toString()}
+          renderItem={({item}) => <TransactionCard item={item} />}
+          onScroll={scrollHandler}
+          onEndReached={loadMore}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={
+            isLoading ? (
+              <View style={{padding: 16, alignItems: 'center'}}>
+                <ActivityIndicator size="large" color="#bcdd64" />
+              </View>
+            ) : null
+          }
+          ListEmptyComponent={
+            !isLoading && !isError ? (
+              <View className="flex-1 items-center justify-center flex-row py-10">
+                <BaseText type="subtitle1" color="secondary">
+                  {t('noOrdersFound')}
+                </BaseText>
+              </View>
+            ) : null
+          }
+          ItemSeparatorComponent={() => <View style={{height: 16}} />}
+          contentContainerStyle={{
+            paddingVertical: 16,
+          }}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+        />
+      </View>
     </View>
   );
 };

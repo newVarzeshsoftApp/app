@@ -83,7 +83,7 @@ const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
                         )}
                         <BaseText
                           type="title4"
-                          color={AvtiveTab ? 'base' : 'muted'}
+                          color={AvtiveTab ? 'base' : 'secondary'}
                           key={childIndex}>
                           {t(child.title)}
                         </BaseText>
@@ -99,7 +99,7 @@ const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
                     const AvtiveTab = currentRoute === child.slug;
                     return (
                       <TouchableOpacity
-                        key={index}
+                        key={childIndex}
                         className="py-4 px-8 border-r border-neutral-200 dark:border-neutral-dark-200 z-20"
                         onPress={() =>
                           props.navigation.navigate(item.slug, {

@@ -17,23 +17,49 @@ export const isNotEmpty = (obj: unknown): boolean => {
  */
 export const prepareQuery = (queryObject: object): string => {
   let query = '?';
-  Object.entries(queryObject).forEach((item, index) => {
-    const itemValue = item[1];
-    const itemKey = item[0];
-    if (isNotEmpty(itemValue) && itemValue !== null && itemValue !== '') {
+
+  const processKeyValue = (key: string, value: any) => {
+    if (typeof value === 'object' && value !== null) {
+      // Handle nested objects
+      return Object.entries(value)
+        .map(([nestedKey, nestedValue]) => `${key}.${nestedKey}=${nestedValue}`)
+        .join('&');
+    } else {
+      // Handle primitive values
+      return `${key}=${value}`;
+    }
+  };
+
+  Object.entries(queryObject).forEach(([key, value], index) => {
+    if (value !== undefined && value !== null && value !== '') {
       if (index !== 0) {
-        if (item[0] !== 'order') {
-          query += `&${itemKey}=${itemValue}`;
-        } else {
-          query += `,${itemValue}`;
-        }
-      } else {
-        query += `${itemKey}=${itemValue}`;
+        query += '&';
       }
+      query += processKeyValue(key, value);
     }
   });
+
   return query === '?' ? '' : query;
 };
+// export const prepareQuery = (queryObject: object): string => {
+//   let query = '?';
+//   Object.entries(queryObject).forEach((item, index) => {
+//     const itemValue = item[1];
+//     const itemKey = item[0];
+//     if (isNotEmpty(itemValue) && itemValue !== null && itemValue !== '') {
+//       if (index !== 0) {
+//         if (item[0] !== 'order') {
+//           query += `&${itemKey}=${itemValue}`;
+//         } else {
+//           query += `,${itemValue}`;
+//         }
+//       } else {
+//         query += `${itemKey}=${itemValue}`;
+//       }
+//     }
+//   });
+//   return query === '?' ? '' : query;
+// };
 
 /**
  * Formats a number into a readable string with abbreviations (e.g., K, M, B, T).

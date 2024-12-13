@@ -14,6 +14,7 @@ export const Config = {
   CountDownTimer: 120,
 };
 
+export const limit = 5;
 export const menuItems: MenuItem[] = [
   {
     title: 'shop',
@@ -37,3 +38,27 @@ export const menuItems: MenuItem[] = [
     ],
   },
 ];
+export enum TransactionSourceType {
+  UserCredit, // کیف پول
+  Bank, // بانک
+  CashDesk, // صندوق
+  ChargingService, // خدمت شارژی
+  WalletGift, // هدیه شارژ کیف پول
+  Loan, // وام
+  Cheque, // چک
+  OfferedDiscount, // تخفیف هدف مند
+  Archived, // بایگانی شده
+  Transfer, // انتقالی
+  Reserve, // رزور
+}
+export enum TransactionType {
+  Deposit,
+  Settle,
+  Withdraw,
+}
+
+// const receptionAmount = (item.totalAmount || 0) + (item.discount || 0);
+//               const normalOrderAmount = item.normalSaleOrder
+//                 ?.map((value: SaleOrder) => (value.totalAmount || 0) + (value.discount || 0))
+//                 .reduce((a: any, b: any) => +a + b, 0);
+//               return (receptionAmount ?? 0) + (normalOrderAmount ?? 0);

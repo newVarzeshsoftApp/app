@@ -30,6 +30,7 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = props => {
     onSuccess: async (data, variables, context) => {
       await removeTokens();
       queryClient.invalidateQueries({queryKey: ['Tokens']});
+      queryClient.removeQueries();
       props.navigation.reset({
         index: 0,
         routes: [{name: 'Auth'}],

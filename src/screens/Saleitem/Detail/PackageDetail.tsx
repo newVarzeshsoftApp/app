@@ -126,10 +126,10 @@ const PackageDetail: React.FC<PackageDetailProps> = ({
         <SafeAreaView>
           <View className="gap-8 pt-20 pb-6  Container">
             <View className="p-5 rounded-3xl gap-8 items-center relative bg-white/80 dark:bg-neutral-dark-300/80 shadow-custom  border border-white dark:border-neutral-dark-300">
-              <View className="absolute -top-[20%] web:-top-[10%]  left-1/2 transform web:-translate-x-1/2 w-[44px] h-[44px] items-center justify-center rounded-full bg-supportive5-500/40">
+              <View className="absolute -top-[22px]   left-1/2 transform web:-translate-x-1/2 w-[44px] h-[44px] items-center justify-center rounded-full bg-supportive5-500/40">
                 <Box1 size="24" color="#5bc8ff" variant="Bold" />
               </View>
-              <View className="items-center w-full flex-1 gap-5">
+              <View className="items-center w-full pt-4 flex-1 gap-5">
                 <BaseText type="title3" color="supportive5">
                   {data.title}
                 </BaseText>

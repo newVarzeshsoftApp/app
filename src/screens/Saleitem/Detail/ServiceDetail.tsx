@@ -140,7 +140,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                     </View>
                     <View className="gap-2">
                       {data.contractor && (
-                        <View className="dark:bg-neutral-dark-100 bg-neutral-100 flex-row w-fit gap-2 pl-3  rounded-full p-1">
+                        <View className="dark:bg-neutral-dark-100 bg-neutral-100  flex-row w-fit gap-2 pl-3  rounded-full p-1">
                           <View className="h-6 w-6 rounded-full overflow-hidden ">
                             {/* <ResponsiveImage customSource={data.contractor}/> */}
                             <Image

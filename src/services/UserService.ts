@@ -8,10 +8,18 @@ import {
   GetUserCreditRes,
   GetUserDashboardRes,
   GetUserSaleItemRes,
+  GetUserSaleOrderRes,
+  SaleOrderByIDRes,
   SessionDetail,
   SessionDetails,
+  Transaction,
+  TransactionResponse,
 } from './models/response/UseResrService';
-import {UserSaleItemQuey} from './models/requestQueries';
+import {
+  UserSaleItemQuey,
+  UserTransactionQuery,
+  UserWalletTransactionQuery,
+} from './models/requestQueries';
 
 const {
   baseUrl,
@@ -22,10 +30,126 @@ const {
     getSaleItemByID,
     getUserChargingServiceByID,
     getUserSessionByID,
+    getUserSaleOrder,
+    getUserSaleOrderByID,
+    getUserTransaction,
+    getUserWalletTransaction,
+    getUserTransactionById,
   },
 } = routes;
 
 const UserService = {
+  GetUserTransactionById: async (id: number): Promise<Transaction> => {
+    try {
+      const response = await axiosInstance.get<Transaction>(
+        baseUrl + getUserTransactionById(id),
+      );
+
+      if (response.status === Status.Ok) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error in GetUserCredit function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(
+          error.response.data.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+  GetUserWalletTransaction: async (
+    query: UserWalletTransactionQuery,
+  ): Promise<TransactionResponse> => {
+    try {
+      const response = await axiosInstance.get<TransactionResponse>(
+        baseUrl + getUserWalletTransaction(query),
+      );
+
+      if (response.status === Status.Ok || response.status === Status.Created) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error in GetUserSaleOrder function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(
+          error.response.data.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+  GetUserTransaction: async (
+    query: UserTransactionQuery,
+  ): Promise<TransactionResponse> => {
+    try {
+      const response = await axiosInstance.get<TransactionResponse>(
+        baseUrl + getUserTransaction(query),
+      );
+
+      if (response.status === Status.Ok || response.status === Status.Created) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error in GetUserSaleOrder function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(
+          error.response.data.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+  GetUserSaleOrder: async (
+    query: UserSaleItemQuey,
+  ): Promise<GetUserSaleOrderRes> => {
+    try {
+      const response = await axiosInstance.get<GetUserSaleOrderRes>(
+        baseUrl + getUserSaleOrder(query),
+      );
+
+      if (response.status === Status.Ok || response.status === Status.Created) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error in GetUserSaleOrder function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(
+          error.response.data.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+  GetUserSaleOrderByID: async (id: number): Promise<SaleOrderByIDRes> => {
+    try {
+      const response = await axiosInstance.get<SaleOrderByIDRes>(
+        baseUrl + getUserSaleOrderByID(id),
+      );
+
+      if (response.status === Status.Ok || response.status === Status.Created) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error in GetUserSaleOrderByID function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(
+          error.response.data.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
   GetUserCredit: async (): Promise<GetUserCreditRes> => {
     try {
       const response = await axiosInstance.get<GetUserCreditRes>(

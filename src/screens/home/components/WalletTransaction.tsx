@@ -1,53 +1,45 @@
-import React, {useCallback, useState, useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
-  Text,
-  TouchableOpacity,
-  View,
   ActivityIndicator,
   FlatList,
   Platform,
+  Text,
+  TouchableOpacity,
+  View,
 } from 'react-native';
+import {useGetWalletTransaction} from '../../../utils/hooks/User/useGetWalletTransaction';
+import {limit} from '../../../constants/options';
+import {SaleTransaction} from '../../../services/models/response/UseResrService';
 import BaseText from '../../../components/BaseText';
-import {useTranslation} from 'react-i18next';
 import {ArrowUp} from 'iconsax-react-native';
-import {Content} from '../../../services/models/response/UseResrService';
-import ProductCard from '../../../components/cards/Service/ProductCard';
-import ServiceCard from '../../../components/cards/Service/ServiceCard';
-import CreditCard from '../../../components/cards/Service/CreditCard';
-import ReceptionCard from '../../../components/cards/Service/ReceptionCard';
-import PackageCard from '../../../components/cards/Service/PackageCard';
-import {useGetUserSaleItem} from '../../../utils/hooks/User/useGetUserSaleItem';
-import {useNavigation} from '@react-navigation/native';
+import {useTranslation} from 'react-i18next';
+import TransactionCard from '../../history/components/TransactionCard';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {DrawerStackParamList} from '../../../utils/types/NavigationTypes';
-import {limit} from '../../../constants/options';
+import {useNavigation} from '@react-navigation/native';
 type NavigationProp = NativeStackNavigationProp<
   DrawerStackParamList,
-  'HomeNavigator'
+  'HistoryNavigator'
 >;
-function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
-  const cardComponentMapping: Record<number, React.FC<{data: Content}>> = {
-    0: ProductCard,
-    1: ServiceCard,
-    2: CreditCard,
-    3: ReceptionCard,
-    4: PackageCard,
-  };
-
-  const {t} = useTranslation('translation', {keyPrefix: 'Home'});
-  const navigation = useNavigation<NavigationProp>();
+const WalletTransaction: React.FC = ({
+  inMoreScreen = false,
+}: {
+  inMoreScreen?: boolean;
+}) => {
   const [offset, setOffset] = useState(0);
-  const [data, setData] = useState<Content[]>([]);
+  const {t} = useTranslation('translation', {keyPrefix: 'Wallet'});
+  const navigation = useNavigation<NavigationProp>();
+
+  const [data, setData] = useState<SaleTransaction[]>([]);
   const {
     data: fetchedData,
     isLoading,
     isError,
     isFetching,
-  } = useGetUserSaleItem({
+  } = useGetWalletTransaction({
     limit: limit,
     offset,
   });
-
   useEffect(() => {
     if (fetchedData?.content) {
       setData(prevItems => [...prevItems, ...fetchedData.content]);
@@ -62,38 +54,12 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
       setOffset(prevOffset => prevOffset + 1);
     }
   };
-
-  const renderItem = useCallback(
-    ({item}: {item: Content}) => {
-      const CardComponent = cardComponentMapping[item.type!];
-      if (CardComponent) {
-        return (
-          <TouchableOpacity
-            key={item.product?.id}
-            onPress={() =>
-              navigation.navigate('SaleItemNavigator', {
-                screen: 'saleItemDetail',
-                params: {
-                  id: item.id,
-                  title: item.title || 'undefined',
-                },
-              })
-            }>
-            <CardComponent data={item} />
-          </TouchableOpacity>
-        );
-      }
-      return <Text>Unknown type: {item.type}</Text>;
-    },
-    [cardComponentMapping],
-  );
-
   return (
     <View className="flex-1 gap-4">
       {!inMoreScreen && (
         <View className="w-full items-center flex-row justify-between">
           <BaseText type="title3" color="secondary">
-            {t('myService')}
+            {t('transactions')}
           </BaseText>
           {(fetchedData?.total ?? 1) > 4 && (
             <TouchableOpacity
@@ -113,10 +79,9 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
       )}
       <FlatList
         data={data}
-        renderItem={renderItem}
+        renderItem={({item, index}) => <TransactionCard item={item} />}
         ItemSeparatorComponent={() => <View style={{height: 16}} />}
         onEndReached={loadMore}
-        // onEndReachedThreshold={0.2}
         keyExtractor={(item, index) => index.toString()}
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
@@ -131,7 +96,7 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
           !isLoading && !isError ? (
             <View className="flex-1 items-center justify-center flex-row py-10">
               <BaseText type="subtitle1" color="secondary">
-                {t('noServicesFound')}
+                {t('noTransaction')}
               </BaseText>
             </View>
           ) : null
@@ -145,6 +110,6 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
       />
     </View>
   );
-}
+};
 
-export default MyServise;
+export default WalletTransaction;

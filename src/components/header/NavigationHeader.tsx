@@ -39,6 +39,8 @@ const NavigationHeader: React.FC<NavigationHeaderProps> = ({
   const baseRange = theme === 'dark' ? '#1b1d21' : '#f4f4f5';
 
   const handleBackPress = () => {
+    console.log('clicked');
+
     if (onBackPress) {
       onBackPress();
     } else if (navigation.canGoBack()) {
@@ -83,10 +85,13 @@ const NavigationHeader: React.FC<NavigationHeaderProps> = ({
   });
 
   return (
-    <AnimatedSafeAreaView edges={['top']} style={[SafeAreaAnimatedStyle]}>
+    <AnimatedSafeAreaView
+      edges={['top']}
+      style={[SafeAreaAnimatedStyle, {zIndex: 999}]}>
       <Animated.View style={[styles.container]}>
         <View style={styles.leftButton}>
           <BaseButton
+            disabled={navigation.canGoBack() === false}
             onPress={handleBackPress}
             noText
             LeftIcon={ArrowRight2}
@@ -122,6 +127,7 @@ const styles = StyleSheet.create({
     elevation: 0,
   },
   leftButton: {
+    zIndex: 999,
     flexDirection: 'row',
     alignItems: 'center',
   },
