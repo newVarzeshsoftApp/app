@@ -52,7 +52,7 @@ const OrderDetailCard: React.FC<OrderDetailProps> = ({item, isReseption}) => {
                 size="Small"
                 onPress={() =>
                   navigation.navigate('orderDetail', {
-                    id: item.id,
+                    id: Number(item.saleOrderReceptionId ?? 0),
                     reception: true,
                   })
                 }

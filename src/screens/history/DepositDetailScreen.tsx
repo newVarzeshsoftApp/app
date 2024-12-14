@@ -206,14 +206,14 @@ const DepositDetailScreen: React.FC<DepositDetailScreenProps> = ({
                             </BaseText>
                           </View>
                         )}
-                        <View className="flex-row items-center justify-between ">
+                        {/* <View className="flex-row items-center justify-between ">
                           <BaseText type="body3" color="secondary">
                             {t('SourceItem')}: {''}
                           </BaseText>
                           <BaseText type="body3" color="base">
                             {data.title ?? ''}
                           </BaseText>
-                        </View>
+                        </View> */}
                       </View>
                     )
                   )}

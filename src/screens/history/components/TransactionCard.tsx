@@ -68,7 +68,7 @@ const TransactionCard: React.FC<TransactionProps> = ({item, inDetail}) => {
               onPress={() =>
                 navigation.navigate('HistoryNavigator', {
                   screen: 'orderDetail',
-                  params: {id: item.id},
+                  params: {id: item.orderId ?? 0},
                 })
               }
               // orderDetail
@@ -76,7 +76,7 @@ const TransactionCard: React.FC<TransactionProps> = ({item, inDetail}) => {
               size="Small"
               type="Outline"
               color="Supportive5-Blue"
-              text={item.id.toString()}
+              text={(item.orderId ?? 0).toString()}
               rounded
             />
           )}

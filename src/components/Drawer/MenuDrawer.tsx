@@ -72,7 +72,7 @@ const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
                     return (
                       <TouchableOpacity
                         key={childIndex}
-                        className={`py-4 px-8 border-r border-neutral-200 dark:border-neutral-dark-200 relative `}
+                        className={`py-3 px-8 border-r border-neutral-200 dark:border-neutral-dark-200 relative `}
                         onPress={() =>
                           props.navigation.navigate(item.slug, {
                             screen: child.slug,

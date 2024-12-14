@@ -60,7 +60,7 @@ const OrdersScreen: React.FC<OrdersScreenProps> = ({navigation, route}) => {
     <View className="flex-1 Container pt-[30%] web:pt-20">
       <Animated.FlatList
         data={items}
-        keyExtractor={(item, index) => item.id.toString() || index.toString()}
+        keyExtractor={(item, index) => index.toString()}
         renderItem={({item}) => (
           <OrderCard item={item} navigation={navigation} />
         )}
