@@ -164,7 +164,7 @@ module.exports = (env, argv) => {
       historyApiFallback: true, // Handle React Router
     },
     performance: {
-      hints: isProduction ? 'warning' : false,
+      hints: false,
       maxEntrypointSize: 512000, // Performance budget
       maxAssetSize: 512000,
     },

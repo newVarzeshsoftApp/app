@@ -27,6 +27,9 @@ const OrderDetailScreen: React.FC<OrderDetailScreenProps> = ({
   route,
 }) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
+  console.log('====================================');
+  console.log(route.params.id);
+  console.log('====================================');
   const {data, isLoading} = useGetUserSaleOrderByID(route.params.id);
   const scrollY = useSharedValue(0);
   const isReseption = route.params.reception;
