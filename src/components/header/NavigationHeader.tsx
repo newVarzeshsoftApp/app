@@ -37,10 +37,7 @@ const NavigationHeader: React.FC<NavigationHeaderProps> = ({
 }) => {
   const {theme} = useTheme();
   const baseRange = theme === 'dark' ? '#1b1d21' : '#f4f4f5';
-
   const handleBackPress = () => {
-    console.log('clicked');
-
     if (onBackPress) {
       onBackPress();
     } else if (navigation.canGoBack()) {

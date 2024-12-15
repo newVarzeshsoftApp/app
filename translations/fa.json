@@ -145,7 +145,9 @@
     "WalletCredit": "موجودی کیف پول",
     "Wallet Recharge": "شارژ کیف پول",
     "transactions": "تراکنش ها",
-    "noTransaction": " تراکنشی ثبت نشده"
+
+    "noTransaction": " تراکنشی ثبت نشده",
+    "Select one of the amounts below or enter your desired amount": "از بین مبالغ  زیر انتخاب کنید و یا مبلغ مورد نظر خود را وارد نمایید."
   },
   "SaleItem": {
     "saleItem": "سرویس های من"
@@ -156,6 +158,7 @@
     "New Password": "رمز عبور جدید",
     "confirmpassword": "تأیید رمز عبور",
     "email": "ایمیل",
+
     "firstName": "نام",
     "Name": "نام و نام خانوادگی ",
     "lastName": "نام خانوادگی",
@@ -165,7 +168,7 @@
     "website": "وب‌سایت",
     "Discount": "تخفیف",
     "Overview": "خلاصه",
-    "amount": "مبلغ",
+    "amount": "مبلغ(ریال)",
     "invalidPhoneNumber": "شماره تلفن نادرست",
     "ZIP Code": "کدپستی",
     "Orgnazier Name": "نام برگزارکننده",
@@ -201,6 +204,7 @@
       "search": "اینجا جستجو کنید...",
       "phoneNumber": "شماره تلفن خود را وارد کنید",
       "address": "آدرس خود را وارد کنید",
+      "amount": "مبلغ مورد نظر خود را وارد نمایید",
       "city": "شهر خود را وارد کنید",
       "zipCode": "کد پستی خود را وارد کنید",
       "description": "توضیحات خود را اینجا بنویسید...",

@@ -9,11 +9,9 @@ import {
   DefaultTheme,
   NavigationContainer,
   Theme,
-  useNavigationContainerRef,
 } from '@react-navigation/native';
-import {Platform} from 'react-native';
+import {Platform, View} from 'react-native';
 import {RootStackParamList} from '../utils/types/NavigationTypes';
-import SaleItemNavigator from './Saleitem/SaleItemStackNatigator';
 import DrawerNavigator from './DrawerNavigator';
 import linking from './Linking';
 import {navigationRef} from './navigationRef';
@@ -25,7 +23,6 @@ export const RootNavigator: React.FC = () => {
     queryKey: ['Tokens'],
     queryFn: getTokens,
   });
-
   useEffect(() => {
     if (Platform.OS === 'web') {
       const unsubscribe = navigationRef?.addListener('state', () => {
@@ -36,9 +33,6 @@ export const RootNavigator: React.FC = () => {
       return unsubscribe;
     }
   }, [navigationRef]);
-  if (isLoading) {
-    return null;
-  }
   const {theme} = useTheme();
 
   const MinimalTheme: Theme = {
@@ -56,16 +50,13 @@ export const RootNavigator: React.FC = () => {
     <NavigationContainer
       theme={MinimalTheme}
       // linking={linking}}
-
       ref={navigationRef}>
       <Stack.Navigator
         screenOptions={{
           headerShown: false,
         }}>
         {data?.accessToken ? (
-          <>
-            <Stack.Screen name="Root" component={DrawerNavigator} />
-          </>
+          <Stack.Screen name="Root" component={DrawerNavigator} />
         ) : (
           <Stack.Screen name="Auth" component={AuthNavigator} />
         )}

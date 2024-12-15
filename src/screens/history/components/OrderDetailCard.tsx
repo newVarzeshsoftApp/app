@@ -31,7 +31,7 @@ const OrderDetailCard: React.FC<OrderDetailProps> = ({item, isReseption}) => {
             {t(isReseption ? 'receptionsNumber' : 'orderNumber')}: {''}
           </BaseText>
           <BaseText type="body3" color="base">
-            {isReseption ? item.saleOrderReceptionId : item.id}
+            {item.id}
           </BaseText>
         </View>
         {!isReseption ? (
@@ -53,7 +53,6 @@ const OrderDetailCard: React.FC<OrderDetailProps> = ({item, isReseption}) => {
                 onPress={() =>
                   navigation.navigate('orderDetail', {
                     id: Number(item.saleOrderReceptionId ?? 0),
-                    reception: true,
                   })
                 }
                 type="Outline"

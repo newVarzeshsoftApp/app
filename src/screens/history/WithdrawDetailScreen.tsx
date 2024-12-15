@@ -136,7 +136,12 @@ const WithdrawDetailScreen: React.FC<WithdrawDetailScreenProps> = ({
                         </View>
                         <View className="flex-row items-center justify-between">
                           <BaseText type="body3" color="secondary">
-                            {t('orderNumber')}: {''}
+                            {t(
+                              data.order?.reception
+                                ? 'receptionsNumber'
+                                : 'orderNumber',
+                            )}
+                            : {''}
                           </BaseText>
                           <BaseButton
                             size="Small"

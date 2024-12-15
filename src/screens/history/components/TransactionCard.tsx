@@ -5,10 +5,7 @@ import {useTranslation} from 'react-i18next';
 import BaseButton from '../../../components/Button/BaseButton';
 import {MoneyRecive, MoneySend} from 'iconsax-react-native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {
-  DrawerStackParamList,
-  OrderStackParamList,
-} from '../../../utils/types/NavigationTypes';
+import {DrawerStackParamList} from '../../../utils/types/NavigationTypes';
 import {useNavigation} from '@react-navigation/native';
 import {SaleTransaction} from '../../../services/models/response/UseResrService';
 import moment from 'jalali-moment';
@@ -55,32 +52,34 @@ const TransactionCard: React.FC<TransactionProps> = ({item, inDetail}) => {
             </View>
           )}
         </View>
-        <View className="flex-row items-center justify-between ">
-          <BaseText type="body3" color="secondary">
-            {t('orderNumber')}: {''}
-          </BaseText>
-          {inDetail ? (
-            <BaseText type="body3" color="base">
-              {item.id}
+        {isWithdraw && (
+          <View className="flex-row items-center justify-between ">
+            <BaseText type="body3" color="secondary">
+              {t('orderNumber')}: {''}
             </BaseText>
-          ) : (
-            <BaseButton
-              onPress={() =>
-                navigation.navigate('HistoryNavigator', {
-                  screen: 'orderDetail',
-                  params: {id: item.orderId ?? 0},
-                })
-              }
-              // orderDetail
-              LinkButton
-              size="Small"
-              type="Outline"
-              color="Supportive5-Blue"
-              text={(item.orderId ?? 0).toString()}
-              rounded
-            />
-          )}
-        </View>
+            {inDetail ? (
+              <BaseText type="body3" color="base">
+                {item.id}
+              </BaseText>
+            ) : (
+              <BaseButton
+                onPress={() =>
+                  navigation.navigate('HistoryNavigator', {
+                    screen: 'orderDetail',
+                    params: {id: item.orderId ?? 0},
+                  })
+                }
+                // orderDetail
+                LinkButton
+                size="Small"
+                type="Outline"
+                color="Supportive5-Blue"
+                text={(item.orderId ?? 0).toString()}
+                rounded
+              />
+            )}
+          </View>
+        )}
         <View className="flex-row items-center justify-between ">
           <BaseText type="body3" color="secondary">
             {t('Source')}: {''}

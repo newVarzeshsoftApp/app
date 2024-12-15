@@ -65,7 +65,7 @@ const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
               </View>
             </TouchableOpacity>
             {Platform.OS === 'web' ? (
-              <Collapse isOpened={openSections[index]}>
+              <Collapse isOpened={!!openSections[index]}>
                 <View className="px-8 pt-4">
                   {item.children.map((child, childIndex) => {
                     const AvtiveTab = currentRoute === child.slug;
@@ -93,7 +93,9 @@ const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
                 </View>
               </Collapse>
             ) : (
-              <Collapsible collapsed={openSections[index]} style={{zIndex: 10}}>
+              <Collapsible
+                collapsed={!!openSections[index]}
+                style={{zIndex: 10}}>
                 <View className="px-8 pt-4 z-10">
                   {item.children.map((child, childIndex) => {
                     const AvtiveTab = currentRoute === child.slug;

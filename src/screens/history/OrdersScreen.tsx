@@ -23,6 +23,7 @@ const OrdersScreen: React.FC<OrdersScreenProps> = ({navigation, route}) => {
   const {data, isLoading, isFetching, isError} = useGetUserSaleOrder({
     limit: limit,
     offset,
+    reception: {equals: false},
   });
   const scrollY = useSharedValue(0);
   useEffect(() => {

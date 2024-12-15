@@ -1,3 +1,4 @@
+import './gesture-handler';
 import React, {useEffect} from 'react';
 import {loadLanguage} from './src/utils/helpers/languageUtils';
 import {RootNavigator} from './src/navigation/RootNavigator';
@@ -6,7 +7,6 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import TenstackProvider from './src/utils/Providers/TenstackProvider';
 import ToastProvider from './src/components/Toast/Toast';
 import {ThemeProvider} from './src/utils/ThemeContext';
-import 'react-native-gesture-handler';
 export default function App() {
   useEffect(() => {
     loadLanguage();
