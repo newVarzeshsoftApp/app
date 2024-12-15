@@ -1,5 +1,5 @@
 import React from 'react';
-import {TouchableOpacity, Text, View} from 'react-native';
+import {TouchableOpacity, Text, View, StyleProp, ViewStyle} from 'react-native';
 import {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import {Home2, Message, ShoppingBag, Wallet2} from 'iconsax-react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
@@ -16,6 +16,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
   state,
   descriptors,
   navigation,
+  ...props
 }) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Global'});
   const {theme} = useTheme();
@@ -26,8 +27,15 @@ const TabBar: React.FC<BottomTabBarProps> = ({
     wallet: <Wallet2 size="24" />,
   };
 
+  const focusedRoute = state.routes[state.index];
+  const focusedDescriptor = descriptors[focusedRoute.key];
+  const tabBarStyle = focusedDescriptor.options.tabBarStyle as
+    | StyleProp<ViewStyle>
+    | undefined;
+
   return (
     <View
+      style={tabBarStyle}
       className="flex-row ios:absolute bottom-7 web:backdrop-blur max-w-[420px] mx-auto  left-[18px] right-[18px] web:fixed web:bottom-4 
     justify-around items-center dark:bg-neutral-dark-300/80
      bg-neutral-0/80 border border-neutral-0 dark:border-neutral-dark-400/40 

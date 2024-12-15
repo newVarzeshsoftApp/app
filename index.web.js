@@ -4,6 +4,7 @@ import App from './App';
 import './global.css';
 import './i18n.config';
 import 'react-native-reanimated';
+
 import {enableLegacyWebImplementation} from 'react-native-gesture-handler';
 if (module.hot) {
   module.hot.accept();

@@ -19,15 +19,10 @@ import {useTranslation} from 'react-i18next';
 import BaseText from '../../components/BaseText';
 import Checkbox from '../../components/Checkbox/Checkbox';
 import BaseButton from '../../components/Button/BaseButton';
-import Banner from './Banner';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {KeyboardAvoidingView} from 'react-native';
-import {ScrollView} from 'react-native-gesture-handler';
-import {showToast} from '../../components/Toast/Toast';
 import {useMutation, useQueryClient} from '@tanstack/react-query';
 import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
-import {useTheme} from '../../utils/ThemeContext';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
 import Animated, {
   Extrapolate,
@@ -56,7 +51,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
     mutationFn: AuthService.SignIN,
     onSuccess(data, variables, context) {
       queryClient.invalidateQueries({queryKey: ['Tokens']});
-      navigation.getParent()?.navigate('Home', {screen: 'Home'});
+      navigation.getParent()?.navigate('HomeNavigator', {screen: 'Home'});
     },
     onError: handleMutationError,
   });

@@ -1,12 +1,6 @@
-import {colorScheme, useColorScheme} from 'nativewind';
-import React, {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useEffect,
-} from 'react';
-import {Appearance, Platform} from 'react-native';
+import {useColorScheme} from 'nativewind';
+import React, {createContext, useContext, ReactNode, useEffect} from 'react';
+import {Platform} from 'react-native';
 
 type ThemeContextType = {
   theme: 'light' | 'dark' | undefined;

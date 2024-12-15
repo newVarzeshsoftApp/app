@@ -31,12 +31,16 @@ export type AuthStackParamList = {
   LoginWithOTP: undefined;
 };
 
+export type WalletStackParamList = {
+  wallet: undefined;
+  ChargeWalletScreen: undefined;
+};
 export type HomeStackParamList = {
   Home: undefined;
   saleItem: undefined;
   ticket: undefined;
   cart: undefined;
-  wallet: undefined;
+  wallet: WalletStackParamList;
 };
 export type ShopStackParamList = {
   creditService: undefined;
@@ -49,6 +53,6 @@ export type OrderStackParamList = {
   WithdrawDetail: {id: number};
   DepositDetail: {id: number};
   orders: undefined;
-  orderDetail: {id: number; reception?: boolean};
+  orderDetail: {id: number};
   payments: undefined;
 };

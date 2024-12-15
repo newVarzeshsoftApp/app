@@ -4,7 +4,6 @@ import OrdersScreen from '../../screens/history/OrdersScreen';
 import ReceptionScreen from '../../screens/history/ReceptionScreen';
 import TransactionScreen from '../../screens/history/TransactionScreen';
 import PaymentsScreen from '../../screens/history/PaymentsScreen';
-import Header from '../../components/Header';
 import OrderDetailScreen from '../../screens/history/OrderDetailScreen';
 import WithdrawDetailScreen from '../../screens/history/WithdrawDetailScreen';
 import DepositDetailScreen from '../../screens/history/DepositDetailScreen';
