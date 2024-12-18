@@ -47,10 +47,10 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
     mutationFn: AuthService.VerifyToken,
     onSuccess(data, variables, context) {
       if (route.params.resetPassword === true) {
-        navigation.navigate('ResetPassword');
+        navigation.push('ResetPassword');
       } else {
         queryClient.invalidateQueries({queryKey: ['Tokens']});
-        navigation.getParent()?.navigate('Home');
+        navigation.getParent()?.navigate('Root');
       }
     },
     onError: handleMutationError,
@@ -115,7 +115,7 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
                   </BaseText>
                   <TouchableOpacity
                     onPress={() =>
-                      navigation.navigate(
+                      navigation.push(
                         route.params.LoginWithOTP
                           ? 'LoginWithOTP'
                           : 'ForgetPassword',

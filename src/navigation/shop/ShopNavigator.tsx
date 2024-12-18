@@ -5,18 +5,20 @@ import ReceptionScreen from '../../screens/history/ReceptionScreen';
 import TransactionScreen from '../../screens/history/TransactionScreen';
 import PaymentsScreen from '../../screens/history/PaymentsScreen';
 import Header from '../../components/Header';
+import {View} from 'react-native';
 
 const Stack = createNativeStackNavigator<ShopStackParamList>();
 
 const ShopNavigator: React.FC = ({navigation}: any) => {
   return (
     <Stack.Navigator
-      screenOptions={{
+      screenOptions={({route}) => ({
+        unmountOnBlur: true,
         header: () => <Header navigation={navigation} />,
-      }}>
-      <Stack.Screen name="creditService" component={OrdersScreen} />
+      })}>
+      <Stack.Screen name="creditService" component={View} />
       <Stack.Screen name="packageService" component={PaymentsScreen} />
-      <Stack.Screen name="service" component={ReceptionScreen} />
+      <Stack.Screen name="service" component={View} />
     </Stack.Navigator>
   );
 };

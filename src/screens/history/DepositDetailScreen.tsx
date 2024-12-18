@@ -125,7 +125,7 @@ const DepositDetailScreen: React.FC<DepositDetailScreenProps> = ({
                             </BaseText>
                             <BaseButton
                               onPress={() =>
-                                navigation.navigate('orderDetail', {
+                                navigation.push('orderDetail', {
                                   id: data?.orderId ?? 0,
                                 })
                               }

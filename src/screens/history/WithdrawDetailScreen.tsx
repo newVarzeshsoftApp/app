@@ -146,7 +146,7 @@ const WithdrawDetailScreen: React.FC<WithdrawDetailScreenProps> = ({
                           <BaseButton
                             size="Small"
                             onPress={() =>
-                              navigation.navigate('orderDetail', {
+                              navigation.push('orderDetail', {
                                 id: data?.orderId ?? 0,
                               })
                             }

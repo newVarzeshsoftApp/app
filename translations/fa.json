@@ -23,7 +23,6 @@
     "Code on": "کد به شماره ی",
     "LoginWithOTP": "ورود با رمز یکبار مصرف",
     "LoginWithOTPInfo": "برای ورود با رمز یکبار مصرف شماره موبایل خود را وارد کنید",
-
     "was send": "ارسال شد",
     "Didn't get the code": "کد را دریافت نکرده اید؟",
     "Resend the code": "ارسال مجدد کد"
@@ -92,11 +91,14 @@
     "receptions": "پذیرش ها",
     "receptionsNumber": "شماره پذیرش ",
     "orderNumber": "شماره سفارش",
+    "Sending amount": "مبلغ ارسال",
+    "Address": "آدرس",
     "DateAndTime": "تاریخ و زمان",
     "Closet": "کمد",
     "Total amount": "مبلغ کل",
     "Total Discount": "مجموع تخفیف",
     "Payable": "قابل پرداخت",
+    "Status": "وضعیت",
     "serviceName": "نام سرویس",
     "Added value": "ارزش افزوده",
     "Debt": "بدهی",
@@ -219,6 +221,21 @@
       "title": "عنوانی وارد کنید",
       "phoneOrEmail": "شماره تلفن یا ایمیل خود را وارد کنید"
     }
+  },
+  "payment": {
+    "Succses": "موفق",
+    "faild": "نا موفق",
+    "paymentSuccses": "تراکنش موفق",
+    "paymnetFaild": "تراکنش نا موفق",
+    "BackToWallet": "بازگشت به کیف پول",
+    "Retry": "تلاش مجدد",
+    "Status": "وضعیت",
+    "DateAndTime": "تاریخ و زمان",
+    "Transaction number": "شماره تراکنش",
+    "Payment ID": "شناسه پرداخت",
+    "Amount": "مقدار",
+    "Payment gateway": "درگاه پرداخت",
+    "Tracking number": "شماره پیگیری"
   },
   "Validation": {
     "enterEmailOrPhoneNumber": "ایمیل یا شماره تلفن الزامی است",

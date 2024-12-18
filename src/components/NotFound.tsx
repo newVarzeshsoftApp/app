@@ -18,7 +18,7 @@ const NotFound: React.FC = () => {
         صفحه پیدا نشد
       </BaseText>
       <BaseButton
-        onPress={() => navigation.navigate('Root', {screen: 'HomeNavigator'})}
+        onPress={() => navigation.push('Root', {screen: 'HomeNavigator'})}
         text="بازگشت"
         type="Fill"
         color="Primary"

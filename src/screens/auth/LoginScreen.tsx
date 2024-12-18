@@ -51,7 +51,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
     mutationFn: AuthService.SignIN,
     onSuccess(data, variables, context) {
       queryClient.invalidateQueries({queryKey: ['Tokens']});
-      navigation.getParent()?.navigate('HomeNavigator', {screen: 'Home'});
+      navigation.getParent()?.navigate('Root');
     },
     onError: handleMutationError,
   });
@@ -228,14 +228,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
               <View className="flex flex-row justify-between w-full items-center">
                 <TouchableOpacity
                   accessibilityLabel="Navigate to Forget Password screen"
-                  onPress={() => navigation.navigate('LoginWithOTP')}>
+                  onPress={() => navigation.push('LoginWithOTP')}>
                   <BaseText type="button2" color="secondary">
                     {auth('LoginWithOTP')}
                   </BaseText>
                 </TouchableOpacity>
                 <TouchableOpacity
                   accessibilityLabel="Navigate to Forget Password screen"
-                  onPress={() => navigation.navigate('ForgetPassword')}>
+                  onPress={() => navigation.push('ForgetPassword')}>
                   <BaseText type="button2" color="active">
                     {auth('ForgetPassword')}
                   </BaseText>
@@ -265,7 +265,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
               {auth('notRegistered')}
             </BaseText>
             <TouchableOpacity
-              onPress={() => navigation.navigate('Signup')}
+              onPress={() => navigation.push('Signup')}
               accessibilityLabel="Navigate to Signup screen"
               accessibilityRole="button">
               <BaseText type="button1" color="active">

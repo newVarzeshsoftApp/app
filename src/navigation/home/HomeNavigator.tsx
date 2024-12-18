@@ -14,7 +14,9 @@ const HomeNavigator: React.FC = ({navigation}: any) => {
   return (
     <Tab.Navigator
       tabBar={props => <TabBar {...props} />}
+      initialRouteName="Home"
       screenOptions={({route}) => ({
+        unmountOnBlur: true,
         headerShown: route.name === 'Home',
         header: () => <Header navigation={navigation} />,
       })}>

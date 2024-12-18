@@ -39,7 +39,7 @@ const LoginWithOTPScreen: React.FC<LoginWithOTPScreenProps> = ({
   const RequestOTP = useMutation({
     mutationFn: AuthService.RequestOTP,
     onSuccess(data, variables) {
-      navigation.navigate('OTP', {
+      navigation.push('OTP', {
         username: variables.username,
         LoginWithOTP: true,
       });

@@ -48,7 +48,7 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
     mutationFn: AuthService.UpdatePassword,
     onSuccess(data, variables) {
       queryClient.invalidateQueries({queryKey: ['Tokens']});
-      navigation.getParent()?.navigate('Home');
+      navigation.getParent()?.navigate('Root');
     },
     onError: handleMutationError,
   });

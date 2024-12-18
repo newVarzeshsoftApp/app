@@ -64,7 +64,7 @@ const WalletTransaction: React.FC = ({
           {(fetchedData?.total ?? 1) > 4 && (
             <TouchableOpacity
               onPress={() =>
-                navigation.navigate('SaleItemNavigator', {screen: 'saleItem'})
+                navigation.push('SaleItemNavigator', {screen: 'saleItem'})
               }
               className="flex-row gap-1 items-center ">
               <BaseText type="title3" color="secondary">

@@ -34,7 +34,7 @@ const AuthNavigator: React.FC = () => {
             <View
               className={Platform.OS === 'ios' ? '' : 'px-3 rtl:justify-start'}>
               <BaseButton
-                onPress={() => navigation.navigate('Login')}
+                onPress={() => navigation.push('Login')}
                 noText
                 LeftIcon={ArrowRight2}
                 type="Outline"
@@ -61,7 +61,7 @@ const AuthNavigator: React.FC = () => {
             <View
               className={Platform.OS === 'ios' ? '' : 'px-3 rtl:justify-start'}>
               <BaseButton
-                onPress={() => navigation.navigate('Login')}
+                onPress={() => navigation.push('Login')}
                 noText
                 LeftIcon={ArrowRight2}
                 type="Outline"

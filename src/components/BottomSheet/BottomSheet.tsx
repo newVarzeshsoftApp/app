@@ -1,0 +1,199 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useCallback,
+  ReactNode,
+} from 'react';
+import {
+  StyleSheet,
+  View,
+  Dimensions,
+  TouchableWithoutFeedback,
+} from 'react-native';
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  interpolate,
+} from 'react-native-reanimated';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {useTheme} from '../../utils/ThemeContext';
+import BaseText from '../BaseText';
+import BaseButton from '../Button/BaseButton';
+import {CloseCircle} from 'iconsax-react-native';
+
+interface Props {
+  activeHeight: number;
+  children: ReactNode;
+  Title?: string;
+}
+
+export interface BottomSheetMethods {
+  expand: () => void;
+  close: () => void;
+}
+const BottomSheet = forwardRef<BottomSheetMethods, Props>(
+  ({activeHeight, children, Title}, ref) => {
+    const inset = useSafeAreaInsets();
+    const {height} = Dimensions.get('screen');
+    const newActiveHeight = height - activeHeight;
+    const topAnimation = useSharedValue(height);
+    const context = useSharedValue(0);
+
+    const {theme} = useTheme();
+    const isDarkMode = theme === 'dark';
+
+    const styles = StyleSheet.create({
+      container: {
+        position: 'absolute',
+        backgroundColor: isDarkMode ? '#24262C' : '#F8F8F9',
+        borderTopLeftRadius: 24,
+        borderTopRightRadius: 24,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        zIndex: 9999,
+        gap: 12,
+        shadowColor: '#000',
+        shadowOffset: {width: 0, height: 4},
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+        elevation: 6,
+        borderWidth: 1,
+        borderColor: isDarkMode ? '#24262C' : 'white',
+      },
+      lineContainer: {
+        marginVertical: 10,
+        alignItems: 'center',
+      },
+      line: {
+        width: 100,
+        height: 4,
+        backgroundColor: isDarkMode ? '#2A2D33' : '#D4D5D6',
+        borderRadius: 100,
+      },
+      backDrop: {
+        position: 'absolute',
+        zIndex: 999,
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        display: 'none',
+      },
+    });
+
+    const expand = useCallback(() => {
+      'worklet';
+      topAnimation.value = withSpring(newActiveHeight, {
+        damping: 100,
+        stiffness: 400,
+      });
+    }, []);
+
+    const close = useCallback(() => {
+      'worklet';
+      topAnimation.value = withSpring(height, {
+        damping: 100,
+        stiffness: 400,
+      });
+    }, []);
+
+    useImperativeHandle(ref, () => ({expand, close}), [expand, close]);
+
+    const animationStyle = useAnimatedStyle(() => ({
+      top: topAnimation.value,
+    }));
+
+    const backDropAnimation = useAnimatedStyle(() => {
+      const opacity = interpolate(
+        topAnimation.value,
+        [height, newActiveHeight],
+        [0, 0.5],
+      );
+      return {
+        opacity,
+        display: opacity === 0 ? 'none' : 'flex',
+      };
+    });
+
+    const pan = Gesture.Pan()
+      .onBegin(() => {
+        context.value = topAnimation.value;
+      })
+      .onUpdate(event => {
+        if (event.translationY < 0) {
+          topAnimation.value = withSpring(newActiveHeight, {
+            damping: 100,
+            stiffness: 400,
+          });
+        } else {
+          topAnimation.value = withSpring(context.value + event.translationY, {
+            damping: 100,
+            stiffness: 400,
+          });
+        }
+      })
+      .onEnd(() => {
+        if (topAnimation.value > newActiveHeight + 50) {
+          topAnimation.value = withSpring(height, {
+            damping: 100,
+            stiffness: 400,
+          });
+        } else {
+          topAnimation.value = withSpring(newActiveHeight, {
+            damping: 100,
+            stiffness: 400,
+          });
+        }
+      });
+
+    return (
+      <>
+        <TouchableWithoutFeedback onPress={close}>
+          <Animated.View
+            style={[
+              styles.backDrop,
+              backDropAnimation,
+              {backgroundColor: 'rgba(0,0,0,0.8)'},
+            ]}
+          />
+        </TouchableWithoutFeedback>
+        <GestureDetector gesture={pan}>
+          <Animated.View
+            style={[
+              styles.container,
+              animationStyle,
+              {
+                paddingBottom: inset.bottom,
+              },
+            ]}>
+            <View style={styles.lineContainer}>
+              <View style={styles.line} />
+            </View>
+            <View className="Container gap-4">
+              {Title && (
+                <View className="flex-row items-center justify-between">
+                  <BaseText type="title4">{Title}</BaseText>
+                  <BaseButton
+                    onPress={close}
+                    LeftIcon={CloseCircle}
+                    size="Medium"
+                    type="TextButton"
+                    noText
+                    color="Black"
+                  />
+                </View>
+              )}
+              <View className="flex-1x">{children}</View>
+            </View>
+          </Animated.View>
+        </GestureDetector>
+      </>
+    );
+  },
+);
+
+export default BottomSheet;
