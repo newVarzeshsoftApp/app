@@ -59,6 +59,9 @@
   .CardBase {
     @apply p-4 rounded-3xl gap-3 bg-white/40 dark:bg-neutral-dark-300/40 shadow-custom  border border-white dark:border-neutral-dark-300;
   }
+  .bottomsheet {
+    @apply p-4 rounded-3xl gap-3 bg-[#F8F8F9] dark:bg-[#24262C] shadow-custom  border border-white dark:border-neutral-dark-300;
+  }
   /* Primary */
   .Fill-Primary {
     @apply bg-primary-500 hover:bg-primary-400 border-2 border-transparent;

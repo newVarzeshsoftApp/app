@@ -51,7 +51,7 @@ const OrderDetailCard: React.FC<OrderDetailProps> = ({item, isReseption}) => {
               <BaseButton
                 size="Small"
                 onPress={() =>
-                  navigation.navigate('orderDetail', {
+                  navigation.push('orderDetail', {
                     id: Number(item.saleOrderReceptionId ?? 0),
                   })
                 }

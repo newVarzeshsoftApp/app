@@ -39,7 +39,7 @@ const WalletScreen: React.FC<WalletScreenProps> = ({navigation, route}) => {
             size="Large"
             rounded
             color="Black"
-            onPress={() => navigation.navigate('ChargeWalletScreen')}
+            onPress={() => navigation.push('ChargeWalletScreen')}
             text={t('Wallet Recharge')}
           />
         </View>

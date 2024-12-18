@@ -20,6 +20,7 @@ export type DrawerStackParamList = {
   SaleItemNavigator: NavigatorScreenParams<SaleItemStackParamList> | undefined;
   ShopNavigator: NavigatorScreenParams<ShopStackParamList> | undefined;
   HistoryNavigator: NavigatorScreenParams<OrderStackParamList> | undefined;
+  PaymentResult: {status: 0 | 1};
 };
 
 export type AuthStackParamList = {

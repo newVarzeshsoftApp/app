@@ -9,6 +9,7 @@ import {ArrowLeft2} from 'iconsax-react-native';
 import {Collapse} from 'react-collapse';
 import {DrawerContentComponentProps} from '@react-navigation/drawer';
 import Collapsible from 'react-native-collapsible';
+import {CommonActions} from '@react-navigation/native';
 const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
   const {t} = useTranslation('translation', {keyPrefix: 'Drawer'});
   const {theme} = useTheme();
@@ -74,9 +75,14 @@ const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
                         key={childIndex}
                         className={`py-3 px-8 border-r border-neutral-200 dark:border-neutral-dark-200 relative `}
                         onPress={() =>
-                          props.navigation.navigate(item.slug, {
-                            screen: child.slug,
-                          })
+                          props.navigation.dispatch(
+                            CommonActions.reset({
+                              index: 0,
+                              routes: [
+                                {name: item.slug, params: {screen: child.slug}},
+                              ],
+                            }),
+                          )
                         }>
                         {AvtiveTab && (
                           <View className="h-[60%] w-[4px] rounded-full bg-secondary-500 absolute -right-[2.5px] top-1/2 transform -translate-y-1/2" />

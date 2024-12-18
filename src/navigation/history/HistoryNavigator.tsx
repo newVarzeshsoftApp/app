@@ -13,10 +13,12 @@ const Stack = createNativeStackNavigator<OrderStackParamList>();
 const HistoryNavigator: React.FC = () => {
   return (
     <Stack.Navigator
-      screenOptions={{
+      initialRouteName="orders"
+      screenOptions={() => ({
         headerTransparent: true,
+
         headerShown: false,
-      }}>
+      })}>
       <Stack.Screen name="orders" component={OrdersScreen} />
       <Stack.Screen name="payments" component={PaymentsScreen} />
       <Stack.Screen name="reception" component={ReceptionScreen} />

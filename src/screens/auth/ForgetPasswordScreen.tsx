@@ -48,7 +48,7 @@ const ForgetPasswordScreen: React.FC<ForgetPasswordScreenProps> = ({
   const RequestOTP = useMutation({
     mutationFn: AuthService.RequestOTP,
     onSuccess(data, variables) {
-      navigation.navigate('OTP', {
+      navigation.push('OTP', {
         username: variables.username,
         resetPassword: true,
       });

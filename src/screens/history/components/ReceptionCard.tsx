@@ -110,9 +110,7 @@ const ReceptionCard: React.FC<OrderCardProps> = ({item, navigation}) => {
       </View>
       <View className="flex-row gap-2">
         <BaseButton
-          onPress={() =>
-            navigation.navigate('orderDetail', {id: item.id, reception: true})
-          }
+          onPress={() => navigation.push('orderDetail', {id: item.id})}
           LinkButton
           color="Black"
           type="TextButton"

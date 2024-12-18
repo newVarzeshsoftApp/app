@@ -38,7 +38,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
   const SignUpMutation = useMutation({
     mutationFn: AuthService.SignUp,
     onSuccess(data, variables, context) {
-      navigation.navigate('OTP', {username: variables.username!});
+      navigation.push('OTP', {username: variables.username!});
     },
     onError: handleMutationError,
   });
@@ -181,7 +181,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
                 {auth('alredyRegistered')}
               </BaseText>
               <TouchableOpacity
-                onPress={() => navigation.navigate('Login')}
+                onPress={() => navigation.push('Login')}
                 accessibilityLabel="Navigate to login screen"
                 accessibilityRole="button">
                 <BaseText type="button1" color="active">

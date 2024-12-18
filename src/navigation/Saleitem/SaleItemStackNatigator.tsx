@@ -15,11 +15,12 @@ const SaleItemNavigator: React.FC = ({navigation}: any) => {
 
   return (
     <Stack.Navigator
-      screenOptions={{
-        animation: 'slide_from_left',
+      initialRouteName="saleItem"
+      screenOptions={() => ({
         headerTransparent: true,
         headerShown: false,
-      }}>
+        unmountOnBlur: true,
+      })}>
       <Stack.Screen
         name="saleItem"
         component={SaleItemScreen}

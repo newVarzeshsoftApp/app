@@ -67,7 +67,7 @@ const PackageDetail: React.FC<PackageDetailProps> = ({
           <TouchableOpacity
             key={item.product?.id}
             onPress={() =>
-              navigation.navigate('saleItemDetail', {
+              navigation.push('saleItemDetail', {
                 // screen: 'saleItemDetail',
 
                 id: item.id,
