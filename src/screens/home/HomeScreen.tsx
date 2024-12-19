@@ -29,7 +29,7 @@ const HomeScreen: React.FC = () => {
       keyExtractor={(item, index) => index.toString()}
       ListHeaderComponent={renderHeader}
       ListFooterComponent={
-        <View className="flex-1   Container ios:pb-[125px] android:pb-[125px]  web:pb-[200px]">
+        <View className="flex-1 Container pb-[125px]">
           <MyServise />
         </View>
       }
