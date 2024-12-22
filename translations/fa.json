@@ -11,6 +11,7 @@
   "Auth": {
     "login": "ورود",
     "RememberMe": "مرا به خاطر بسپار",
+    "Select Gender": "انتخاب جنسیت",
     "ForgetPassword": "فراموشی رمز عبور",
     "ChangePassword": "تغییر رمز عبور",
     "AddNewPassword": "رمز عبور جدید را وارد نمایید",
@@ -147,8 +148,8 @@
     "WalletCredit": "موجودی کیف پول",
     "Wallet Recharge": "شارژ کیف پول",
     "transactions": "تراکنش ها",
-
     "noTransaction": " تراکنشی ثبت نشده",
+    "Select Payment Method": "انتخاب درگاه پرداخت",
     "Select one of the amounts below or enter your desired amount": "از بین مبالغ  زیر انتخاب کنید و یا مبلغ مورد نظر خود را وارد نمایید."
   },
   "SaleItem": {
@@ -160,7 +161,6 @@
     "New Password": "رمز عبور جدید",
     "confirmpassword": "تأیید رمز عبور",
     "email": "ایمیل",
-
     "firstName": "نام",
     "Name": "نام و نام خانوادگی ",
     "lastName": "نام خانوادگی",
@@ -202,6 +202,7 @@
       "username": "نام کاربری خود را وارد کنید",
       "email": "آدرس ایمیل خود را وارد کنید",
       "password": "رمز عبور خود را وارد کنید",
+      "gender": "جنسیت خود را انتخاب کنید",
       "confirmPassword": "رمز عبور خود را تأیید کنید",
       "search": "اینجا جستجو کنید...",
       "phoneNumber": "شماره تلفن خود را وارد کنید",
@@ -264,7 +265,7 @@
     "emailIsRequired": "آدرس ایمیل الزامی است",
     "invalidEmail": "آدرس ایمیل نامعتبر است",
     "invalidUrl": "آدرس URL نامعتبر است",
-    "AmountIsRequired": "مقدار الزامی است",
+    "AmountIsRequired": "مبلغ الزامی است",
     "AmountIsBigger": "اعتبار کافی نیست",
     "quantityIsRequired": "تعداد الزامی است",
     "roleIsRequired": "نقش الزامی است",
@@ -279,6 +280,7 @@
     "salePriceIsRequired": "قیمت فروش الزامی است",
     "shippingPriceIsRequired": "قیمت حمل و نقل الزامی است",
     "cityIsRequired": "شهر الزامی است",
+    "genderRequired": "جنسیت الزامی است",
     "stateIsRequired": "استان الزامی است",
     "countryIsRequired": "کشور الزامی است",
     "addressLineOneRequired": "آدرس خط 1 الزامی است",

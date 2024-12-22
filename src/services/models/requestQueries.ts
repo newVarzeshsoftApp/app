@@ -1,9 +1,12 @@
+import {RegisteredServiceStatus} from '../../constants/options';
+
 export interface AllOrganizationQuery {
   sku?: string;
   name?: string;
   id?: number;
 }
 export interface UserSaleItemQuey {
+  status: RegisteredServiceStatus;
   sortOrder?: string;
   sortField?: string;
   limit?: number;

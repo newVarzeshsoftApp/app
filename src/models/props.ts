@@ -2,6 +2,7 @@ import { PressableProps, TextStyle } from 'react-native';
 import {IColorButton, IIconVariant, ISizeButton, IStyle‌TypeButton, ITextType, TypeBadgeColor, TypeTextColor} from './stylingTypes';
 import { Control, FieldValues, Path, UseFormRegister, UseFormWatch } from 'react-hook-form';
 import { TextProps } from 'react-native/Libraries/Text/Text';
+import { ImageSourcePropType } from 'react-native';
 
 export type ISpinnerProps = {
   svgClassName?: string;
@@ -48,8 +49,8 @@ export interface IButtonProps extends PressableProps {
   text?: string;                           // Text to display inside the button
   noText?: boolean;                        // If true, hides the text
   isLoading?: boolean;                     // If true, shows a loading indicator
-  srcLeft?: string;                        // Source for the left icon image
-  srcRight?: string;                       // Source for the right icon image
+  srcLeft?: ImageSourcePropType;                        // Source for the left icon image
+  srcRight?: ImageSourcePropType;                       // Source for the right icon image
   LeftIcon?: React.ElementType;            // Optional left icon component
   RightIcon?: React.ElementType;           // Optional right icon component
   RightIconVariant?: IIconVariant;         // Variant type for the right icon
@@ -62,6 +63,7 @@ export interface ICheckboxProps extends PressableProps {
   checked: boolean;
   onCheckedChange?: (checked: boolean) => void;
   label?: string;
+  asButton?:boolean
 }
 
 export type InputProps<T extends FieldValues> = {
@@ -82,4 +84,7 @@ export type InputProps<T extends FieldValues> = {
   RightIconVariant?: IIconVariant;        // Variant type for the right icon
   LeftIconVariant?: IIconVariant;         // Variant type for the left icon
   optional?:boolean
+  onpress?:()=>void
+  SperatedNumber?:boolean;
+  centerText?:boolean
 };

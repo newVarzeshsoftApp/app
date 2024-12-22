@@ -26,6 +26,7 @@ const SaleItemNavigator: React.FC = ({navigation}: any) => {
         component={SaleItemScreen}
         options={({navigation}) => ({
           headerShown: true,
+          unmountOnBlur: true,
           headerTransparent: false,
           header: () => (
             <NavigationHeader navigation={navigation} title={t('saleItem')} />

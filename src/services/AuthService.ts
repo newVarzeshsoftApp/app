@@ -62,10 +62,6 @@ const AuthService = {
         AxiosResponse<SignInResponse>
       >(baseUrl + refresh());
       if (response.status === Status.Ok || response.status === Status.Created) {
-        // await storeTokens(
-        //   response.data.accessToken,
-        //   response.data.refreshToken,
-        // );
         return response.data;
       } else {
         throw new Error(`Request failed with status ${response}`);

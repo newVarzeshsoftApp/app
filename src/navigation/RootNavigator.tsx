@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import HomeNavigator from './home/HomeNavigator';
 import AuthNavigator from './auth/AuthNavigator';
@@ -10,10 +10,11 @@ import {
   NavigationContainer,
   Theme,
 } from '@react-navigation/native';
-import {Platform, View} from 'react-native';
+import {Platform} from 'react-native';
 import {RootStackParamList} from '../utils/types/NavigationTypes';
 import DrawerNavigator from './DrawerNavigator';
 import {navigationRef} from './navigationRef';
+import linking from './Linking';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 export const RootNavigator: React.FC = () => {
   const {data, isLoading} = useQuery({
@@ -21,17 +22,25 @@ export const RootNavigator: React.FC = () => {
     queryFn: getTokens,
   });
 
-  // useLogger(navigationRef);
   useEffect(() => {
     if (Platform.OS === 'web') {
-      const unsubscribe = navigationRef?.addListener('state', () => {
-        // This scrolls to the top when route changes
-        window.scrollTo(0, 0);
+      const unsubscribe = navigationRef.current?.addListener('state', e => {
+        try {
+          if (e?.data?.state) {
+            window.scrollTo(0, 0);
+          }
+        } catch (error) {
+          console.warn('Navigation state error:', error);
+        }
       });
 
-      return unsubscribe;
+      return () => {
+        if (unsubscribe) {
+          unsubscribe();
+        }
+      };
     }
-  }, [navigationRef]);
+  }, []);
   const {theme} = useTheme();
 
   const MinimalTheme: Theme = {
@@ -45,8 +54,12 @@ export const RootNavigator: React.FC = () => {
       border: 'transparent',
     },
   };
+
   return (
-    <NavigationContainer theme={MinimalTheme} ref={navigationRef}>
+    <NavigationContainer
+      theme={MinimalTheme}
+      linking={linking}
+      ref={navigationRef}>
       {!isLoading && (
         <Stack.Navigator screenOptions={{headerShown: false}}>
           {data?.accessToken ? (

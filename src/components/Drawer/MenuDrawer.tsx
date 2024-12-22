@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {Platform, Text, TouchableOpacity, View} from 'react-native';
 import {menuItems} from '../../constants/options';
+import {NavigationState, ParamListBase} from '@react-navigation/native';
 
 import {useTranslation} from 'react-i18next';
 import {useTheme} from '../../utils/ThemeContext';
@@ -10,6 +11,26 @@ import {Collapse} from 'react-collapse';
 import {DrawerContentComponentProps} from '@react-navigation/drawer';
 import Collapsible from 'react-native-collapsible';
 import {CommonActions} from '@react-navigation/native';
+
+const getActiveRouteName = (state: NavigationState | undefined): string => {
+  try {
+    if (!state?.index || !state?.routes) {
+      return '';
+    }
+    const route = state.routes[state.index];
+    if (!route) {
+      return '';
+    }
+    if (route.state && 'routes' in route.state) {
+      return getActiveRouteName(route.state as NavigationState);
+    }
+    return route.name || '';
+  } catch (error) {
+    console.warn('Error getting active route name:', error);
+    return '';
+  }
+};
+
 const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
   const {t} = useTranslation('translation', {keyPrefix: 'Drawer'});
   const {theme} = useTheme();
@@ -27,16 +48,10 @@ const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
       [index]: !prevState[index],
     }));
   };
-  const getActiveRouteName = (state: any): string | undefined => {
-    if (!state) return undefined;
-    const route = state.routes[state.index];
-    if (route.state) {
-      // Recursive call to get the nested route name
-      return getActiveRouteName(route.state);
-    }
-    return route.name;
-  };
-  const currentRoute = getActiveRouteName(props.state);
+
+  const currentRoute = React.useMemo(() => {
+    return getActiveRouteName(props.state);
+  }, [props.state]);
 
   return (
     <>
@@ -100,7 +115,7 @@ const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
               </Collapse>
             ) : (
               <Collapsible
-                collapsed={!!openSections[index]}
+                collapsed={!openSections[index]}
                 style={{zIndex: 10}}>
                 <View className="px-8 pt-4 z-10">
                   {item.children.map((child, childIndex) => {

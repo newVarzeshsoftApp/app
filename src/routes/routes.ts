@@ -42,4 +42,11 @@ export const routes = {
       `user/wallet` + prepareQuery(query),
     getUserTransactionById: (id: number) => `user/transaction/${id}`,
   },
+  gateway: {
+    getGateway: () => `gateway`,
+  },
+  Payment: {
+    createPayment: () => `payment/intial`,
+    paymentVerify: () => `payment/verify`,
+  },
 };

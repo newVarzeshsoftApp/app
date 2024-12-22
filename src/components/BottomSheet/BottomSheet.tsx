@@ -28,6 +28,9 @@ interface Props {
   activeHeight: number;
   children: ReactNode;
   Title?: string;
+  buttonText?: string;
+  onButtonPress?: () => void;
+  buttonDisabled?: boolean;
 }
 
 export interface BottomSheetMethods {
@@ -35,7 +38,10 @@ export interface BottomSheetMethods {
   close: () => void;
 }
 const BottomSheet = forwardRef<BottomSheetMethods, Props>(
-  ({activeHeight, children, Title}, ref) => {
+  (
+    {activeHeight, children, Title, buttonText, onButtonPress, buttonDisabled},
+    ref,
+  ) => {
     const inset = useSafeAreaInsets();
     const {height} = Dimensions.get('screen');
     const newActiveHeight = height - activeHeight;
@@ -173,7 +179,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, Props>(
             <View style={styles.lineContainer}>
               <View style={styles.line} />
             </View>
-            <View className="Container gap-4">
+            <View className="Container gap-4  flex-1 android:pb-4 web:pb-4">
               {Title && (
                 <View className="flex-row items-center justify-between">
                   <BaseText type="title4">{Title}</BaseText>
@@ -187,7 +193,19 @@ const BottomSheet = forwardRef<BottomSheetMethods, Props>(
                   />
                 </View>
               )}
-              <View className="flex-1x">{children}</View>
+
+              <View className="flex-grow gap-3">
+                <View className="flex-1"> {children}</View>
+                {buttonText && onButtonPress && (
+                  <BaseButton
+                    text={buttonText}
+                    disabled={buttonDisabled}
+                    color="Black"
+                    type="Fill"
+                    onPress={onButtonPress}
+                  />
+                )}
+              </View>
             </View>
           </Animated.View>
         </GestureDetector>

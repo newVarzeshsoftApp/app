@@ -5,6 +5,7 @@ import {Eye, EyeSlash, InfoCircle} from 'iconsax-react-native';
 import BaseText from '../BaseText';
 import {InputProps} from '../../models/props';
 import {useTranslation} from 'react-i18next';
+import {formatNumber} from '../../utils/helpers/helpers';
 
 const ControlledInput = <T extends FieldValues>({
   control,
@@ -20,6 +21,8 @@ const ControlledInput = <T extends FieldValues>({
   RightIconVariant,
   PlaceHolder,
   optional,
+  SperatedNumber,
+  centerText,
   ...props
 }: InputProps<T> & TextInputProps) => {
   const [showPassword, setShowPassword] = useState(false);
@@ -68,7 +71,9 @@ const ControlledInput = <T extends FieldValues>({
               <BaseText
                 type="caption"
                 className={`absolute ${
-                  LeftIcon
+                  centerText
+                    ? ` !text-center  w-full`
+                    : LeftIcon
                     ? 'left-[20%] rtl:right-[20%]'
                     : 'left-[6%] rtl:right-[6%]'
                 }  rtl:text-left text-text-muted dark:text-text-muted-dark w-fit`}
@@ -80,15 +85,24 @@ const ControlledInput = <T extends FieldValues>({
             {/* Text Input */}
             <TextInput
               {...props}
-              className={`px-4 flex-1 h-full outline-none rounded-lg duration-200 text-text-base dark:text-text-base-dark`}
+              className={`${
+                centerText && 'text-center'
+              } px-4 flex-1 h-full outline-none rounded-lg duration-200 text-text-base dark:text-text-base-dark`}
               editable={!disabled}
               placeholder=""
               selectionColor="#7676EE"
               secureTextEntry={type === 'password' && !showPassword}
               keyboardType={type === 'number' ? 'numeric' : 'default'}
-              value={value}
+              value={SperatedNumber ? formatNumber(value) : value}
               onBlur={onBlur}
-              onChangeText={onChange}
+              onChangeText={text => {
+                if (SperatedNumber) {
+                  // Store raw number in form state
+                  onChange(text.replace(/,/g, ''));
+                } else {
+                  onChange(text);
+                }
+              }}
             />
 
             {/* Right Icon / Password Toggle */}

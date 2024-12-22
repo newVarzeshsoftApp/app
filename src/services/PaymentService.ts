@@ -1,0 +1,61 @@
+import axios, {AxiosResponse} from 'axios';
+import {routes} from '../routes/routes';
+import axiosInstance from '../utils/AxiosInstans';
+import {
+  PaymentBody,
+  PaymentVerifyBody,
+} from './models/request/PaymentReqService';
+import {Status} from '../models/enums';
+import {
+  PaymentRes,
+  PaymentVerifyRes,
+} from './models/response/PaymentResService';
+
+const {
+  baseUrl,
+  Payment: {createPayment, paymentVerify},
+} = routes;
+export const PaymentService = {
+  CreatePayment: async (body: PaymentBody): Promise<PaymentRes> => {
+    try {
+      const response = await axiosInstance.post<
+        PaymentBody,
+        AxiosResponse<PaymentRes>
+      >(baseUrl + createPayment(), body);
+      if (response.status === Status.Ok || response.status === Status.Created) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response}`);
+      }
+    } catch (error) {
+      console.error('Error in SignIN function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(
+          error.response.data.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+  paymentVerify: async (body: PaymentVerifyBody): Promise<PaymentVerifyRes> => {
+    try {
+      const response = await axiosInstance.post<
+        PaymentVerifyBody,
+        AxiosResponse<PaymentVerifyRes>
+      >(baseUrl + paymentVerify(), body);
+      if (response.status === Status.Ok || response.status === Status.Created) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response}`);
+      }
+    } catch (error) {
+      console.error('Error in SignIN function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        throw new Error(
+          error.response.data.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+};

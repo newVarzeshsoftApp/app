@@ -3,6 +3,7 @@ import {getTokens, removeTokens, storeTokens} from './helpers/tokenStorage';
 import {SignInResponse} from '../services/models/response/AuthResService';
 import AuthService from '../services/AuthService';
 import {navigate} from '../navigation/navigationRef';
+import {Platform} from 'react-native';
 
 const axiosInstance = axios.create({
   baseURL: process.env.BASE_URL,
@@ -45,7 +46,9 @@ axiosInstance.interceptors.response.use(
     if (originalRequest.url?.includes('auth/refresh')) {
       await removeTokens();
       navigate('Auth');
-      window?.location.reload();
+      if (Platform.OS === 'web') {
+        window.location.reload();
+      }
       throw error;
     }
     if (error.response?.status === 401 && !originalRequest._retry) {
@@ -65,7 +68,9 @@ axiosInstance.interceptors.response.use(
         console.warn('Token refresh failed, removing tokens...');
         await removeTokens();
         navigate('Auth');
-        window?.location.reload();
+        if (Platform.OS === 'web') {
+          window.location.reload();
+        }
         throw refreshError;
       }
     }

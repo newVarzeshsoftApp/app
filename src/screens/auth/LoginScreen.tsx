@@ -51,7 +51,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
     mutationFn: AuthService.SignIN,
     onSuccess(data, variables, context) {
       queryClient.invalidateQueries({queryKey: ['Tokens']});
-      navigation.getParent()?.navigate('Root');
+      navigation.getParent()?.navigate('Root', {screen: 'HomeNavigator'});
     },
     onError: handleMutationError,
   });

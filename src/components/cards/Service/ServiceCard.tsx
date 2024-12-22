@@ -8,6 +8,7 @@ import {useTranslation} from 'react-i18next';
 import {useTheme} from '../../../utils/ThemeContext';
 import moment from 'jalali-moment';
 import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetOrganizationBySKU';
+import ContractorInfo from '../../ContractorInfo/ContractorInfo';
 
 const ServiceCard: React.FC<{data: Content}> = ({data}) => {
   const progress =
@@ -60,22 +61,11 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
       <View className="pt-3 gap-3">
         <View className="flex-row items-center justify-between">
           {data?.contractor ? (
-            <View className="dark:bg-neutral-dark-100 bg-neutral-100 flex-row w-fit gap-2 ios:pr-3 web:pl-3  rounded-full p-1">
-              <View className="h-6 w-6 rounded-full overflow-hidden ">
-                {/* <ResponsiveImage customSource={data.contractor}/> */}
-                <Image
-                  style={{width: '100%', height: '100%'}}
-                  source={{
-                    uri:
-                      (OrganizationBySKU?.imageUrl ?? '') +
-                      data?.contractor?.profile?.name,
-                  }}
-                />
-              </View>
-              <BaseText type="body3" color="secondary">
-                {data?.contractor?.firstName} {data?.contractor?.lastName}
-              </BaseText>
-            </View>
+            <ContractorInfo
+              firstName={data?.contractor?.firstName}
+              imageName={data?.contractor?.profile?.name}
+              lastName={data?.contractor?.lastName}
+            />
           ) : (
             <View></View>
           )}

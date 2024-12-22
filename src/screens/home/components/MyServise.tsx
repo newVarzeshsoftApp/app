@@ -46,6 +46,7 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
   } = useGetUserSaleItem({
     limit: limit,
     offset,
+    status: 0,
   });
 
   useEffect(() => {
@@ -94,9 +95,16 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
           </BaseText>
           {(fetchedData?.total ?? 1) > 4 && (
             <TouchableOpacity
-              onPress={() =>
-                navigation.navigate('SaleItemNavigator', {screen: 'saleItem'})
-              }
+              onPress={() => {
+                navigation.dispatch(
+                  CommonActions.navigate({
+                    name: 'SaleItemNavigator',
+                    params: {
+                      screen: 'saleItem',
+                    },
+                  }),
+                );
+              }}
               className="flex-row gap-1 items-center ">
               <BaseText type="title3" color="secondary">
                 {t('all')}

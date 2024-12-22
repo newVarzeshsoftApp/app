@@ -13,7 +13,7 @@ import {formatNumber} from '../../utils/helpers/helpers';
 import BaseButton from '../../components/Button/BaseButton';
 type PaymentScreenProps = NativeStackScreenProps<
   DrawerStackParamList,
-  'PaymentResult'
+  'Paymentresult'
 >;
 const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'payment'});
