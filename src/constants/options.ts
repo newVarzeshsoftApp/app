@@ -70,6 +70,12 @@ export enum RegisteredServiceStatus {
   notSettled,
   archived,
 }
+export enum PaymentStatus {
+  Pending,
+  Ok,
+  Nok,
+  Reject,
+}
 // const receptionAmount = (item.totalAmount || 0) + (item.discount || 0);
 //               const normalOrderAmount = item.normalSaleOrder
 //                 ?.map((value: SaleOrder) => (value.totalAmount || 0) + (value.discount || 0))

@@ -41,6 +41,8 @@ export const routes = {
     getUserWalletTransaction: (query: UserWalletTransactionQuery) =>
       `user/wallet` + prepareQuery(query),
     getUserTransactionById: (id: number) => `user/transaction/${id}`,
+    getUserPayment: (query: UserSaleItemQuey) =>
+      `user/payments` + prepareQuery(query),
   },
   gateway: {
     getGateway: () => `gateway`,

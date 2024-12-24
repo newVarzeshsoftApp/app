@@ -5,10 +5,10 @@ export interface PaymentBody {
   isDeposit: boolean;
 }
 export interface PaymentVerifyBody {
-  refId: string;
-  stripId: string;
-  code: string;
-  authority: string;
-  orders: string[]; // Array of strings
-  isonlineShop: boolean;
+  refId?: string;
+  stripId?: string;
+  code?: string;
+  authority?: string;
+  orders?: string[]; // Array of strings
+  isonlineShop?: boolean;
 }

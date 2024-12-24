@@ -1,3 +1,6 @@
+import {GetGatewayRes} from './GetwayResService';
+import {Gateway} from './UseResrService';
+
 export interface PaymentRes {
   url: string;
   success: Boolean;
@@ -114,6 +117,7 @@ export interface PaymentVerifyRes {
   refId: string;
   code: string | null;
   stripeId: string | null;
+  gateway: GetGatewayRes;
   traceNo: string | null;
   depositor: string | null;
   ipAddress: string | null;

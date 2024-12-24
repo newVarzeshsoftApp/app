@@ -3,6 +3,7 @@ import {IColorButton, IIconVariant, ISizeButton, IStyle‌TypeButton, ITextType,
 import { Control, FieldValues, Path, UseFormRegister, UseFormWatch } from 'react-hook-form';
 import { TextProps } from 'react-native/Libraries/Text/Text';
 import { ImageSourcePropType } from 'react-native';
+import { PickerOption } from '../constants/options';
 
 export type ISpinnerProps = {
   svgClassName?: string;
@@ -88,3 +89,17 @@ export type InputProps<T extends FieldValues> = {
   SperatedNumber?:boolean;
   centerText?:boolean
 };
+export interface OpenSheetParams<T extends FieldValues> extends InputProps<T> {
+  title: string;
+  buttonText?: string;
+  buttonAction?: () => void;
+  buttonDisabled?: boolean;
+  Height?: number;
+  DynamicHeight?: boolean;
+  options: PickerOption[];
+  multiple?: boolean;
+  selectedItems?: any[];
+  onSelect?: (items: any) => void;
+  fieldKey?: string;
+  fieldValue?: string;
+}

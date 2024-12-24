@@ -95,7 +95,7 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
   });
 
   const STEP_AMOUNT = 1000000;
-  const MIN_AMOUNT = 5000000;
+  const MIN_AMOUNT = 1000000;
   const MAX_AMOUNT = 500000000;
 
   const [pressTimer, setPressTimer] = useState<NodeJS.Timeout | null>(null);

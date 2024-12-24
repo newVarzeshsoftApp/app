@@ -251,7 +251,7 @@ function InfoCards({
                   className="w-fit"
                   defaultMode
                   textColor="secondary"
-                  value={item}
+                  value={item.lockerNumber}
                 />
               ))}
             </View>

@@ -270,7 +270,9 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                                 {t('exit')}:
                               </BaseText>
                               <BaseText type="body3" color="base">
-                                {moment(item.end).format('HH:mm')}
+                                {item.end && moment(item.end).isValid()
+                                  ? moment(item.end).format('HH:mm')
+                                  : '-'}
                               </BaseText>
                             </View>
                             <View className="justify-between items-center flex-row">
@@ -278,7 +280,10 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                                 {t('date')}:
                               </BaseText>
                               <BaseText type="body3" color="base">
-                                {moment(item.submitAt).format('YYYY/MM/DD')}
+                                {item.submitAt &&
+                                moment(item.submitAt).isValid()
+                                  ? moment(item.submitAt).format('YYYY/MM/DD')
+                                  : '-'}
                               </BaseText>
                             </View>
                           </View>

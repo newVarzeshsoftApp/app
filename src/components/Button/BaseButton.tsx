@@ -27,7 +27,6 @@ function BaseButton({
   const [isPressed, setIsPressed] = useState(false);
   const {theme} = useTheme();
   const DarkMode = theme === 'dark';
-
   // Helper function to determine icon color
   const getIconColor = () => {
     switch (type) {

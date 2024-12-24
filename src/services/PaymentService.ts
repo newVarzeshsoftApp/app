@@ -39,7 +39,7 @@ export const PaymentService = {
   },
   paymentVerify: async (body: PaymentVerifyBody): Promise<PaymentVerifyRes> => {
     try {
-      const response = await axiosInstance.post<
+      const response = await axiosInstance.put<
         PaymentVerifyBody,
         AxiosResponse<PaymentVerifyRes>
       >(baseUrl + paymentVerify(), body);

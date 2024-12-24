@@ -41,11 +41,27 @@ export interface VipLocker {
   locker: Locker;
 }
 
+export type lockers = Array<{
+  lockerNumber: number;
+  relayNumber: number;
+  priority: number;
+  type: number;
+  id: number;
+  updatedAt: string; // ISO date string
+  createdAt: string; // ISO date string
+  deletedAt: string | null;
+  status: boolean;
+  state: number;
+  locker: number;
+  lockerId: number;
+  relayDelayTime: number;
+  relayOnTime: number;
+}>;
 export interface GetUserDashboardRes {
   insuranceService: InsuranceService;
   subscriptionService: SubscriptionService;
   vipLocker: VipLocker;
-  lockers: number[];
+  lockers: lockers;
 }
 
 export interface Profile {
@@ -740,4 +756,135 @@ export interface Transaction {
 export interface TransactionResponse {
   total: number; // Total count of transactions
   content: SaleTransaction[]; // Array of transactions
+}
+export interface Payments {
+  total: number; // Total number of payment records
+  content: PaymentRecord[]; // Array of payment records
+}
+
+export interface PaymentRecord {
+  dto: Record<string, unknown>; // Dynamic object for additional properties
+  isDeposit: boolean; // Indicates if it is a deposit
+  id: number; // Unique identifier for the payment
+  updatedAt: string; // ISO date string
+  createdAt: string; // ISO date string
+  deletedAt: string | null; // Nullable ISO date string
+  startPayment: string; // ISO date string
+  endPayment: string | null; // Nullable ISO date string
+  receiptDate: string | null; // Nullable ISO date string
+  expiredAt: string | null; // Nullable ISO date string
+  amount: number; // Payment amount
+  status: number; // Payment status
+  refId: string | null; // Nullable reference ID
+  code: string | null; // Nullable payment code
+  stripeId: string | null; // Nullable Stripe ID
+  traceNo: string | null; // Nullable trace number
+  depositor: string | null; // Nullable depositor information
+  ipAddress: string | null; // Nullable IP address
+  agent: string | null; // Nullable agent information
+  data: Record<string, unknown> | null; // Nullable dynamic object for additional data
+  callback: string | null; // Nullable callback URL
+  type: number; // Payment type (e.g., 0 for specific types)
+  attachment: string | null; // Nullable attachment URL or reference
+  authority: string; // Payment authority string
+  cardPan: string | null; // Nullable card PAN
+  cardHash: string | null; // Nullable hashed card information
+  fee: number | null; // Nullable transaction fee
+  errors: string | null; // Nullable error information
+  customer: Customer; // Customer details
+  orders: any[]; // Array of orders (structure not provided)
+  gateway: Gateway; // Gateway details
+  transaction: Transaction | null; // Nullable transaction details
+}
+export interface Customer {
+  id: number; // Unique identifier for the customer
+  profile: any | null; // Nullable customer profile (unknown structure)
+  firstName: string; // Customer's first name
+  lastName: string; // Customer's last name
+  mobile: string; // Customer's mobile number
+  email: string | null; // Nullable email address
+  phone: string | null; // Nullable phone number
+  birthDate: string | null; // Nullable birthdate (ISO string)
+  nationCode: string | null; // Nullable national code
+  address: string | null; // Nullable address
+  disabledDescription: string; // Description for disabled state
+  authorizedDebtor: boolean; // Indicates if the customer is an authorized debtor
+  maxDeptAmount: string; // Maximum debt amount
+  gender: number; // Gender (e.g., 0 for male, 1 for female)
+  password: string; // Encrypted password
+  credit: number; // Customer's credit balance
+  totalCost: string; // Total cost associated with the customer
+  rate: number; // Customer's rate (e.g., 0 for default)
+  isLegal: boolean; // Indicates if the customer is a legal entity
+  resetToken: string | null; // Nullable reset token
+  resetTime: string | null; // Nullable reset timestamp
+  resetNumberRequest: number; // Number of reset requests
+  forceChangePassword: boolean; // Indicates if password change is enforced
+  refreshToken: string | null; // Nullable refresh token
+  lastLoggedIn: string | null; // Nullable last login timestamp
+  activityField: string; // Activity field (unknown purpose)
+  updatedAt: string; // ISO date string
+  createdAt: string; // ISO date string
+  deletedAt: string | null; // Nullable ISO date string
+  birthDay: string | null; // Nullable birth day
+  birthMonth: string | null; // Nullable birth month
+  roles: string[]; // Array of roles
+  status: number; // Customer's status
+  insuranceExpiredDate: string | null; // Nullable insurance expiry date
+  config: Record<string, unknown>; // Dynamic object for additional configuration
+  faceSample: boolean; // Indicates if face sample is present
+  smsClub: boolean; // Indicates SMS club membership
+  passport: string | null; // Nullable passport information
+  workAddress: string | null; // Nullable work address
+  enFirstName: string | null; // Nullable English first name
+  enLastName: string | null; // Nullable English last name
+  fax: string | null; // Nullable fax information
+  website: string | null; // Nullable website URL
+  instagramId: string | null; // Nullable Instagram ID
+  companyName: string | null; // Nullable company name
+  companyType: string | null; // Nullable company type
+  companyRegistrationNumber: string | null; // Nullable company registration number
+  companyRegistrationDate: string | null; // Nullable company registration date
+  companyNationCode: string | null; // Nullable company national code
+  companyEconomicCode: string | null; // Nullable company economic code
+  code: number; // Customer code
+  accessIpAddress: string | null; // Nullable access IP address
+  lastEventId: number | null; // Nullable last event ID
+  faceSampleCreatedAt: string | null; // Nullable face sample creation date
+  cardSampleCreatedAt: string | null; // Nullable card sample creation date
+  fingerSampleCreatedAt: string | null; // Nullable finger sample creation date
+  postalCode: string | null; // Nullable postal code
+  personalTaxCode: string | null; // Nullable personal tax code
+  hasActivity: boolean; // Indicates if the customer has activity
+  parentId: number | null; // Nullable parent ID
+}
+
+export interface Gateway {
+  enable?: boolean; // Indicates if the gateway is enabled
+  id: number; // Unique gateway ID
+  updatedAt: string; // ISO date string
+  createdAt: string; // ISO date string
+  deletedAt: string | null; // Nullable ISO date string
+  title: string; // Gateway title
+  token?: string; // Gateway token
+  type?: number; // Gateway type
+  icon?: string; // Nullable icon URL
+  description?: string; // Nullable description
+  bank: BankAccount; // Bank details
+}
+
+export interface Bank {
+  title: string; // Bank title
+  bank: string; // Bank name
+  accountNumber: string; // Bank account number
+  cartNumber: string; // Card number
+  shebaNumber: string; // Sheba number
+  usageType: number; // Usage type
+  enable: boolean; // Indicates if the bank is enabled
+  organizationUnits: string[] | null; // Nullable organization units
+  id: number; // Bank ID
+  updatedAt: string; // ISO date string
+  createdAt: string; // ISO date string
+  deletedAt: string | null; // Nullable ISO date string
+  posId: number; // POS ID
 }

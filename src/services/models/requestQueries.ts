@@ -6,7 +6,7 @@ export interface AllOrganizationQuery {
   id?: number;
 }
 export interface UserSaleItemQuey {
-  status: RegisteredServiceStatus;
+  status?: RegisteredServiceStatus;
   sortOrder?: string;
   sortField?: string;
   limit?: number;

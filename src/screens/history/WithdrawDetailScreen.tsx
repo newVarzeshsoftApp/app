@@ -134,41 +134,32 @@ const WithdrawDetailScreen: React.FC<WithdrawDetailScreenProps> = ({
                             {data?.id}
                           </BaseText>
                         </View>
-                        <View className="flex-row items-center justify-between">
-                          <BaseText type="body3" color="secondary">
-                            {t(
-                              data.order?.reception
-                                ? 'receptionsNumber'
-                                : 'orderNumber',
-                            )}
-                            : {''}
-                          </BaseText>
-                          <BaseButton
-                            size="Small"
-                            onPress={() =>
-                              navigation.push('orderDetail', {
-                                id: data?.orderId ?? 0,
-                              })
-                            }
-                            type="Outline"
-                            color="Supportive5-Blue"
-                            text={data?.orderId?.toString()}
-                            LinkButton
-                            rounded
-                          />
-                        </View>
-                        {/* <View className="flex-row items-center justify-between">
-                        <BaseText type="body3" color="secondary">
-                          {t('Payment ID')}: {''}
-                        </BaseText>
-                        <BaseButton
-                          size="Small"
-                          type="Outline"
-                          color="Primary"
-                          text="3544656"
-                          rounded
-                        />
-                      </View> */}
+                        {data?.orderId && (
+                          <View className="flex-row items-center justify-between">
+                            <BaseText type="body3" color="secondary">
+                              {t(
+                                data.order?.reception
+                                  ? 'receptionsNumber'
+                                  : 'orderNumber',
+                              )}
+                              : {''}
+                            </BaseText>
+                            <BaseButton
+                              size="Small"
+                              onPress={() =>
+                                navigation.push('orderDetail', {
+                                  id: data?.orderId ?? 0,
+                                })
+                              }
+                              type="Outline"
+                              color="Supportive5-Blue"
+                              text={data?.orderId?.toString()}
+                              LinkButton
+                              rounded
+                            />
+                          </View>
+                        )}
+
                         <View className="flex-row items-center justify-between ">
                           <BaseText type="body3" color="secondary">
                             {t('Amount')}: {''}

@@ -54,7 +54,7 @@ const linking: LinkingOptions<RootStackParamList> = {
               transaction: 'history/transactions',
             },
           },
-          Paymentresult: 'Paymentresult',
+          Paymentresult: 'payment/result',
         },
       },
     },
