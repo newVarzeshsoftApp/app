@@ -4,13 +4,13 @@ import BaseText from '../../../components/BaseText';
 import {useTranslation} from 'react-i18next';
 import {SaleOrderItem} from '../../../services/models/response/UseResrService';
 import {formatNumber} from '../../../utils/helpers/helpers';
+import ContractorInfo from '../../../components/ContractorInfo/ContractorInfo';
 type ItemCardProps = {
   item: SaleOrderItem;
 };
 
 const ItemCard: React.FC<ItemCardProps> = ({item}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
-  //   و وام بود تایتل نشون بدیم اگر خدمت شارژی بود افر دیسکانت هدیه
   const tax =
     (((item?.amount ?? 0) * (item?.quantity ?? 0) - (item?.discount ?? 0)) *
       (item?.tax ?? 0)) /
@@ -32,9 +32,11 @@ const ItemCard: React.FC<ItemCardProps> = ({item}) => {
           <BaseText type="body3" color="secondary">
             {t('Contractor')}: {''}
           </BaseText>
-          <BaseText type="body3" color="base">
-            {item.contractor?.firstName} - {item.contractor?.lastName}
-          </BaseText>
+          <ContractorInfo
+            firstName={item.contractor?.firstName}
+            imageName={item?.contractor?.profile?.name}
+            lastName={item.contractor?.lastName}
+          />
         </View>
         {(item?.credit ?? 0) > 0 && (
           <View className="flex-row items-center justify-between ">

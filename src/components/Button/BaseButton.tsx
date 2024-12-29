@@ -27,7 +27,6 @@ function BaseButton({
   const [isPressed, setIsPressed] = useState(false);
   const {theme} = useTheme();
   const DarkMode = theme === 'dark';
-
   // Helper function to determine icon color
   const getIconColor = () => {
     switch (type) {
@@ -186,6 +185,7 @@ function BaseButton({
       }
     }
   };
+  const small = size === 'Medium' || size === 'Small';
   return (
     <Pressable
       disabled={disabled || isLoading}
@@ -206,14 +206,21 @@ function BaseButton({
           {LeftIcon ? (
             <View>
               <LeftIcon
-                size={size === 'Medium' || size === 'Small' ? 16 : 24}
+                size={small ? 16 : 24}
                 color={getIconColor()}
                 variant={LeftIconVariant}
               />
             </View>
           ) : (
             srcLeft && (
-              <Image src={srcLeft} width={20} height={20} alt={srcLeft} />
+              <Image
+                source={srcLeft}
+                style={{
+                  resizeMode: 'contain',
+                  width: small ? 20 : 32,
+                  height: small ? 20 : 32,
+                }}
+              />
             )
           )}
           {!noText && (
@@ -226,22 +233,26 @@ function BaseButton({
           {RightIcon ? (
             <View>
               <RightIcon
-                size={size === 'Medium' || size === 'Small' ? 16 : 24}
+                size={small ? 16 : 24}
                 color={getIconColor()}
                 variant={RightIconVariant}
               />
             </View>
           ) : (
             srcRight && (
-              <Image src={srcRight} width={20} height={20} alt={srcRight} />
+              <Image
+                source={srcRight}
+                width={small ? 20 : 32}
+                height={small ? 20 : 32}
+              />
             )
           )}
           {LinkButton && (!LeftIcon || !RightIcon) && (
             <View>
               <ArrowUp
                 stroke={getIconColor()}
-                width={size === 'Medium' || size === 'Small' ? 20 : 32}
-                height={size === 'Medium' || size === 'Small' ? 20 : 32}
+                width={small ? 20 : 32}
+                height={small ? 20 : 32}
               />
             </View>
           )}

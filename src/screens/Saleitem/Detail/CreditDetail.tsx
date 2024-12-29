@@ -167,21 +167,11 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
               <View className="pt-2 flex flex-row gap-8">
                 <BaseText type="body3" color="muted">
                   {t('start')} {''} : {''}
-                  {moment(data.start)
-                    .local(
-                      // @ts-ignore
-                      'fa',
-                    )
-                    .format('jYYYY/jMM/jDD')}
+                  {moment(data.start).format('jYYYY/jMM/jDD')}
                 </BaseText>
                 <BaseText type="body3" color="muted">
                   {t('end')} {''} : {''}
-                  {moment(data.end)
-                    .local(
-                      // @ts-ignore
-                      'fa',
-                    )
-                    .format('jYYYY/jMM/jDD')}
+                  {moment(data.end).format('jYYYY/jMM/jDD')}
                 </BaseText>
               </View>
             </View>
@@ -206,16 +196,33 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
                         <BaseText type="body3" color="secondary">
                           {t('orderNumber')}:
                         </BaseText>
-                        <BaseText type="body3" color="base">
-                          {item?.order ?? 0}
-                        </BaseText>
+                        <BaseButton
+                          onPress={() => {
+                            navigation.getParent()?.navigate('Root', {
+                              screen: 'HistoryNavigator',
+                              params: {
+                                initial: false,
+                                screen: 'orderDetail',
+                                params: {
+                                  id: item?.order ?? 0,
+                                },
+                              },
+                            });
+                          }}
+                          size="Small"
+                          type="Outline"
+                          color="Supportive5-Blue"
+                          text={item?.order?.toString()}
+                          LinkButton
+                          rounded
+                        />
                       </View>
                       <View className="justify-between items-center flex-row">
                         <BaseText type="body3" color="secondary">
                           {t('DateAndTime')}:
                         </BaseText>
                         <BaseText type="body3" color="base">
-                          {moment(item.submitAt).format('YYYY/MM/DD HH:mm')}
+                          {moment(item.submitAt).format('jYYYY/jMM/jDD HH:mm')}
                         </BaseText>
                       </View>
                       <View className="justify-between items-center flex-row">

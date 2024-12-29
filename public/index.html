@@ -3,16 +3,23 @@
 
 <head>
     <meta charset="UTF-8" />
-
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <meta name="theme-color" content="#16181b" />
+    <meta name="description" content="Sports Management App">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/icons/icon-192x192.png">
+
     <title>VarzeshSoft</title>
     <style>
+        /* These styles make the body full-height */
         html,
         body {
             height: 100%;
             user-select: none;
-
         }
 
         /* These styles disable body scrolling if you are using <ScrollView> */
@@ -26,10 +33,18 @@
             height: 100%;
         }
     </style>
+
 </head>
 
 <body class="bg-neutral-100  dark:bg-neutral-dark-100">
     <div id="app-root"></div>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/service-worker.js');
+            });
+        }
+    </script>
 </body>
 
 </html>

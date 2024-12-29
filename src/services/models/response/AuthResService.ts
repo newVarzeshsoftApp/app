@@ -24,7 +24,12 @@ export interface organization {
     isPrivate: true;
   };
 }
-
+export interface ImageUser {
+  height: number;
+  name: string;
+  size: number;
+  width: number;
+}
 export interface User {
   firstName: string;
   lastName: string;
@@ -32,12 +37,7 @@ export interface User {
   userId: 0;
   email: string;
   password: string;
-  profile: {
-    height: 0;
-    name: string;
-    size: 0;
-    width: 0;
-  };
+  profile: ImageUser;
   lastLoggedIn: string;
   organization: organization;
 }
@@ -51,7 +51,7 @@ export interface SignUpResponse {
 }
 export interface ProfileResponse {
   id: number;
-  profile: string | null;
+  profile: ImageUser | null;
   firstName: string;
   lastName: string;
   mobile: string;

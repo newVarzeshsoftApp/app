@@ -70,18 +70,18 @@ const OrderCard: React.FC<OrderCardProps> = ({item, navigation, openSheet}) => {
             </View>
           )}
           {/* به صحفه جزیات اتقال یابد  */}
-          {item.transferType && (
-            <View className="flex-row items-center justify-between ">
-              <BaseText type="body3" color="secondary">
-                {t('Shipping details')}: {''}
+          {/* {item.transferType && ( */}
+          <View className="flex-row items-center justify-between ">
+            <BaseText type="body3" color="secondary">
+              {t('Shipping details')}: {''}
+            </BaseText>
+            <TouchableOpacity onPress={() => openSheet(item.end)}>
+              <BaseText type="body3" color="secondaryPurple">
+                {t('view')}
               </BaseText>
-              <TouchableOpacity onPress={() => openSheet(item.end)}>
-                <BaseText type="body3" color="secondaryPurple">
-                  {t('view')}
-                </BaseText>
-              </TouchableOpacity>
-            </View>
-          )}
+            </TouchableOpacity>
+          </View>
+          {/* )} */}
         </View>
         <View className="flex-row gap-2">
           <BaseButton

@@ -1,5 +1,5 @@
 import React from 'react';
-import {Image, Platform, View} from 'react-native';
+import {Image, Platform, TouchableOpacity, View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
 import {useTheme} from '../../../utils/ThemeContext';
@@ -7,8 +7,14 @@ import BaseText from '../../../components/BaseText';
 import {useTranslation} from 'react-i18next';
 import {useGetUserCredit} from '../../../utils/hooks/User/useUserCredit';
 import {formatNumber} from '../../../utils/helpers/helpers';
+import {useNavigation} from '@react-navigation/native';
 
+import {HomeStackParamList} from '../../../utils/types/NavigationTypes';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+type NavigationProps = NativeStackNavigationProp<HomeStackParamList>;
 function WalletBalance({inWallet}: {inWallet?: boolean}) {
+  const navigation = useNavigation<NavigationProps>();
+
   const {t} = useTranslation('translation', {keyPrefix: 'Home'});
   const {data, isLoading} = useGetUserCredit();
   const {theme} = useTheme();
@@ -21,7 +27,11 @@ function WalletBalance({inWallet}: {inWallet?: boolean}) {
       ? ['rgba(55, 201, 118, 0.5)', '#2A2D33', 'rgba(55, 201, 118, 0.5)']
       : ['rgba(55, 201, 118, 0.5)', '#FFFFFF', 'rgba(55, 201, 118, 0.5)'];
   return (
-    <View className="w-full h-[110px] relative ">
+    <TouchableOpacity
+      disabled={inWallet}
+      //@ts-ignore
+      onPress={() => navigation.navigate('wallet', {screen: 'wallet'})}
+      className="w-full h-[110px] relative ">
       <LinearGradient
         colors={inWallet ? Walletcolors : colors}
         start={Platform.OS === 'web' ? {x: 1, y: 1} : {x: 1, y: -1}}
@@ -82,7 +92,7 @@ function WalletBalance({inWallet}: {inWallet?: boolean}) {
           </View>
         </View>
       </LinearGradient>
-    </View>
+    </TouchableOpacity>
   );
 }
 

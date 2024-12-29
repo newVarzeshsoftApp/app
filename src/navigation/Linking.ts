@@ -17,19 +17,44 @@ const linking: LinkingOptions<RootStackParamList> = {
       },
       Root: {
         screens: {
-          HomeNavigator: 'home',
+          HomeNavigator: {
+            screens: {
+              Home: 'home',
+              ticket: 'tickets',
+              cart: 'cart',
+              wallet: {
+                screens: {
+                  wallet: 'wallet',
+                  ChargeWalletScreen: 'charge-wallet',
+                },
+              },
+            },
+          },
           SaleItemNavigator: {
             screens: {
               saleItem: 'sale-item',
-              saleItemDetail: 'sale-item-detail/:id/:title?',
+              saleItemDetail: 'sale-item/:id/:title?',
             },
           },
-        },
-      },
-      SaleItem: {
-        screens: {
-          saleItem: 'sale-item-direct',
-          saleItemDetail: 'sale-item-direct-detail/:id/:title?',
+          ShopNavigator: {
+            screens: {
+              creditService: 'shop/credit',
+              packageService: 'shop/package',
+              service: 'shop/service',
+            },
+          },
+          HistoryNavigator: {
+            screens: {
+              orders: 'history/orders',
+              payments: 'history/payments',
+              reception: 'history/reception',
+              orderDetail: 'history/order/:id',
+              WithdrawDetail: 'history/withdraw/:id',
+              DepositDetail: 'history/deposit/:id',
+              transaction: 'history/transactions',
+            },
+          },
+          Paymentresult: 'payment/result',
         },
       },
     },

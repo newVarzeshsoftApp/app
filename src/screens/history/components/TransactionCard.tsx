@@ -124,6 +124,17 @@ const TransactionCard: React.FC<TransactionProps> = ({item, inDetail}) => {
             ریال
           </BaseText>
         </View>
+        {!isWithdraw && item.credit && (
+          <View className="flex-row items-center justify-between ">
+            <BaseText type="body3" color="secondary">
+              {t('RemainingAmout')}: {''}
+            </BaseText>
+            <BaseText type="body3" color={'base'}>
+              {formatNumber(item.credit)}
+              ریال
+            </BaseText>
+          </View>
+        )}
         {/* کیف پول  transaction sort type 
         کیف پول سرویس شارژی 
         ولت گیفت

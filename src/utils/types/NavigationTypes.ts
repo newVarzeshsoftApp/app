@@ -20,7 +20,16 @@ export type DrawerStackParamList = {
   SaleItemNavigator: NavigatorScreenParams<SaleItemStackParamList> | undefined;
   ShopNavigator: NavigatorScreenParams<ShopStackParamList> | undefined;
   HistoryNavigator: NavigatorScreenParams<OrderStackParamList> | undefined;
-  PaymentResult: {status: 0 | 1};
+  Paymentresult:
+    | {
+        code: string;
+        type: string;
+        Authority: string;
+        Status: 'OK' | 'NOK';
+        RefID: string;
+      }
+    | undefined;
+  WebViewParamsList: {url: string};
 };
 
 export type AuthStackParamList = {
@@ -36,6 +45,7 @@ export type WalletStackParamList = {
   wallet: undefined;
   ChargeWalletScreen: undefined;
 };
+
 export type HomeStackParamList = {
   Home: undefined;
   saleItem: undefined;

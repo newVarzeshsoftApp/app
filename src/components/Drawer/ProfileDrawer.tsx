@@ -5,6 +5,7 @@ import {useProfile} from '../../utils/hooks/useProfile';
 import LinearGradient from 'react-native-linear-gradient';
 import BaseText from '../BaseText';
 import {ArrowLeft2} from 'iconsax-react-native';
+import ProfilePic from '../header/ProfilePic';
 
 const ProfileDrawer: React.FC = () => {
   const {data, isLoading, isSuccess} = useProfile();
@@ -44,33 +45,7 @@ const ProfileDrawer: React.FC = () => {
       </View>
       <View className="w-full h-full justify-between  dark:bg-neutral-dark-300/80 backdrop-blur-xl bg-neutral-0/80 flex-row items-center px-6 ">
         <View className="flex-row gap-4">
-          <LinearGradient
-            colors={['#7676EE', '#9191F1', '#C9E483', '#BCDD64']}
-            start={{x: 1, y: 1}}
-            locations={[0, 0.3, 1]}
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: 999,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-            <View className="w-[44px] h-[44px] rounded-full dark:bg-neutral-dark-300 bg-neutral-0 justify-center items-center">
-              {isLoading && (
-                <View className="w-[40px] h-[40px] dark:bg-neutral-dark-300 bg-neutral-0 rounded-full animate-pulse"></View>
-              )}
-              {isSuccess && (
-                <Image
-                  className="w-[40px] h-[40px] rounded-full"
-                  source={{
-                    uri: `https://avatar.iran.liara.run/public/${
-                      data.gender === 0 ? 'boy' : 'girl'
-                    }?username=${data.firstName}`,
-                  }}
-                />
-              )}
-            </View>
-          </LinearGradient>
+          <ProfilePic />
           <View className="gap-1 items-start">
             <BaseText type="title4">
               {data?.firstName} {data?.lastName}

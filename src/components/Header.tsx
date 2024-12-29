@@ -8,6 +8,7 @@ import ResponsiveImage from './ResponsiveImage';
 import {useGetOrganizationBySKU} from '../utils/hooks/Organization/useGetOrganizationBySKU';
 import {Menu} from 'iconsax-react-native';
 import {DrawerActions} from '@react-navigation/native';
+import ProfilePic from './header/ProfilePic';
 
 function Header({navigation}: {navigation: any}) {
   const {data, isLoading, isSuccess} = useProfile();
@@ -29,33 +30,7 @@ function Header({navigation}: {navigation: any}) {
             className="w-12 h-12 rounded-full items-center justify-center bg-neutral-100  dark:bg-neutral-dark-100">
             <Menu size="24" color="#717181" variant="Bold" />
           </TouchableOpacity>
-          <LinearGradient
-            colors={['#7676EE', '#9191F1', '#C9E483', '#BCDD64']}
-            start={{x: 1, y: 1}}
-            locations={[0, 0.3, 1]}
-            style={{
-              width: 48,
-              height: 48,
-              borderRadius: 999,
-              justifyContent: 'center',
-              alignItems: 'center',
-            }}>
-            <View className="w-[44px] h-[44px] rounded-full dark:bg-neutral-dark-300 bg-neutral-0 justify-center items-center">
-              {isLoading && (
-                <View className="w-[40px] h-[40px] dark:bg-neutral-dark-300 bg-neutral-0 rounded-full animate-pulse"></View>
-              )}
-              {isSuccess && (
-                <Image
-                  className="w-[40px] h-[40px] rounded-full"
-                  source={{
-                    uri: `https://avatar.iran.liara.run/public/${
-                      data.gender === 0 ? 'boy' : 'girl'
-                    }?username=${data.firstName}`,
-                  }}
-                />
-              )}
-            </View>
-          </LinearGradient>
+          <ProfilePic />
         </View>
       </View>
     </SafeAreaView>

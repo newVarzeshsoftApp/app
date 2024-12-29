@@ -9,7 +9,7 @@ const WalletStack = createNativeStackNavigator<WalletStackParamList>();
 
 const WalletStackNavigator: React.FC = ({navigation}: any) => {
   return (
-    <WalletStack.Navigator>
+    <WalletStack.Navigator initialRouteName="wallet">
       <WalletStack.Screen
         name="wallet"
         component={WalletScreen}

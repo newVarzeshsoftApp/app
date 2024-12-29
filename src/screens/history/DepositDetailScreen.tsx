@@ -158,6 +158,17 @@ const DepositDetailScreen: React.FC<DepositDetailScreenProps> = ({
                             {formatNumber(data?.amount)} ریال
                           </BaseText>
                         </View>
+                        {data.credit && (
+                          <View className="flex-row items-center justify-between ">
+                            <BaseText type="body3" color="secondary">
+                              {t('RemainingAmout')}: {''}
+                            </BaseText>
+                            <BaseText type="body3" color={'base'}>
+                              {formatNumber(data.credit)}
+                              ریال
+                            </BaseText>
+                          </View>
+                        )}
                         <View className="flex-row items-center justify-between ">
                           <BaseText type="body3" color="secondary">
                             {t('Source')}: {''}

@@ -9,12 +9,14 @@ import Animated, {
 } from 'react-native-reanimated';
 import {useTheme} from '../../../utils/ThemeContext';
 import {ICheckboxProps} from '../../../models/props';
+import BaseText from '../../BaseText';
 
 const RadioButton: React.FC<ICheckboxProps> = ({
   id,
   checked,
-  onPress,
+  onCheckedChange,
   label,
+  asButton,
 }) => {
   const {theme} = useTheme();
 
@@ -26,8 +28,8 @@ const RadioButton: React.FC<ICheckboxProps> = ({
   const radioScale = useSharedValue(1);
 
   const handlePress = () => {
-    if (onPress) {
-      onPress(!checked);
+    if (onCheckedChange) {
+      onCheckedChange(!checked);
     }
 
     if (Platform.OS === 'web') {
@@ -58,8 +60,17 @@ const RadioButton: React.FC<ICheckboxProps> = ({
   }));
 
   return (
-    <View className="flex-row items-center space-x-2">
-      <Pressable onPress={handlePress} className="relative">
+    <Pressable
+      onPress={handlePress}
+      className={`flex-row items-center gap-2  ${
+        asButton &&
+        `p-2 border rounded-full ${
+          checked
+            ? `border-primary-500`
+            : 'border-neutral-300 dark:border-neutral-dark-300'
+        }`
+      }`}>
+      <View className="relative">
         {/* Background circle */}
         {Platform.OS === 'web' ? (
           <View
@@ -101,14 +112,9 @@ const RadioButton: React.FC<ICheckboxProps> = ({
             )}
           </Animated.View>
         )}
-      </Pressable>
-
-      {label && (
-        <Text className={`text-${theme === 'dark' ? 'white' : 'gray-700'}`}>
-          {label}
-        </Text>
-      )}
-    </View>
+      </View>
+      {label && <BaseText color={'base'}>{label}</BaseText>}
+    </Pressable>
   );
 };
 

@@ -6,6 +6,7 @@ import {ArrowUp, Box1, FlashCircle} from 'iconsax-react-native';
 import BaseText from '../../BaseText';
 import moment from 'jalali-moment';
 import Badge from '../../Badge/Badge';
+import {formatNumber} from '../../../utils/helpers/helpers';
 
 const CreditCard: React.FC<{data: Content}> = ({data}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Home'});
@@ -22,7 +23,7 @@ const CreditCard: React.FC<{data: Content}> = ({data}) => {
             </BaseText>
             <View className="flex-row gap-1 items-center">
               <BaseText type="title2" color="base">
-                {data.amount}
+                {formatNumber((data?.credit ?? 0) - (data?.usedCredit ?? 0))}
               </BaseText>
               <BaseText type="subtitle3" color="base">
                 ریال

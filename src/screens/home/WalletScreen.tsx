@@ -75,7 +75,7 @@ const WalletScreen: React.FC<WalletScreenProps> = ({navigation, route}) => {
       keyExtractor={(item, index) => index.toString()}
       ListHeaderComponent={renderHeader}
       ListFooterComponent={
-        <View className="flex-1 pb-32  Container  web:pb-[200px]">
+        <View className="flex-1 Container  pb-[125px]">
           <WalletTransaction />
         </View>
       }
