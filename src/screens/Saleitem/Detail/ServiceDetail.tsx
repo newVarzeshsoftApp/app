@@ -1,4 +1,4 @@
-import React, {useCallback, useLayoutEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
 import {ActivityIndicator, Dimensions, Image, View} from 'react-native';
 import Animated, {
   interpolate,
@@ -22,6 +22,7 @@ import {SaleItemStackParamList} from '../../../utils/types/NavigationTypes';
 import NavigationHeader from '../../../components/header/NavigationHeader';
 import BottomSheet from '../../../components/BottomSheet/BottomSheet';
 import Badge from '../../../components/Badge/Badge';
+import {useBottomSheet} from '../../../components/BottomSheet/BottomSheetProvider';
 type ServiceDetailNavigationProp = NativeStackNavigationProp<
   SaleItemStackParamList,
   'saleItemDetail'
@@ -41,11 +42,9 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
   route,
 }) => {
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
-  const sheetRef = useRef<any>(null);
+  const {showBottomSheet, BottomSheetConfig, hideBottomSheet} =
+    useBottomSheet();
   const {height} = Dimensions.get('screen');
-  const openSheet = () => {
-    sheetRef.current?.expand();
-  };
   const {t} = useTranslation('translation', {keyPrefix: 'Detail'});
   const {data: UserSession, isLoading: UserSessionisLoading} =
     useGetUserSessionByID(data.id);
@@ -99,16 +98,29 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
       ],
     };
   });
+
+  useEffect(() => {
+    BottomSheetConfig({
+      activeHeight: height * 0.6,
+      scrollView: true,
+      Title: t('description'),
+      children: (
+        <BaseText type="body2">
+          {data.description ? data.description : t('No description')}
+        </BaseText>
+      ),
+    });
+  }, []);
   return (
     <>
-      <BottomSheet
+      {/* <BottomSheet
         ref={sheetRef}
         activeHeight={height * 0.6}
         Title={t('description')}>
         <BaseText type="body2">
           {data.description ? data.description : t('No description')}
         </BaseText>
-      </BottomSheet>
+      </BottomSheet> */}
       <View style={{flex: 1}}>
         <Animated.ScrollView
           showsHorizontalScrollIndicator={false}
@@ -209,7 +221,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                           type="Outline"
                           text={t('description')}
                           rounded
-                          onPress={() => openSheet()}
+                          onPress={() => showBottomSheet()}
                           Extraclass="!flex-1"
                         />
                       </View>
