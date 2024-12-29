@@ -46,7 +46,10 @@
     "rial": "ریال",
     "Insurance": "بیمه",
     "Closet": "کمد",
+    "regularCloset": "کمدهای معمولی",
     "Membership": "عضویت",
+    "openCloset": "بازکردن",
+    "open": "باز",
     "myService": "سرویس های من",
     "all": "همه",
     "Days to completion": "روز تا اتمام",
@@ -56,6 +59,7 @@
     "noServicesFound": "هیچ سرویسی پیدا نشد",
     "MettingRemaining": "مانده جلسات",
     "without": "بدون",
+    "open Closet": "باز کردن کمد",
     "noLimit": "بدون محدودیت"
   },
 
@@ -82,9 +86,11 @@
     "orderNumber": "شماره سفارش",
     "DateAndTime": "تاریخ و زمان",
     "Amount": "مقدار",
+    "lockers": "کمد",
     "RemainingAmout": "مانده اعتبار",
     "Initial charge": "شارژ  اولیه ",
-    "Package items": "آیتم های پکیج"
+    "Package items": "آیتم های پکیج",
+    "No description": "توضیحاتی ثبت نشده"
   },
   "History": {
     "transactions": "تراکنش ها",
@@ -195,7 +201,6 @@
     "Social Media": "رسانه اجتماعی",
     "googleLogin": "ادامه با گوگل",
     "facebookLogin": "ادامه با فیس‌بوک",
-
     "Price": "قیمت",
     "Off Price": "قیمت تخفیف‌خورده",
     "address": {

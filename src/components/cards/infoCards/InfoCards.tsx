@@ -1,5 +1,12 @@
-import React from 'react';
-import {Image, Platform, Text, View} from 'react-native';
+import React, {useEffect} from 'react';
+import {
+  Dimensions,
+  Image,
+  Platform,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {useTranslation} from 'react-i18next';
 import {
   CloseCircle,
@@ -20,6 +27,8 @@ import MedicalBag from '../../../assets/icons/MedicalBag.svg';
 import Closet from '../../../assets/icons/Closet.svg';
 import BMI from '../../../assets/icons/BMI.svg';
 import Badge from '../../Badge/Badge';
+import {useBottomSheet} from '../../BottomSheet/BottomSheetProvider';
+import OpenCloset from '../../../screens/home/components/OpenCloset';
 
 function InfoCards({
   type,
@@ -261,9 +270,25 @@ function InfoCards({
     }
     return null;
   };
-
+  const {width: screenWidth, height: screenHeight} = Dimensions.get('screen');
+  const {showBottomSheet, BottomSheetConfig} = useBottomSheet();
+  useEffect(() => {
+    BottomSheetConfig({
+      activeHeight: screenHeight * 0.5,
+      Title: t('open Closet'),
+      children: <OpenCloset />,
+      scrollView: true,
+    });
+  }, []);
   return (
-    <View className="w-full h-[125px]">
+    <TouchableOpacity
+      onPress={() => showBottomSheet()}
+      disabled={
+        type !== 'ClosetInfo' ||
+        (data?.vipLocker && Object.keys(data.vipLocker).length === 0) ||
+        (data?.lockers && Object.keys(data.lockers).length === 0)
+      }
+      className="w-full h-[125px]">
       <LinearGradient
         colors={colors}
         start={{x: 0, y: 1.5}}
@@ -320,7 +345,7 @@ function InfoCards({
           </View>
         </View>
       </LinearGradient>
-    </View>
+    </TouchableOpacity>
   );
 }
 

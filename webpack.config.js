@@ -6,7 +6,7 @@ const TerserPlugin = require('terser-webpack-plugin');
 const CompressionPlugin = require('compression-webpack-plugin');
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
-
+const CopyWebpackPlugin = require('copy-webpack-plugin');
 const appDirectory = path.resolve(__dirname);
 const {presets} = require(`${appDirectory}/babel.config.js`);
 
@@ -141,6 +141,22 @@ module.exports = (env, argv) => {
           analyzerMode: 'static',
           openAnalyzer: false,
         }),
+      new CopyWebpackPlugin({
+        patterns: [
+          {
+            from: 'public/manifest.json',
+            to: 'manifest.json',
+          },
+          {
+            from: 'public/service-worker.js',
+            to: 'service-worker.js',
+          },
+          // {
+          //   from: 'public/icons',
+          //   to: 'icons',
+          // },
+        ],
+      }),
     ].filter(Boolean), // Remove falsy plugins
     optimization: {
       minimize: isProduction,

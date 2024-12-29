@@ -44,6 +44,9 @@ export const routes = {
     getUserPayment: (query: UserSaleItemQuey) =>
       `user/payments` + prepareQuery(query),
   },
+  manageLocker: {
+    openLocker: () => `locker/open-locker`,
+  },
   gateway: {
     getGateway: () => `gateway`,
   },

@@ -4,6 +4,7 @@ import React, {
   useImperativeHandle,
   useCallback,
   ReactNode,
+  useState,
 } from 'react';
 import {
   StyleSheet,
@@ -16,6 +17,8 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   interpolate,
+  useAnimatedScrollHandler,
+  runOnJS,
 } from 'react-native-reanimated';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -24,22 +27,31 @@ import BaseText from '../BaseText';
 import BaseButton from '../Button/BaseButton';
 import {CloseCircle} from 'iconsax-react-native';
 
-interface Props {
+export interface BottomSheetProps {
   activeHeight: number;
-  children: ReactNode;
+  children?: ReactNode;
   Title?: string;
   buttonText?: string;
   onButtonPress?: () => void;
   buttonDisabled?: boolean;
+  scrollView?: boolean;
 }
 
 export interface BottomSheetMethods {
   expand: () => void;
   close: () => void;
 }
-const BottomSheet = forwardRef<BottomSheetMethods, Props>(
+const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
   (
-    {activeHeight, children, Title, buttonText, onButtonPress, buttonDisabled},
+    {
+      activeHeight,
+      children,
+      Title,
+      buttonText,
+      onButtonPress,
+      buttonDisabled,
+      scrollView,
+    },
     ref,
   ) => {
     const inset = useSafeAreaInsets();
@@ -47,10 +59,15 @@ const BottomSheet = forwardRef<BottomSheetMethods, Props>(
     const newActiveHeight = height - activeHeight;
     const topAnimation = useSharedValue(height);
     const context = useSharedValue(0);
-
     const {theme} = useTheme();
-    const isDarkMode = theme === 'dark';
+    // ScrollView
+    const scrollBegin = useSharedValue(0);
+    const scrollY = useSharedValue(0);
+    const [enableScroll, setEnableScroll] = useState(true);
 
+    const closeHeight = height;
+
+    const isDarkMode = theme === 'dark';
     const styles = StyleSheet.create({
       container: {
         position: 'absolute',
@@ -155,6 +172,55 @@ const BottomSheet = forwardRef<BottomSheetMethods, Props>(
           });
         }
       });
+    const onScroll = useAnimatedScrollHandler({
+      onBeginDrag: event => {
+        scrollBegin.value = event.contentOffset.y;
+      },
+      onScroll: event => {
+        scrollY.value = event.contentOffset.y;
+      },
+    });
+
+    const panScroll = Gesture.Pan()
+      .onBegin(() => {
+        context.value = topAnimation.value;
+      })
+      .onUpdate(event => {
+        if (event.translationY < 0) {
+          topAnimation.value = withSpring(newActiveHeight, {
+            damping: 100,
+            stiffness: 400,
+          });
+        } else if (event.translationY > 0 && scrollY.value === 0) {
+          runOnJS(setEnableScroll)(false);
+          topAnimation.value = withSpring(
+            Math.max(
+              context.value + event.translationY - scrollBegin.value,
+              newActiveHeight,
+            ),
+            {
+              damping: 100,
+              stiffness: 400,
+            },
+          );
+        }
+      })
+      .onEnd(() => {
+        runOnJS(setEnableScroll)(true);
+        if (topAnimation.value > newActiveHeight + 50) {
+          topAnimation.value = withSpring(closeHeight, {
+            damping: 100,
+            stiffness: 400,
+          });
+        } else {
+          topAnimation.value = withSpring(newActiveHeight, {
+            damping: 100,
+            stiffness: 400,
+          });
+        }
+      });
+
+    const scrollViewGesture = Gesture.Native();
 
     return (
       <>
@@ -179,7 +245,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, Props>(
             <View style={styles.lineContainer}>
               <View style={styles.line} />
             </View>
-            <View className="Container gap-4  flex-1 android:pb-4 web:pb-4">
+            <View className="Container gap-4 mx-auto  flex-1 android:pb-4 web:pb-4">
               {Title && (
                 <View className="flex-row items-center justify-between">
                   <BaseText type="title4">{Title}</BaseText>
@@ -193,19 +259,33 @@ const BottomSheet = forwardRef<BottomSheetMethods, Props>(
                   />
                 </View>
               )}
-
-              <View className="flex-grow gap-3">
-                <View className="flex-1"> {children}</View>
-                {buttonText && onButtonPress && (
-                  <BaseButton
-                    text={buttonText}
-                    disabled={buttonDisabled}
-                    color="Black"
-                    type="Fill"
-                    onPress={onButtonPress}
-                  />
-                )}
-              </View>
+              {scrollView ? (
+                <GestureDetector
+                  gesture={Gesture.Simultaneous(scrollViewGesture, panScroll)}>
+                  <Animated.ScrollView
+                    scrollEnabled={enableScroll}
+                    bounces={false}
+                    showsHorizontalScrollIndicator={false}
+                    showsVerticalScrollIndicator={false}
+                    scrollEventThrottle={16}
+                    onScroll={onScroll}>
+                    {children}
+                  </Animated.ScrollView>
+                </GestureDetector>
+              ) : (
+                <View className="flex-grow gap-3">
+                  <View className="flex-1"> {children}</View>
+                  {buttonText && onButtonPress && (
+                    <BaseButton
+                      text={buttonText}
+                      disabled={buttonDisabled}
+                      color="Black"
+                      type="Fill"
+                      onPress={onButtonPress}
+                    />
+                  )}
+                </View>
+              )}
             </View>
           </Animated.View>
         </GestureDetector>

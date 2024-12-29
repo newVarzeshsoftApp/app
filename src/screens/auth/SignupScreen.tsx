@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -31,6 +31,7 @@ import Picker from '../../components/Picker/Picker';
 import BottomSheet from '../../components/BottomSheet/BottomSheet';
 import RadioButton from '../../components/Button/RadioButton/RadioButton';
 import {PickerOption, genders} from '../../constants/options';
+import {useBottomSheet} from '../../components/BottomSheet/BottomSheetProvider';
 type SignupScreenProps = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
 const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Input'});
@@ -75,23 +76,48 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
     formState: {errors, isValid},
   } = methods;
   const {width: screenWidth, height: screenHeight} = Dimensions.get('screen');
-  const sheetRef = useRef<any>(null);
-  const {height} = Dimensions.get('screen');
-  const openSheet = useCallback(() => {
-    sheetRef.current?.expand();
-  }, []);
   const bigScreen = screenHeight > 800;
-
   const [selectedGender, setselectedGender] = useState<PickerOption | null>(
     null,
   );
+  const {showBottomSheet, BottomSheetConfig, hideBottomSheet} =
+    useBottomSheet();
   const handleGenderSelect = () => {
     methods.setValue('gender', selectedGender!);
-    sheetRef.current?.close();
+    hideBottomSheet();
   };
+
+  useEffect(() => {
+    BottomSheetConfig({
+      buttonDisabled: selectedGender === null,
+      activeHeight: screenHeight * 0.4,
+      Title: auth('Select Gender'),
+      buttonText: auth('Continue'),
+      onButtonPress: handleGenderSelect,
+      children: (
+        <View
+          key={selectedGender ? selectedGender.key : 'default'}
+          className="gap-3">
+          {genders.map(item => (
+            <RadioButton
+              key={item.key}
+              asButton
+              checked={selectedGender ? selectedGender.key === item.key : false}
+              onCheckedChange={() => setselectedGender(item)}
+              label={item.value}
+            />
+          ))}
+        </View>
+      ),
+    });
+  }, [selectedGender]);
+  const openGenderSelect = () => {
+    showBottomSheet();
+  };
+
   return (
     <>
-      <BottomSheet
+      {/* <BottomSheet
         ref={sheetRef}
         activeHeight={height * 0.4}
         Title={auth('Select Gender')}
@@ -109,7 +135,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
             />
           ))}
         </View>
-      </BottomSheet>
+      </BottomSheet> */}
       <View style={{flex: 1}} className="flex-1">
         <ScrollView
           showsHorizontalScrollIndicator={false}
@@ -183,7 +209,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
                         control={control}
                         label={t('gender')}
                         PlaceHolder={placeholders('gender')}
-                        onpress={openSheet}
+                        onpress={openGenderSelect}
                       />
                       <ControlledInput
                         control={control}

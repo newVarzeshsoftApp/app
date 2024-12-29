@@ -21,6 +21,7 @@ export interface SubscriptionService {
 export interface Locker {
   lockerNumber: number;
   relayNumber: number;
+  relayOnTime: number;
   priority: number;
   type: number;
   id: number;
@@ -270,6 +271,7 @@ export interface Product {
 export interface Content {
   credit?: number;
   usedCredit?: number;
+  description?: number;
   id: number;
   transferCode?: number | null;
   serial?: string | null;
@@ -313,7 +315,7 @@ export interface SessionDetail {
   start?: string; // ISO date string
   end?: string; // ISO date string
   submitAt?: string; // ISO date string
-  lockers?: Locker[];
+  lockers?: number[];
   contractor?: User;
   quantity?: number;
 }
