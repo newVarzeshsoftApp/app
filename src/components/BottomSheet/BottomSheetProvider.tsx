@@ -23,7 +23,7 @@ export const BottomSheetProvider: React.FC<{children: React.ReactNode}> = ({
   const bottomSheetRef = useRef<BottomSheetMethods>(null);
 
   const [config, setConfig] = useState<BottomSheetProps>({
-    activeHeight: 300,
+    activeHeight: 400,
     Title: '',
     buttonText: '',
     buttonDisabled: false,
@@ -36,10 +36,8 @@ export const BottomSheetProvider: React.FC<{children: React.ReactNode}> = ({
 
   const BottomSheetConfig = useCallback(
     (updatedConfig: Partial<BottomSheetProps>) => {
-      setConfig(prevConfig => ({
-        ...prevConfig,
-        ...updatedConfig,
-      }));
+      //@ts-ignore
+      setConfig(updatedConfig);
     },
     [],
   );
