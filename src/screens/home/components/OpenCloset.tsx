@@ -1,8 +1,8 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {ScrollView, View} from 'react-native';
 import {useGetUserDashboard} from '../../../utils/hooks/User/useGetUserDashboard';
 import BaseText from '../../../components/BaseText';
-import {Lock, Lock1, Unlock} from 'iconsax-react-native';
+import {Lock1, Unlock} from 'iconsax-react-native';
 import BaseButton from '../../../components/Button/BaseButton';
 import {useMutation} from '@tanstack/react-query';
 import {ManagerLockerService} from '../../../services/ManagerLockerService';
@@ -13,8 +13,10 @@ import {useTranslation} from 'react-i18next';
 const OpenCloset: React.FC = () => {
   const {data} = useGetUserDashboard();
   const {t} = useTranslation('translation', {keyPrefix: 'Home'});
-
   const [openLockers, setOpenLockers] = useState<{[key: number]: boolean}>({});
+  const [remainingTimes, setRemainingTimes] = useState<{[key: number]: number}>(
+    {},
+  );
   const [loadingLockerId, setLoadingLockerId] = useState<number | null>(null);
 
   const openClosetMutation = useMutation({
@@ -24,10 +26,21 @@ const OpenCloset: React.FC = () => {
     },
     onSuccess: (_data, variables) => {
       const {lockerId, relayOnTime} = variables;
+
       setOpenLockers(prev => ({...prev, [lockerId]: true}));
-      setTimeout(() => {
-        setOpenLockers(prev => ({...prev, [lockerId]: false}));
-      }, relayOnTime * 1000);
+      setRemainingTimes(prev => ({...prev, [lockerId]: relayOnTime}));
+
+      const interval = setInterval(() => {
+        setRemainingTimes(prev => {
+          if (prev[lockerId] > 1) {
+            return {...prev, [lockerId]: prev[lockerId] - 1};
+          } else {
+            clearInterval(interval);
+            setOpenLockers(prev => ({...prev, [lockerId]: false}));
+            return {...prev, [lockerId]: 0};
+          }
+        });
+      }, 1000);
     },
     onError: error => {
       handleMutationError(error);
@@ -78,7 +91,9 @@ const OpenCloset: React.FC = () => {
                 }
                 text={
                   openLockers[data.vipLocker.locker.lockerId]
-                    ? t('open')
+                    ? `${t('open')} ${
+                        remainingTimes[data.vipLocker.locker.lockerId]
+                      }s`
                     : t('openCloset')
                 }
                 type={
@@ -119,6 +134,7 @@ const OpenCloset: React.FC = () => {
                     <BaseText>{item.lockerNumber}</BaseText>
                   </View>
                 </View>
+
                 <BaseButton
                   isLoading={loadingLockerId === item.lockerId}
                   disabled={openLockers[item.lockerId]}
@@ -132,7 +148,9 @@ const OpenCloset: React.FC = () => {
                     })
                   }
                   text={
-                    openLockers[item.lockerId] ? t('open') : t('openCloset')
+                    openLockers[item.lockerId]
+                      ? `${t('open')} ${remainingTimes[item.lockerId]}s`
+                      : t('openCloset')
                   }
                   type={openLockers[item.lockerId] ? 'Fill' : 'Outline'}
                   color={openLockers[item.lockerId] ? 'Primary' : 'Black'}

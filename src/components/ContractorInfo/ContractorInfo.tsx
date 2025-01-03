@@ -18,11 +18,11 @@ const ContractorInfo: React.FC<ContractorInfoProps> = ({
 
   return (
     <View className="dark:bg-neutral-dark-100 bg-neutral-100 flex-row w-fit gap-2 ios:pr-3 web:pl-3 rounded-full p-1">
-      <View className="h-6 w-6 rounded-full overflow-hidden">
+      <View className="h-6 w-6 bg-blue-50 rounded-full overflow-hidden">
         <Image
-          style={{width: '100%', height: '100%'}}
+          style={{width: 24, height: 24}}
           source={{
-            uri: (OrganizationBySKU?.imageUrl ?? '') + imageName,
+            uri: OrganizationBySKU?.imageUrl + '/' + imageName,
           }}
         />
       </View>

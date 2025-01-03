@@ -36,9 +36,8 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
     mutationFn: PaymentService.CreatePayment,
     onSuccess(data, variables, context) {
       if (data?.url) {
-        const drawerNavigation = navigation.getParent();
-        drawerNavigation?.navigate('WebViewParamsList', {
-          url: data.url,
+        navigation.navigate('WebViewParamsList', {
+          url: data.url, // Passing the URL as a parameter
         });
       }
     },

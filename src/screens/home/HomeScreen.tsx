@@ -28,7 +28,7 @@ const HomeScreen: React.FC = () => {
       data={[]}
       renderItem={null}
       nestedScrollEnabled
-      keyExtractor={(item, index) => index.toString()}
+      keyExtractor={(item, index) => `key` + index}
       ListHeaderComponent={renderHeader}
       ListFooterComponent={
         <View className="flex-1 Container pb-[125px]">

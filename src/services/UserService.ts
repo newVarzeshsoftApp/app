@@ -113,7 +113,7 @@ const UserService = {
         baseUrl + getUserTransaction(query),
       );
 
-      if (response.status === Status.Ok || response.status === Status.Created) {
+      if (response.status === Status.Ok) {
         return response.data;
       } else {
         throw new Error(`Request failed with status ${response.status}`);

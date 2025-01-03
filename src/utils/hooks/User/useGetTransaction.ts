@@ -9,5 +9,6 @@ export const useGetTransaction = (
   return useQuery({
     queryKey: ['UserTransaction', query],
     queryFn: () => UserService.GetUserTransaction(query),
+    retry: false,
   });
 };

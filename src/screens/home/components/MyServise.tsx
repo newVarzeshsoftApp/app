@@ -56,6 +56,7 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
   }, [fetchedData]);
   const loadMore = () => {
     if (
+      !isError &&
       !isFetching &&
       data.length < (fetchedData?.total ?? 5) &&
       inMoreScreen
@@ -122,7 +123,7 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
         ItemSeparatorComponent={() => <View style={{height: 16}} />}
         onEndReached={loadMore}
         // onEndReachedThreshold={0.2}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(item, index) => `key` + index}
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
         ListFooterComponent={

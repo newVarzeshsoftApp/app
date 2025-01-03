@@ -1,4 +1,10 @@
-import React, {useEffect, useLayoutEffect, useState} from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {ActivityIndicator, Image, Text, View} from 'react-native';
 import Animated, {
   interpolate,
@@ -19,11 +25,23 @@ import {
 } from '../../services/models/response/UseResrService';
 import BaseText from '../../components/BaseText';
 import TransactionCard from './components/TransactionCard';
+import DateSelector, {
+  DateSelectorType,
+} from '../../components/Picker/DatePicker/DateSelector';
 
 type SaleItemDetailProps = NativeStackScreenProps<
   OrderStackParamList,
   'transaction'
 >;
+const HeaderComponent = React.memo(
+  ({onDateChange}: {onDateChange: (date: DateSelectorType) => void}) => {
+    return (
+      <View className="pb-4">
+        <DateSelector mode="range" onDateChange={onDateChange} />
+      </View>
+    );
+  },
+);
 const TransactionScreen: React.FC<SaleItemDetailProps> = ({
   navigation,
   route,
@@ -31,17 +49,33 @@ const TransactionScreen: React.FC<SaleItemDetailProps> = ({
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
   const [offset, setOffset] = useState(0);
   const [items, setItems] = useState<SaleTransaction[] | []>([]);
+  const [selectedDateRange, setSelectedDateRange] = useState<DateSelectorType>({
+    startDate: null,
+    endDate: null,
+  });
   const {data, isLoading, isFetching, isError} = useGetTransaction({
     limit: limit,
     offset,
+    submitAt: {
+      gte: selectedDateRange.startDate?.gregorianDate
+        ? selectedDateRange.startDate?.gregorianDate
+        : '',
+      lte: selectedDateRange.endDate?.gregorianDate
+        ? selectedDateRange.endDate?.gregorianDate
+        : '',
+    },
   });
+  useEffect(() => {
+    setOffset(0);
+    setItems([]);
+  }, [selectedDateRange]);
   useEffect(() => {
     if (data?.content) {
       setItems(prevItems => [...prevItems, ...data.content]);
     }
   }, [data]);
   const loadMore = () => {
-    if (!isFetching && items.length < (data?.total ?? 5)) {
+    if (!isError && !isFetching && items.length < (data?.total ?? 5)) {
       setOffset(prevOffset => prevOffset + 1);
     }
   };
@@ -62,11 +96,22 @@ const TransactionScreen: React.FC<SaleItemDetailProps> = ({
       ),
     });
   }, [navigation, scrollY]);
+
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: event => {
       scrollY.value = event.contentOffset.y;
     },
   });
+
+  const handleDateChange = useCallback((date: DateSelectorType) => {
+    setSelectedDateRange(date);
+  }, []);
+
+  const headerComponentMemo = useMemo(
+    () => <HeaderComponent onDateChange={handleDateChange} />,
+    [handleDateChange],
+  );
+
   return (
     <View style={{flex: 1}}>
       <View className="absolute -top-[25%] web:rotate-[10deg]  web:-left-[30%]  android:-right-[80%] ios:-right-[80%]  opacity-45 w-[600px] h-[600px]">
@@ -86,7 +131,8 @@ const TransactionScreen: React.FC<SaleItemDetailProps> = ({
       <View className="flex-1 Container pt-[30%] web:pt-20">
         <Animated.FlatList
           data={items}
-          keyExtractor={(item, index) => item.id.toString() || index.toString()}
+          ListHeaderComponent={headerComponentMemo}
+          keyExtractor={(item, index) => `key` + index}
           renderItem={({item}) => <TransactionCard item={item} />}
           onScroll={scrollHandler}
           onEndReached={loadMore}
@@ -99,7 +145,7 @@ const TransactionScreen: React.FC<SaleItemDetailProps> = ({
             ) : null
           }
           ListEmptyComponent={
-            !isLoading && !isError ? (
+            !isLoading ? (
               <View className="flex-1 items-center justify-center flex-row py-10">
                 <BaseText type="subtitle1" color="secondary">
                   {t('noOrdersFound')}

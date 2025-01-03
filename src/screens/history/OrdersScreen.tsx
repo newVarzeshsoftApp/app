@@ -3,16 +3,11 @@ import React, {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
-import {
-  ActivityIndicator,
-  Dimensions,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {ActivityIndicator, Dimensions, View} from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
@@ -28,27 +23,49 @@ import BaseText from '../../components/BaseText';
 import BottomSheet from '../../components/BottomSheet/BottomSheet';
 import {formatNumber} from '../../utils/helpers/helpers';
 import Badge from '../../components/Badge/Badge';
+import DateSelector, {
+  DateSelectorType,
+} from '../../components/Picker/DatePicker/DateSelector';
 
 type OrdersScreenProps = NativeStackScreenProps<OrderStackParamList, 'orders'>;
 
+const HeaderComponent = React.memo(
+  ({onDateChange}: {onDateChange: (date: DateSelectorType) => void}) => {
+    return (
+      <View className="pb-4">
+        <DateSelector mode="range" onDateChange={onDateChange} />
+      </View>
+    );
+  },
+);
 const OrdersScreen: React.FC<OrdersScreenProps> = ({navigation, route}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
   const [offset, setOffset] = useState(0);
   const [items, setItems] = useState<SaleOrderContent[] | []>([]);
   const [sheetData, setSheetData] = useState<any>(null);
+  const [selectedDateRange, setSelectedDateRange] = useState<DateSelectorType>({
+    startDate: null,
+    endDate: null,
+  });
   const {data, isLoading, isFetching, isError} = useGetUserSaleOrder({
     limit: limit,
     offset,
     reception: {equals: false},
+    start: selectedDateRange.startDate?.gregorianDate || '',
+    end: selectedDateRange.endDate?.gregorianDate || '',
   });
   const scrollY = useSharedValue(0);
+  useEffect(() => {
+    setOffset(0);
+    setItems([]);
+  }, [selectedDateRange]);
   useEffect(() => {
     if (data?.content) {
       setItems(prevItems => [...prevItems, ...data.content]);
     }
   }, [data]);
   const loadMore = () => {
-    if (!isFetching && items.length < (data?.total ?? 5)) {
+    if (!isError && !isFetching && items.length < (data?.total ?? 5)) {
       setOffset(prevOffset => prevOffset + 1);
     }
   };
@@ -79,6 +96,14 @@ const OrdersScreen: React.FC<OrdersScreenProps> = ({navigation, route}) => {
     setSheetData(data);
     sheetRef.current?.expand();
   }, []);
+  const handleDateChange = useCallback((date: DateSelectorType) => {
+    setSelectedDateRange(date);
+  }, []);
+
+  const headerComponentMemo = useMemo(
+    () => <HeaderComponent onDateChange={handleDateChange} />,
+    [handleDateChange],
+  );
   return (
     <>
       <BottomSheet
@@ -126,7 +151,8 @@ const OrdersScreen: React.FC<OrdersScreenProps> = ({navigation, route}) => {
       <View className="flex-1 Container pt-[30%] web:pt-20">
         <Animated.FlatList
           data={items}
-          keyExtractor={(item, index) => index.toString()}
+          ListHeaderComponent={headerComponentMemo}
+          keyExtractor={(item, index) => `key` + index}
           renderItem={({item}) => (
             <OrderCard
               item={item}

@@ -28,7 +28,6 @@ import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
 import ResponsiveImage from '../../components/ResponsiveImage';
 import Picker from '../../components/Picker/Picker';
-import BottomSheet from '../../components/BottomSheet/BottomSheet';
 import RadioButton from '../../components/Button/RadioButton/RadioButton';
 import {PickerOption, genders} from '../../constants/options';
 import {useBottomSheet} from '../../components/BottomSheet/BottomSheetProvider';
@@ -80,40 +79,40 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
   const [selectedGender, setselectedGender] = useState<PickerOption | null>(
     null,
   );
-  const {showBottomSheet, BottomSheetConfig, hideBottomSheet} =
-    useBottomSheet();
-  const handleGenderSelect = () => {
-    methods.setValue('gender', selectedGender!);
-    hideBottomSheet();
-  };
+  // const {showBottomSheet, BottomSheetConfig, hideBottomSheet} =
+  //   useBottomSheet();
+  // const handleGenderSelect = () => {
+  //   methods.setValue('gender', selectedGender!);
+  //   hideBottomSheet();
+  // };
 
-  useEffect(() => {
-    BottomSheetConfig({
-      buttonDisabled: selectedGender === null,
-      activeHeight: screenHeight * 0.4,
-      Title: auth('Select Gender'),
-      buttonText: auth('Continue'),
-      onButtonPress: handleGenderSelect,
-      children: (
-        <View
-          key={selectedGender ? selectedGender.key : 'default'}
-          className="gap-3">
-          {genders.map(item => (
-            <RadioButton
-              key={item.key}
-              asButton
-              checked={selectedGender ? selectedGender.key === item.key : false}
-              onCheckedChange={() => setselectedGender(item)}
-              label={item.value}
-            />
-          ))}
-        </View>
-      ),
-    });
-  }, [selectedGender]);
-  const openGenderSelect = () => {
-    showBottomSheet();
-  };
+  // useEffect(() => {
+  //   BottomSheetConfig({
+  //     buttonDisabled: selectedGender === null,
+  //     activeHeight: screenHeight * 0.4,
+  //     Title: auth('Select Gender'),
+  //     buttonText: auth('Continue'),
+  //     onButtonPress: handleGenderSelect,
+  //     children: (
+  //       <View
+  //         key={selectedGender ? selectedGender.key : 'default'}
+  //         className="gap-3">
+  //         {genders.map(item => (
+  //           <RadioButton
+  //             key={item.key}
+  //             asButton
+  //             checked={selectedGender ? selectedGender.key === item.key : false}
+  //             onCheckedChange={() => setselectedGender(item)}
+  //             label={item.value}
+  //           />
+  //         ))}
+  //       </View>
+  //     ),
+  //   });
+  // }, [selectedGender]);
+  // const openGenderSelect = () => {
+  //   showBottomSheet();
+  // };
 
   return (
     <>
@@ -209,7 +208,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
                         control={control}
                         label={t('gender')}
                         PlaceHolder={placeholders('gender')}
-                        onpress={openGenderSelect}
+                        // onpress={openGenderSelect}
                       />
                       <ControlledInput
                         control={control}

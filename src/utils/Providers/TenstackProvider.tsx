@@ -9,10 +9,15 @@ function TenstackProvider({children}: {children: React.ReactNode}) {
       new QueryClient({
         defaultOptions: {
           queries: {
-            retry: false,
+            retry: (failureCount, error) => {
+              if ((error as any).status === 502) {
+                return false; // Do not retry on 502 errors
+              }
+              return failureCount < 1; // Retry once for other errors
+            },
             staleTime: 1000 * 60 * 5,
             gcTime: 1000 * 60 * 60,
-            refetchOnWindowFocus: true,
+            refetchOnWindowFocus: false,
           },
         },
       }),

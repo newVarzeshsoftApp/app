@@ -26,7 +26,7 @@ function Badge({
       } ${className}`}
       style={style}>
       {CreditMode && <FlashCircle variant="Bold" color="#FED376" />}
-      <BaseText type="badge" color={CreditMode ? 'supportive1' : textColor}>
+      <BaseText type="subtitle3" color={CreditMode ? 'supportive1' : textColor}>
         {value}
       </BaseText>
     </View>

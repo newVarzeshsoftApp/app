@@ -14,10 +14,10 @@
   },
   "dependencies": {
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
+    "@gorhom/bottom-sheet": "^5.0.6",
     "@hookform/resolvers": "^3.9.1",
     "@react-native-async-storage/async-storage": "^2.0.0",
     "@react-native-community/blur": "^4.4.1",
-    "@react-native-picker/picker": "^2.9.0",
     "@react-navigation/bottom-tabs": "^7.0.3",
     "@react-navigation/devtools": "^7.0.15",
     "@react-navigation/drawer": "^7.0.14",
@@ -49,6 +49,7 @@
     "react-native-encrypted-storage": "^4.0.3",
     "react-native-gesture-handler": "^2.21.2",
     "react-native-linear-gradient": "^2.8.3",
+    "react-native-portalize": "^1.0.7",
     "react-native-progress": "^5.0.1",
     "react-native-reanimated": "^3.16.5",
     "react-native-reanimated-carousel": "^3.5.1",
@@ -90,6 +91,7 @@
     "babel-plugin-module-resolver": "^5.0.2",
     "babel-plugin-react-native-web": "^0.19.13",
     "compression-webpack-plugin": "^11.1.0",
+    "copy-webpack-plugin": "^11.0.0",
     "eslint": "^8.19.0",
     "file-loader": "^6.2.0",
     "ignore-loader": "^0.1.2",
@@ -103,8 +105,7 @@
     "webpack": "^5.96.1",
     "webpack-bundle-analyzer": "^4.10.2",
     "webpack-cli": "^5.1.4",
-    "webpack-dev-server": "^5.1.0",
-    "copy-webpack-plugin": "^11.0.0"
+    "webpack-dev-server": "^5.1.0"
   },
   "engines": {
     "node": ">=18"

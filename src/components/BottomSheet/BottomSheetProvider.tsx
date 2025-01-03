@@ -50,7 +50,7 @@ export const BottomSheetProvider: React.FC<{children: React.ReactNode}> = ({
     <BottomSheetContext.Provider
       value={{showBottomSheet, BottomSheetConfig, hideBottomSheet}}>
       {children}
-      <BottomSheet
+      {/* <BottomSheet
         ref={bottomSheetRef}
         activeHeight={config.activeHeight}
         Title={config.Title}
@@ -59,7 +59,7 @@ export const BottomSheetProvider: React.FC<{children: React.ReactNode}> = ({
         scrollView={config.scrollView}
         onButtonPress={config.onButtonPress}>
         {config.children}
-      </BottomSheet>
+      </BottomSheet> */}
     </BottomSheetContext.Provider>
   );
 };

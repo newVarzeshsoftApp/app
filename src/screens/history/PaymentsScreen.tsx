@@ -39,7 +39,7 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({navigation}) => {
     }
   }, [data]);
   const loadMore = () => {
-    if (!isFetching && items.length < (data?.total ?? 5)) {
+    if (!isError && !isFetching && items.length < (data?.total ?? 5)) {
       setOffset(prevOffset => prevOffset + 1);
     }
   };
