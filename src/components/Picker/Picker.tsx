@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {Controller, FieldValues} from 'react-hook-form';
 import {
   Dimensions,
@@ -11,7 +11,9 @@ import {InputProps} from '../../models/props';
 import BaseText from '../BaseText';
 import {useTranslation} from 'react-i18next';
 import {InfoCircle} from 'iconsax-react-native';
-import BottomSheet from '../BottomSheet/BottomSheet';
+import BottomSheet, {BottomSheetMethods} from '../BottomSheet/BottomSheet';
+import {genders, PickerOption} from '../../constants/options';
+import RadioButton from '../Button/RadioButton/RadioButton';
 
 const Picker = <T extends FieldValues>({
   control,
@@ -27,11 +29,18 @@ const Picker = <T extends FieldValues>({
   RightIconVariant,
   PlaceHolder,
   optional,
-  onpress,
+
   ...props
 }: InputProps<T> & TextInputProps) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Input'});
-
+  const {width: screenWidth, height: screenHeight} = Dimensions.get('screen');
+  const sheetRef = useRef<BottomSheetMethods>(null);
+  const {t: auth} = useTranslation('translation', {
+    keyPrefix: 'Auth',
+  });
+  const [selectedGender, setselectedGender] = useState<PickerOption | null>(
+    null,
+  );
   return (
     <>
       <View
@@ -48,46 +57,72 @@ const Picker = <T extends FieldValues>({
           control={control}
           name={name}
           render={({field: {onChange, onBlur, value}}) => (
-            <TouchableOpacity
-              onPress={onpress}
-              className={`w-full h-12 relative ${
-                LeftIcon
-                  ? 'pl-4'
-                  : RightIcon || type === 'password'
-                  ? 'pr-4 pl-2'
-                  : 'pl-2'
-              } flex flex-row items-center overflow-hidden justify-center gap-2 rounded-2xl border ${
-                disabled ? 'bg-neutral-100 dark:bg-neutral-dark-100' : ''
-              } ${
-                error && !disabled
-                  ? 'border-[#F55F56]'
-                  : 'border-neutral-300 dark:border-neutral-dark-300'
-              }`}>
-              {/* Left Icon */}
-              {LeftIcon && (
-                <View>
-                  <LeftIcon
-                    size={24}
-                    color="#AAABAD"
-                    variant={LeftIconVariant}
-                  />
+            <>
+              <BottomSheet
+                ref={sheetRef}
+                activeHeight={screenHeight * 0.4}
+                Title={auth('Select Gender')}
+                buttonText={auth(`Continue`)}
+                buttonDisabled={value === null}
+                onButtonPress={() => {
+                  onChange(selectedGender);
+                  sheetRef.current?.close();
+                }}>
+                <View className="gap-3">
+                  {genders.map((item, index) => (
+                    <RadioButton
+                      key={item.key}
+                      asButton
+                      checked={
+                        selectedGender ? selectedGender.key === item.key : false
+                      }
+                      onCheckedChange={() => setselectedGender(item)}
+                      label={item.value}
+                    />
+                  ))}
                 </View>
-              )}
-
-              {/* Placeholder */}
-
-              <BaseText
-                color={!value ? 'muted' : 'base'}
-                type="caption"
-                className={`absolute ${
+              </BottomSheet>
+              <TouchableOpacity
+                onPress={sheetRef.current?.expand}
+                className={`w-full h-12 relative ${
                   LeftIcon
-                    ? 'left-[20%] rtl:right-[20%]'
-                    : 'left-[6%] rtl:right-[6%]'
-                }  rtl:text-left  w-fit`}
-                style={{pointerEvents: 'none'}}>
-                {!value ? PlaceHolder : value.value}
-              </BaseText>
-            </TouchableOpacity>
+                    ? 'pl-4'
+                    : RightIcon || type === 'password'
+                    ? 'pr-4 pl-2'
+                    : 'pl-2'
+                } flex flex-row items-center overflow-hidden justify-center gap-2 rounded-2xl border ${
+                  disabled ? 'bg-neutral-100 dark:bg-neutral-dark-100' : ''
+                } ${
+                  error && !disabled
+                    ? 'border-[#F55F56]'
+                    : 'border-neutral-300 dark:border-neutral-dark-300'
+                }`}>
+                {/* Left Icon */}
+                {LeftIcon && (
+                  <View>
+                    <LeftIcon
+                      size={24}
+                      color="#AAABAD"
+                      variant={LeftIconVariant}
+                    />
+                  </View>
+                )}
+
+                {/* Placeholder */}
+
+                <BaseText
+                  color={!value ? 'muted' : 'base'}
+                  type="caption"
+                  className={`absolute ${
+                    LeftIcon
+                      ? 'left-[20%] rtl:right-[20%]'
+                      : 'left-[6%] rtl:right-[6%]'
+                  }  rtl:text-left  w-fit`}
+                  style={{pointerEvents: 'none'}}>
+                  {!value ? PlaceHolder : value.value}
+                </BaseText>
+              </TouchableOpacity>
+            </>
           )}
         />
         <View className="h-[14px]">
