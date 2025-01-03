@@ -58,7 +58,7 @@ const DynamicSlider = forwardRef<DynamicSliderHandle, DynamicSliderProps<any>>(
         <FlatList
           ref={flatListRef}
           data={data}
-          keyExtractor={keyExtractor}
+          keyExtractor={(item, index) => `key` + index}
           horizontal
           pagingEnabled
           showsHorizontalScrollIndicator={false}

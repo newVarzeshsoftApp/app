@@ -8,6 +8,7 @@ import ToastProvider from './src/components/Toast/Toast';
 import {ThemeProvider} from './src/utils/ThemeContext';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {RootNavigator} from './src/navigation/RootNavigator';
+import {Host} from 'react-native-portalize';
 import {BottomSheetProvider} from './src/components/BottomSheet/BottomSheetProvider';
 
 export default function App() {
@@ -20,12 +21,14 @@ export default function App() {
       <SafeAreaProvider>
         <ThemeProvider>
           <TenstackProvider>
-            <BottomSheetProvider>
-              <View className="flex-1 bg-neutral-100 dark:bg-neutral-dark-100 max-w-[450px] web:overflow-hidden mx-auto w-full">
-                <RootNavigator />
-                <ToastProvider />
-              </View>
-            </BottomSheetProvider>
+            <View className="flex-1 bg-neutral-100 dark:bg-neutral-dark-100 max-w-[450px] web:overflow-hidden mx-auto w-full">
+              <Host>
+                <BottomSheetProvider>
+                  <RootNavigator />
+                  <ToastProvider />
+                </BottomSheetProvider>
+              </Host>
+            </View>
           </TenstackProvider>
         </ThemeProvider>
       </SafeAreaProvider>

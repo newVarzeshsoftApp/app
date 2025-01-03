@@ -118,7 +118,7 @@ const OrderDetailScreen: React.FC<OrderDetailScreenProps> = ({
                             <ItemCard item={item} />
                           </View>
                         )}
-                        keyExtractor={(item, index) => index.toString()}
+                        keyExtractor={(item, index) => `key` + index}
                       />
                     ) : (
                       <View className="py-10 justify-center items-center">

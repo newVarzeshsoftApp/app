@@ -22,7 +22,8 @@ import {SaleItemStackParamList} from '../../../utils/types/NavigationTypes';
 import NavigationHeader from '../../../components/header/NavigationHeader';
 import BottomSheet from '../../../components/BottomSheet/BottomSheet';
 import Badge from '../../../components/Badge/Badge';
-import {useBottomSheet} from '../../../components/BottomSheet/BottomSheetProvider';
+// import {useBottomSheet} from '../../../components/BottomSheet/BottomSheetProvider';
+import ContractorInfo from '../../../components/ContractorInfo/ContractorInfo';
 type ServiceDetailNavigationProp = NativeStackNavigationProp<
   SaleItemStackParamList,
   'saleItemDetail'
@@ -42,8 +43,8 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
   route,
 }) => {
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
-  const {showBottomSheet, BottomSheetConfig, hideBottomSheet} =
-    useBottomSheet();
+  // const {showBottomSheet, BottomSheetConfig, hideBottomSheet} =
+  //   useBottomSheet();
   const {height} = Dimensions.get('screen');
   const {t} = useTranslation('translation', {keyPrefix: 'Detail'});
   const {data: UserSession, isLoading: UserSessionisLoading} =
@@ -99,18 +100,18 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
     };
   });
 
-  useEffect(() => {
-    BottomSheetConfig({
-      activeHeight: height * 0.6,
-      scrollView: true,
-      Title: t('description'),
-      children: (
-        <BaseText type="body2">
-          {data.description ? data.description : t('No description')}
-        </BaseText>
-      ),
-    });
-  }, []);
+  // useEffect(() => {
+  //   BottomSheetConfig({
+  //     activeHeight: height * 0.6,
+  //     scrollView: true,
+  //     Title: t('description'),
+  //     children: (
+  //       <BaseText type="body2">
+  //         {data.description ? data.description : t('No description')}
+  //       </BaseText>
+  //     ),
+  //   });
+  // }, []);
   return (
     <>
       {/* <BottomSheet
@@ -167,23 +168,11 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                       </View>
                       <View className="gap-2">
                         {data.contractor && (
-                          <View className="dark:bg-neutral-dark-100 bg-neutral-100  flex-row w-fit gap-2 pl-3  rounded-full p-1">
-                            <View className="h-6 w-6 rounded-full overflow-hidden ">
-                              {/* <ResponsiveImage customSource={data.contractor}/> */}
-                              <Image
-                                style={{width: '100%', height: '100%'}}
-                                source={{
-                                  uri:
-                                    (OrganizationBySKU?.imageUrl ?? '') +
-                                    data?.contractor?.profile?.name,
-                                }}
-                              />
-                            </View>
-                            <BaseText type="body3" color="secondary">
-                              {data?.contractor?.firstName}{' '}
-                              {data?.contractor?.lastName}
-                            </BaseText>
-                          </View>
+                          <ContractorInfo
+                            firstName={data.contractor.firstName}
+                            imageName={data.contractor.profile?.name}
+                            lastName={data.contractor.lastName}
+                          />
                         )}
                         <View className="flex-row items-center justify-between">
                           <BaseText type="body3" color="secondary">
@@ -221,7 +210,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                           type="Outline"
                           text={t('description')}
                           rounded
-                          onPress={() => showBottomSheet()}
+                          // onPress={() => showBottomSheet()}
                           Extraclass="!flex-1"
                         />
                       </View>
@@ -249,23 +238,11 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                                   <BaseText type="body3" color="secondary">
                                     {t('contractor')}:
                                   </BaseText>
-                                  <View className="dark:bg-neutral-dark-100 bg-neutral-100 flex-row w-fit gap-2 pl-3  rounded-full p-1">
-                                    <View className="h-6 w-6 rounded-full overflow-hidden ">
-                                      <Image
-                                        style={{width: '100%', height: '100%'}}
-                                        source={{
-                                          uri:
-                                            (OrganizationBySKU?.imageUrl ??
-                                              '') +
-                                            item?.contractor?.profile?.name,
-                                        }}
-                                      />
-                                    </View>
-                                    <BaseText type="body3" color="secondary">
-                                      {item?.contractor?.firstName}{' '}
-                                      {item?.contractor?.lastName}
-                                    </BaseText>
-                                  </View>
+                                  <ContractorInfo
+                                    firstName={item.contractor.firstName}
+                                    imageName={item.contractor.profile?.name}
+                                    lastName={item.contractor.lastName}
+                                  />
                                 </View>
                               )}
                               <View className="justify-between items-center flex-row">

@@ -339,7 +339,7 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
                       </BaseText>
                       <FlatList
                         data={Getways}
-                        keyExtractor={item => String(item.id)}
+                        keyExtractor={(item, index) => `key` + index}
                         renderItem={({item}) => (
                           <BaseButton
                             text={item.title}

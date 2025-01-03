@@ -47,6 +47,7 @@ const WalletTransaction: React.FC = ({
   }, [fetchedData]);
   const loadMore = () => {
     if (
+      !isError &&
       !isFetching &&
       data.length < (fetchedData?.total ?? 5) &&
       inMoreScreen
@@ -82,7 +83,7 @@ const WalletTransaction: React.FC = ({
         renderItem={({item, index}) => <TransactionCard item={item} />}
         ItemSeparatorComponent={() => <View style={{height: 16}} />}
         onEndReached={loadMore}
-        keyExtractor={(item, index) => index.toString()}
+        keyExtractor={(item, index) => `key` + index}
         showsVerticalScrollIndicator={false}
         showsHorizontalScrollIndicator={false}
         ListFooterComponent={

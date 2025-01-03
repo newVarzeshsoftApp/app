@@ -32,8 +32,8 @@ export interface UserTransactionQuery {
     equals?: 0 | 1 | 2;
   };
   submitAt?: {
-    lte?: string;
-    gte?: string;
+    lte?: string | null;
+    gte?: string | null;
   };
 }
 export interface UserWalletTransactionQuery {

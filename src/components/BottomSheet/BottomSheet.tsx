@@ -26,6 +26,7 @@ import {useTheme} from '../../utils/ThemeContext';
 import BaseText from '../BaseText';
 import BaseButton from '../Button/BaseButton';
 import {CloseCircle} from 'iconsax-react-native';
+import {Portal} from 'react-native-portalize';
 
 export interface BottomSheetProps {
   activeHeight: number;
@@ -35,6 +36,7 @@ export interface BottomSheetProps {
   onButtonPress?: () => void;
   buttonDisabled?: boolean;
   scrollView?: boolean;
+  disablePan?: boolean;
 }
 
 export interface BottomSheetMethods {
@@ -50,6 +52,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       buttonText,
       onButtonPress,
       buttonDisabled,
+      disablePan,
       scrollView,
     },
     ref,
@@ -223,7 +226,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     const scrollViewGesture = Gesture.Native();
 
     return (
-      <>
+      <Portal>
         <TouchableWithoutFeedback onPress={close}>
           <Animated.View
             style={[
@@ -233,7 +236,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             ]}
           />
         </TouchableWithoutFeedback>
-        <GestureDetector gesture={pan}>
+        <GestureDetector gesture={disablePan ? Gesture.Tap() : pan}>
           <Animated.View
             style={[
               styles.container,
@@ -242,13 +245,18 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
                 paddingBottom: inset.bottom,
               },
             ]}>
-            <View style={styles.lineContainer}>
-              <View style={styles.line} />
-            </View>
-            <View className="Container gap-4 mx-auto  flex-1 android:pb-4 web:pb-4">
+            {!disablePan && (
+              <View style={styles.lineContainer}>
+                <View style={styles.line} />
+              </View>
+            )}
+            <View
+              className={`Container gap-4 mx-auto  flex-1 android:pb-4 web:pb-4 ${
+                disablePan && 'pt-4'
+              }`}>
               {Title && (
                 <View className="flex-row items-center justify-between">
-                  <BaseText type="title4">{Title}</BaseText>
+                  <BaseText type="title4">{Title || ''}</BaseText>
                   <BaseButton
                     onPress={close}
                     LeftIcon={CloseCircle}
@@ -261,7 +269,11 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
               )}
               {scrollView ? (
                 <GestureDetector
-                  gesture={Gesture.Simultaneous(scrollViewGesture, panScroll)}>
+                  gesture={
+                    disablePan
+                      ? scrollViewGesture
+                      : Gesture.Simultaneous(scrollViewGesture, panScroll)
+                  }>
                   <Animated.ScrollView
                     scrollEnabled={enableScroll}
                     bounces={false}
@@ -277,10 +289,12 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
                   <View className="flex-1"> {children}</View>
                   {buttonText && onButtonPress && (
                     <BaseButton
-                      text={buttonText}
+                      text={buttonText || ''}
                       disabled={buttonDisabled}
                       color="Black"
                       type="Fill"
+                      rounded
+                      size="Large"
                       onPress={onButtonPress}
                     />
                   )}
@@ -289,7 +303,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             </View>
           </Animated.View>
         </GestureDetector>
-      </>
+      </Portal>
     );
   },
 );

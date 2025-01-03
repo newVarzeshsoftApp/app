@@ -1,4 +1,10 @@
-import React, {useEffect, useLayoutEffect, useState} from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from 'react';
 import {useTranslation} from 'react-i18next';
 import {ActivityIndicator, Text, View} from 'react-native';
 import {SaleOrderContent} from '../../services/models/response/UseResrService';
@@ -13,11 +19,23 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {OrderStackParamList} from '../../utils/types/NavigationTypes';
 import BaseText from '../../components/BaseText';
 import ReceptionCard from './components/ReceptionCard';
+import DateSelector, {
+  DateSelectorType,
+} from '../../components/Picker/DatePicker/DateSelector';
 
 type ReceptionScreenProps = NativeStackScreenProps<
   OrderStackParamList,
   'reception'
 >;
+const HeaderComponent = React.memo(
+  ({onDateChange}: {onDateChange: (date: DateSelectorType) => void}) => {
+    return (
+      <View className="pb-4">
+        <DateSelector mode="range" onDateChange={onDateChange} />
+      </View>
+    );
+  },
+);
 const ReceptionScreen: React.FC<ReceptionScreenProps> = ({
   navigation,
   route,
@@ -26,18 +44,28 @@ const ReceptionScreen: React.FC<ReceptionScreenProps> = ({
   const [offset, setOffset] = useState(0);
   const [items, setItems] = useState<SaleOrderContent[] | []>([]);
   const scrollY = useSharedValue(0);
+  const [selectedDateRange, setSelectedDateRange] = useState<DateSelectorType>({
+    startDate: null,
+    endDate: null,
+  });
   const {data, isLoading, isFetching, isError} = useGetUserSaleOrder({
     limit: limit,
     offset,
     reception: {equals: true},
+    start: selectedDateRange.startDate?.gregorianDate || '',
+    end: selectedDateRange.endDate?.gregorianDate || '',
   });
+  useEffect(() => {
+    setOffset(0);
+    setItems([]);
+  }, [selectedDateRange]);
   useEffect(() => {
     if (data?.content) {
       setItems(prevItems => [...prevItems, ...data.content]);
     }
   }, [data]);
   const loadMore = () => {
-    if (!isFetching && items.length < (data?.total ?? 5)) {
+    if (!isError && !isFetching && items.length < (data?.total ?? 5)) {
       setOffset(prevOffset => prevOffset + 1);
     }
   };
@@ -62,10 +90,19 @@ const ReceptionScreen: React.FC<ReceptionScreenProps> = ({
       ),
     });
   }, [navigation]);
+  const handleDateChange = useCallback((date: DateSelectorType) => {
+    setSelectedDateRange(date);
+  }, []);
+
+  const headerComponentMemo = useMemo(
+    () => <HeaderComponent onDateChange={handleDateChange} />,
+    [handleDateChange],
+  );
   return (
     <View className="flex-1 Container pt-[30%] web:pt-20">
       <Animated.FlatList
         data={items}
+        ListHeaderComponent={headerComponentMemo}
         keyExtractor={(item, index) => item.id.toString() || index.toString()}
         renderItem={({item}) => (
           <ReceptionCard item={item} navigation={navigation} />
