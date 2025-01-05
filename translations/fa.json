@@ -6,7 +6,8 @@
     "Home": "خانه",
     "ticket": "تیکت",
     "cart": "سبدخرید",
-    "wallet": "کیف پول"
+    "wallet": "کیف پول",
+    "Error500": "خطای ۵۰۰"
   },
   "Auth": {
     "login": "ورود",
@@ -41,6 +42,7 @@
     "logout": "خروج",
     "changeTheme": "تغییر تم"
   },
+
   "Home": {
     "WalletBalance": "موجودی کیف پول",
     "rial": "ریال",
@@ -62,7 +64,37 @@
     "open Closet": "باز کردن کمد",
     "noLimit": "بدون محدودیت"
   },
-
+  "Shop": {
+    "creditService": {
+      "noServicesFound": "هیچ سرویسی پیدا نشد",
+      "noLimitForTime": "نامحدود",
+      "noLimit": "بدون محدودیت",
+      "creditService": "خدمت شارژی",
+      "Duration": "مدت زمان",
+      "usedFor": "موارد استفاده",
+      "Charge balance": "موجودی شارژ",
+      "description": "توضیحات",
+      "addToCart": "افزودن به سبد خرید"
+    },
+    "Service": {
+      "noServicesFound": "هیچ سرویسی پیدا نشد",
+      "shopGift": "هدیه خرید",
+      "more": "مشاهده بیشتر",
+      "service": "سرویس جلسه ای",
+      "SingleservicePrice": "قیمت هر جلسه",
+      "addToCart": "افزودن به سبد خرید"
+    },
+    "Package": {
+      "noServicesFound": "هیچ سرویسی پیدا نشد",
+      "noLimit": "بدون محدودیت",
+      "noLimitForTime": "نامحدود",
+      "Duration": "مدت زمان",
+      "ItemsOfPackage": "آیتم های پکیج",
+      "package": "پکیج",
+      "description": "توضیحات",
+      "addToCart": "افزودن به سبد خرید"
+    }
+  },
   "Detail": {
     "Days to completion": "روز تا اتمام",
     "endTime": "تمام شده",

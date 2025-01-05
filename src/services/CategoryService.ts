@@ -1,35 +1,32 @@
-import axios, {AxiosResponse} from 'axios';
+import {Status} from '../models/enums';
 import {routes} from '../routes/routes';
 import axiosInstance from '../utils/AxiosInstans';
+import axios from 'axios';
+import {CategoryQuery} from './models/requestQueries';
 import {
-  PaymentBody,
-  PaymentVerifyBody,
-} from './models/request/PaymentReqService';
-import {Status} from '../models/enums';
-import {
-  PaymentRes,
-  PaymentVerifyRes,
-} from './models/response/PaymentResService';
+  CategoryPageRes,
+  CategoryQueryRes,
+} from './models/response/CategoryResService';
 import {handleMutationError} from '../utils/helpers/errorHandler';
 
 const {
   baseUrl,
-  Payment: {createPayment, paymentVerify},
+  category: {categoryPage, categoryQuery},
 } = routes;
-export const PaymentService = {
-  CreatePayment: async (body: PaymentBody): Promise<PaymentRes> => {
+
+export const CategoryService = {
+  GetCategoryPage: async (query: CategoryQuery): Promise<CategoryPageRes> => {
     try {
-      const response = await axiosInstance.post<
-        PaymentBody,
-        AxiosResponse<PaymentRes>
-      >(baseUrl + createPayment(), body);
+      const response = await axiosInstance.get<CategoryPageRes>(
+        baseUrl + categoryPage(query),
+      );
       if (response.status === Status.Ok || response.status === Status.Created) {
         return response.data;
       } else {
         throw new Error(`Request failed with status ${response}`);
       }
     } catch (error) {
-      console.error('Error in SignIN function:', error);
+      console.error('Error in GetCategoryPage function:', error);
       if (axios.isAxiosError(error) && error.response) {
         handleMutationError(error);
 
@@ -40,22 +37,20 @@ export const PaymentService = {
       throw error;
     }
   },
-  paymentVerify: async (body: PaymentVerifyBody): Promise<PaymentVerifyRes> => {
+  GetCategoryQuery: async (query: CategoryQuery): Promise<CategoryQueryRes> => {
     try {
-      const response = await axiosInstance.put<
-        PaymentVerifyBody,
-        AxiosResponse<PaymentVerifyRes>
-      >(baseUrl + paymentVerify(), body);
+      const response = await axiosInstance.get<CategoryQueryRes>(
+        baseUrl + categoryQuery(query),
+      );
       if (response.status === Status.Ok || response.status === Status.Created) {
         return response.data;
       } else {
         throw new Error(`Request failed with status ${response}`);
       }
     } catch (error) {
-      console.error('Error in SignIN function:', error);
+      console.error('Error in GetCategoryQuery function:', error);
       if (axios.isAxiosError(error) && error.response) {
         handleMutationError(error);
-
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );

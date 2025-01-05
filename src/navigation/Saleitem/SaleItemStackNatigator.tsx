@@ -29,7 +29,11 @@ const SaleItemNavigator: React.FC = ({navigation}: any) => {
           unmountOnBlur: true,
           headerTransparent: false,
           header: () => (
-            <NavigationHeader navigation={navigation} title={t('saleItem')} />
+            <NavigationHeader
+              CenterText
+              navigation={navigation}
+              title={t('saleItem')}
+            />
           ),
         })}
       />

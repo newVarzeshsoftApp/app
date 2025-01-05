@@ -1,4 +1,4 @@
-import {RegisteredServiceStatus} from '../../constants/options';
+import {ProductType, RegisteredServiceStatus} from '../../constants/options';
 
 export interface AllOrganizationQuery {
   sku?: string;
@@ -14,6 +14,20 @@ export interface UserSaleItemQuey {
   type?: number;
   parent?: number;
 }
+//
+export interface UserPaymentQuey {
+  status?: RegisteredServiceStatus;
+  sortOrder?: string;
+  sortField?: string;
+  limit?: number;
+  offset?: number;
+  type?: number;
+  startPayment?: {
+    lte?: string | null;
+    gte?: string | null;
+  };
+  parent?: number;
+}
 export interface UserSaleOrderQuery {
   end?: string;
   start?: string;
@@ -23,6 +37,22 @@ export interface UserSaleOrderQuery {
     equals: boolean;
   };
 }
+export interface ProductQuery {
+  limit?: number;
+  offset?: number;
+  type: {
+    equals: ProductType;
+  };
+  category: {
+    equals: string;
+  };
+}
+export interface CategoryQuery {
+  type: {
+    equals: ProductType | '';
+  };
+}
+
 export interface UserTransactionQuery {
   end?: string;
   start?: string;

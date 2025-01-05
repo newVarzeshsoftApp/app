@@ -57,6 +57,10 @@ export type ShopStackParamList = {
   creditService: undefined;
   packageService: undefined;
   service: undefined;
+
+  creditDetail: {id: number; title: string};
+  packageDetail: {id: number; title: string};
+  serviceDetail: {id: number; title: string};
 };
 export type OrderStackParamList = {
   reception: undefined;

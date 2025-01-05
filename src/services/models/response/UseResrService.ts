@@ -247,25 +247,27 @@ export interface Product {
     image?: string | null;
   };
   priceList?: any[];
-  subProducts?: {
-    quantity?: number;
-    discount?: number;
-    id: number;
-    updatedAt?: string;
-    createdAt?: string;
-    deletedAt?: string | null;
-    amount?: number | null;
-    tax?: number;
-    organizationUnitId?: number | null;
-    parentId?: number;
-    productId?: number;
-    product?: Product;
-    categoryId?: number | null;
-    saleUnitId?: number | null;
-    contractorId?: number | null;
-    priceId?: number | null;
-  }[];
+  subProducts?: subProducts[];
   categoryId?: number;
+}
+
+export interface subProducts {
+  quantity?: number;
+  discount?: number;
+  id: number;
+  updatedAt?: string;
+  createdAt?: string;
+  deletedAt?: string | null;
+  amount?: number | null;
+  tax?: number;
+  organizationUnitId?: number | null;
+  parentId?: number;
+  productId?: number;
+  product?: Product;
+  categoryId?: number | null;
+  saleUnitId?: number | null;
+  contractorId?: number | null;
+  priceId?: number | null;
 }
 
 export interface Content {
@@ -356,7 +358,7 @@ export interface SaleOrderContent {
   submitAt?: string;
   vipLocker?: VipLocker;
   vipLockerId?: number;
-  items?: string[];
+  items?: SaleOrderItem[];
   shiftWork?: Record<string, unknown>;
   shiftWorkId?: number;
   saleUnit?: SaleUnit;

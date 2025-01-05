@@ -38,7 +38,7 @@ const CreditCard: React.FC<{data: Content}> = ({data}) => {
         </TouchableOpacity>
       </View>
       <View className="pt-3 gap-3">
-        <View className="flex-row items-center gap-1">
+        <View className="flex-row items-center gap-1 flex-wrap">
           {data.product?.hasSubProduct ? (
             data.product?.subProducts?.map((item, index) => {
               return (

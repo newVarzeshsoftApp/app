@@ -8,18 +8,66 @@ import {formatNumber} from '../../../utils/helpers/helpers';
 import BaseButton from '../../../components/Button/BaseButton';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {OrderStackParamList} from '../../../utils/types/NavigationTypes';
-import BottomSheet from '../../../components/BottomSheet/BottomSheet';
+import BottomSheet, {
+  BottomSheetMethods,
+} from '../../../components/BottomSheet/BottomSheet';
 import Badge from '../../../components/Badge/Badge';
 interface OrderCardProps {
   item: SaleOrderContent;
   navigation: NativeStackNavigationProp<OrderStackParamList, 'orders'>;
-  openSheet: (data: any) => void;
 }
-const OrderCard: React.FC<OrderCardProps> = ({item, navigation, openSheet}) => {
+const OrderCard: React.FC<OrderCardProps> = ({item, navigation}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
+  const sheetRef = useRef<BottomSheetMethods>(null);
+  const {height} = Dimensions.get('screen');
 
+  const openSheet = useCallback(() => {
+    sheetRef.current?.expand();
+  }, []);
   return (
     <>
+      <BottomSheet
+        ref={sheetRef}
+        activeHeight={height * 0.4}
+        Title={t('Shipping details')}>
+        <View className="gap-4">
+          <View className="gap-2">
+            <View className="flex-row items-center justify-between">
+              <BaseText type="body3" color="secondary">
+                {t('Type')}: {''}
+              </BaseText>
+              <BaseText type="body3" color="base">
+                ارسالی
+              </BaseText>
+            </View>
+            <View className="flex-row items-center justify-between">
+              <BaseText type="body3" color="secondary">
+                {t('Status')}: {''}
+              </BaseText>
+              <BaseText type="body3" color="base">
+                <Badge value={'لغو شده'} color="error" />
+              </BaseText>
+            </View>
+            <View className="flex-row items-center justify-between">
+              <BaseText type="body3" color="secondary">
+                {t('Sending amount')}: {''}
+              </BaseText>
+              <BaseText type="body3" color="base">
+                {formatNumber(609990)}﷼
+              </BaseText>
+            </View>
+          </View>
+          <View className="items-start gap-3 pt-3 border-t dark:border-neutral-dark-300 border-neutral-200  ">
+            <BaseText type="body3" color="secondary">
+              {t('Address')}: {''}
+            </BaseText>
+            <BaseText type="body3" color="base">
+              تهران،انقلاب؛کارگر جنوبی،خ لبافی نژاد،خ فخر رازی،ساختمان
+              نرگس،پلاک40
+            </BaseText>
+          </View>
+        </View>
+      </BottomSheet>
       <View className="CardBase">
         <View className="gap-2">
           <View className="flex-row items-center justify-between">
@@ -75,7 +123,7 @@ const OrderCard: React.FC<OrderCardProps> = ({item, navigation, openSheet}) => {
               <BaseText type="body3" color="secondary">
                 {t('Shipping details')}: {''}
               </BaseText>
-              <TouchableOpacity onPress={() => openSheet(item.end)}>
+              <TouchableOpacity onPress={openSheet}>
                 <BaseText type="body3" color="secondaryPurple">
                   {t('view')}
                 </BaseText>

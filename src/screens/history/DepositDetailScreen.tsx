@@ -40,7 +40,7 @@ const DepositDetailScreen: React.FC<DepositDetailScreenProps> = ({
       header: () => (
         <NavigationHeader
           CenterText
-          range={[0, 100]}
+          range={[0, 50]}
           scrollY={scrollY}
           navigation={navigation}
           title={t('DepositDetail')}
