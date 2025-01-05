@@ -232,7 +232,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             style={[
               styles.backDrop,
               backDropAnimation,
-              {backgroundColor: 'rgba(0,0,0,0.8)'},
+              {backgroundColor: 'rgba(0,0,0,1)'},
             ]}
           />
         </TouchableWithoutFeedback>

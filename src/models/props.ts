@@ -28,6 +28,7 @@ export type IBadge = {
   style?: TextStyle;
   textColor?:TypeTextColor
   CreditMode?:boolean
+  GiftMode?:boolean
 };
 export interface IWheelProps {
   items: {value:string,label:string}[]; 

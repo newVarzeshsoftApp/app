@@ -10,6 +10,7 @@ import {
   PaymentRes,
   PaymentVerifyRes,
 } from './models/response/PaymentResService';
+import {handleMutationError} from '../utils/helpers/errorHandler';
 
 const {
   baseUrl,
@@ -30,6 +31,8 @@ export const PaymentService = {
     } catch (error) {
       console.error('Error in SignIN function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -51,6 +54,8 @@ export const PaymentService = {
     } catch (error) {
       console.error('Error in SignIN function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );

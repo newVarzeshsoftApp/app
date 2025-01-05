@@ -3,7 +3,11 @@ import {routes} from '../routes/routes';
 import axiosInstance from '../utils/AxiosInstans';
 import axios from 'axios';
 import {CategoryQuery} from './models/requestQueries';
-import {CategoryPageRes} from './models/response/CategoryResService';
+import {
+  CategoryPageRes,
+  CategoryQueryRes,
+} from './models/response/CategoryResService';
+import {handleMutationError} from '../utils/helpers/errorHandler';
 
 const {
   baseUrl,
@@ -24,6 +28,8 @@ export const CategoryService = {
     } catch (error) {
       console.error('Error in GetCategoryPage function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -31,9 +37,11 @@ export const CategoryService = {
       throw error;
     }
   },
-  GetCategoryQuery: async (): Promise<any> => {
+  GetCategoryQuery: async (query: CategoryQuery): Promise<CategoryQueryRes> => {
     try {
-      const response = await axiosInstance.get<any>(baseUrl + categoryQuery());
+      const response = await axiosInstance.get<CategoryQueryRes>(
+        baseUrl + categoryQuery(query),
+      );
       if (response.status === Status.Ok || response.status === Status.Created) {
         return response.data;
       } else {
@@ -42,6 +50,7 @@ export const CategoryService = {
     } catch (error) {
       console.error('Error in GetCategoryQuery function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );

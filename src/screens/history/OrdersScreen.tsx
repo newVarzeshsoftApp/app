@@ -82,7 +82,7 @@ const OrdersScreen: React.FC<OrdersScreenProps> = ({navigation, route}) => {
       header: () => (
         <NavigationHeader
           CenterText
-          range={[0, 100]}
+          range={[0, 50]}
           scrollY={scrollY}
           navigation={navigation}
           title={t('orders')}
@@ -90,12 +90,7 @@ const OrdersScreen: React.FC<OrdersScreenProps> = ({navigation, route}) => {
       ),
     });
   }, [navigation]);
-  const sheetRef = useRef<any>(null);
-  const {height} = Dimensions.get('screen');
-  const openSheet = useCallback((data: any) => {
-    setSheetData(data);
-    sheetRef.current?.expand();
-  }, []);
+
   const handleDateChange = useCallback((date: DateSelectorType) => {
     setSelectedDateRange(date);
   }, []);
@@ -106,59 +101,13 @@ const OrdersScreen: React.FC<OrdersScreenProps> = ({navigation, route}) => {
   );
   return (
     <>
-      <BottomSheet
-        ref={sheetRef}
-        activeHeight={height * 0.4}
-        Title={t('Shipping details')}>
-        <View className="gap-4">
-          <View className="gap-2">
-            <View className="flex-row items-center justify-between">
-              <BaseText type="body3" color="secondary">
-                {t('Type')}: {''}
-              </BaseText>
-              <BaseText type="body3" color="base">
-                ارسالی
-              </BaseText>
-            </View>
-            <View className="flex-row items-center justify-between">
-              <BaseText type="body3" color="secondary">
-                {t('Status')}: {''}
-              </BaseText>
-              <BaseText type="body3" color="base">
-                <Badge value={'لغو شده'} color="error" />
-              </BaseText>
-            </View>
-            <View className="flex-row items-center justify-between">
-              <BaseText type="body3" color="secondary">
-                {t('Sending amount')}: {''}
-              </BaseText>
-              <BaseText type="body3" color="base">
-                {formatNumber(609990)}﷼
-              </BaseText>
-            </View>
-          </View>
-          <View className="items-start gap-3 pt-3 border-t dark:border-neutral-dark-300 border-neutral-200  ">
-            <BaseText type="body3" color="secondary">
-              {t('Address')}: {''}
-            </BaseText>
-            <BaseText type="body3" color="base">
-              تهران،انقلاب؛کارگر جنوبی،خ لبافی نژاد،خ فخر رازی،ساختمان
-              نرگس،پلاک40
-            </BaseText>
-          </View>
-        </View>
-      </BottomSheet>
-      <View className="flex-1 Container pt-[30%] web:pt-20">
+      <View className="flex-1 Container">
         <Animated.FlatList
           data={items}
           ListHeaderComponent={headerComponentMemo}
           keyExtractor={(item, index) => `key` + index}
           renderItem={({item}) => (
-            <OrderCard
-              item={item}
-              navigation={navigation}
-              openSheet={openSheet}
-            />
+            <OrderCard item={item} navigation={navigation} />
           )}
           onScroll={scrollHandler}
           onEndReached={loadMore}
@@ -182,6 +131,7 @@ const OrdersScreen: React.FC<OrdersScreenProps> = ({navigation, route}) => {
           ItemSeparatorComponent={() => <View style={{height: 16}} />}
           contentContainerStyle={{
             paddingVertical: 16,
+            paddingTop: 90,
           }}
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}

@@ -3,6 +3,7 @@ import {Status} from '../models/enums';
 import {routes} from '../routes/routes';
 import axiosInstance from '../utils/AxiosInstans';
 import {GetGatewayRes} from './models/response/GetwayResService';
+import {handleMutationError} from '../utils/helpers/errorHandler';
 
 const {
   baseUrl,
@@ -22,6 +23,8 @@ export const GetwayService = {
     } catch (error) {
       console.error('Error in GetGateway function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );

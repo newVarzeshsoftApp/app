@@ -3,6 +3,7 @@ import {Status} from '../models/enums';
 import {routes} from '../routes/routes';
 import axiosInstance from '../utils/AxiosInstans';
 import {openLockerBody} from './models/request/ManagerLockerReqService';
+import {handleMutationError} from '../utils/helpers/errorHandler';
 
 const {
   baseUrl,
@@ -24,6 +25,8 @@ export const ManagerLockerService = {
     } catch (error) {
       console.error('Error in SignIN function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );

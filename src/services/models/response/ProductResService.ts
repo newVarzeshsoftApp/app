@@ -1,3 +1,5 @@
+import {subProducts} from './UseResrService';
+
 export interface Product {
   title: string;
   sku: string;
@@ -52,6 +54,7 @@ export interface Product {
   hasPriceList: boolean;
   hasSchedules: boolean;
   hasSubProduct: boolean;
+  subProducts?: subProducts[];
   isInsuranceService: boolean;
   isSubscriptionService: boolean;
   isGift: boolean;

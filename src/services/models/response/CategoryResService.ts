@@ -6,7 +6,7 @@ export interface Category {
   type: number;
   isOnline: boolean;
   isKiosk: boolean | null;
-  id: number;
+  id: number | string;
   updatedAt: string;
   createdAt: string;
   deletedAt: string | null;
@@ -16,3 +16,4 @@ export interface CategoryPageRes {
   total: number;
   content: Category[];
 }
+export type CategoryQueryRes = Category[];

@@ -14,6 +14,20 @@ export interface UserSaleItemQuey {
   type?: number;
   parent?: number;
 }
+//
+export interface UserPaymentQuey {
+  status?: RegisteredServiceStatus;
+  sortOrder?: string;
+  sortField?: string;
+  limit?: number;
+  offset?: number;
+  type?: number;
+  startPayment?: {
+    lte?: string | null;
+    gte?: string | null;
+  };
+  parent?: number;
+}
 export interface UserSaleOrderQuery {
   end?: string;
   start?: string;
@@ -30,12 +44,12 @@ export interface ProductQuery {
     equals: ProductType;
   };
   category: {
-    equals: number;
+    equals: string;
   };
 }
 export interface CategoryQuery {
   type: {
-    equals: ProductType;
+    equals: ProductType | '';
   };
 }
 

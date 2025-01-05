@@ -17,10 +17,12 @@ import {
   TransactionResponse,
 } from './models/response/UseResrService';
 import {
+  UserPaymentQuey,
   UserSaleItemQuey,
   UserTransactionQuery,
   UserWalletTransactionQuery,
 } from './models/requestQueries';
+import {handleMutationError} from '../utils/helpers/errorHandler';
 
 const {
   baseUrl,
@@ -41,7 +43,7 @@ const {
 } = routes;
 
 const UserService = {
-  GetUserPayment: async (query: UserSaleItemQuey): Promise<Payments> => {
+  GetUserPayment: async (query: UserPaymentQuey): Promise<Payments> => {
     try {
       const response = await axiosInstance.get<Payments>(
         baseUrl + getUserPayment(query),
@@ -54,6 +56,8 @@ const UserService = {
     } catch (error) {
       console.error('Error in GetUserCredit function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -75,6 +79,8 @@ const UserService = {
     } catch (error) {
       console.error('Error in GetUserCredit function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -98,6 +104,8 @@ const UserService = {
     } catch (error) {
       console.error('Error in GetUserSaleOrder function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -121,6 +129,8 @@ const UserService = {
     } catch (error) {
       console.error('Error in GetUserSaleOrder function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -144,6 +154,8 @@ const UserService = {
     } catch (error) {
       console.error('Error in GetUserSaleOrder function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -165,6 +177,8 @@ const UserService = {
     } catch (error) {
       console.error('Error in GetUserSaleOrderByID function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -186,6 +200,8 @@ const UserService = {
     } catch (error) {
       console.error('Error in GetUserCredit function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -207,6 +223,8 @@ const UserService = {
     } catch (error) {
       console.error('Error in GetUserCredit function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -230,6 +248,8 @@ const UserService = {
     } catch (error) {
       console.error('Error in GetUserCredit function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -250,6 +270,8 @@ const UserService = {
     } catch (error) {
       console.error('Error in GetUserDashboard function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -272,6 +294,8 @@ const UserService = {
     } catch (error) {
       console.error('Error in GetUserDashboard function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -292,6 +316,8 @@ const UserService = {
     } catch (error) {
       console.error('Error in GetSaleItemByID function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );

@@ -15,6 +15,7 @@ import {
 import axiosInstance from '../utils/AxiosInstans';
 import {Status} from '../models/enums';
 import {storeTokens} from '../utils/helpers/tokenStorage';
+import {handleMutationError} from '../utils/helpers/errorHandler';
 const {
   auth: {
     signIn,
@@ -48,6 +49,8 @@ const AuthService = {
     } catch (error) {
       console.error('Error in SignIN function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -69,6 +72,8 @@ const AuthService = {
     } catch (error) {
       console.error('Error in Refresh function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -90,6 +95,8 @@ const AuthService = {
     } catch (error) {
       console.error('Error in GetProfile function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -111,6 +118,8 @@ const AuthService = {
     } catch (error) {
       console.error('Error in SignIN function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -133,6 +142,8 @@ const AuthService = {
     } catch (error) {
       console.error('Error in SignUp function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -154,6 +165,8 @@ const AuthService = {
     } catch (error) {
       console.error('Error in Logout function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -175,6 +188,8 @@ const AuthService = {
     } catch (error) {
       console.error('Error in Request OTP function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -200,6 +215,8 @@ const AuthService = {
     } catch (error) {
       console.error('Error in VerifyToken function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );

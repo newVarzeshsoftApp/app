@@ -32,11 +32,17 @@ const ItemCard: React.FC<ItemCardProps> = ({item}) => {
           <BaseText type="body3" color="secondary">
             {t('Contractor')}: {''}
           </BaseText>
-          <ContractorInfo
-            firstName={item.contractor?.firstName}
-            imageName={item?.contractor?.profile?.name}
-            lastName={item.contractor?.lastName}
-          />
+          {item.contractor ? (
+            <ContractorInfo
+              firstName={item.contractor?.firstName}
+              imageName={item?.contractor?.profile?.name}
+              lastName={item.contractor?.lastName}
+            />
+          ) : (
+            <BaseText type="body3" color="base">
+              -
+            </BaseText>
+          )}
         </View>
         {(item?.credit ?? 0) > 0 && (
           <View className="flex-row items-center justify-between ">

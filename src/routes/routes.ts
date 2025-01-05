@@ -2,6 +2,7 @@ import {
   AllOrganizationQuery,
   CategoryQuery,
   ProductQuery,
+  UserPaymentQuey,
   UserSaleItemQuey,
   UserTransactionQuery,
   UserWalletTransactionQuery,
@@ -30,12 +31,14 @@ export const routes = {
     getProductPage: (query: ProductQuery) =>
       `product/page` + prepareQuery(query),
     getProductQuery: () => `product/query`,
+    getProductByID: (id: number) => `product/${id}`,
   },
 
   category: {
     categoryPage: (query: CategoryQuery) =>
       `category/page` + prepareQuery(query),
-    categoryQuery: () => `category/query`,
+    categoryQuery: (query: CategoryQuery) =>
+      `category/query` + prepareQuery(query),
   },
 
   user: {
@@ -55,7 +58,7 @@ export const routes = {
     getUserWalletTransaction: (query: UserWalletTransactionQuery) =>
       `user/wallet` + prepareQuery(query),
     getUserTransactionById: (id: number) => `user/transaction/${id}`,
-    getUserPayment: (query: UserSaleItemQuey) =>
+    getUserPayment: (query: UserPaymentQuey) =>
       `user/payments` + prepareQuery(query),
   },
 

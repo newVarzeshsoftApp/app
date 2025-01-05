@@ -4,6 +4,7 @@ import {routes} from '../routes/routes';
 import axiosInstance from '../utils/AxiosInstans';
 import {AllOrganizationQuery} from './models/requestQueries';
 import {GetAllOrganizationResponse} from './models/response/OrganizationResServise';
+import {handleMutationError} from '../utils/helpers/errorHandler';
 
 const {
   baseUrl,
@@ -25,6 +26,8 @@ const OrganizationServise = {
     } catch (error) {
       console.error('Error in GetProfile function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -47,6 +50,8 @@ const OrganizationServise = {
     } catch (error) {
       console.error('Error in GetProfile function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );
@@ -69,6 +74,8 @@ const OrganizationServise = {
     } catch (error) {
       console.error('Error in GetProfile function:', error);
       if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );

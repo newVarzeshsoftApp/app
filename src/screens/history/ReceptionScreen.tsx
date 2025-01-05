@@ -82,7 +82,7 @@ const ReceptionScreen: React.FC<ReceptionScreenProps> = ({
       header: () => (
         <NavigationHeader
           CenterText
-          range={[0, 100]}
+          range={[0, 50]}
           scrollY={scrollY}
           navigation={navigation}
           title={t('receptions')}
@@ -99,7 +99,7 @@ const ReceptionScreen: React.FC<ReceptionScreenProps> = ({
     [handleDateChange],
   );
   return (
-    <View className="flex-1 Container pt-[30%] web:pt-20">
+    <View className="flex-1 Container">
       <Animated.FlatList
         data={items}
         ListHeaderComponent={headerComponentMemo}
@@ -110,6 +110,7 @@ const ReceptionScreen: React.FC<ReceptionScreenProps> = ({
         onScroll={scrollHandler}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
+        scrollEventThrottle={16}
         ListFooterComponent={
           isLoading ? (
             <View style={{padding: 16, alignItems: 'center'}}>
@@ -129,6 +130,7 @@ const ReceptionScreen: React.FC<ReceptionScreenProps> = ({
         ItemSeparatorComponent={() => <View style={{height: 16}} />}
         contentContainerStyle={{
           paddingVertical: 16,
+          paddingTop: 90,
         }}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
