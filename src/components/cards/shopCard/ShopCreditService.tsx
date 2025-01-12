@@ -34,9 +34,7 @@ const ShopCreditService: React.FC<ShopServiceProps> = ({data}) => {
           <View>
             <BaseText type="subtitle3" color="secondary">
               {t('Duration')} : {''}
-              {data.duration === 0
-                ? t('noLimitForTime')
-                : ConvertDuration(data.duration)}
+              {ConvertDuration(data?.duration ?? 0)}
             </BaseText>
           </View>
         </View>

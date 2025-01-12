@@ -239,13 +239,15 @@ const CreditDetail: React.FC<CreditDetailProp> = ({navigation, route}) => {
                               </View>
                             )}
                           </View>
-                          <BaseButton
-                            text={t('addToCart')}
-                            size="Large"
-                            color="Black"
-                            type="Fill"
-                            rounded
-                          />
+                          {route.params.canBuy !== false && (
+                            <BaseButton
+                              text={t('addToCart')}
+                              size="Large"
+                              color="Black"
+                              type="Fill"
+                              rounded
+                            />
+                          )}
                         </View>
                       </>
                     )

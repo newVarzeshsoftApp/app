@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {Text, TouchableOpacity, View} from 'react-native';
 import {SaleOrderContent} from '../../../services/models/response/UseResrService';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -15,8 +15,9 @@ interface OrderCardProps {
 }
 const ReceptionCard: React.FC<OrderCardProps> = ({item, navigation}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
-  const Titles = item?.items?.map((item, index) => item.title).join(', ');
-  // const SaleItems = Titles?.join(',');
+  const Titles = useMemo(() => {
+    return item?.items?.map((item, index) => item.title).join(', ');
+  }, [item?.items]);
   return (
     <View className="CardBase">
       <View className="gap-2">

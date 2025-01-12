@@ -26,21 +26,23 @@ const ShopServiceCard: React.FC<ShopServiceProps> = ({data}) => {
         <Image
           style={{width: '100%', height: '100%'}}
           source={{
-            uri: (OrganizationBySKU?.imageUrl ?? '') + data?.image?.name,
+            uri: (OrganizationBySKU?.imageUrl ?? '') + '/' + data?.image?.name,
           }}
         />
       </View>
       <View className="gap-2 pt-3">
         <BaseText type="title4">{data.title}</BaseText>
-        <View className="flex-row">
-          <Badge GiftMode defaultMode value={t('shopGift')} />
-        </View>
+        {data.isCashBack && (
+          <View className="flex-row">
+            <Badge GiftMode defaultMode value={t('shopGift')} />
+          </View>
+        )}
         <View className="flex-row items-center justify-between gap-4">
           <BaseText type="body3" color="secondary">
             {t('SingleservicePrice')} :
           </BaseText>
           <BaseText type="body3" color="secondaryPurple">
-            {formatNumber(data.priceList?.[0].price ?? 0)} ﷼
+            {formatNumber(data.price ?? 0)} ﷼
           </BaseText>
         </View>
 

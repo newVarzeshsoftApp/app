@@ -69,7 +69,6 @@ const PackageDetail: React.FC<PackageDetailProps> = ({
             onPress={() =>
               navigation.push('saleItemDetail', {
                 // screen: 'saleItemDetail',
-
                 id: item.id,
                 title: item.title || 'undefined',
               })

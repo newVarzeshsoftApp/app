@@ -7,7 +7,8 @@
     "ticket": "تیکت",
     "cart": "سبدخرید",
     "wallet": "کیف پول",
-    "Error500": "خطای ۵۰۰"
+    "Error500": "خطای ۵۰۰",
+    "more": "مشاهده بیشتر"
   },
   "Auth": {
     "login": "ورود",
@@ -82,7 +83,22 @@
       "more": "مشاهده بیشتر",
       "service": "سرویس جلسه ای",
       "SingleservicePrice": "قیمت هر جلسه",
-      "addToCart": "افزودن به سبد خرید"
+      "addToCart": "افزودن به سبد خرید",
+      "Number of sessions": "تعداد جلسات",
+      "select sessions": "انتخاب  جلسه",
+      "Duration": "مدت زمان",
+      "start": "شروع",
+      "end": "پایان",
+      "Fair consumption": "مصرف منصافه",
+      "Discount": "تخفیف",
+      "Purchase profit": "سود خرید",
+      "Contractor selection": "انتخاب مربی",
+      "Choose Contractor": "مربی خود را انتخاب کنید",
+      "Price per session": "قیمت هر جلسه",
+      "Contractor List": "لیست مربیان",
+      "Total Price": "قیمت قابل پرداخت",
+      "Price": "قیمت",
+      "tax": "مالیات"
     },
     "Package": {
       "noServicesFound": "هیچ سرویسی پیدا نشد",

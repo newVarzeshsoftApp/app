@@ -1,5 +1,14 @@
-import {subProducts} from './UseResrService';
-
+import {subProducts, User} from './UseResrService';
+export interface Contractors {
+  contractorId?: number;
+  createdAt?: string;
+  deletedAt?: string;
+  contractor?: User;
+  amount?: number;
+  id?: number;
+  percent?: number;
+  updatedAt?: string;
+}
 export interface Product {
   title: string;
   sku: string;
@@ -21,7 +30,7 @@ export interface Product {
   requiredContractor: boolean;
   isOnline: boolean;
   isKiosk: boolean | null;
-  contractors: any[];
+  contractors: Contractors[];
   hasPartner: boolean;
   partners: any | null;
   alarms: Alarm[];
@@ -106,7 +115,7 @@ interface Category {
   image: string | null;
 }
 
-interface PriceList {
+export interface PriceList {
   id: number;
   updatedAt: string;
   createdAt: string;
@@ -120,7 +129,9 @@ interface PriceList {
   cashBackPercentage: number;
   cashBackDuration: number;
   discountOnlineShopPercentage: number;
-  metadata: Record<string, any>;
+  metadata: {
+    priority?: number;
+  };
 }
 
 interface ReportTag {
