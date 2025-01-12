@@ -66,6 +66,17 @@ export interface ICheckboxProps extends PressableProps {
   onCheckedChange?: (checked: boolean) => void;
   label?: string;
   asButton?:boolean
+  haveArrow?:boolean
+}
+export interface UserRadioButtonProps extends PressableProps {
+  id?: string;
+  checked: boolean;
+  onCheckedChange?: (checked: boolean) => void;
+  Name?: string | null;
+  asButton?:boolean
+  ImageUrl?:string
+  placeHolder?:string
+  genders:number
 }
 
 export type InputProps<T extends FieldValues> = {

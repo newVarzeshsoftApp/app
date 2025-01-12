@@ -28,7 +28,7 @@ const OrderCard: React.FC<OrderCardProps> = ({item, navigation}) => {
     <>
       <BottomSheet
         ref={sheetRef}
-        activeHeight={height * 0.4}
+        snapPoints={[40]}
         Title={t('Shipping details')}>
         <View className="gap-4">
           <View className="gap-2">

@@ -1,12 +1,6 @@
 import React, {useCallback, useRef, useState} from 'react';
 import {Controller, FieldValues} from 'react-hook-form';
-import {
-  Dimensions,
-  Text,
-  TextInputProps,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {TextInputProps, TouchableOpacity, View} from 'react-native';
 import {InputProps} from '../../models/props';
 import BaseText from '../BaseText';
 import {useTranslation} from 'react-i18next';
@@ -33,7 +27,6 @@ const Picker = <T extends FieldValues>({
   ...props
 }: InputProps<T> & TextInputProps) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Input'});
-  const {width: screenWidth, height: screenHeight} = Dimensions.get('screen');
   const sheetRef = useRef<BottomSheetMethods>(null);
   const {t: auth} = useTranslation('translation', {
     keyPrefix: 'Auth',
@@ -60,7 +53,7 @@ const Picker = <T extends FieldValues>({
             <>
               <BottomSheet
                 ref={sheetRef}
-                activeHeight={screenHeight * 0.4}
+                snapPoints={[40]}
                 Title={auth('Select Gender')}
                 buttonText={auth(`Continue`)}
                 buttonDisabled={value === null}

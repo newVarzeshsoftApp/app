@@ -93,7 +93,7 @@ const OpenCloset: React.FC = () => {
                   openLockers[data.vipLocker.locker.lockerId]
                     ? `${t('open')} ${
                         remainingTimes[data.vipLocker.locker.lockerId]
-                      }s`
+                      } ثانیه`
                     : t('openCloset')
                 }
                 type={
@@ -149,7 +149,7 @@ const OpenCloset: React.FC = () => {
                   }
                   text={
                     openLockers[item.lockerId]
-                      ? `${t('open')} ${remainingTimes[item.lockerId]}s`
+                      ? `${t('open')} ${remainingTimes[item.lockerId]} ثانیه`
                       : t('openCloset')
                   }
                   type={openLockers[item.lockerId] ? 'Fill' : 'Outline'}

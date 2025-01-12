@@ -6,9 +6,10 @@ import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import TenstackProvider from './src/utils/Providers/TenstackProvider';
 import ToastProvider from './src/components/Toast/Toast';
 import {ThemeProvider} from './src/utils/ThemeContext';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
-import {RootNavigator} from './src/navigation/RootNavigator';
+import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
+
 import {Host} from 'react-native-portalize';
+import {RootNavigator} from './src/navigation/RootNavigator';
 
 export default function App() {
   useEffect(() => {

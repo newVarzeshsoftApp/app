@@ -16,6 +16,7 @@ const HomeNavigator: React.FC = ({navigation}: any) => {
       tabBar={props => <TabBar {...props} />}
       initialRouteName="Home"
       screenOptions={({route}) => ({
+        animation: 'shift',
         unmountOnBlur: true,
         headerShown: route.name === 'Home',
         header: () => <Header navigation={navigation} />,

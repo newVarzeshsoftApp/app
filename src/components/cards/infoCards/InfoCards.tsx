@@ -270,7 +270,6 @@ function InfoCards({
     }
     return null;
   };
-  const {height: screenHeight} = Dimensions.get('screen');
   const BottomSheetRef = useRef<BottomSheetMethods>(null);
   const openBottomSheet = () => {
     BottomSheetRef.current?.expand();
@@ -278,7 +277,7 @@ function InfoCards({
   return (
     <>
       <BottomSheet
-        activeHeight={screenHeight * 0.5}
+        snapPoints={[50, 80]}
         ref={BottomSheetRef}
         scrollView
         Title={t('open Closet')}>

@@ -22,14 +22,21 @@ import Animated, {
 } from 'react-native-reanimated';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {Portal} from 'react-native-portalize';
+
 import {useTheme} from '../../utils/ThemeContext';
 import BaseText from '../BaseText';
 import BaseButton from '../Button/BaseButton';
 import {CloseCircle} from 'iconsax-react-native';
-import {Portal} from 'react-native-portalize';
 
 export interface BottomSheetProps {
-  activeHeight: number;
+  /**
+   * Snap points in percentages, e.g. `[30, 80, 20]`
+   * The first value in the array will be used as the "initial" snap
+   * when calling `.expand()`.
+   */
+  snapPoints: number[];
+
   children?: ReactNode;
   Title?: string;
   buttonText?: string;
@@ -43,10 +50,19 @@ export interface BottomSheetMethods {
   expand: () => void;
   close: () => void;
 }
+
+/**
+ * Utility to clamp a number between two values.
+ */
+const clamp = (value: number, min: number, max: number) => {
+  'worklet';
+  return Math.max(min, Math.min(value, max));
+};
+
 const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
   (
     {
-      activeHeight,
+      snapPoints,
       children,
       Title,
       buttonText,
@@ -57,20 +73,42 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     },
     ref,
   ) => {
-    const inset = useSafeAreaInsets();
+    const insets = useSafeAreaInsets();
     const {height} = Dimensions.get('screen');
-    const newActiveHeight = height - activeHeight;
-    const topAnimation = useSharedValue(height);
-    const context = useSharedValue(0);
     const {theme} = useTheme();
-    // ScrollView
+
+    /**
+     * 1) Convert each user snapPoint % => top offset
+     *    preserve array order so [30,80,20] => [0.7*h, 0.2*h, 0.8*h]
+     *    - `snapOffsetsInOrder[0]` => the offset for the "first" snap point.
+     */
+    const snapOffsetsInOrder = snapPoints.map(p => height * (1 - p / 100));
+
+    /**
+     * 2) For "nearest" snapping after drag, we want a sorted array
+     *    e.g. [0.2*h, 0.7*h, 0.8*h]
+     *    - The smallest offset => largest coverage
+     *    - The largest offset => smallest coverage
+     */
+    const sortedSnapOffsets = [...snapOffsetsInOrder].sort((a, b) => a - b);
+
+    // The first item in user array => initial snap offset
+    const initialSnapOffset = snapOffsetsInOrder[0];
+    // The last offset in sorted array => smallest coverage => biggest number
+    const lastSnapOffset = sortedSnapOffsets[sortedSnapOffsets.length - 1];
+    // The smallest offset => largest coverage => sortedSnapOffsets[0]
+
+    // Reanimated shared values
+    const topAnimation = useSharedValue(height); // fully hidden by default
+    const context = useSharedValue(0);
+
+    // For scrollable content
     const scrollBegin = useSharedValue(0);
     const scrollY = useSharedValue(0);
     const [enableScroll, setEnableScroll] = useState(true);
 
-    const closeHeight = height;
-
     const isDarkMode = theme === 'dark';
+
     const styles = StyleSheet.create({
       container: {
         position: 'absolute',
@@ -111,24 +149,25 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       },
     });
 
+    // ================ Imperative methods =================
     const expand = useCallback(() => {
-      'worklet';
-      topAnimation.value = withSpring(newActiveHeight, {
+      // Snap to whatever the user put as the *first* snap point
+      topAnimation.value = withSpring(initialSnapOffset, {
         damping: 100,
         stiffness: 400,
       });
-    }, []);
+    }, [initialSnapOffset]);
 
     const close = useCallback(() => {
-      'worklet';
       topAnimation.value = withSpring(height, {
         damping: 100,
         stiffness: 400,
       });
-    }, []);
+    }, [height]);
 
     useImperativeHandle(ref, () => ({expand, close}), [expand, close]);
 
+    // ================ Animations =================
     const animationStyle = useAnimatedStyle(() => ({
       top: topAnimation.value,
     }));
@@ -136,7 +175,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     const backDropAnimation = useAnimatedStyle(() => {
       const opacity = interpolate(
         topAnimation.value,
-        [height, newActiveHeight],
+        [height, initialSnapOffset],
         [0, 0.5],
       );
       return {
@@ -145,36 +184,57 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       };
     });
 
+    // ================ Nearest Snap Logic =================
+    const findClosestSnap = (value: number) => {
+      'worklet';
+      let closest = sortedSnapOffsets[0];
+      let minDist = Math.abs(value - sortedSnapOffsets[0]);
+      for (let i = 1; i < sortedSnapOffsets.length; i++) {
+        const dist = Math.abs(value - sortedSnapOffsets[i]);
+        if (dist < minDist) {
+          minDist = dist;
+          closest = sortedSnapOffsets[i];
+        }
+      }
+      return closest;
+    };
+
+    // ================ Gesture: Non-Scroll =================
     const pan = Gesture.Pan()
       .onBegin(() => {
         context.value = topAnimation.value;
       })
       .onUpdate(event => {
-        if (event.translationY < 0) {
-          topAnimation.value = withSpring(newActiveHeight, {
-            damping: 100,
-            stiffness: 400,
-          });
-        } else {
-          topAnimation.value = withSpring(context.value + event.translationY, {
-            damping: 100,
-            stiffness: 400,
-          });
-        }
+        // We simply add the drag translation to the existing offset
+        // and clamp it between min offset & max offset in sortedSnapOffsets.
+        const minOffset = sortedSnapOffsets[0]; // e.g. 0.2*height
+        const maxOffset = sortedSnapOffsets[sortedSnapOffsets.length - 1]; // e.g. 0.8*height
+
+        // Proposed new offset
+        let newOffset = context.value + event.translationY;
+
+        // Keep it in range
+        newOffset = clamp(newOffset, minOffset, height);
+        topAnimation.value = newOffset;
       })
       .onEnd(() => {
-        if (topAnimation.value > newActiveHeight + 50) {
+        // If user drags beyond last snap + threshold => close
+        if (topAnimation.value > lastSnapOffset + 50) {
           topAnimation.value = withSpring(height, {
             damping: 100,
             stiffness: 400,
           });
         } else {
-          topAnimation.value = withSpring(newActiveHeight, {
+          // Snap to the nearest
+          const closestSnap = findClosestSnap(topAnimation.value);
+          topAnimation.value = withSpring(closestSnap, {
             damping: 100,
             stiffness: 400,
           });
         }
       });
+
+    // ================ Gesture: Scrollable =================
     const onScroll = useAnimatedScrollHandler({
       onBeginDrag: event => {
         scrollBegin.value = event.contentOffset.y;
@@ -189,44 +249,42 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         context.value = topAnimation.value;
       })
       .onUpdate(event => {
-        if (event.translationY < 0) {
-          topAnimation.value = withSpring(newActiveHeight, {
-            damping: 100,
-            stiffness: 400,
-          });
-        } else if (event.translationY > 0 && scrollY.value === 0) {
+        const minOffset = sortedSnapOffsets[0];
+        const maxOffset = height;
+        let newOffset = context.value + event.translationY - scrollBegin.value;
+
+        newOffset = clamp(newOffset, minOffset, maxOffset);
+
+        if (scrollY.value === 0 || event.translationY < 0) {
           runOnJS(setEnableScroll)(false);
-          topAnimation.value = withSpring(
-            Math.max(
-              context.value + event.translationY - scrollBegin.value,
-              newActiveHeight,
-            ),
-            {
-              damping: 100,
-              stiffness: 400,
-            },
-          );
+          topAnimation.value = newOffset;
         }
       })
       .onEnd(() => {
         runOnJS(setEnableScroll)(true);
-        if (topAnimation.value > newActiveHeight + 50) {
-          topAnimation.value = withSpring(closeHeight, {
+
+        if (topAnimation.value > lastSnapOffset + 50) {
+          // close
+          topAnimation.value = withSpring(height, {
             damping: 100,
             stiffness: 400,
           });
         } else {
-          topAnimation.value = withSpring(newActiveHeight, {
+          // nearest snap
+          const closestSnap = findClosestSnap(topAnimation.value);
+          topAnimation.value = withSpring(closestSnap, {
             damping: 100,
             stiffness: 400,
           });
         }
       });
 
+    // Combine scroll & pan gestures for the ScrollView
     const scrollViewGesture = Gesture.Native();
 
     return (
       <Portal>
+        {/* Backdrop */}
         <TouchableWithoutFeedback onPress={close}>
           <Animated.View
             style={[
@@ -236,23 +294,27 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
             ]}
           />
         </TouchableWithoutFeedback>
+
+        {/* Main container with gesture handling */}
         <GestureDetector gesture={disablePan ? Gesture.Tap() : pan}>
           <Animated.View
             style={[
               styles.container,
               animationStyle,
               {
-                paddingBottom: inset.bottom,
+                paddingBottom: insets.bottom,
               },
             ]}>
+            {/* Optional "grabber line" */}
             {!disablePan && (
               <View style={styles.lineContainer}>
                 <View style={styles.line} />
               </View>
             )}
+
             <View
-              className={`Container gap-4 mx-auto  flex-1 android:pb-4 web:pb-4 ${
-                disablePan && 'pt-4'
+              className={`Container gap-4 mx-auto flex-1 android:pb-4 web:pb-4 ${
+                disablePan ? 'pt-4' : ''
               }`}>
               {Title && (
                 <View className="flex-row items-center justify-between">
@@ -267,7 +329,9 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
                   />
                 </View>
               )}
+
               {scrollView ? (
+                // Scrollable Content
                 <GestureDetector
                   gesture={
                     disablePan
@@ -285,8 +349,9 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
                   </Animated.ScrollView>
                 </GestureDetector>
               ) : (
+                // Non-scrollable Content
                 <View className="flex-grow gap-3">
-                  <View className="flex-1"> {children}</View>
+                  <View className="flex-1">{children}</View>
                   {buttonText && onButtonPress && (
                     <BaseButton
                       text={buttonText || ''}

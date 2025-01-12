@@ -104,7 +104,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
       <BottomSheet
         ref={bottomsheetRef}
         scrollView
-        activeHeight={height * 0.6}
+        snapPoints={[60]}
         Title={t('description')}>
         <BaseText type="body2">
           {data.description ? data.description : t('No description')}

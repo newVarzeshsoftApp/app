@@ -158,6 +158,19 @@ export function ConvertDuration(days: number): string {
 
   return result;
 }
+export const formatTimeDuration = (totalMinutes: number) => {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours > 0 && minutes > 0) {
+    return `${hours} ساعت و ${minutes} دقیقه`;
+  } else if (hours > 0) {
+    return `${hours} ساعت`;
+  } else {
+    return `${minutes} دقیقه`;
+  }
+};
+
 export function calculateRemainingDays(subscription: {
   start: string;
   end: string;

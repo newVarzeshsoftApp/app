@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {Text, TouchableOpacity, View, StyleSheet} from 'react-native';
 import BaseText from './BaseText';
+import {useTranslation} from 'react-i18next';
 
 interface TruncatedTextProps {
   text: string | null; // The full text to be displayed
@@ -15,6 +16,8 @@ export const TruncatedText: React.FC<TruncatedTextProps> = ({
   onPressMore,
   length = 80,
 }) => {
+  const {t} = useTranslation('translation', {keyPrefix: 'Global'});
+
   const toggleExpand = () => {
     if (onPressMore) {
       onPressMore();
@@ -23,15 +26,15 @@ export const TruncatedText: React.FC<TruncatedTextProps> = ({
 
   const truncatedText = text?.slice(0, length); // Adjust for desired character limit
   const HaveMore = text ? text.length > length : false;
+
   return (
     <View>
       <BaseText type="body3" color="secondary">
         {truncatedText}
-        {HaveMore && moreText && (
+        {HaveMore && (
           <TouchableOpacity onPress={toggleExpand}>
             <BaseText type="body3" color="secondaryPurple">
-              {' '}
-              ...{moreText}
+              ...{moreText ? moreText : t('more')}
             </BaseText>
           </TouchableOpacity>
         )}

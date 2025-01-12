@@ -108,7 +108,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({mode, onDateChange}) => {
     <>
       <BottomSheet
         ref={bottomSheetRef}
-        activeHeight={screenHeight * 0.5}
+        snapPoints={[50]}
         Title="انتخاب تاریخ"
         buttonText="تایید"
         disablePan={true}

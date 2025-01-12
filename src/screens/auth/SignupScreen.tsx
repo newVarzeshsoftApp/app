@@ -1,12 +1,10 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React from 'react';
 import {
   View,
-  Text,
   TouchableOpacity,
   Dimensions,
   Platform,
   ScrollView,
-  TextBase,
 } from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {AuthStackParamList} from '../../utils/types/NavigationTypes';
@@ -28,9 +26,6 @@ import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
 import ResponsiveImage from '../../components/ResponsiveImage';
 import Picker from '../../components/Picker/Picker';
-import RadioButton from '../../components/Button/RadioButton/RadioButton';
-import {PickerOption, genders} from '../../constants/options';
-import {useBottomSheet} from '../../components/BottomSheet/BottomSheetProvider';
 type SignupScreenProps = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
 const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Input'});
