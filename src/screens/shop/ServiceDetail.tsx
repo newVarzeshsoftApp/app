@@ -88,6 +88,15 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
   });
 
   useEffect(() => {
+    if (route.params.priceId) {
+      const findPriceList = data?.priceList.find(
+        (item, index) => item.id === route.params.priceId,
+      );
+      if (findPriceList) {
+        setSelectedPriceList(findPriceList);
+        return;
+      }
+    }
     if (data?.priceList) {
       // Sort the price list by metadata.priority if it exists
       const sortedList = [...data.priceList].sort((a, b) => {
@@ -100,13 +109,22 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
     } else {
       setSortedPriceList([]);
     }
-  }, [data?.priceList]);
+  }, [data?.priceList, route.params.priceId]);
 
   useEffect(() => {
+    if (route.params.contractorId) {
+      const foundedContractor = data?.contractors.find(
+        (item, index) => item.contractor?.id === route.params.contractorId,
+      );
+      if (foundedContractor) {
+        setSelectedContractor(foundedContractor);
+        return;
+      }
+    }
     if (data?.requiredContractor) {
       setSelectedContractor(data.contractors[0]);
     }
-  }, [data?.requiredContractor]);
+  }, [data?.requiredContractor, data?.contractors, route.params.priceId]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -306,6 +324,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                                 checked
                                 asButton
                                 haveArrow
+                                readonly={route.params.readonly}
                                 onCheckedChange={() =>
                                   BottomSheetPriceListRef.current?.expand()
                                 }
@@ -331,6 +350,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                                 <UserRadioButton
                                   checked={SelectedContractor ? true : false}
                                   asButton
+                                  readonly={route.params.readonly}
                                   genders={
                                     SelectedContractor?.contractor?.gender ??
                                     ProfileData?.gender ??
@@ -351,6 +371,8 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                                   }
                                 />
                                 {!data?.requiredContractor &&
+                                  !route.params.contractorId &&
+                                  route.params.readonly &&
                                   SelectedContractor && (
                                     <BaseButton
                                       noText
@@ -431,7 +453,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                         </>
                       )}
                     </View>
-                    {route.params.canBuy !== false && (
+                    {!route.params.readonly && (
                       <BaseButton
                         color="Black"
                         type="Fill"

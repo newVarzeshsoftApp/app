@@ -22,6 +22,7 @@ const UserRadioButton: React.FC<UserRadioButtonProps> = ({
   Name,
   placeHolder,
   genders,
+  readonly,
 }) => {
   const {theme} = useTheme();
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
@@ -33,7 +34,7 @@ const UserRadioButton: React.FC<UserRadioButtonProps> = ({
   const circleScale = useSharedValue(0);
   const radioScale = useSharedValue(1);
   const handlePress = () => {
-    if (onCheckedChange) {
+    if (onCheckedChange && !readonly) {
       onCheckedChange(!checked);
     }
 

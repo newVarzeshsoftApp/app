@@ -19,6 +19,7 @@ const RadioButton: React.FC<ICheckboxProps> = ({
   onCheckedChange,
   asButton,
   haveArrow,
+  readonly,
 }) => {
   const {theme} = useTheme();
 
@@ -30,7 +31,7 @@ const RadioButton: React.FC<ICheckboxProps> = ({
   const radioScale = useSharedValue(1);
   const arrowRotation = useSharedValue(checked ? 0 : 90);
   const handlePress = () => {
-    if (onCheckedChange) {
+    if (onCheckedChange && !readonly) {
       onCheckedChange(!checked);
     }
 

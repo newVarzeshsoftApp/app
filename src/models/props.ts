@@ -67,6 +67,7 @@ export interface ICheckboxProps extends PressableProps {
   label?: string;
   asButton?:boolean
   haveArrow?:boolean
+  readonly?:boolean
 }
 export interface UserRadioButtonProps extends PressableProps {
   id?: string;
@@ -76,6 +77,7 @@ export interface UserRadioButtonProps extends PressableProps {
   asButton?:boolean
   ImageUrl?:string
   placeHolder?:string
+  readonly?:boolean
   genders:number
 }
 

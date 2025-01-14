@@ -51,7 +51,9 @@ const ShopPackageService: React.FC<ShopServiceProps> = ({data}) => {
               navigation.push(routeName, {
                 id: item.product?.id,
                 title: item.product?.title,
-                canBuy: false,
+                readonly: true,
+                contractorId: item.contractorId,
+                priceId: item.priceId,
               })
             }>
             <CardComponent key={item.id} data={item} />

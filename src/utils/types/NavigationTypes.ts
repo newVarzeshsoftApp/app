@@ -53,7 +53,13 @@ export type HomeStackParamList = {
   cart: undefined;
   wallet: WalletStackParamList;
 };
-type ShopDetail = {id: number; title: string; canBuy?: boolean};
+type ShopDetail = {
+  id: number;
+  title: string;
+  readonly?: boolean;
+  contractorId?: number;
+  priceId?: number;
+};
 export type ShopStackParamList = {
   creditService: undefined;
   packageService: undefined;
