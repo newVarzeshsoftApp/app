@@ -41,11 +41,14 @@ const linking: LinkingOptions<RootStackParamList> = {
           ShopNavigator: {
             screens: {
               creditService: 'shop/credit',
-              creditDetail: 'shop/credit/:id/:title',
+              creditDetail:
+                'shop/credit/:id/:title/:readonly/:contractorId/:priceId',
               packageService: 'shop/package',
-              packageDetail: 'shop/package/:id/:title',
+              packageDetail:
+                'shop/package/:id/:title/:readonly/:contractorId/:priceId',
               service: 'shop/service',
-              serviceDetail: 'shop/service/:id/:title',
+              serviceDetail:
+                'shop/service/:id/:title/:readonly/:contractorId/:priceId',
             },
           },
           HistoryNavigator: {
