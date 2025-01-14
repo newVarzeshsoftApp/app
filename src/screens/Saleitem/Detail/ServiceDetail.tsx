@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 import {ActivityIndicator, Dimensions, Image, View} from 'react-native';
 import Animated, {
   interpolate,
@@ -20,9 +20,10 @@ import {RouteProp} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {SaleItemStackParamList} from '../../../utils/types/NavigationTypes';
 import NavigationHeader from '../../../components/header/NavigationHeader';
-import BottomSheet from '../../../components/BottomSheet/BottomSheet';
+import BottomSheet, {
+  BottomSheetMethods,
+} from '../../../components/BottomSheet/BottomSheet';
 import Badge from '../../../components/Badge/Badge';
-// import {useBottomSheet} from '../../../components/BottomSheet/BottomSheetProvider';
 import ContractorInfo from '../../../components/ContractorInfo/ContractorInfo';
 type ServiceDetailNavigationProp = NativeStackNavigationProp<
   SaleItemStackParamList,
@@ -43,8 +44,8 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
   route,
 }) => {
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
-  // const {showBottomSheet, BottomSheetConfig, hideBottomSheet} =
-  //   useBottomSheet();
+
+  const bottomsheetRef = useRef<BottomSheetMethods>(null);
   const {height} = Dimensions.get('screen');
   const {t} = useTranslation('translation', {keyPrefix: 'Detail'});
   const {data: UserSession, isLoading: UserSessionisLoading} =
@@ -74,8 +75,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
     },
   });
   const {theme} = useTheme();
-  const BaseColor =
-    theme === 'dark' ? 'rgba(27,29,33,0.3)' : 'rgba(244,244,245,0.3)';
+  const BaseColor = theme === 'dark' ? '#232529' : 'rgba(244,244,245,0.3)';
   const BaseHighlight =
     theme === 'dark' ? 'rgba(42, 45, 51, 1)' : 'rgba(255,255,255,1)';
 
@@ -99,36 +99,24 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
       ],
     };
   });
-
-  // useEffect(() => {
-  //   BottomSheetConfig({
-  //     activeHeight: height * 0.6,
-  //     scrollView: true,
-  //     Title: t('description'),
-  //     children: (
-  //       <BaseText type="body2">
-  //         {data.description ? data.description : t('No description')}
-  //       </BaseText>
-  //     ),
-  //   });
-  // }, []);
   return (
     <>
-      {/* <BottomSheet
-        ref={sheetRef}
-        activeHeight={height * 0.6}
+      <BottomSheet
+        ref={bottomsheetRef}
+        scrollView
+        snapPoints={[60]}
         Title={t('description')}>
         <BaseText type="body2">
           {data.description ? data.description : t('No description')}
         </BaseText>
-      </BottomSheet> */}
+      </BottomSheet>
       <View style={{flex: 1}}>
         <Animated.ScrollView
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{flexGrow: 1}}
           onScroll={scrollHandler}
-          scrollEventThrottle={7}
+          scrollEventThrottle={16}
           style={{flex: 1}}>
           <View className="flex-1">
             <Animated.Image
@@ -142,10 +130,8 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
 
             <View className="flex-1">
               <LinearGradient
-                colors={[BaseHighlight, BaseColor, BaseHighlight]}
-                start={{x: 0, y: 1}}
-                end={{x: 0, y: 0}}
-                locations={[0, 0.5, 1]}
+                colors={[BaseHighlight, BaseHighlight, BaseColor]}
+                locations={[0, 0, 0.3, 0.5]}
                 className=""
                 style={{
                   flex: 1,
@@ -210,7 +196,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                           type="Outline"
                           text={t('description')}
                           rounded
-                          // onPress={() => showBottomSheet()}
+                          onPress={() => bottomsheetRef.current?.expand()}
                           Extraclass="!flex-1"
                         />
                       </View>

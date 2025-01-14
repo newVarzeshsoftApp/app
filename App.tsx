@@ -1,15 +1,15 @@
 import './gesture-handler';
 import React, {useEffect} from 'react';
 import {loadLanguage} from './src/utils/helpers/languageUtils';
-import {Platform, View} from 'react-native';
+import {View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import TenstackProvider from './src/utils/Providers/TenstackProvider';
 import ToastProvider from './src/components/Toast/Toast';
 import {ThemeProvider} from './src/utils/ThemeContext';
-import {SafeAreaProvider} from 'react-native-safe-area-context';
-import {RootNavigator} from './src/navigation/RootNavigator';
+import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
+
 import {Host} from 'react-native-portalize';
-import {BottomSheetProvider} from './src/components/BottomSheet/BottomSheetProvider';
+import {RootNavigator} from './src/navigation/RootNavigator';
 
 export default function App() {
   useEffect(() => {
@@ -23,10 +23,8 @@ export default function App() {
           <TenstackProvider>
             <View className="flex-1 bg-neutral-100 dark:bg-neutral-dark-100 max-w-[450px] web:overflow-hidden mx-auto w-full">
               <Host>
-                <BottomSheetProvider>
-                  <RootNavigator />
-                  <ToastProvider />
-                </BottomSheetProvider>
+                <RootNavigator />
+                <ToastProvider />
               </Host>
             </View>
           </TenstackProvider>

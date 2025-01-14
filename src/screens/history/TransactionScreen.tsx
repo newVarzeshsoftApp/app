@@ -88,7 +88,7 @@ const TransactionScreen: React.FC<SaleItemDetailProps> = ({
       header: () => (
         <NavigationHeader
           CenterText
-          range={[0, 100]}
+          range={[0, 50]}
           scrollY={scrollY}
           navigation={navigation}
           title={t('transactions')}
@@ -128,7 +128,7 @@ const TransactionScreen: React.FC<SaleItemDetailProps> = ({
         />
       </View>
 
-      <View className="flex-1 Container pt-[30%] web:pt-20">
+      <View className="flex-1 Container ">
         <Animated.FlatList
           data={items}
           ListHeaderComponent={headerComponentMemo}
@@ -156,6 +156,7 @@ const TransactionScreen: React.FC<SaleItemDetailProps> = ({
           ItemSeparatorComponent={() => <View style={{height: 16}} />}
           contentContainerStyle={{
             paddingVertical: 16,
+            paddingTop: 90,
           }}
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}

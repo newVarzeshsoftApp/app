@@ -1,3 +1,9 @@
+import {
+  PriceList,
+  Product,
+  Product as ProductService,
+} from './ProductResService';
+
 export type GetUserCreditRes = {
   result: string;
 };
@@ -170,102 +176,24 @@ export interface SaleOrder {
   meta?: string;
 }
 
-export interface Product {
-  id: number;
-  title?: string;
-  sku?: string;
-  price?: number;
+export interface subProducts {
+  quantity?: number;
   discount?: number;
-  status?: boolean;
-  isLocker?: boolean;
-  unlimited?: boolean;
-  checkInsurance?: boolean;
-  related?: boolean;
-  tax?: number;
-  capacity?: number;
-  reserveCapacity?: number;
-  reservable?: boolean;
-  duration?: number;
-  archivedPenaltyAmount?: number;
-  convertToIncomeAfterDays?: number;
-  hasContractor?: boolean;
-  requiredContractor?: boolean;
-  contractors?: null;
-  hasPartner?: boolean;
-  partners?: null;
-  alarms?: any[];
-  mustSentToTax?: boolean;
-  includeSms?: boolean;
+  id: number;
   updatedAt?: string;
   createdAt?: string;
   deletedAt?: string | null;
-  type?: number;
-  image?: {
-    name?: string;
-    width?: number;
-    height?: number;
-    size?: number;
-  };
-  transferableToWallet?: boolean;
-  needLocker?: number;
-  description?: string | null;
-  taxSystemDescription?: string | null;
-  uniqueTaxCode?: string | null;
-  benefitContractorFromPenalty?: boolean;
-  actionAfterUnfairUsageTime?: number;
-  manualPrice?: boolean;
-  archivedType?: number;
-  metadata?: any[];
-  archivedContractorIncomeType?: boolean;
-  reservationPenalty?: any[];
-  allowComment?: boolean;
-  withGuest?: boolean;
-  fairUseTime?: number;
-  fairUseLimitTime?: number;
-  fairUseAmountFormula?: string | null;
-  unfairUseAmount?: number;
-  hasPriceList?: boolean;
-  hasSchedules?: boolean;
-  hasSubProduct?: boolean;
-  isInsuranceService?: boolean;
-  isSubscriptionService?: boolean;
-  isGift?: boolean;
-  isCashBack?: boolean;
-  receptionAutoPrint?: boolean;
-  isGiftGenerator?: boolean;
-  transferAmount?: number;
-  defaultSmsTemplate?: string | null;
-  category?: {
-    id: number;
-    title?: string;
-    forEvent?: boolean;
-    type?: number;
-    isOnline?: boolean;
-    updatedAt?: string;
-    createdAt?: string;
-    deletedAt?: string | null;
-    image?: string | null;
-  };
-  priceList?: any[];
-  subProducts?: {
-    quantity?: number;
-    discount?: number;
-    id: number;
-    updatedAt?: string;
-    createdAt?: string;
-    deletedAt?: string | null;
-    amount?: number | null;
-    tax?: number;
-    organizationUnitId?: number | null;
-    parentId?: number;
-    productId?: number;
-    product?: Product;
-    categoryId?: number | null;
-    saleUnitId?: number | null;
-    contractorId?: number | null;
-    priceId?: number | null;
-  }[];
-  categoryId?: number;
+  amount?: number | null;
+  tax?: number;
+  organizationUnitId?: number | null;
+  parentId?: number;
+  productId?: number;
+  product?: ProductService;
+  categoryId?: number | null;
+  saleUnitId?: number | null;
+  contractorId?: number | null;
+  price?: PriceList;
+  priceId?: number | null;
 }
 
 export interface Content {
@@ -299,7 +227,7 @@ export interface Content {
   contractor?: User;
   user?: User;
   organizationUnit?: OrganizationUnit;
-  product?: Product;
+  product?: ProductService;
   usable?: boolean;
   category?: {
     id: number;
@@ -356,7 +284,7 @@ export interface SaleOrderContent {
   submitAt?: string;
   vipLocker?: VipLocker;
   vipLockerId?: number;
-  items?: string[];
+  items?: SaleOrderItem[];
   shiftWork?: Record<string, unknown>;
   shiftWorkId?: number;
   saleUnit?: SaleUnit;

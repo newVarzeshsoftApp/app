@@ -132,6 +132,45 @@ export function queryToJSON(query: string): object {
 export const formatNumber = (num: any) => {
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 };
+export function ConvertDuration(days: number): string {
+  const daysInYear = 365;
+  const daysInMonth = 30;
+
+  const years = Math.floor(days / daysInYear);
+  const remainingDaysAfterYears = days % daysInYear;
+  const months = Math.floor(remainingDaysAfterYears / daysInMonth);
+  const remainingDaysAfterMonths = remainingDaysAfterYears % daysInMonth;
+
+  let result = '';
+  if (years > 0) {
+    result += `${years} سال`;
+  }
+  if (months > 0) {
+    result += `${result ? ' و ' : ''}${months} ماه`;
+  }
+  if (remainingDaysAfterMonths > 0) {
+    result += `${result ? ' و ' : ''}${remainingDaysAfterMonths} روز`;
+  }
+
+  if (!result) {
+    result = `${days} روز`;
+  }
+
+  return result;
+}
+export const formatTimeDuration = (totalMinutes: number) => {
+  const hours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+
+  if (hours > 0 && minutes > 0) {
+    return `${hours} ساعت و ${minutes} دقیقه`;
+  } else if (hours > 0) {
+    return `${hours} ساعت`;
+  } else {
+    return `${minutes} دقیقه`;
+  }
+};
+
 export function calculateRemainingDays(subscription: {
   start: string;
   end: string;

@@ -59,6 +59,12 @@ export enum TransactionSourceType {
   Transfer, // انتقالی
   Reserve, // رزور
 }
+export enum ProductType {
+  Product,
+  Service,
+  Credit,
+  Package,
+}
 export enum TransactionType {
   Deposit,
   Settle,

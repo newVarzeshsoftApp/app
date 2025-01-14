@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {Text, View} from 'react-native';
 import BaseText from '../../../components/BaseText';
 import {useTranslation} from 'react-i18next';
@@ -11,12 +11,19 @@ type ItemCardProps = {
 
 const ItemCard: React.FC<ItemCardProps> = ({item}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
-  const tax =
-    (((item?.amount ?? 0) * (item?.quantity ?? 0) - (item?.discount ?? 0)) *
-      (item?.tax ?? 0)) /
-    100;
-  const Total =
-    (item?.amount ?? 0) * (item?.quantity ?? 0) - (item?.discount ?? 0);
+  const tax = useMemo(
+    () =>
+      (((item?.amount ?? 0) * (item?.quantity ?? 0) - (item?.discount ?? 0)) *
+        (item?.tax ?? 0)) /
+      100,
+    [item?.amount, item?.quantity, item?.discount, item?.tax],
+  );
+
+  const Total = useMemo(
+    () => (item?.amount ?? 0) * (item?.quantity ?? 0) - (item?.discount ?? 0),
+    [item?.amount, item?.quantity, item?.discount],
+  );
+
   return (
     <View className="CardBase flex-1">
       <View className="gap-2">
@@ -32,11 +39,17 @@ const ItemCard: React.FC<ItemCardProps> = ({item}) => {
           <BaseText type="body3" color="secondary">
             {t('Contractor')}: {''}
           </BaseText>
-          <ContractorInfo
-            firstName={item.contractor?.firstName}
-            imageName={item?.contractor?.profile?.name}
-            lastName={item.contractor?.lastName}
-          />
+          {item.contractor ? (
+            <ContractorInfo
+              firstName={item.contractor?.firstName}
+              imageName={item?.contractor?.profile?.name}
+              lastName={item.contractor?.lastName}
+            />
+          ) : (
+            <BaseText type="body3" color="base">
+              -
+            </BaseText>
+          )}
         </View>
         {(item?.credit ?? 0) > 0 && (
           <View className="flex-row items-center justify-between ">

@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react';
+import React, {useEffect, useRef} from 'react';
 import {
   Dimensions,
   Image,
@@ -27,8 +27,8 @@ import MedicalBag from '../../../assets/icons/MedicalBag.svg';
 import Closet from '../../../assets/icons/Closet.svg';
 import BMI from '../../../assets/icons/BMI.svg';
 import Badge from '../../Badge/Badge';
-import {useBottomSheet} from '../../BottomSheet/BottomSheetProvider';
 import OpenCloset from '../../../screens/home/components/OpenCloset';
+import BottomSheet, {BottomSheetMethods} from '../../BottomSheet/BottomSheet';
 
 function InfoCards({
   type,
@@ -270,82 +270,89 @@ function InfoCards({
     }
     return null;
   };
-  const {width: screenWidth, height: screenHeight} = Dimensions.get('screen');
-  const {showBottomSheet, BottomSheetConfig} = useBottomSheet();
-  useEffect(() => {
-    BottomSheetConfig({
-      activeHeight: screenHeight * 0.5,
-      Title: t('open Closet'),
-      children: <OpenCloset />,
-      scrollView: true,
-    });
-  }, []);
+  const BottomSheetRef = useRef<BottomSheetMethods>(null);
+  const openBottomSheet = () => {
+    BottomSheetRef.current?.expand();
+  };
   return (
-    <TouchableOpacity
-      onPress={() => showBottomSheet()}
-      disabled={
-        type !== 'ClosetInfo' ||
-        (data?.vipLocker && Object.keys(data.vipLocker).length === 0) ||
-        (data?.lockers && Object.keys(data.lockers).length === 0)
-      }
-      className="w-full h-[125px]">
-      <LinearGradient
-        colors={colors}
-        start={{x: 0, y: 1.5}}
-        end={{x: 1, y: 0}}
-        locations={[0, 0.5, 1]}
-        style={{
-          flex: 1,
-          borderRadius: 24,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
-        <View className="flex-1 p-[2px] w-full h-full relative z-10 overflow-hidden">
-          <View className="flex-1 w-full p-4 items-start justify-between overflow-hidden h-full dark:bg-neutral-dark-300/85 bg-neutral-0/85 rounded-3xl">
-            <View className="flex-row gap-3 items-center">
-              <View className="w-[44px] h-[44px] z-10 rounded-full bg-neutral-100 dark:bg-neutral-dark-100 justify-center items-center">
-                {renderIcon()}
+    <>
+      <BottomSheet
+        snapPoints={[50, 80]}
+        ref={BottomSheetRef}
+        scrollView
+        Title={t('open Closet')}>
+        <OpenCloset />
+      </BottomSheet>
+      <TouchableOpacity
+        onPress={() => openBottomSheet()}
+        disabled={
+          type !== 'ClosetInfo' ||
+          (data?.vipLocker && Object.keys(data.vipLocker).length === 0) ||
+          (data?.lockers && Object.keys(data.lockers).length === 0)
+        }
+        className="w-full h-[125px]">
+        <LinearGradient
+          colors={colors}
+          start={{x: 0, y: 1.5}}
+          end={{x: 1, y: 0}}
+          locations={[0, 0.5, 1]}
+          style={{
+            flex: 1,
+            borderRadius: 24,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+          <View className="flex-1 p-[2px] w-full h-full relative z-10 overflow-hidden">
+            <View className="flex-1 w-full p-4 items-start justify-between overflow-hidden h-full dark:bg-neutral-dark-300/85 bg-neutral-0/85 rounded-3xl">
+              <View className="flex-row gap-3 items-center">
+                <View className="w-[44px] h-[44px] z-10 rounded-full bg-neutral-100 dark:bg-neutral-dark-100 justify-center items-center">
+                  {renderIcon()}
+                </View>
+                <BaseText type="title4">{renderTitle()}</BaseText>
               </View>
-              <BaseText type="title4">{renderTitle()}</BaseText>
-            </View>
-            {isSuccess && (
-              <>
-                {!isDataAvailable && (
-                  <View className="items-center justify-center flex-row flex-1 w-full">
-                    <BaseText type="subtitle3" color="secondary">
-                      {t('without')} {''}
-                      {renderTitle()}
-                    </BaseText>
-                  </View>
-                )}
-                {(type === 'MembershipInfo' || type === 'InsuranceInfo') && (
-                  <View className="flex-row items-center gap-1">
-                    {isExpired ? (
-                      <CloseCircle size="16" color="#FD504F" variant="Bold" />
-                    ) : isWarning ? (
-                      <Danger size="16" color="#FF9134" variant="Bold" />
-                    ) : (
-                      isDataAvailable && (
-                        <TickCircle size="16" color="#37C976" variant="Bold" />
-                      )
-                    )}
-
-                    <View className="flex-row gap-1">
+              {isSuccess && (
+                <>
+                  {!isDataAvailable && (
+                    <View className="items-center justify-center flex-row flex-1 w-full">
                       <BaseText type="subtitle3" color="secondary">
-                        {duration}
+                        {t('without')} {''}
+                        {renderTitle()}
                       </BaseText>
-                      {renderWarningOrError()}
                     </View>
-                  </View>
-                )}
-                {renderEndDate()}
-                {renderBadgeSection()}
-              </>
-            )}
+                  )}
+                  {(type === 'MembershipInfo' || type === 'InsuranceInfo') && (
+                    <View className="flex-row items-center gap-1">
+                      {isExpired ? (
+                        <CloseCircle size="16" color="#FD504F" variant="Bold" />
+                      ) : isWarning ? (
+                        <Danger size="16" color="#FF9134" variant="Bold" />
+                      ) : (
+                        isDataAvailable && (
+                          <TickCircle
+                            size="16"
+                            color="#37C976"
+                            variant="Bold"
+                          />
+                        )
+                      )}
+
+                      <View className="flex-row gap-1">
+                        <BaseText type="subtitle3" color="secondary">
+                          {duration}
+                        </BaseText>
+                        {renderWarningOrError()}
+                      </View>
+                    </View>
+                  )}
+                  {renderEndDate()}
+                  {renderBadgeSection()}
+                </>
+              )}
+            </View>
           </View>
-        </View>
-      </LinearGradient>
-    </TouchableOpacity>
+        </LinearGradient>
+      </TouchableOpacity>
+    </>
   );
 }
 

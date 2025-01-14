@@ -1,5 +1,8 @@
 import {
   AllOrganizationQuery,
+  CategoryQuery,
+  ProductQuery,
+  UserPaymentQuey,
   UserSaleItemQuey,
   UserTransactionQuery,
   UserWalletTransactionQuery,
@@ -24,6 +27,20 @@ export const routes = {
     getOrganizationBySKU: (sku: string) => `organization/by-sku/${sku}`,
     getOrganizationByID: (id: number) => `organization/by-sku/${id}`,
   },
+  product: {
+    getProductPage: (query: ProductQuery) =>
+      `product/page` + prepareQuery(query),
+    getProductQuery: () => `product/query`,
+    getProductByID: (id: number) => `product/${id}`,
+  },
+
+  category: {
+    categoryPage: (query: CategoryQuery) =>
+      `category/page` + prepareQuery(query),
+    categoryQuery: (query: CategoryQuery) =>
+      `category/query` + prepareQuery(query),
+  },
+
   user: {
     getUserCredit: () => `user/credit`,
     getUserDashboard: () => `user/dashbord`,
@@ -41,9 +58,10 @@ export const routes = {
     getUserWalletTransaction: (query: UserWalletTransactionQuery) =>
       `user/wallet` + prepareQuery(query),
     getUserTransactionById: (id: number) => `user/transaction/${id}`,
-    getUserPayment: (query: UserSaleItemQuey) =>
+    getUserPayment: (query: UserPaymentQuey) =>
       `user/payments` + prepareQuery(query),
   },
+
   manageLocker: {
     openLocker: () => `locker/open-locker`,
   },

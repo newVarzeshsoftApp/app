@@ -39,7 +39,7 @@ const OrderDetailScreen: React.FC<OrderDetailScreenProps> = ({
       header: () => (
         <NavigationHeader
           CenterText
-          range={[0, 50]}
+          range={[0, 30]}
           scrollY={scrollY}
           navigation={navigation}
           title={t(isReseption ? 'Reseption Detail' : 'order Detail')}

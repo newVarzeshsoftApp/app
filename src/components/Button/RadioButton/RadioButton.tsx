@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {Pressable, View, Text, Platform} from 'react-native';
 import Animated, {
   useSharedValue,
@@ -10,13 +10,16 @@ import Animated, {
 import {useTheme} from '../../../utils/ThemeContext';
 import {ICheckboxProps} from '../../../models/props';
 import BaseText from '../../BaseText';
+import {ArrowDown2} from 'iconsax-react-native';
 
 const RadioButton: React.FC<ICheckboxProps> = ({
   id,
   checked,
-  onCheckedChange,
   label,
+  onCheckedChange,
   asButton,
+  haveArrow,
+  readonly,
 }) => {
   const {theme} = useTheme();
 
@@ -26,9 +29,9 @@ const RadioButton: React.FC<ICheckboxProps> = ({
   // Reanimated values for mobile
   const circleScale = useSharedValue(0);
   const radioScale = useSharedValue(1);
-
+  const arrowRotation = useSharedValue(checked ? 0 : 90);
   const handlePress = () => {
-    if (onCheckedChange) {
+    if (onCheckedChange && !readonly) {
       onCheckedChange(!checked);
     }
 
@@ -49,7 +52,12 @@ const RadioButton: React.FC<ICheckboxProps> = ({
       );
     }
   };
-
+  useEffect(() => {
+    arrowRotation.value = withTiming(checked ? 0 : 90, {
+      duration: 200,
+      easing: Easing.out(Easing.quad),
+    });
+  }, [checked]);
   // Animated styles for mobile
   const animatedCircleStyle = useAnimatedStyle(() => ({
     transform: [{scale: circleScale.value}],
@@ -58,62 +66,81 @@ const RadioButton: React.FC<ICheckboxProps> = ({
   const animatedRadioStyle = useAnimatedStyle(() => ({
     transform: [{scale: radioScale.value}],
   }));
+  const animatedArrowStyle = useAnimatedStyle(() => ({
+    transform: [{rotate: `${arrowRotation.value}deg`}],
+  }));
 
   return (
     <Pressable
       onPress={handlePress}
-      className={`flex-row items-center gap-2  ${
+      className={`flex-row items-center justify-between gap-2 ${
+        haveArrow && 'pl-4'
+      }  ${
         asButton &&
-        `p-2 border rounded-full ${
+        `px-2 py-3 border rounded-full ${
           checked
             ? `border-primary-500`
             : 'border-neutral-300 dark:border-neutral-dark-300'
         }`
       }`}>
-      <View className="relative">
-        {/* Background circle */}
-        {Platform.OS === 'web' ? (
-          <View
-            className={`absolute -top-[8px] -left-[8px] w-10 h-10 rounded-full transition-transform duration-200 ${
-              isScaled ? '' : 'scale-0'
-            } ${checked ? 'bg-primary-100  ' : ''} dark:bg-primary-dark-100`}
-          />
-        ) : (
-          <Animated.View
-            style={animatedCircleStyle}
-            className="absolute -top-[7px] -left-[7px] w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-dark-100"
-          />
-        )}
+      <View className="flex-row gap-2">
+        <View className="relative">
+          {/* Background circle */}
+          {Platform.OS === 'web' ? (
+            <View
+              className={`absolute -top-[8px] -left-[8px] w-10 h-10 rounded-full transition-transform duration-200 ${
+                isScaled ? '' : 'scale-0'
+              } ${checked ? 'bg-primary-100  ' : ''} dark:bg-primary-dark-100`}
+            />
+          ) : (
+            <Animated.View
+              style={animatedCircleStyle}
+              className="absolute -top-[7px] -left-[7px] w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-dark-100"
+            />
+          )}
 
-        {/* Radio button */}
-        {Platform.OS === 'web' ? (
-          <View
-            className={`w-6 h-6 rounded-full flex items-center border justify-center ${
-              checked
-                ? `border-primary-500 ${
-                    isScaled ? 'scale-110' : 'scale-100'
-                  } transition-transform duration-100`
-                : 'border-neutral-300 dark:border-neutral-dark-300 scale-100 transition-transform duration-100'
-            }`}>
-            {checked && (
-              <View className="w-3 h-3 rounded-full bg-primary-400 dark:bg-primary-dark-400" />
-            )}
-          </View>
-        ) : (
-          <Animated.View
-            style={animatedRadioStyle}
-            className={`w-6 h-6 rounded-full flex items-center border justify-center ${
-              checked
-                ? 'border-primary-500'
-                : 'border-neutral-300 dark:border-neutral-dark-300'
-            }`}>
-            {checked && (
-              <View className="w-3 h-3 rounded-full bg-primary-400 dark:bg-primary-dark-400" />
-            )}
-          </Animated.View>
+          {/* Radio button */}
+          {Platform.OS === 'web' ? (
+            <View
+              className={`w-6 h-6 rounded-full flex items-center border justify-center ${
+                checked
+                  ? `border-primary-500 ${
+                      isScaled ? 'scale-110' : 'scale-100'
+                    } transition-transform duration-100`
+                  : 'border-neutral-300 dark:border-neutral-dark-300 scale-100 transition-transform duration-100'
+              }`}>
+              {checked && (
+                <View className="w-3 h-3 rounded-full bg-primary-400 dark:bg-primary-dark-400" />
+              )}
+            </View>
+          ) : (
+            <Animated.View
+              style={animatedRadioStyle}
+              className={`w-6 h-6 rounded-full flex items-center border justify-center ${
+                checked
+                  ? 'border-primary-500'
+                  : 'border-neutral-300 dark:border-neutral-dark-300'
+              }`}>
+              {checked && (
+                <View className="w-3 h-3 rounded-full bg-primary-400 dark:bg-primary-dark-400" />
+              )}
+            </Animated.View>
+          )}
+        </View>
+        {label && (
+          <BaseText
+            type="body2"
+            className=" truncate max-w-[300px]"
+            color={checked ? 'base' : 'secondary'}>
+            {label}
+          </BaseText>
         )}
       </View>
-      {label && <BaseText color={'base'}>{label}</BaseText>}
+      {haveArrow && (
+        <Animated.View style={[animatedArrowStyle]}>
+          <ArrowDown2 size={20} color="#717181" />
+        </Animated.View>
+      )}
     </Pressable>
   );
 };

@@ -3,7 +3,7 @@ import React from 'react';
 import {IBadge} from '../../models/props';
 import {View} from 'react-native';
 import BaseText from '../BaseText';
-import {FlashCircle} from 'iconsax-react-native';
+import {FlashCircle, Gift} from 'iconsax-react-native';
 
 function Badge({
   value,
@@ -14,6 +14,7 @@ function Badge({
   textColor = 'button',
   defaultMode,
   CreditMode,
+  GiftMode,
 }: IBadge) {
   return (
     <View
@@ -26,7 +27,12 @@ function Badge({
       } ${className}`}
       style={style}>
       {CreditMode && <FlashCircle variant="Bold" color="#FED376" />}
-      <BaseText type="subtitle3" color={CreditMode ? 'supportive1' : textColor}>
+      {GiftMode && <Gift variant="Bold" color="#A27EB7" />}
+      <BaseText
+        type="subtitle3"
+        color={
+          CreditMode ? 'supportive1' : GiftMode ? 'supportive2' : textColor
+        }>
         {value}
       </BaseText>
     </View>

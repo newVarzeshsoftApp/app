@@ -30,17 +30,25 @@ const linking: LinkingOptions<RootStackParamList> = {
               },
             },
           },
+
           SaleItemNavigator: {
             screens: {
               saleItem: 'sale-item',
               saleItemDetail: 'sale-item/:id/:title?',
             },
           },
+
           ShopNavigator: {
             screens: {
               creditService: 'shop/credit',
+              creditDetail:
+                'shop/credit/:id/:title/:readonly/:contractorId/:priceId',
               packageService: 'shop/package',
+              packageDetail:
+                'shop/package/:id/:title/:readonly/:contractorId/:priceId',
               service: 'shop/service',
+              serviceDetail:
+                'shop/service/:id/:title/:readonly/:contractorId/:priceId',
             },
           },
           HistoryNavigator: {

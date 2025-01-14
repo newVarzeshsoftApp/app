@@ -28,6 +28,7 @@ export type IBadge = {
   style?: TextStyle;
   textColor?:TypeTextColor
   CreditMode?:boolean
+  GiftMode?:boolean
 };
 export interface IWheelProps {
   items: {value:string,label:string}[]; 
@@ -65,6 +66,19 @@ export interface ICheckboxProps extends PressableProps {
   onCheckedChange?: (checked: boolean) => void;
   label?: string;
   asButton?:boolean
+  haveArrow?:boolean
+  readonly?:boolean
+}
+export interface UserRadioButtonProps extends PressableProps {
+  id?: string;
+  checked: boolean;
+  onCheckedChange?: (checked: boolean) => void;
+  Name?: string | null;
+  asButton?:boolean
+  ImageUrl?:string
+  placeHolder?:string
+  readonly?:boolean
+  genders:number
 }
 
 export type InputProps<T extends FieldValues> = {

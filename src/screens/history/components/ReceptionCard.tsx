@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {Text, TouchableOpacity, View} from 'react-native';
 import {SaleOrderContent} from '../../../services/models/response/UseResrService';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -15,7 +15,9 @@ interface OrderCardProps {
 }
 const ReceptionCard: React.FC<OrderCardProps> = ({item, navigation}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
-
+  const Titles = useMemo(() => {
+    return item?.items?.map((item, index) => item.title).join(', ');
+  }, [item?.items]);
   return (
     <View className="CardBase">
       <View className="gap-2">
@@ -53,11 +55,14 @@ const ReceptionCard: React.FC<OrderCardProps> = ({item, navigation}) => {
           </View>
         </View>
         <View className="flex-row items-center justify-between ">
-          <BaseText type="body3" color="secondary">
+          <BaseText type="body3" color="secondary" className="text-nowrap">
             {t('serviceName')}: {''}
           </BaseText>
-          <BaseText type="body3" color="base">
-            {moment(item.submitAt).format('jYYYY/jMM/jDD')}
+          <BaseText
+            type="body3"
+            color="base"
+            className=" truncate max-w-[70%]  text-left  flex-1">
+            {Titles}
           </BaseText>
         </View>
 
