@@ -198,7 +198,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
                 </View>
               </View>
 
-              {route.params.canBuy !== false && (
+              {!route.params.readonly && (
                 <BaseButton
                   color="Black"
                   type="Fill"
