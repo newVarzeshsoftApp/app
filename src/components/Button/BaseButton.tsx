@@ -22,6 +22,7 @@ function BaseButton({
   Extraclass,
   RightIconVariant,
   LinkButton,
+  redbutton,
   ...props
 }: IButtonProps) {
   const [isPressed, setIsPressed] = useState(false);
@@ -29,6 +30,9 @@ function BaseButton({
   const DarkMode = theme === 'dark';
   // Helper function to determine icon color
   const getIconColor = () => {
+    if (redbutton) {
+      return '#FD504F';
+    }
     switch (type) {
       case 'Fill':
         return DarkMode ? '#16181b' : '#ffffff';
@@ -64,6 +68,9 @@ function BaseButton({
 
   // Helper function to determine text color
   const getTextColor = () => {
+    if (redbutton) {
+      return 'error';
+    }
     switch (type) {
       case 'Fill':
         return 'button';

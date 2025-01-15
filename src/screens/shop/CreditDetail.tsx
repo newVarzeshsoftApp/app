@@ -1,5 +1,5 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {useLayoutEffect} from 'react';
+import React, {useCallback, useLayoutEffect} from 'react';
 import {ActivityIndicator, Image, Platform, Text, View} from 'react-native';
 import {ShopStackParamList} from '../../utils/types/NavigationTypes';
 import {useTranslation} from 'react-i18next';
@@ -19,6 +19,9 @@ import {BlurView} from '@react-native-community/blur';
 import {ConvertDuration, formatNumber} from '../../utils/helpers/helpers';
 import Badge from '../../components/Badge/Badge';
 import BaseButton from '../../components/Button/BaseButton';
+import {addCart} from '../../utils/helpers/CartStorage';
+import {handleMutationError} from '../../utils/helpers/errorHandler';
+import {useCartContext} from '../../utils/CartContext';
 
 type CreditDetailProp = NativeStackScreenProps<
   ShopStackParamList,
@@ -29,6 +32,8 @@ const CreditDetail: React.FC<CreditDetailProp> = ({navigation, route}) => {
   const scrollY = useSharedValue(0);
   const IMageHight = 185;
   const {theme} = useTheme();
+  const {addToCart} = useCartContext();
+
   const BaseColor = theme === 'dark' ? '#232529' : 'rgba(244,244,245,0.3)';
   const BaseHighlight =
     theme === 'dark' ? 'rgba(42, 45, 51, 1)' : 'rgba(255,255,255,1)';
@@ -73,6 +78,22 @@ const CreditDetail: React.FC<CreditDetailProp> = ({navigation, route}) => {
       ),
     });
   }, [navigation]);
+  const handleAddToCart = useCallback(async () => {
+    try {
+      await addToCart({product: data!});
+      // Navigate to HomeNavigator and open cart screen
+      //@ts-ignore
+      navigation.push('Root', {
+        screen: 'HomeNavigator',
+        params: {
+          screen: 'cart',
+        },
+      });
+    } catch (error) {
+      handleMutationError(error);
+      console.error('Failed to add to cart:', error);
+    }
+  }, [data]);
   return (
     <View style={{flex: 1}}>
       <Animated.ScrollView
@@ -241,6 +262,7 @@ const CreditDetail: React.FC<CreditDetailProp> = ({navigation, route}) => {
                           </View>
                           {!route.params.readonly && (
                             <BaseButton
+                              onPress={handleAddToCart}
                               text={t('addToCart')}
                               size="Large"
                               color="Black"

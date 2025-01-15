@@ -1,5 +1,5 @@
 import React from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import BaseText from '../../../components/BaseText';
 import {useTranslation} from 'react-i18next';
 import BaseButton from '../../../components/Button/BaseButton';
@@ -18,11 +18,10 @@ type NavigationProps = NativeStackNavigationProp<
   OrderStackParamList,
   'orderDetail'
 >;
-// تقسیم بر صد  قیمت - تخفیف هرچی شد ضرب در مالیات
+
 const OrderDetailCard: React.FC<OrderDetailProps> = ({item, isReseption}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
   const navigation = useNavigation<NavigationProps>();
-
   return (
     <View className="CardBase">
       <View className="gap-2">

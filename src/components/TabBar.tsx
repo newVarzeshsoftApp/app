@@ -2,7 +2,6 @@ import React from 'react';
 import {TouchableOpacity, Text, View, StyleProp, ViewStyle} from 'react-native';
 import {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import {Home2, Message, ShoppingBag, Wallet2} from 'iconsax-react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -11,6 +10,7 @@ import Animated, {
 import BaseText from './BaseText';
 import {useTranslation} from 'react-i18next';
 import {useTheme} from '../utils/ThemeContext';
+import {useCartContext} from '../utils/CartContext';
 
 const TabBar: React.FC<BottomTabBarProps> = ({
   state,
@@ -26,7 +26,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
     cart: <ShoppingBag size="24" />,
     wallet: <Wallet2 size="24" />,
   };
-
+  const {totalItems} = useCartContext();
   const focusedRoute = state.routes[state.index];
   const focusedDescriptor = descriptors[focusedRoute.key];
   const tabBarStyle = focusedDescriptor.options.tabBarStyle as
@@ -36,7 +36,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
   return (
     <View
       style={tabBarStyle}
-      className="flex-row ios:absolute android:absolute bottom-7  web:backdrop-blur max-w-[410px] mx-auto  left-[18px] right-[18px] web:fixed web:bottom-4 
+      className="flex-row ios:absolute android:absolute bottom-7  web:backdrop-blur max-w-[408px] mx-auto  left-[18px] right-[18px] web:fixed web:bottom-4 
     justify-around items-center dark:bg-neutral-dark-300/80
      bg-neutral-0/80 border border-neutral-0 dark:border-neutral-dark-400/40 
      p-4 rounded-full shadow-lg gap-1">
@@ -118,11 +118,21 @@ const TabBar: React.FC<BottomTabBarProps> = ({
                 },
                 animatedContainerStyle,
               ]}>
-              <View className="w-[24px] h-[24px]">
+              <View className="w-[24px] h-[24px] relative">
                 {React.cloneElement(iconElement, {
                   color: iconColor,
                   variant: 'Bold',
                 })}
+                {totalItems > 0 && route.name === 'cart' && (
+                  <View
+                    className="absolute top-[2px] right-0 w-4 h-4 bg-primary-500 z-10 rounded-2xl flex items-center justify-center"
+                    style={{transform: [{translateX: 8}, {translateY: -8}]}}>
+                    <BaseText type="badge" color="button">
+                      {totalItems}
+                    </BaseText>
+                  </View>
+                )}
+                <View className="absolute"></View>
               </View>
               {isFocused && (
                 <Animated.View

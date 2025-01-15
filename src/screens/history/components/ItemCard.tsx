@@ -41,6 +41,7 @@ const ItemCard: React.FC<ItemCardProps> = ({item}) => {
           </BaseText>
           {item.contractor ? (
             <ContractorInfo
+              gender={item.contractor.gender}
               firstName={item.contractor?.firstName}
               imageName={item?.contractor?.profile?.name}
               lastName={item.contractor?.lastName}

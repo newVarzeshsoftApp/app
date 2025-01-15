@@ -17,7 +17,7 @@ import CreditCard from '../../../components/cards/Service/CreditCard';
 import ReceptionCard from '../../../components/cards/Service/ReceptionCard';
 import PackageCard from '../../../components/cards/Service/PackageCard';
 import {useGetUserSaleItem} from '../../../utils/hooks/User/useGetUserSaleItem';
-import {CommonActions, useNavigation} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {DrawerStackParamList} from '../../../utils/types/NavigationTypes';
 import {limit} from '../../../constants/options';
@@ -73,9 +73,13 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
           <TouchableOpacity
             key={item.product?.id}
             onPress={() => {
-              navigation.navigate('SaleItemNavigator', {
-                screen: 'saleItemDetail',
-                params: {id: item.id, title: item.title || 'undefined'},
+              //@ts-ignore
+              navigation.push('Root', {
+                screen: 'SaleItemNavigator',
+                params: {
+                  screen: 'saleItemDetail',
+                  params: {id: item.id, title: item.title || 'undefined'},
+                },
               });
             }}>
             <CardComponent data={item} />
@@ -97,14 +101,13 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
           {(fetchedData?.total ?? 1) > 4 && (
             <TouchableOpacity
               onPress={() => {
-                navigation.dispatch(
-                  CommonActions.navigate({
-                    name: 'SaleItemNavigator',
-                    params: {
-                      screen: 'saleItem',
-                    },
-                  }),
-                );
+                //@ts-ignore
+                navigation.push('Root', {
+                  screen: 'SaleItemNavigator',
+                  params: {
+                    screen: 'saleItem',
+                  },
+                });
               }}
               className="flex-row gap-1 items-center ">
               <BaseText type="title3" color="secondary">

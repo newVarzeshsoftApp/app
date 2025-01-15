@@ -1,4 +1,5 @@
 import React, {
+  useCallback,
   useEffect,
   useLayoutEffect,
   useMemo,
@@ -39,6 +40,10 @@ import CustomCollapsible from '../../components/CustomCollapsible';
 import UserRadioButton from '../../components/Button/RadioButton/UserRadioButton';
 import {User} from '../../services/models/response/UseResrService';
 import {useProfile} from '../../utils/hooks/useProfile';
+import {addCart} from '../../utils/helpers/CartStorage';
+import {handleMutationError} from '../../utils/helpers/errorHandler';
+import {useCartContext} from '../../utils/CartContext';
+import usePriceCalculations from '../../utils/hooks/usePriceCalculations';
 
 type ServiceDetailProp = NativeStackScreenProps<
   ShopStackParamList,
@@ -48,7 +53,9 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
   // Use shared value instead of scroll offset
   const scrollY = useSharedValue(0);
   const IMageHight = 285;
-  const {data: ProfileData, isSuccess} = useProfile();
+  const {data: ProfileData} = useProfile();
+  const {addToCart} = useCartContext();
+
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
   const bottomsheetRef = useRef<BottomSheetMethods>(null);
   const BottomSheetPriceListRef = useRef<BottomSheetMethods>(null);
@@ -147,50 +154,28 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
     },
   });
 
-  const Tax = useMemo(() => {
-    const price = SelectedPriceList?.price ?? 0; // قیمت اصلی
-    const discount = SelectedPriceList?.discountOnlineShopPercentage ?? 0; // درصد تخفیف
-    const taxPercentage = data?.tax ?? 0; // درصد مالیات
-    // قیمت بعد از تخفیف
-    const discountedPrice = price - (price * discount) / 100;
-    //  مالیات
-    return (discountedPrice * taxPercentage) / 100;
-  }, [
-    SelectedPriceList?.price,
-    SelectedPriceList?.discountOnlineShopPercentage,
-    data?.tax,
-  ]);
-
-  const Discount = useMemo(() => {
-    const price = SelectedPriceList?.price ?? 0; // قیمت اصلی
-    const discount = SelectedPriceList?.discountOnlineShopPercentage ?? 0; //  تخفیف
-    return (price * discount) / 100;
-  }, [SelectedPriceList?.discountOnlineShopPercentage]);
-
-  const PricePreSession = useMemo(() => {
-    const price = SelectedPriceList?.price ?? 0;
-    const quantity = SelectedPriceList?.min ?? 0;
-
-    return quantity > 0 ? Math.floor(price / quantity) : price;
-  }, [SelectedPriceList?.price, SelectedPriceList?.min]);
-
-  const Total = useMemo(() => {
-    const price = SelectedPriceList?.price ?? 0; // قیمت اصلی
-    const discount = SelectedPriceList?.discountOnlineShopPercentage ?? 0; // درصد تخفیف
-    // محاسبه قیمت پس از تخفیف
-    return price - (price * discount) / 100;
-  }, [
-    SelectedPriceList?.price,
-    SelectedPriceList?.discountOnlineShopPercentage,
-  ]);
-
-  const purchaseProfit = useMemo(
-    () =>
-      ((data?.price ?? 0) - (data?.discount ?? 0)) *
-        (SelectedPriceList?.min ?? 0) -
-      Total,
-    [SelectedPriceList?.price],
-  );
+  const {Discount, PricePreSession, Tax, Total, purchaseProfit} =
+    usePriceCalculations({data, SelectedPriceList});
+  const handleAddToCart = useCallback(async () => {
+    try {
+      await addToCart({
+        product: data!,
+        SelectedPriceList: SelectedPriceList!,
+        SelectedContractor: SelectedContractor,
+      });
+      // Navigate to HomeNavigator and open cart screen
+      //@ts-ignore
+      navigation.push('Root', {
+        screen: 'HomeNavigator',
+        params: {
+          screen: 'cart',
+        },
+      });
+    } catch (error) {
+      handleMutationError(error);
+      console.error('Failed to add to cart:', error);
+    }
+  }, [data, SelectedPriceList, SelectedContractor]);
   return (
     <>
       <BottomSheet
@@ -323,7 +308,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                               <RadioButton
                                 checked
                                 asButton
-                                haveArrow
+                                haveArrow={!route.params.readonly}
                                 readonly={route.params.readonly}
                                 onCheckedChange={() =>
                                   BottomSheetPriceListRef.current?.expand()
@@ -456,6 +441,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                     {!route.params.readonly && (
                       <BaseButton
                         color="Black"
+                        onPress={handleAddToCart}
                         type="Fill"
                         text={t('addToCart')}
                         rounded

@@ -42,13 +42,13 @@ const linking: LinkingOptions<RootStackParamList> = {
             screens: {
               creditService: 'shop/credit',
               creditDetail:
-                'shop/credit/:id/:title/:readonly/:contractorId/:priceId',
+                'shop/credit/:id/:title/:readonly?/:contractorId?/:priceId?',
               packageService: 'shop/package',
               packageDetail:
-                'shop/package/:id/:title/:readonly/:contractorId/:priceId',
+                'shop/package/:id/:title/:readonly?/:contractorId?/:priceId?',
               service: 'shop/service',
               serviceDetail:
-                'shop/service/:id/:title/:readonly/:contractorId/:priceId',
+                'shop/service/:id/:title/:readonly?/:contractorId?/:priceId?',
             },
           },
           HistoryNavigator: {

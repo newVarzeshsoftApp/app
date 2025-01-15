@@ -175,11 +175,12 @@ const DepositDetailScreen: React.FC<DepositDetailScreenProps> = ({
                           </BaseText>
                           <View className="flex-row gap-1 items-center">
                             <BaseText type="body3" color="base">
-                              {t(
-                                `${
-                                  TransactionSourceType[data.sourceType ?? 0]
-                                }`,
-                              )}
+                              {data.gateway?.title ??
+                                t(
+                                  `${
+                                    TransactionSourceType[data.sourceType ?? 0]
+                                  }`,
+                                )}
                             </BaseText>
                             {[
                               'OfferedDiscount',
