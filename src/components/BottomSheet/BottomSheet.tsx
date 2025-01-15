@@ -41,6 +41,8 @@ export interface BottomSheetProps {
   Title?: string;
   buttonText?: string;
   onButtonPress?: () => void;
+  deleteButtonText?: string;
+  onDeleteButtonPress?: () => void;
   buttonDisabled?: boolean;
   scrollView?: boolean;
   disablePan?: boolean;
@@ -70,6 +72,8 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       buttonDisabled,
       disablePan,
       scrollView,
+      deleteButtonText,
+      onDeleteButtonPress,
     },
     ref,
   ) => {
@@ -352,17 +356,33 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
                 // Non-scrollable Content
                 <View className="flex-grow gap-3">
                   <View className="flex-1">{children}</View>
-                  {buttonText && onButtonPress && (
-                    <BaseButton
-                      text={buttonText || ''}
-                      disabled={buttonDisabled}
-                      color="Black"
-                      type="Fill"
-                      rounded
-                      size="Large"
-                      onPress={onButtonPress}
-                    />
-                  )}
+                  <View className="flex-row  justify-center gap-3">
+                    {deleteButtonText && onDeleteButtonPress && (
+                      <BaseButton
+                        text={deleteButtonText || ''}
+                        // disabled={buttonDisabled}
+                        color="Black"
+                        type="Tonal"
+                        redbutton
+                        rounded
+                        Extraclass="flex-1"
+                        size="Large"
+                        onPress={onDeleteButtonPress}
+                      />
+                    )}
+                    {buttonText && onButtonPress && (
+                      <BaseButton
+                        text={buttonText || ''}
+                        disabled={buttonDisabled}
+                        color="Black"
+                        type="Fill"
+                        rounded
+                        Extraclass="flex-1"
+                        size="Large"
+                        onPress={onButtonPress}
+                      />
+                    )}
+                  </View>
                 </View>
               )}
             </View>

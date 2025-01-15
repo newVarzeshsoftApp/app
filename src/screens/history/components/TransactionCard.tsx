@@ -86,7 +86,8 @@ const TransactionCard: React.FC<TransactionProps> = ({item, inDetail}) => {
           </BaseText>
           <View className="flex-row gap-1 items-center">
             <BaseText type="body3" color="base">
-              {t(`${TransactionSourceType[item.sourceType ?? 0]}`)}
+              {item.gateway?.title ??
+                t(`${TransactionSourceType[item.sourceType ?? 0]}`)}
             </BaseText>
             {[
               'OfferedDiscount',

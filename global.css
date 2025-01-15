@@ -57,7 +57,7 @@
   }
 
   .CardBase {
-    @apply p-4 rounded-3xl gap-3 bg-white/40 dark:bg-neutral-dark-300/40 shadow-custom  border border-white dark:border-neutral-dark-300;
+    @apply p-4 rounded-3xl  gap-3 bg-white/40 dark:bg-neutral-dark-300/40 shadow-custom  border border-white dark:border-neutral-dark-300;
   }
   .GiftCard {
     @apply p-4 rounded-3xl gap-3 bg-supportive2-500/20  shadow-custom  border border-supportive2-500/60;

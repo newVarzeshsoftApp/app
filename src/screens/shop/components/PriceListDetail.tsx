@@ -14,6 +14,7 @@ import {
   formatTimeDuration,
 } from '../../../utils/helpers/helpers';
 import moment from 'jalali-moment';
+import usePriceCalculations from '../../../utils/hooks/usePriceCalculations';
 type PriceListDetailProps = {
   SelectedPriceList: PriceList | null;
   ServiceData?: Product;
@@ -26,42 +27,8 @@ const PriceListDetail: React.FC<PriceListDetailProps> = ({
   const {theme} = useTheme();
   const iconColor = theme === 'dark' ? '#55575c' : '#aaabad';
   const {t} = useTranslation('translation', {keyPrefix: 'Shop.Service'});
-
-  const Tax = useMemo(() => {
-    const price = SelectedPriceList?.price ?? 0; // قیمت اصلی
-    const discount = SelectedPriceList?.discountOnlineShopPercentage ?? 0; // درصد تخفیف
-    const taxPercentage = data?.tax ?? 0; // درصد مالیات
-    // قیمت بعد از تخفیف
-    const discountedPrice = price - (price * discount) / 100;
-    //  مالیات
-    return (discountedPrice * taxPercentage) / 100;
-  }, [
-    SelectedPriceList?.price,
-    SelectedPriceList?.discountOnlineShopPercentage,
-    data?.tax,
-  ]);
-  const Total = useMemo(() => {
-    const price = SelectedPriceList?.price ?? 0; // قیمت اصلی
-    const discount = SelectedPriceList?.discountOnlineShopPercentage ?? 0; // درصد تخفیف
-    // محاسبه قیمت پس از تخفیف
-    return price - (price * discount) / 100;
-  }, [
-    SelectedPriceList?.price,
-    SelectedPriceList?.discountOnlineShopPercentage,
-  ]);
-  const purchaseProfit = useMemo(
-    () =>
-      ((data?.price ?? 0) - (data?.discount ?? 0)) *
-        (SelectedPriceList?.min ?? 0) -
-      Total,
-    [SelectedPriceList?.price],
-  );
-
-  const Discount = useMemo(() => {
-    const price = SelectedPriceList?.price ?? 0; // قیمت اصلی
-    const discount = SelectedPriceList?.discountOnlineShopPercentage ?? 0; //  تخفیف
-    return (price * discount) / 100;
-  }, [SelectedPriceList?.discountOnlineShopPercentage]);
+  const {Discount, PricePreSession, Tax, Total, purchaseProfit, shopGift} =
+    usePriceCalculations({data, SelectedPriceList});
   return (
     <View className="gap-3">
       <View className="CardBase gap-3">
@@ -151,12 +118,7 @@ const PriceListDetail: React.FC<PriceListDetailProps> = ({
             </View>
             <View className="flex-1 items-center justify-center ">
               <BaseText type="body3" color="supportive2">
-                {formatNumber(
-                  ((SelectedPriceList?.price ?? 0) *
-                    (SelectedPriceList?.cashBackPercentage ?? 0)) /
-                    100,
-                )}{' '}
-                ﷼
+                {formatNumber(shopGift)} ﷼
               </BaseText>
             </View>
           </View>

@@ -107,7 +107,7 @@ const UserRadioButton: React.FC<UserRadioButtonProps> = ({
           }
         </View>
         {asButton ? (
-          <ArrowDown2 size={20} color="#717181" />
+          !readonly && <ArrowDown2 size={20} color="#717181" />
         ) : (
           <View className="relative">
             {/* Background circle */}

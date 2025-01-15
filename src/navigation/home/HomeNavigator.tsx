@@ -18,7 +18,10 @@ const HomeNavigator: React.FC = ({navigation}: any) => {
       screenOptions={({route}) => ({
         animation: 'shift',
         unmountOnBlur: true,
-        headerShown: route.name === 'Home',
+        headerShown:
+          route.name === 'Home' ||
+          route.name === 'ticket' ||
+          route.name === 'cart',
         header: () => <Header navigation={navigation} />,
       })}>
       <Tab.Screen name="Home" component={HomeScreen} />

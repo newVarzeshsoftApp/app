@@ -155,6 +155,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                       <View className="gap-2">
                         {data.contractor && (
                           <ContractorInfo
+                            gender={data.contractor.gender}
                             firstName={data.contractor.firstName}
                             imageName={data.contractor.profile?.name}
                             lastName={data.contractor.lastName}
@@ -225,6 +226,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                                     {t('contractor')}:
                                   </BaseText>
                                   <ContractorInfo
+                                    gender={item.contractor.gender}
                                     firstName={item.contractor.firstName}
                                     imageName={item.contractor.profile?.name}
                                     lastName={item.contractor.lastName}

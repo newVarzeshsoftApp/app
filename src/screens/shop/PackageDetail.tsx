@@ -28,6 +28,8 @@ import ShopServiceCard from '../../components/cards/shopCard/ShopServiceCard';
 import {subProducts} from '../../services/models/response/UseResrService';
 import {Product} from '../../services/models/response/ProductResService';
 import BaseButton from '../../components/Button/BaseButton';
+import {useCartContext} from '../../utils/CartContext';
+
 type ServiceScreenProp = NativeStackScreenProps<
   ShopStackParamList,
   'packageDetail'
@@ -37,6 +39,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
   const scrollY = useSharedValue(0);
   const {t} = useTranslation('translation', {keyPrefix: 'Shop.Package'});
   const {data, isLoading} = UseGetProductByID(route.params.id);
+  const {addToCart} = useCartContext();
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: event => {
@@ -92,6 +95,18 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
     },
     [cardComponentMapping],
   );
+
+  const handleAddToCart = useCallback(() => {
+    addToCart({product: data!});
+    // Navigate to HomeNavigator and open cart screen
+    //@ts-ignore
+    navigation.push('Root', {
+      screen: 'HomeNavigator',
+      params: {
+        screen: 'cart',
+      },
+    });
+  }, [data]);
   return (
     <View className="flex-1">
       <View className="absolute -top-[25%] web:rotate-[10deg]  web:-left-[30%]  android:-right-[80%] ios:-right-[80%]  opacity-45 w-[600px] h-[600px]">
@@ -200,6 +215,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
 
               {!route.params.readonly && (
                 <BaseButton
+                  onPress={handleAddToCart}
                   color="Black"
                   type="Fill"
                   text={t('addToCart')}

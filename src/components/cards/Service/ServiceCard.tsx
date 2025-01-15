@@ -26,7 +26,9 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
           style={{width: '100%', height: '100%'}}
           source={{
             uri:
-              (OrganizationBySKU?.imageUrl ?? '') + data?.product?.image?.name,
+              (OrganizationBySKU?.imageUrl ?? '') +
+              '/' +
+              data?.product?.image?.name,
           }}
         />
       </View>
@@ -65,6 +67,7 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
               firstName={data?.contractor?.firstName}
               imageName={data?.contractor?.profile?.name}
               lastName={data?.contractor?.lastName}
+              gender={data.contractor.gender}
             />
           ) : (
             <View></View>

@@ -12,12 +12,19 @@ import {useNavigation} from '@react-navigation/native';
 import {HomeStackParamList} from '../../../utils/types/NavigationTypes';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 type NavigationProps = NativeStackNavigationProp<HomeStackParamList>;
-function WalletBalance({inWallet}: {inWallet?: boolean}) {
+function WalletBalance({
+  inWallet,
+  NoCredit,
+}: {
+  inWallet?: boolean;
+  NoCredit?: boolean;
+}) {
   const navigation = useNavigation<NavigationProps>();
 
   const {t} = useTranslation('translation', {keyPrefix: 'Home'});
   const {data, isLoading} = useGetUserCredit();
   const {theme} = useTheme();
+
   const colors =
     theme === 'dark'
       ? ['#5454A9', '#2A2D33', '#5454A9']
@@ -26,6 +33,10 @@ function WalletBalance({inWallet}: {inWallet?: boolean}) {
     theme === 'dark'
       ? ['rgba(55, 201, 118, 0.5)', '#2A2D33', 'rgba(55, 201, 118, 0.5)']
       : ['rgba(55, 201, 118, 0.5)', '#FFFFFF', 'rgba(55, 201, 118, 0.5)'];
+  const Redcolors =
+    theme === 'dark'
+      ? ['rgba(253, 80, 79, 0.5)', '#2A2D33', 'rgba(253, 80, 79, 0.5)']
+      : ['rgba(253, 80, 79, 0.5)', '#FFFFFF', 'rgba(253, 80, 79, 0.5)'];
   return (
     <TouchableOpacity
       disabled={inWallet}
@@ -33,7 +44,7 @@ function WalletBalance({inWallet}: {inWallet?: boolean}) {
       onPress={() => navigation.navigate('wallet', {screen: 'wallet'})}
       className="w-full h-[110px] relative ">
       <LinearGradient
-        colors={inWallet ? Walletcolors : colors}
+        colors={NoCredit ? Redcolors : inWallet ? Walletcolors : colors}
         start={Platform.OS === 'web' ? {x: 1, y: 1} : {x: 1, y: -1}}
         locations={[0.2, 1, 1]}
         style={{

@@ -65,6 +65,35 @@
     "open Closet": "باز کردن کمد",
     "noLimit": "بدون محدودیت"
   },
+
+  "Cart": {
+    "Cart Items": "آیتم های سبد خرید",
+    "Cart is empty": "سبد خرید شما خالی است",
+    "order Detail": "جزئیات سفارش",
+    "order Summery": "خلاصه سفارش",
+
+    "payment Methode": "روش های پرداخت",
+    "PaywithBank": "پرداخت با کارت بانکی",
+    "PaywithWallet": "پرداخت با کیف پول",
+    "Select Getway": "انتخاب درگاه",
+    "Cart": "سبد خرید",
+    "Duration": "مدت زمان",
+    "Total amount": "مبلغ کل",
+    "Amount payable": "مبلغ قابل پرداخت",
+    "usedFor": "موارد استفاده",
+    "noLimit": "بدون محدودیت",
+    "ItemsOfPackage": "آیتم های پکیج",
+    "Confirm removal": "آیا از حذف این آیتم اطمینان دارید؟",
+    "Number of sessions": "تعداد جلسات",
+    "SingleservicePrice": "قیمت هر جلسه",
+    "Purchase profit": "سود شما از خرید",
+    "shopGift": "هدیه خرید",
+    "tax": "مالیات",
+    "Discount": "تخفیف",
+    "payment": "پرداخت",
+    "orders": "سفارش",
+    "cancel": "بازگشت"
+  },
   "Shop": {
     "creditService": {
       "noServicesFound": "هیچ سرویسی پیدا نشد",

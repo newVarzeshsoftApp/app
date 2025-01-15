@@ -623,6 +623,7 @@ export interface SaleTransaction {
   deletedAt?: string | null;
   sourceType?: number;
   source?: number;
+
   title?: string;
   amount?: string;
   credit?: string;
@@ -637,6 +638,7 @@ export interface SaleTransaction {
   orderId?: number;
   saleUnitId?: number;
   gatewayId?: number | null;
+  gateway?: Gateway;
 }
 export interface LockerObj {
   createdAt?: string;
@@ -682,6 +684,7 @@ export interface Transaction {
   orderId?: number | null; // Optional order ID
   saleUnitId: number; // Sale unit ID
   gatewayId?: number | null; // Optional gateway ID
+  gateway?: Gateway;
 }
 export interface TransactionResponse {
   total: number; // Total count of transactions

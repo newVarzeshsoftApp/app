@@ -58,6 +58,7 @@ export interface IButtonProps extends PressableProps {
   RightIconVariant?: IIconVariant;         // Variant type for the right icon
   LeftIconVariant?: IIconVariant;          // Variant type for the left icon
   Extraclass?:string
+  redbutton?:boolean
 }
 
 export interface ICheckboxProps extends PressableProps {
