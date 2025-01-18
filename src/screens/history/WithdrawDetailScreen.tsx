@@ -213,18 +213,24 @@ const WithdrawDetailScreen: React.FC<WithdrawDetailScreenProps> = ({
                               {t('Source residue')}: {''}
                             </BaseText>
                             <BaseText type="body3" color="base">
-                              {formatNumber(data.chargeRemainCredit ?? 0)} ریال
+                              {formatNumber(
+                                data?.sourceType ===
+                                  TransactionSourceType.UserCredit
+                                  ? data?.credit
+                                  : data.chargeRemainCredit,
+                              )}{' '}
+                              ریال
                             </BaseText>
                           </View>
                         )}
-                        <View className="flex-row items-center justify-between ">
+                        {/* <View className="flex-row items-center justify-between ">
                           <BaseText type="body3" color="secondary">
                             {t('SourceItem')}: {''}
                           </BaseText>
                           <BaseText type="body3" color="base">
                             {data.title ?? ''}
                           </BaseText>
-                        </View>
+                        </View> */}
                         {items && (
                           <View className="pt-4 border-t gap-4 mt-2 border-dashed border-neutral-300 dark:border-neutral-dark-300">
                             <View className="flex-row items-center justify-between ">

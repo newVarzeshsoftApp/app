@@ -148,7 +148,12 @@ const TransactionCard: React.FC<TransactionProps> = ({item, inDetail}) => {
               {t('Source residue')}: {''}
             </BaseText>
             <BaseText type="body3" color="base">
-              {formatNumber(item.chargeRemainCredit ?? 0)} ریال
+              {formatNumber(
+                item?.sourceType === TransactionSourceType.UserCredit
+                  ? item?.credit
+                  : item.chargeRemainCredit,
+              )}{' '}
+              ریال
             </BaseText>
           </View>
         )}

@@ -5,6 +5,7 @@ import {useTranslation} from 'react-i18next';
 import {SaleOrderItem} from '../../../services/models/response/UseResrService';
 import {formatNumber} from '../../../utils/helpers/helpers';
 import ContractorInfo from '../../../components/ContractorInfo/ContractorInfo';
+import {ProductType, TransactionSourceType} from '../../../constants/options';
 type ItemCardProps = {
   item: SaleOrderItem;
 };
@@ -55,10 +56,15 @@ const ItemCard: React.FC<ItemCardProps> = ({item}) => {
         {(item?.credit ?? 0) > 0 && (
           <View className="flex-row items-center justify-between ">
             <BaseText type="body3" color="secondary">
-              {t('Credit')}: {''}
+              {item.type === ProductType.Service
+                ? t('total Metting')
+                : t('Credit')}
+              : {''}
             </BaseText>
             <BaseText type="body3" color="base">
-              {item.credit}
+              {item.type === ProductType.Service
+                ? formatNumber(item.credit)
+                : `${formatNumber(item.credit)} ریال`}
             </BaseText>
           </View>
         )}

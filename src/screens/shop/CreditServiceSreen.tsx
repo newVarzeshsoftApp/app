@@ -96,7 +96,7 @@ const CreditServiceSreen: React.FC<CreditDetailProp> = ({
       !ProductDataIsFetching &&
       data.length < (ProductData?.total ?? 5)
     ) {
-      setOffset(prevOffset => prevOffset + 1);
+      setOffset(prevOffset => prevOffset + limit);
     }
   };
 

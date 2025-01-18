@@ -93,7 +93,7 @@ const PackageServiceScreen: React.FC<PackageServiceProp> = ({
       !ProductDataIsFetching &&
       data.length < (ProductData?.total ?? 5)
     ) {
-      setOffset(prevOffset => prevOffset + 1);
+      setOffset(prevOffset => prevOffset + limit);
     }
   };
   return (

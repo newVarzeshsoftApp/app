@@ -105,10 +105,17 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
   const SubmitSaleOrder = () => {
     const submitAt = moment().format('YYYY-MM-DD HH:DD');
     const Items: SaleOrderItem[] = normalizedItems.map(item => {
+      const amount = item.SelectedPriceList
+        ? item.SelectedPriceList.price
+        : item.product.price;
+      const discount = item.SelectedPriceList
+        ? item?.SelectedPriceList?.discountOnlineShopPercentage ?? 0
+        : item?.product?.discount ?? 0;
+
       return {
         quantity: 1,
         product: item.product.id,
-        tax: item.product.tax,
+        tax: (amount * (item?.product?.tax ?? 0)) / 100,
         manualPrice: false,
         type: item.product.type,
         contractor: item?.SelectedContractor?.contractorId ?? null,
@@ -118,17 +125,10 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
           .add(item.SelectedPriceList?.duration ?? item.product.duration)
           .format('YYYY-MM-DD'),
         isOnline: true,
-        amount: item.SelectedPriceList
-          ? item.SelectedPriceList.price
-          : item.product.price,
-        discount: item.SelectedPriceList
-          ? item.SelectedPriceList.discountOnlineShopPercentage
-          : item.product.discount,
+        amount: amount,
+        discount: (amount * discount) / 100,
         priceId: item.SelectedPriceList?.id ?? null,
-        price: item.SelectedPriceList
-          ? item.SelectedPriceList.price
-          : item.product.price,
-
+        price: amount,
         duration: item.SelectedPriceList
           ? item.SelectedPriceList.duration
           : item.product.duration,
@@ -160,9 +160,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
             type: PaymentMethod?.isWallet
               ? TransactionSourceType.UserCredit
               : TransactionSourceType.ChargingService,
-            source: PaymentMethod?.isWallet
-              ? TransactionSourceType.UserCredit
-              : PaymentMethod?.source,
+            source: PaymentMethod?.isWallet ? undefined : PaymentMethod?.source,
           },
         ],
       });

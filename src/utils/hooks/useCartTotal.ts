@@ -12,19 +12,23 @@ export const useCartTotals = (items: CartItem[]) => {
 
         if (item.product.type === 1 && item.SelectedPriceList) {
           itemPrice = (item.SelectedPriceList.price ?? 0) * item.quantity;
-          itemTax =
-            (((item.SelectedPriceList.price ?? 0) * (item.product.tax ?? 0)) /
-              100) *
-            item.quantity;
           const discountPercentage =
             item.SelectedPriceList.discountOnlineShopPercentage ?? 0;
           itemDiscount = (itemPrice * discountPercentage) / 100;
+          itemTax =
+            (((item.SelectedPriceList.price ?? 0) * item.quantity -
+              itemDiscount) *
+              (item.product.tax ?? 0)) /
+            100;
           const cashBackPercentage =
             item.SelectedPriceList.cashBackPercentage ?? 0;
           itemShopGift = (itemPrice * cashBackPercentage) / 100;
         } else {
           itemPrice = item.product.price * item.quantity;
-          itemTax = (item.product.tax ?? 0) * item.quantity;
+          itemTax =
+            (((item.product.tax ?? 0) * item.quantity - itemDiscount) *
+              item.product.tax) /
+            100;
           itemDiscount = (item.product.discount ?? 0) * item.quantity;
           itemShopGift = item.product.isCashBack ? itemPrice * 0.05 : 0;
         }

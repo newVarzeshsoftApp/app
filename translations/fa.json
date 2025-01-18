@@ -64,9 +64,9 @@
     "without": "بدون",
     "open Closet": "باز کردن کمد",
     "noLimit": "بدون محدودیت",
-    "allServicesInCategory": "تمام خدمات در دسته‌بندی:",
-    "allServicesInSalesUnit": "تمام خدمات در واحد فروش:",
-    "allServicesInOrganizationalUnit": "تمام خدمات در واحد سازمانی:"
+    "allServicesInCategory": "تمام خدمات در دسته‌بندی",
+    "allServicesInSalesUnit": "تمام خدمات در واحد فروش",
+    "allServicesInOrganizationalUnit": "تمام خدمات در واحد سازمانی"
   },
 
   "Cart": {
@@ -190,6 +190,7 @@
     "Status": "وضعیت",
     "serviceName": "نام سرویس",
     "Added value": "ارزش افزوده",
+    "total Metting": "تعداد جلسات",
     "Debt": "بدهی",
     "Pending": "در انتظار",
     "Ok": "موفق",
