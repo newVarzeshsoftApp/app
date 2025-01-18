@@ -1,10 +1,7 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {useEffect, useState} from 'react';
 import {ActivityIndicator, Image, Text, View} from 'react-native';
-import {
-  DrawerStackParamList,
-  OrderStackParamList,
-} from '../../utils/types/NavigationTypes';
+import {DrawerStackParamList} from '../../utils/types/NavigationTypes';
 import {ScrollView} from 'react-native-gesture-handler';
 import {useTranslation} from 'react-i18next';
 import {CloseCircle, TickCircle} from 'iconsax-react-native';

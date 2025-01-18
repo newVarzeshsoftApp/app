@@ -17,11 +17,10 @@ import {UseGetProductByID} from '../../utils/hooks/Product/UseGetProductByID';
 import BaseText from '../../components/BaseText';
 import {BlurView} from '@react-native-community/blur';
 import {ConvertDuration, formatNumber} from '../../utils/helpers/helpers';
-import Badge from '../../components/Badge/Badge';
 import BaseButton from '../../components/Button/BaseButton';
-import {addCart} from '../../utils/helpers/CartStorage';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useCartContext} from '../../utils/CartContext';
+import CreditSubProduct from '../../components/cards/SubProduct';
 
 type CreditDetailProp = NativeStackScreenProps<
   ShopStackParamList,
@@ -228,28 +227,10 @@ const CreditDetail: React.FC<CreditDetailProp> = ({navigation, route}) => {
                             </View>
                             <View className="gap-2">
                               <BaseText type="body3">{t('usedFor')}</BaseText>
-                              <View className="flex-row items-center gap-1 flex-wrap">
-                                {data?.hasSubProduct ? (
-                                  data.subProducts?.map((item, index) => {
-                                    return (
-                                      <Badge
-                                        key={index}
-                                        defaultMode
-                                        textColor="secondaryPurple"
-                                        value={item.product?.title ?? ''}
-                                        className="w-fit"
-                                      />
-                                    );
-                                  })
-                                ) : (
-                                  <Badge
-                                    defaultMode
-                                    textColor="secondaryPurple"
-                                    value={t('noLimit')}
-                                    className="w-fit"
-                                  />
-                                )}
-                              </View>
+                              <CreditSubProduct
+                                subProducts={data?.subProducts}
+                                hasSubProduct={data?.hasSubProduct}
+                              />
                             </View>
                             {data?.description && (
                               <View className="gap-2">

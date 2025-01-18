@@ -5,8 +5,8 @@ import {Content} from '../../../services/models/response/UseResrService';
 import {ArrowUp, Box1, FlashCircle} from 'iconsax-react-native';
 import BaseText from '../../BaseText';
 import moment from 'jalali-moment';
-import Badge from '../../Badge/Badge';
 import {formatNumber} from '../../../utils/helpers/helpers';
+import CreditSubProduct from '../SubProduct';
 
 const CreditCard: React.FC<{data: Content}> = ({data}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Home'});
@@ -38,28 +38,11 @@ const CreditCard: React.FC<{data: Content}> = ({data}) => {
         </TouchableOpacity>
       </View>
       <View className="pt-3 gap-3">
-        <View className="flex-row items-center gap-1 flex-wrap">
-          {data.product?.hasSubProduct ? (
-            data.product?.subProducts?.map((item, index) => {
-              return (
-                <Badge
-                  key={index}
-                  defaultMode
-                  textColor="secondaryPurple"
-                  value={item.product?.title ?? ''}
-                  className="w-fit"
-                />
-              );
-            })
-          ) : (
-            <Badge
-              defaultMode
-              textColor="secondaryPurple"
-              value={t('noLimit')}
-              className="w-fit"
-            />
-          )}
-        </View>
+        <CreditSubProduct
+          subProducts={data.product?.subProducts}
+          hasSubProduct={data.product?.hasSubProduct}
+        />
+
         <View className="flex-row items-center justify-between">
           <BaseText type="body3" color="secondary">
             {t('start')} {''} : {''}

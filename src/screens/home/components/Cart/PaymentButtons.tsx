@@ -3,13 +3,17 @@ import {View} from 'react-native';
 import BaseButton from '../../../../components/Button/BaseButton';
 
 interface PaymentButtonsProps {
-  setSteps: React.Dispatch<React.SetStateAction<1 | 2>>;
+  NextStep: () => void;
+  BackStep: () => void;
+  isLoading?: boolean;
   Steps: number;
   t: (key: string) => string;
 }
 
 const PaymentButtons: React.FC<PaymentButtonsProps> = ({
-  setSteps,
+  NextStep,
+  BackStep,
+  isLoading,
   t,
   Steps,
 }) => (
@@ -17,7 +21,8 @@ const PaymentButtons: React.FC<PaymentButtonsProps> = ({
     <View className="flex-row  items-center gap-4 px-[2px] ">
       <View className="flex-1">
         <BaseButton
-          onPress={() => setSteps(2)}
+          isLoading={isLoading}
+          onPress={NextStep}
           type="Fill"
           color="Black"
           size="Large"
@@ -27,7 +32,7 @@ const PaymentButtons: React.FC<PaymentButtonsProps> = ({
       </View>
       {Steps === 2 && (
         <BaseButton
-          onPress={() => setSteps(1)}
+          onPress={BackStep}
           type="Tonal"
           redbutton
           color="Black"
