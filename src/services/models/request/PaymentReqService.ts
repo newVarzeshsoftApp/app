@@ -12,6 +12,6 @@ export interface PaymentVerifyBody {
   stripId?: string;
   code?: string;
   authority?: string;
-  orders?: Omit<SaleOrderBody, 'transactions'>;
+  orders?: Omit<SaleOrderBody, 'transactions'>[];
   isonlineShop?: boolean;
 }

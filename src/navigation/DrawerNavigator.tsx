@@ -12,6 +12,7 @@ import {navigationRef} from './navigationRef';
 import {Alert, BackHandler, Platform} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import WebViewScreen from '../screens/web/WebViewScreen';
+import PaymentDetail from '../screens/payments/PaymentDetail';
 
 const Drawer = createDrawerNavigator<DrawerStackParamList>();
 
@@ -76,6 +77,7 @@ const DrawerNavigator: React.FC = () => {
         <Drawer.Screen name="ShopNavigator" component={ShopNavigator} />
         <Drawer.Screen name="HistoryNavigator" component={HistoryNavigator} />
         <Drawer.Screen name="Paymentresult" component={PaymentScreen} />
+        <Drawer.Screen name="PaymentDetail" component={PaymentDetail} />
         <Drawer.Screen name="WebViewParamsList" component={WebViewScreen} />
       </Drawer.Navigator>
     </GestureHandlerRootView>

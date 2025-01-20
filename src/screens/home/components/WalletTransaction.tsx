@@ -42,16 +42,16 @@ const WalletTransaction: React.FC = ({
   });
   useEffect(() => {
     if (fetchedData?.content) {
-      setData(prevItems => [...prevItems, ...fetchedData.content]);
+      setData(prevItems =>
+        [...prevItems, ...fetchedData.content].sort(
+          (a, b) =>
+            new Date(b.submitAt).getTime() - new Date(a.submitAt).getTime(),
+        ),
+      );
     }
   }, [fetchedData]);
   const loadMore = () => {
-    if (
-      !isError &&
-      !isFetching &&
-      data.length < (fetchedData?.total ?? 5) &&
-      inMoreScreen
-    ) {
+    if (!isError && !isFetching && data.length < (fetchedData?.total ?? 5)) {
       setOffset(prevOffset => prevOffset + limit);
     }
   };
@@ -62,20 +62,6 @@ const WalletTransaction: React.FC = ({
           <BaseText type="title3" color="secondary">
             {t('transactions')}
           </BaseText>
-          {(fetchedData?.total ?? 1) > 4 && (
-            <TouchableOpacity
-              onPress={() =>
-                navigation.push('SaleItemNavigator', {screen: 'saleItem'})
-              }
-              className="flex-row gap-1 items-center ">
-              <BaseText type="title3" color="secondary">
-                {t('all')}
-              </BaseText>
-              <View className="-rotate-45">
-                <ArrowUp size="24" color="#55575c" />
-              </View>
-            </TouchableOpacity>
-          )}
         </View>
       )}
       <FlatList

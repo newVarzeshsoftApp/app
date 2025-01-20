@@ -63,6 +63,7 @@ const linking: LinkingOptions<RootStackParamList> = {
             },
           },
           Paymentresult: 'payment/result',
+          PaymentDetail: 'PaymentDetail/:id',
         },
       },
     },

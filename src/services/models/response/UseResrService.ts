@@ -621,7 +621,7 @@ export interface FiscalYear {
 export interface SaleTransaction {
   type?: number;
   description?: string;
-  submitAt?: string; // ISO date string
+  submitAt: string; // ISO date string
   id: number;
   updatedAt?: string; // ISO date string
   createdAt?: string; // ISO date string

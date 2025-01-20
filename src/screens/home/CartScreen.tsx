@@ -46,7 +46,7 @@ type PaymentMethodType = {
 type CartScreenProps = BottomTabScreenProps<HomeStackParamList, 'cart'>;
 const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Cart'});
-  const {totalItems, items} = useCartContext();
+  const {totalItems, items, emptyCart} = useCartContext();
   const [steps, setSteps] = useState<1 | 2>(1);
   const {data: Getways, isLoading} = useGetGetway();
   const {data: Credits} = useGetUserSaleItem({
@@ -89,10 +89,16 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
       }
     },
   });
+
   const SaleOrder = useMutation({
     mutationFn: OperationalService.SaleOrder,
-    onSuccess(data, variables, context) {},
+    onSuccess(data, variables, context) {
+      emptyCart();
+      const drawerNavigation = navigation.getParent();
+      drawerNavigation?.navigate('PaymentDetail', {id: data});
+    },
   });
+
   const normalizedItems = useMemo(() => {
     return items.flatMap(item =>
       Array.from({length: item.quantity}, () => ({
@@ -404,6 +410,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
       </ScrollView>
       {items.length > 0 && (
         <PaymentButtons
+          isLoading={CreatePayment.isPending || SaleOrder.isPending}
           Steps={steps}
           BackStep={() => setSteps(1)}
           NextStep={() => (steps === 1 ? setSteps(2) : SubmitSaleOrder())}

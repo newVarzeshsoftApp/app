@@ -9,6 +9,7 @@ import {Status} from '../models/enums';
 import {
   PaymentRes,
   PaymentVerifyRes,
+  paymentVerifySubmitOrderRes,
 } from './models/response/PaymentResService';
 import {handleMutationError} from '../utils/helpers/errorHandler';
 
@@ -65,11 +66,11 @@ export const PaymentService = {
   },
   paymentVerifySubmitOrder: async (
     body: PaymentVerifyBody,
-  ): Promise<PaymentVerifyRes> => {
+  ): Promise<paymentVerifySubmitOrderRes> => {
     try {
       const response = await axiosInstance.put<
         PaymentVerifyBody,
-        AxiosResponse<PaymentVerifyRes>
+        AxiosResponse<paymentVerifySubmitOrderRes>
       >(baseUrl + paymentVerifySubmitOrder(), body);
       if (response.status === Status.Ok || response.status === Status.Created) {
         return response.data;
