@@ -21,6 +21,7 @@ import {
   useSharedValue,
 } from 'react-native-reanimated';
 import Animated from 'react-native-reanimated';
+import CreditSubProduct from '../../../components/cards/SubProduct';
 type CreditDetailProp = NativeStackNavigationProp<
   SaleItemStackParamList,
   'saleItemDetail'
@@ -141,28 +142,10 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
                 <BaseText type="body3" color="base">
                   {t('uses')}
                 </BaseText>
-                <View className="flex-row items-center flex-wrap gap-1">
-                  {data.product?.hasSubProduct ? (
-                    data.product?.subProducts?.map((item, index) => {
-                      return (
-                        <Badge
-                          key={index}
-                          defaultMode
-                          textColor="secondaryPurple"
-                          value={item.product?.title ?? ''}
-                          className="w-fit"
-                        />
-                      );
-                    })
-                  ) : (
-                    <Badge
-                      defaultMode
-                      textColor="secondaryPurple"
-                      value={t('noLimit')}
-                      className="w-fit"
-                    />
-                  )}
-                </View>
+                <CreditSubProduct
+                  subProducts={data.product?.subProducts}
+                  hasSubProduct={data.product?.hasSubProduct}
+                />
               </View>
               <View className="pt-2 flex flex-row gap-8">
                 <BaseText type="body3" color="muted">

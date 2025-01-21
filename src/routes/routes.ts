@@ -61,7 +61,9 @@ export const routes = {
     getUserPayment: (query: UserPaymentQuey) =>
       `user/payments` + prepareQuery(query),
   },
-
+  operational: {
+    saleOrder: () => `sale-order`,
+  },
   manageLocker: {
     openLocker: () => `locker/open-locker`,
   },
@@ -71,5 +73,6 @@ export const routes = {
   Payment: {
     createPayment: () => `payment/intial`,
     paymentVerify: () => `payment/verify`,
+    paymentVerifySubmitOrder: () => `payment/verify/submit-order`,
   },
 };

@@ -1,15 +1,11 @@
 import React from 'react';
-import {Text, TouchableOpacity, View} from 'react-native';
+import {View} from 'react-native';
 import {Product} from '../../../services/models/response/ProductResService';
-import {ArrowUp, FlashCircle} from 'iconsax-react-native';
+import {FlashCircle} from 'iconsax-react-native';
 import BaseText from '../../BaseText';
-import {
-  calculateRemainingDays,
-  ConvertDuration,
-  formatNumber,
-} from '../../../utils/helpers/helpers';
+import {ConvertDuration, formatNumber} from '../../../utils/helpers/helpers';
 import {useTranslation} from 'react-i18next';
-import Badge from '../../Badge/Badge';
+import CreditSubProduct from '../SubProduct';
 type ShopServiceProps = {
   data: Product;
 };
@@ -40,28 +36,13 @@ const ShopCreditService: React.FC<ShopServiceProps> = ({data}) => {
         </View>
       </View>
       <View className="pt-3 gap-3">
-        <View className="flex-row items-center gap-1">
-          {data.hasSubProduct ? (
-            data.subProducts?.map((item, index) => {
-              return (
-                <Badge
-                  key={index}
-                  defaultMode
-                  textColor="secondaryPurple"
-                  value={item.product?.title ?? ''}
-                  className="w-fit"
-                />
-              );
-            })
-          ) : (
-            <Badge
-              defaultMode
-              textColor="secondaryPurple"
-              value={t('noLimit')}
-              className="w-fit"
-            />
-          )}
-        </View>
+        <BaseText type="subtitle3" color="secondary">
+          {t('usedFor')}
+        </BaseText>
+        <CreditSubProduct
+          subProducts={data?.subProducts}
+          hasSubProduct={data?.hasSubProduct}
+        />
       </View>
     </View>
   );

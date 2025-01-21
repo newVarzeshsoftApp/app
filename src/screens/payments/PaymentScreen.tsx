@@ -1,10 +1,7 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {ActivityIndicator, Image, Text, View} from 'react-native';
-import {
-  DrawerStackParamList,
-  OrderStackParamList,
-} from '../../utils/types/NavigationTypes';
+import {DrawerStackParamList} from '../../utils/types/NavigationTypes';
 import {ScrollView} from 'react-native-gesture-handler';
 import {useTranslation} from 'react-i18next';
 import {CloseCircle, TickCircle} from 'iconsax-react-native';
@@ -14,8 +11,9 @@ import BaseButton from '../../components/Button/BaseButton';
 import {useMutation} from '@tanstack/react-query';
 import {PaymentService} from '../../services/PaymentService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
-import {PaymentVerifyRes} from '../../services/models/response/PaymentResService';
 import moment from 'jalali-moment';
+import {useCartContext} from '../../utils/CartContext';
+import {PaymentVerifyRes} from '../../services/models/response/PaymentResService';
 type PaymentScreenProps = NativeStackScreenProps<
   DrawerStackParamList,
   'Paymentresult'
@@ -23,14 +21,32 @@ type PaymentScreenProps = NativeStackScreenProps<
 const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'payment'});
   const [PaymentData, setPaymentData] = useState<PaymentVerifyRes | null>(null);
-  const isSuccses = route.params?.Status === 'OK';
 
-  const Mutation = useMutation({
+  const [isSuccses, SetisSuccses] = useState(route.params?.Status === 'OK');
+  const {totalItems, items, emptyCart} = useCartContext();
+
+  const normalizedItems = useMemo(() => {
+    return items.flatMap(item =>
+      Array.from({length: item.quantity}, () => ({
+        ...item,
+        quantity: 1,
+      })),
+    );
+  }, [items]);
+
+  const WalletCharge = useMutation({
     mutationFn: PaymentService.paymentVerify,
     onSuccess(data, variables, context) {
       setPaymentData(data);
     },
     onError: handleMutationError,
+  });
+  const CartPayment = useMutation({
+    mutationFn: PaymentService.paymentVerifySubmitOrder,
+    onSuccess(data, variables, context) {
+      emptyCart();
+      setPaymentData(data);
+    },
   });
   const CreatePayment = useMutation({
     mutationFn: PaymentService.CreatePayment,
@@ -43,76 +59,137 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
     },
     onError: handleMutationError,
   });
+  const Items = useMemo(() => {
+    return normalizedItems.map(item => {
+      const amount = item.SelectedPriceList
+        ? item.SelectedPriceList.price
+        : item.product.price;
+      const discount = item.SelectedPriceList
+        ? item?.SelectedPriceList?.discountOnlineShopPercentage ?? 0
+        : item?.product?.discount ?? 0;
+
+      return {
+        quantity: 1,
+        product: item.product.id,
+        tax: (amount * (item?.product?.tax ?? 0)) / 100,
+        manualPrice: false,
+        type: item.product.type,
+        contractor: item?.SelectedContractor?.contractorId ?? null,
+        contractorId: item?.SelectedContractor?.contractorId ?? null,
+        start: moment().format('YYYY-MM-DD'),
+        end: moment()
+          .add(item.SelectedPriceList?.duration ?? item.product.duration)
+          .format('YYYY-MM-DD'),
+        isOnline: true,
+        amount: amount,
+        discount: (amount * discount) / 100,
+        priceId: item.SelectedPriceList?.id ?? null,
+        price: amount,
+        duration: item.SelectedPriceList
+          ? item.SelectedPriceList.duration
+          : item.product.duration,
+      };
+    });
+  }, [normalizedItems]);
   useEffect(() => {
-    if (route.params?.Authority) {
-      Mutation.mutate({
-        authority: route.params.Authority,
-        code: route?.params?.code,
-        refId: route?.params?.RefID,
+    const {Authority, isDeposit, code, RefID} = route.params || {};
+    if (Authority) {
+      if (isDeposit) {
+        WalletCharge.mutate({
+          authority: Authority,
+          code,
+          refId: RefID,
+        });
+      } else if (Items.length > 0) {
+        CartPayment.mutate({
+          authority: Authority,
+          code,
+          refId: RefID,
+          isonlineShop: true,
+          orders: [
+            {items: Items, submitAt: moment().format('YYYY-MM-DD HH:mm')},
+          ],
+        });
+      }
+    }
+  }, [route.params?.Authority, route.params?.isDeposit, Items]);
+  const CreateNewPayment = () => {
+    if (PaymentData) {
+      CreatePayment.mutate({
+        amount: PaymentData?.payment.amount || 0,
+        description: 'پرداخت',
+        gateway: PaymentData?.payment.gateway.id,
+        isDeposit: route.params?.isDeposit ? true : false,
       });
     }
-  }, [route.params]);
-  if (Mutation.isPending && !PaymentData) {
-    return (
-      <View className="flex-1 items-center justify-center">
-        <ActivityIndicator size="large" color="#bcdd64" />
-      </View>
-    );
-  }
+  };
   return (
     <>
-      {PaymentData && (
-        <View className="flex-1">
-          <ScrollView contentContainerStyle={{flexGrow: 1}} style={{flex: 1}}>
-            <View className="items-centex justify-between Container pb-6 flex-1">
-              <View></View>
-              <View className="h-[400px] CardBase w-full relative pt-11 ">
-                <>
-                  {/* Status View */}
-                  <View
-                    className={`absolute -top-[20px] web:-top-[20px]  z-20 left-1/2 transform web:-translate-x-1/2 w-[44px] h-[44px] ${
-                      isSuccses
-                        ? 'bg-success-100/70 dark:bg-success-dark-100/70'
-                        : 'bg-error-100/80 dark:bg-error-dark-100/80'
-                    } items-center justify-center rounded-full shadow `}>
-                    {isSuccses ? (
-                      <TickCircle size="24" color="#37C976" variant="Bold" />
-                    ) : (
-                      <CloseCircle size="24" color="#FD504F" variant="Bold" />
-                    )}
-                  </View>
-                  <View className="w-full h-full absolute top-0 left-0 rounded-3xl">
-                    <View className="relative overflow-hidden w-full h-full flex-1">
-                      <View
-                        className={`absolute -top-[70px] web:-top-[70px]  z-20 left-1/2 transform web:-translate-x-1/2 w-full h-[200px] items-center justify-center rounded-full `}>
-                        <Image
-                          source={
-                            isSuccses
-                              ? require('../../assets/images/shade/shape/SucsessPaymantShape.png')
-                              : require('../../assets/images/shade/shape/RedPaymentShape.png')
-                          }
-                          style={{width: '100%', height: '100%'}}
-                        />
-                      </View>
-                      <View className="absolute -bottom-[150px] web:-bottom-[130px] opacity-50 rotate-180   z-20 left-1/2 transform web:-translate-x-1/2 w-full h-[200px] items-center justify-center rounded-full ">
-                        <Image
-                          source={
-                            isSuccses
-                              ? require('../../assets/images/shade/shape/SucsessPaymantShape.png')
-                              : require('../../assets/images/shade/shape/RedPaymentShape.png')
-                          }
-                          style={{width: '100%', height: '100%'}}
-                        />
-                      </View>
+      <View className="flex-1">
+        <ScrollView contentContainerStyle={{flexGrow: 1}} style={{flex: 1}}>
+          <View className="items-centex justify-between Container pb-6 flex-1">
+            <View></View>
+            <View className="h-[400px] CardBase w-full relative pt-11 ">
+              <>
+                {/* Status View */}
+                <View
+                  className={`absolute -top-[20px] web:-top-[20px]  z-20 left-1/2 transform web:-translate-x-1/2 w-[44px] h-[44px] ${
+                    isSuccses
+                      ? 'bg-success-100/70 dark:bg-success-dark-100/70'
+                      : 'bg-error-100/80 dark:bg-error-dark-100/80'
+                  } items-center justify-center rounded-full shadow `}>
+                  {isSuccses ? (
+                    <TickCircle size="24" color="#37C976" variant="Bold" />
+                  ) : (
+                    <CloseCircle size="24" color="#FD504F" variant="Bold" />
+                  )}
+                </View>
+                <View className="w-full h-full absolute top-0 left-0 rounded-3xl">
+                  <View className="relative overflow-hidden w-full h-full flex-1">
+                    <View
+                      className={`absolute -top-[70px] web:-top-[70px]  z-20 left-1/2 transform web:-translate-x-1/2 w-full h-[200px] items-center justify-center rounded-full `}>
+                      <Image
+                        source={
+                          isSuccses
+                            ? require('../../assets/images/shade/shape/SucsessPaymantShape.png')
+                            : require('../../assets/images/shade/shape/RedPaymentShape.png')
+                        }
+                        style={{width: '100%', height: '100%'}}
+                      />
+                    </View>
+                    <View className="absolute -bottom-[150px] web:-bottom-[130px] opacity-50 rotate-180   z-20 left-1/2 transform web:-translate-x-1/2 w-full h-[200px] items-center justify-center rounded-full ">
+                      <Image
+                        source={
+                          isSuccses
+                            ? require('../../assets/images/shade/shape/SucsessPaymantShape.png')
+                            : require('../../assets/images/shade/shape/RedPaymentShape.png')
+                        }
+                        style={{width: '100%', height: '100%'}}
+                      />
                     </View>
                   </View>
-                </>
-                {/* Content */}
+                </View>
+              </>
+              {!PaymentData ? (
+                WalletCharge.isPending || CartPayment.isPending ? (
+                  <View className="flex-1 items-center justify-center">
+                    <ActivityIndicator size="large" color="#bcdd64" />
+                  </View>
+                ) : (
+                  <View className="w-full h-full items-center justify-center">
+                    <BaseText type="title2" color="muted">
+                      {t('ProblemWithPayment')}
+                    </BaseText>
+                  </View>
+                )
+              ) : null}
+              {/* Content */}
+              {PaymentData && (
                 <View className="gap-7">
                   <View className="gap-2 justify-center items-center">
                     <View className="flex-row gap-1 items-center justify-center ">
                       <BaseText type="title2" color="base">
-                        {formatNumber(PaymentData?.amount)}
+                        {formatNumber(PaymentData?.payment?.amount ?? 0)}
                       </BaseText>
                       <BaseText type="title4" color="secondary">
                         ﷼
@@ -140,7 +217,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                         {t('DateAndTime')}: {''}
                       </BaseText>
                       <BaseText type="body3" color="base">
-                        {moment(PaymentData?.createdAt).format(
+                        {moment(PaymentData?.payment?.createdAt).format(
                           'jYYYY/jMM/jDD HH:mm',
                         )}
                       </BaseText>
@@ -150,9 +227,31 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                         {t('Payment ID')}: {''}
                       </BaseText>
                       <BaseText type="body3" color="base">
-                        {PaymentData.id.toString()}
+                        {PaymentData?.payment?.id?.toString()}
                       </BaseText>
                     </View>
+
+                    {/* <View className="flex-row items-center justify-between ">
+                      <BaseText type="body3" color="secondary">
+                        {t('Transaction number')}: {''}
+                      </BaseText>
+                      <BaseButton
+                        onPress={() =>
+                          navigation.navigate('HistoryNavigator', {
+                            screen: 'DepositDetail',
+                            params: {
+                              id: PaymentData?.payment?.transaction?.id ?? 0,
+                            },
+                          })
+                        }
+                        size="Small"
+                        type="Outline"
+                        color="Supportive5-Blue"
+                        text={PaymentData?.payment?.transaction?.id?.toString()}
+                        LinkButton
+                        rounded
+                      />
+                    </View> */}
                     <View className="flex-row items-center justify-between ">
                       <BaseText type="body3" color="secondary">
                         {t('Transaction number')}: {''}
@@ -161,13 +260,17 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                         onPress={() =>
                           navigation.navigate('HistoryNavigator', {
                             screen: 'DepositDetail',
-                            params: {id: PaymentData?.transaction.id},
+                            params: {
+                              id: PaymentData?.payment?.transaction?.id ?? 0,
+                            },
                           })
                         }
                         size="Small"
                         type="Outline"
                         color="Supportive5-Blue"
-                        text={PaymentData.transaction.id.toString()}
+                        text={(
+                          PaymentData?.payment?.transaction?.id ?? 0
+                        ).toString()}
                         LinkButton
                         rounded
                       />
@@ -179,7 +282,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                       </BaseText>
                       <View className="flex-row gap-1">
                         <BaseText type="body3" color="base">
-                          {formatNumber(PaymentData?.amount)}
+                          {formatNumber(PaymentData?.payment.amount)}
                         </BaseText>
                         <BaseText type="body3" color="base">
                           ﷼
@@ -190,11 +293,9 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                       <BaseText type="body3" color="secondary">
                         {t('Payment gateway')}: {''}
                       </BaseText>
-                      <View>
-                        <BaseText type="body3" color="base">
-                          زرین پال
-                        </BaseText>
-                      </View>
+                      <BaseText type="body3" color="base">
+                        {PaymentData.payment.gateway.title}
+                      </BaseText>
                     </View>
                     <View className="flex-row items-center justify-between ">
                       <BaseText type="body3" color="secondary">
@@ -202,49 +303,48 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                       </BaseText>
                       <View>
                         <BaseText type="body3" color="base">
-                          {PaymentData.refId}{' '}
-                          {PaymentData.code && `(${PaymentData.code})`}
+                          {PaymentData.payment.refId}{' '}
+                          {PaymentData.payment.code &&
+                            `(${PaymentData.payment.code})`}
                         </BaseText>
                       </View>
                     </View>
                   </View>
                 </View>
-              </View>
-              <View className="gap-2">
-                {!isSuccses && (
-                  <BaseButton
-                    onPress={() => {
-                      CreatePayment.mutate({
-                        amount: PaymentData?.amount || 0,
-                        description: 'پرداخت',
-                        gateway: PaymentData.gateway.id,
-                        isDeposit: true,
-                      });
-                    }}
-                    isLoading={CreatePayment.isPending}
-                    type={'Fill'}
-                    color="Black"
-                    size="Large"
-                    text={t('Retry')}
-                    rounded
-                  />
-                )}
+              )}
+            </View>
+            <View className="gap-2">
+              {!isSuccses && (
                 <BaseButton
-                  onPress={() => {
-                    //@ts-ignore
-                    navigation.navigate('HomeNavigator', {screen: 'wallet'});
-                  }}
-                  type={isSuccses ? 'Fill' : 'Outline'}
+                  onPress={CreateNewPayment}
+                  disabled={!PaymentData}
+                  isLoading={CreatePayment.isPending}
+                  type={'Fill'}
                   color="Black"
                   size="Large"
-                  text={t('BackToWallet')}
+                  text={t('Retry')}
                   rounded
                 />
-              </View>
+              )}
+              <BaseButton
+                onPress={() => {
+                  route.params?.isDeposit
+                    ? //@ts-ignore
+                      navigation.navigate('HomeNavigator', {screen: 'wallet'})
+                    : navigation.navigate('HomeNavigator');
+                }}
+                type={isSuccses ? 'Fill' : 'Outline'}
+                color="Black"
+                size="Large"
+                text={
+                  route.params?.isDeposit ? t('BackToWallet') : t('BackToHome')
+                }
+                rounded
+              />
             </View>
-          </ScrollView>
-        </View>
-      )}
+          </View>
+        </ScrollView>
+      </View>
     </>
   );
 };

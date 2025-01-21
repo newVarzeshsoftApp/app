@@ -164,7 +164,6 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
         });
       }
     },
-    onError: handleMutationError,
   });
   const onSubmit = useCallback<SubmitHandler<AmountSchemaType>>(
     async data => {

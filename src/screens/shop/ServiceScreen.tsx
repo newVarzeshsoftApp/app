@@ -87,7 +87,7 @@ const ServiceScreen: React.FC<ServiceScreenProp> = ({navigation, route}) => {
       !ProductDataIsFetching &&
       data.length < (ProductData?.total ?? 5)
     ) {
-      setOffset(prevOffset => prevOffset + 1);
+      setOffset(prevOffset => prevOffset + limit);
     }
   };
 

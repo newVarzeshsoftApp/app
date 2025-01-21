@@ -1,3 +1,4 @@
+import {Category} from './CategoryResService';
 import {
   PriceList,
   Product,
@@ -185,11 +186,15 @@ export interface subProducts {
   deletedAt?: string | null;
   amount?: number | null;
   tax?: number;
+
+  OrganizationUnit?: OrganizationUnit | null;
+  SaleUnit?: SaleUnit | null;
   organizationUnitId?: number | null;
   parentId?: number;
   productId?: number;
   product?: ProductService;
   categoryId?: number | null;
+  category?: Category | null;
   saleUnitId?: number | null;
   contractorId?: number | null;
   price?: PriceList;
@@ -616,7 +621,7 @@ export interface FiscalYear {
 export interface SaleTransaction {
   type?: number;
   description?: string;
-  submitAt?: string; // ISO date string
+  submitAt: string; // ISO date string
   id: number;
   updatedAt?: string; // ISO date string
   createdAt?: string; // ISO date string

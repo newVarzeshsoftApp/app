@@ -1,3 +1,4 @@
+import {SaleOrderItem} from '../request/OperationalReqService';
 import {GetGatewayRes} from './GetwayResService';
 import {Gateway} from './UseResrService';
 
@@ -101,7 +102,7 @@ export interface Transaction {
   gatewayId: number | null;
 }
 
-export interface PaymentVerifyRes {
+export interface PaymentVerify {
   dto: DTO;
   isDeposit: boolean;
   id: number;
@@ -133,4 +134,24 @@ export interface PaymentVerifyRes {
   errors: string | null;
   customer: Customer;
   transaction: Transaction;
+}
+
+interface VerifyResponse {
+  wages: any[];
+  code: number;
+  message: string;
+  cardHash: string;
+  cardPan: string;
+  refId: number;
+  feeType: string;
+  fee: number;
+  shaparakFee: string;
+  orderId: string | null;
+  status: number;
+}
+
+export interface PaymentVerifyRes {
+  verifyResponse: VerifyResponse;
+  orders: SaleOrderItem[];
+  payment: PaymentVerify;
 }

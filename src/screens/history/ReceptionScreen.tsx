@@ -66,7 +66,7 @@ const ReceptionScreen: React.FC<ReceptionScreenProps> = ({
   }, [data]);
   const loadMore = () => {
     if (!isError && !isFetching && items.length < (data?.total ?? 5)) {
-      setOffset(prevOffset => prevOffset + 1);
+      setOffset(prevOffset => prevOffset + limit);
     }
   };
   const scrollHandler = useAnimatedScrollHandler({

@@ -61,7 +61,7 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
       data.length < (fetchedData?.total ?? 5) &&
       inMoreScreen
     ) {
-      setOffset(prevOffset => prevOffset + 1);
+      setOffset(prevOffset => prevOffset + limit);
     }
   };
 
