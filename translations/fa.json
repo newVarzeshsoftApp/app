@@ -330,7 +330,6 @@
     "Source": "منبع",
     "UserCredit": "کیف پول",
     "orderNumber": "شماره سفارش",
-
     "Bank": "بانک",
     "CashDesk": "صندوق",
     "ChargingService": "خدمت شارژی",
@@ -340,6 +339,7 @@
     "OfferedDiscount": "تخفیف هدف مند",
     "Archived": "بایگانی شده",
     "Transfer": "انتقالی",
+    "ProblemWithPayment": "مشکل در پرداخت",
     "Reserve": "رزور",
     "Status": "وضعیت",
     "DateAndTime": "تاریخ و زمان",

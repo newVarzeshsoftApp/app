@@ -11,15 +11,9 @@ import BaseButton from '../../components/Button/BaseButton';
 import {useMutation} from '@tanstack/react-query';
 import {PaymentService} from '../../services/PaymentService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
-import {
-  PaymentVerifyRes,
-  paymentVerifySubmitOrderRes,
-} from '../../services/models/response/PaymentResService';
 import moment from 'jalali-moment';
 import {useCartContext} from '../../utils/CartContext';
-import {SaleOrderItem} from '../../services/models/request/OperationalReqService';
-import WalletPaymentDetail from './Components/WalletPaymentDetail';
-import CartPaymentDetail from './Components/CartPaymentDetail';
+import {PaymentVerifyRes} from '../../services/models/response/PaymentResService';
 type PaymentScreenProps = NativeStackScreenProps<
   DrawerStackParamList,
   'Paymentresult'
@@ -27,9 +21,8 @@ type PaymentScreenProps = NativeStackScreenProps<
 const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'payment'});
   const [PaymentData, setPaymentData] = useState<PaymentVerifyRes | null>(null);
-  const [CartPaymentData, setCartPaymentData] =
-    useState<paymentVerifySubmitOrderRes | null>(null);
-  const isSuccses = route.params?.Status === 'OK';
+
+  const [isSuccses, SetisSuccses] = useState(route.params?.Status === 'OK');
   const {totalItems, items, emptyCart} = useCartContext();
 
   const normalizedItems = useMemo(() => {
@@ -52,7 +45,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
     mutationFn: PaymentService.paymentVerifySubmitOrder,
     onSuccess(data, variables, context) {
       emptyCart();
-      setCartPaymentData(data);
+      setPaymentData(data);
     },
   });
   const CreatePayment = useMutation({
@@ -120,7 +113,16 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
       }
     }
   }, [route.params?.Authority, route.params?.isDeposit, Items]);
-
+  const CreateNewPayment = () => {
+    if (PaymentData) {
+      CreatePayment.mutate({
+        amount: PaymentData?.payment.amount || 0,
+        description: 'پرداخت',
+        gateway: PaymentData?.payment.gateway.id,
+        isDeposit: route.params?.isDeposit ? true : false,
+      });
+    }
+  };
   return (
     <>
       <View className="flex-1">
@@ -168,55 +170,175 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                   </View>
                 </View>
               </>
-              {(CartPayment.isPending || CreatePayment.isPending) && (
-                <View className="flex-1 items-center justify-center">
-                  <ActivityIndicator size="large" color="#bcdd64" />
-                </View>
-              )}
+              {!PaymentData ? (
+                WalletCharge.isPending || CartPayment.isPending ? (
+                  <View className="flex-1 items-center justify-center">
+                    <ActivityIndicator size="large" color="#bcdd64" />
+                  </View>
+                ) : (
+                  <View className="w-full h-full items-center justify-center">
+                    <BaseText type="title2" color="muted">
+                      {t('ProblemWithPayment')}
+                    </BaseText>
+                  </View>
+                )
+              ) : null}
               {/* Content */}
               {PaymentData && (
-                <WalletPaymentDetail
-                  PaymentData={PaymentData}
-                  isSuccses={isSuccses}
-                  navigation={navigation}
-                />
-              )}
-              {CartPaymentData && (
-                <CartPaymentDetail
-                  PaymentData={CartPaymentData}
-                  isSuccses={isSuccses}
-                  navigation={navigation}
-                />
+                <View className="gap-7">
+                  <View className="gap-2 justify-center items-center">
+                    <View className="flex-row gap-1 items-center justify-center ">
+                      <BaseText type="title2" color="base">
+                        {formatNumber(PaymentData?.payment?.amount ?? 0)}
+                      </BaseText>
+                      <BaseText type="title4" color="secondary">
+                        ﷼
+                      </BaseText>
+                    </View>
+                    <BaseText
+                      type="title4"
+                      color={isSuccses ? 'success' : 'error'}>
+                      {isSuccses ? t(`paymentSuccses`) : t('paymnetFaild')}
+                    </BaseText>
+                  </View>
+                  <View className="gap-2">
+                    <View className="flex-row items-center justify-between ">
+                      <BaseText type="body3" color="secondary">
+                        {t('Status')}: {''}
+                      </BaseText>
+                      <BaseText
+                        type="body3"
+                        color={isSuccses ? 'success' : 'error'}>
+                        {t(isSuccses ? 'Succses' : 'faild')}
+                      </BaseText>
+                    </View>
+                    <View className="flex-row items-center justify-between ">
+                      <BaseText type="body3" color="secondary">
+                        {t('DateAndTime')}: {''}
+                      </BaseText>
+                      <BaseText type="body3" color="base">
+                        {moment(PaymentData?.payment?.createdAt).format(
+                          'jYYYY/jMM/jDD HH:mm',
+                        )}
+                      </BaseText>
+                    </View>
+                    <View className="flex-row items-center justify-between ">
+                      <BaseText type="body3" color="secondary">
+                        {t('Payment ID')}: {''}
+                      </BaseText>
+                      <BaseText type="body3" color="base">
+                        {PaymentData?.payment?.id?.toString()}
+                      </BaseText>
+                    </View>
+
+                    {/* <View className="flex-row items-center justify-between ">
+                      <BaseText type="body3" color="secondary">
+                        {t('Transaction number')}: {''}
+                      </BaseText>
+                      <BaseButton
+                        onPress={() =>
+                          navigation.navigate('HistoryNavigator', {
+                            screen: 'DepositDetail',
+                            params: {
+                              id: PaymentData?.payment?.transaction?.id ?? 0,
+                            },
+                          })
+                        }
+                        size="Small"
+                        type="Outline"
+                        color="Supportive5-Blue"
+                        text={PaymentData?.payment?.transaction?.id?.toString()}
+                        LinkButton
+                        rounded
+                      />
+                    </View> */}
+                    <View className="flex-row items-center justify-between ">
+                      <BaseText type="body3" color="secondary">
+                        {t('Transaction number')}: {''}
+                      </BaseText>
+                      <BaseButton
+                        onPress={() =>
+                          navigation.navigate('HistoryNavigator', {
+                            screen: 'DepositDetail',
+                            params: {
+                              id: PaymentData?.payment?.transaction?.id ?? 0,
+                            },
+                          })
+                        }
+                        size="Small"
+                        type="Outline"
+                        color="Supportive5-Blue"
+                        text={(
+                          PaymentData?.payment?.transaction?.id ?? 0
+                        ).toString()}
+                        LinkButton
+                        rounded
+                      />
+                    </View>
+
+                    <View className="flex-row items-center justify-between ">
+                      <BaseText type="body3" color="secondary">
+                        {t('Amount')}: {''}
+                      </BaseText>
+                      <View className="flex-row gap-1">
+                        <BaseText type="body3" color="base">
+                          {formatNumber(PaymentData?.payment.amount)}
+                        </BaseText>
+                        <BaseText type="body3" color="base">
+                          ﷼
+                        </BaseText>
+                      </View>
+                    </View>
+                    <View className="flex-row items-center justify-between ">
+                      <BaseText type="body3" color="secondary">
+                        {t('Payment gateway')}: {''}
+                      </BaseText>
+                      <BaseText type="body3" color="base">
+                        {PaymentData.payment.gateway.title}
+                      </BaseText>
+                    </View>
+                    <View className="flex-row items-center justify-between ">
+                      <BaseText type="body3" color="secondary">
+                        {t('Tracking number')}: {''}
+                      </BaseText>
+                      <View>
+                        <BaseText type="body3" color="base">
+                          {PaymentData.payment.refId}{' '}
+                          {PaymentData.payment.code &&
+                            `(${PaymentData.payment.code})`}
+                        </BaseText>
+                      </View>
+                    </View>
+                  </View>
+                </View>
               )}
             </View>
             <View className="gap-2">
-              {/* {!isSuccses &&  (
-                  <BaseButton
-                    onPress={() => {
-                      CreatePayment.mutate({
-                        amount: PaymentData?.amount || 0,
-                        description: 'پرداخت',
-                        gateway: PaymentData.gateway.id,
-                        isDeposit: true,
-                      });
-                    }}
-                    isLoading={CreatePayment.isPending}
-                    type={'Fill'}
-                    color="Black"
-                    size="Large"
-                    text={t('Retry')}
-                    rounded
-                  />
-                )} */}
+              {!isSuccses && (
+                <BaseButton
+                  onPress={CreateNewPayment}
+                  disabled={!PaymentData}
+                  isLoading={CreatePayment.isPending}
+                  type={'Fill'}
+                  color="Black"
+                  size="Large"
+                  text={t('Retry')}
+                  rounded
+                />
+              )}
               <BaseButton
                 onPress={() => {
-                  //@ts-ignore
-                  navigation.navigate('HomeNavigator', {screen: 'wallet'});
+                  route.params?.isDeposit
+                    ? //@ts-ignore
+                      navigation.navigate('HomeNavigator', {screen: 'wallet'})
+                    : navigation.navigate('HomeNavigator');
                 }}
                 type={isSuccses ? 'Fill' : 'Outline'}
                 color="Black"
                 size="Large"
-                text={t('BackToWallet')}
+                text={
+                  route.params?.isDeposit ? t('BackToWallet') : t('BackToHome')
+                }
                 rounded
               />
             </View>

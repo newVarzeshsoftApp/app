@@ -102,7 +102,7 @@ export interface Transaction {
   gatewayId: number | null;
 }
 
-export interface PaymentVerifyRes {
+export interface PaymentVerify {
   dto: DTO;
   isDeposit: boolean;
   id: number;
@@ -150,7 +150,8 @@ interface VerifyResponse {
   status: number;
 }
 
-export interface paymentVerifySubmitOrderRes {
+export interface PaymentVerifyRes {
   verifyResponse: VerifyResponse;
   orders: SaleOrderItem[];
+  payment: PaymentVerify;
 }
