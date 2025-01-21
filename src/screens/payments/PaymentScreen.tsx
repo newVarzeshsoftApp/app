@@ -14,6 +14,7 @@ import {handleMutationError} from '../../utils/helpers/errorHandler';
 import moment from 'jalali-moment';
 import {useCartContext} from '../../utils/CartContext';
 import {PaymentVerifyRes} from '../../services/models/response/PaymentResService';
+import {useProfile} from '../../utils/hooks/useProfile';
 type PaymentScreenProps = NativeStackScreenProps<
   DrawerStackParamList,
   'Paymentresult'
@@ -21,6 +22,7 @@ type PaymentScreenProps = NativeStackScreenProps<
 const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'payment'});
   const [PaymentData, setPaymentData] = useState<PaymentVerifyRes | null>(null);
+  const {data: ProfileData} = useProfile();
 
   const [isSuccses, SetisSuccses] = useState(route.params?.Status === 'OK');
   const {totalItems, items, emptyCart} = useCartContext();
@@ -67,11 +69,11 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
       const discount = item.SelectedPriceList
         ? item?.SelectedPriceList?.discountOnlineShopPercentage ?? 0
         : item?.product?.discount ?? 0;
-
       return {
         quantity: 1,
         product: item.product.id,
-        tax: (amount * (item?.product?.tax ?? 0)) / 100,
+        tax: item?.product?.tax,
+        user: ProfileData?.id,
         manualPrice: false,
         type: item.product.type,
         contractor: item?.SelectedContractor?.contractorId ?? null,
@@ -100,19 +102,24 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
           code,
           refId: RefID,
         });
-      } else if (Items.length > 0) {
+      } else if (Items.length > 0 && ProfileData) {
         CartPayment.mutate({
           authority: Authority,
           code,
           refId: RefID,
           isonlineShop: true,
           orders: [
-            {items: Items, submitAt: moment().format('YYYY-MM-DD HH:mm')},
+            {
+              items: Items,
+              user: ProfileData.id,
+              location: '',
+              submitAt: moment().format('YYYY-MM-DD HH:mm'),
+            },
           ],
         });
       }
     }
-  }, [route.params?.Authority, route.params?.isDeposit, Items]);
+  }, [route.params?.Authority, route.params?.isDeposit, Items, ProfileData]);
   const CreateNewPayment = () => {
     if (PaymentData) {
       CreatePayment.mutate({
@@ -129,7 +136,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
         <ScrollView contentContainerStyle={{flexGrow: 1}} style={{flex: 1}}>
           <View className="items-centex justify-between Container pb-6 flex-1">
             <View></View>
-            <View className="h-[400px] CardBase w-full relative pt-11 ">
+            <View className="min-h-[400px] pb-11 CardBase w-full relative pt-11 ">
               <>
                 {/* Status View */}
                 <View
@@ -231,34 +238,13 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                       </BaseText>
                     </View>
 
-                    {/* <View className="flex-row items-center justify-between ">
-                      <BaseText type="body3" color="secondary">
-                        {t('Transaction number')}: {''}
-                      </BaseText>
-                      <BaseButton
-                        onPress={() =>
-                          navigation.navigate('HistoryNavigator', {
-                            screen: 'DepositDetail',
-                            params: {
-                              id: PaymentData?.payment?.transaction?.id ?? 0,
-                            },
-                          })
-                        }
-                        size="Small"
-                        type="Outline"
-                        color="Supportive5-Blue"
-                        text={PaymentData?.payment?.transaction?.id?.toString()}
-                        LinkButton
-                        rounded
-                      />
-                    </View> */}
                     <View className="flex-row items-center justify-between ">
                       <BaseText type="body3" color="secondary">
                         {t('Transaction number')}: {''}
                       </BaseText>
                       <BaseButton
                         onPress={() =>
-                          navigation.navigate('HistoryNavigator', {
+                          navigation.push('HistoryNavigator', {
                             screen: 'DepositDetail',
                             params: {
                               id: PaymentData?.payment?.transaction?.id ?? 0,
@@ -275,6 +261,33 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                         rounded
                       />
                     </View>
+                    {PaymentData?.orders?.map((item, index) => {
+                      return (
+                        <View
+                          key={index}
+                          className="flex-row items-center justify-between ">
+                          <BaseText type="body3" color="secondary">
+                            {t('orderNumber')}: {''}
+                          </BaseText>
+                          <BaseButton
+                            onPress={() =>
+                              navigation.push('HistoryNavigator', {
+                                screen: 'orderDetail',
+                                params: {
+                                  id: Number(item ?? 0),
+                                },
+                              })
+                            }
+                            size="Small"
+                            type="Outline"
+                            color="Supportive5-Blue"
+                            text={item ?? ''}
+                            LinkButton
+                            rounded
+                          />
+                        </View>
+                      );
+                    })}
 
                     <View className="flex-row items-center justify-between ">
                       <BaseText type="body3" color="secondary">

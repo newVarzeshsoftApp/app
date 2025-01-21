@@ -14,12 +14,17 @@ export type SaleItemStackParamList = {
   saleItem: undefined;
   saleItemDetail: {id: number; title: string};
 };
+export type ProfileTabParamsList = {
+  PersonalInfo: undefined;
+  Security: undefined;
+};
 
 export type DrawerStackParamList = {
   HomeNavigator: NavigatorScreenParams<HomeStackParamList> | undefined;
   SaleItemNavigator: NavigatorScreenParams<SaleItemStackParamList> | undefined;
   ShopNavigator: NavigatorScreenParams<ShopStackParamList> | undefined;
   HistoryNavigator: NavigatorScreenParams<OrderStackParamList> | undefined;
+  ProfileTab: undefined;
   Paymentresult:
     | {
         code: string;

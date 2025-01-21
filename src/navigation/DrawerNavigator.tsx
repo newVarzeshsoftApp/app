@@ -13,10 +13,15 @@ import {Alert, BackHandler, Platform} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import WebViewScreen from '../screens/web/WebViewScreen';
 import PaymentDetail from '../screens/payments/PaymentDetail';
+import ProfileTabNavigator from './profile/ProfileTabNavigator';
+import NavigationHeader from '../components/header/NavigationHeader';
+import {useTranslation} from 'react-i18next';
 
 const Drawer = createDrawerNavigator<DrawerStackParamList>();
 
 const DrawerNavigator: React.FC = () => {
+  const {t} = useTranslation('translation', {keyPrefix: 'Drawer'});
+
   useFocusEffect(
     useCallback(() => {
       if (Platform.OS === 'web') {
@@ -73,6 +78,16 @@ const DrawerNavigator: React.FC = () => {
         initialRouteName="HomeNavigator"
         drawerContent={props => <CustomDrawerContent {...props} />}>
         <Drawer.Screen name="HomeNavigator" component={HomeNavigator} />
+        <Drawer.Screen
+          name="ProfileTab"
+          options={{
+            headerShown: true,
+            header: props => (
+              <NavigationHeader CenterText title={t('profile')} />
+            ),
+          }}
+          component={ProfileTabNavigator}
+        />
         <Drawer.Screen name="SaleItemNavigator" component={SaleItemNavigator} />
         <Drawer.Screen name="ShopNavigator" component={ShopNavigator} />
         <Drawer.Screen name="HistoryNavigator" component={HistoryNavigator} />

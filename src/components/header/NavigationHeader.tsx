@@ -12,12 +12,13 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import {useTheme} from '../../utils/ThemeContext';
+import {useNavigation} from '@react-navigation/native';
 
 // Make SafeAreaView animatable
 const AnimatedSafeAreaView = Animated.createAnimatedComponent(SafeAreaView);
 
 type NavigationHeaderProps = {
-  navigation: NativeStackNavigationProp<any, any>;
+  navigation?: NativeStackNavigationProp<any, any>;
   title?: string | undefined;
   onBackPress?: () => void;
   scrollY?: Animated.SharedValue<number>;
@@ -27,7 +28,6 @@ type NavigationHeaderProps = {
 };
 
 const NavigationHeader: React.FC<NavigationHeaderProps> = ({
-  navigation,
   title = '',
   onBackPress,
   range,
@@ -37,6 +37,7 @@ const NavigationHeader: React.FC<NavigationHeaderProps> = ({
 }) => {
   const {theme} = useTheme();
   const baseRange = theme === 'dark' ? '#1b1d21' : '#f4f4f5';
+  const navigation = useNavigation();
   const handleBackPress = () => {
     if (onBackPress) {
       onBackPress();
