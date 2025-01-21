@@ -121,7 +121,9 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
       return {
         quantity: 1,
         product: item.product.id,
-        tax: (amount * (item?.product?.tax ?? 0)) / 100,
+        tax: PaymentMethod?.getway
+          ? item?.product?.tax
+          : (amount * (item?.product?.tax ?? 0)) / 100,
         manualPrice: false,
         type: item.product.type,
         contractor: item?.SelectedContractor?.contractorId ?? null,
@@ -130,7 +132,9 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
         end: moment()
           .add(item.SelectedPriceList?.duration ?? item.product.duration)
           .format('YYYY-MM-DD'),
+
         isOnline: true,
+        user: ProfileData?.id,
         amount: amount,
         discount: (amount * discount) / 100,
         priceId: item.SelectedPriceList?.id ?? null,
@@ -152,7 +156,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
         gateway: PaymentMethod.getway,
         description: 'Cart',
         isDeposit: false,
-        dto,
+        orders: [dto],
       });
     } else {
       SaleOrder.mutate({

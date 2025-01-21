@@ -5,7 +5,7 @@ export interface PaymentBody {
   gateway: number;
   description: string;
   isDeposit: boolean;
-  dto?: Omit<SaleOrderBody, 'transactions'>;
+  orders?: Omit<SaleOrderBody, 'transactions'>[];
 }
 export interface PaymentVerifyBody {
   refId?: string;

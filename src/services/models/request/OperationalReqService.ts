@@ -17,6 +17,7 @@ export type SaleOrderItem = {
   amount?: number;
   manualPrice?: boolean;
   type?: number;
+  user?: number;
   registeredService?: number;
   contractor?: number | null;
   contractorId?: number | null;

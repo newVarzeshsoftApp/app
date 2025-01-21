@@ -69,7 +69,10 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = props => {
               showsHorizontalScrollIndicator={false}
               showsVerticalScrollIndicator={false}>
               <View className="gap-4">
-                <ProfileDrawer />
+                <TouchableOpacity
+                  onPress={() => props.navigation.navigate('ProfileTab')}>
+                  <ProfileDrawer />
+                </TouchableOpacity>
                 <MenuDrawer {...props} />
               </View>
             </ScrollView>

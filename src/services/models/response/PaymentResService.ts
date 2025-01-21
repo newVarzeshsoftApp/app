@@ -152,6 +152,6 @@ interface VerifyResponse {
 
 export interface PaymentVerifyRes {
   verifyResponse: VerifyResponse;
-  orders: SaleOrderItem[];
+  orders: string[];
   payment: PaymentVerify;
 }
