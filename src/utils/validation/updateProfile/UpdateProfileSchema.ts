@@ -14,7 +14,7 @@ export const UpdateProfileSchema = z.object({
   lastName: z.string().min(1, {message: i18n.t('Validation.lastNameRequired')}),
   mobile: validateMobileNumber.optional(),
   phone: validatePhoneNumber.optional(),
-  // NEED TO REVIEW
+
   birthday: z.object({
     jalaliDate: z
       .string()

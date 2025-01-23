@@ -133,7 +133,7 @@ const ControlledInput = <T extends FieldValues>({
       />
       <View className="h-[14px]">
         {/* Info Text */}
-        {info && (
+        {info && !error && (
           <View className="flex flex-row items-center gap-2">
             <InfoCircle size={14} color="#7F8185" />
             <BaseText color="muted" type="badge">
@@ -146,7 +146,7 @@ const ControlledInput = <T extends FieldValues>({
         {error && (
           <View className="flex flex-row items-center gap-2">
             <InfoCircle size={14} color="#FD504F" />
-            <BaseText color="error" type="caption">
+            <BaseText color="error" type="badge">
               {error}
             </BaseText>
           </View>

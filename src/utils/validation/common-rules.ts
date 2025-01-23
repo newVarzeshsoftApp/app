@@ -16,10 +16,15 @@ export const validateEmail = z
 
 export const validatePhoneNumber = z
   .string()
-  .min(1, {message: i18n.t('Validation.phoneNumberIsRequired')})
-  .regex(/^0\d{2,3}[\s-]?\d{6,8}$/, {
-    message: i18n.t('Validation.invalidPhoneNumber'),
-  });
+  // Transform empty strings to `undefined`
+  .transform(value => value || undefined)
+  .optional()
+  .refine(
+    value =>
+      // Either undefined/empty OR match the regex
+      !value || /^0\d{2,3}[\s-]?\d{6,8}$/.test(value),
+    {message: i18n.t('Validation.invalidPhoneNumber')},
+  );
 export const validateNationalCode = z
   .string()
   .min(1, {message: i18n.t('Validation.nationalCodeIsRequired')})
