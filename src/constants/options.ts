@@ -20,8 +20,8 @@ export const Config = {
 export const genders: PickerOption[] = [
   {key: '0', value: 'مرد'},
   {key: '1', value: 'زن'},
-  // {key: 'other', value: 'سایر'},
 ];
+
 export const limit = 5;
 export const menuItems: MenuItem[] = [
   {

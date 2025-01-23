@@ -2,7 +2,7 @@ import {z} from 'zod';
 import {
   validateEmail,
   validatePassword,
-  validatePhoneNumber,
+  validateMobileNumber,
 } from '../common-rules';
 import i18n from '../../../../i18n.config';
 
@@ -19,7 +19,7 @@ export const SignupSchema = z.object({
       message: i18n.t('Validation.genderRequired'),
     }),
   password: validatePassword,
-  phone: validatePhoneNumber,
+  mobile: validateMobileNumber,
   email: z
     .string()
     .optional()

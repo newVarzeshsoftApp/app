@@ -1,9 +1,6 @@
 import React from 'react';
-import {Image, Text, TouchableOpacity, View} from 'react-native';
+import {TouchableOpacity, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import Logo from '../assets/icons/Logo.svg';
-import LinearGradient from 'react-native-linear-gradient';
-import {useProfile} from '../utils/hooks/useProfile';
 import ResponsiveImage from './ResponsiveImage';
 import {useGetOrganizationBySKU} from '../utils/hooks/Organization/useGetOrganizationBySKU';
 import {Menu} from 'iconsax-react-native';
@@ -11,7 +8,6 @@ import {DrawerActions} from '@react-navigation/native';
 import ProfilePic from './header/ProfilePic';
 
 function Header({navigation}: {navigation: any}) {
-  const {data, isLoading, isSuccess} = useProfile();
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
 
   return (
@@ -30,7 +26,9 @@ function Header({navigation}: {navigation: any}) {
             className="w-12 h-12 rounded-full items-center justify-center bg-neutral-100  dark:bg-neutral-dark-100">
             <Menu size="24" color="#717181" variant="Bold" />
           </TouchableOpacity>
-          <ProfilePic />
+          <TouchableOpacity onPress={() => navigation.navigate('ProfileTab')}>
+            <ProfilePic />
+          </TouchableOpacity>
         </View>
       </View>
     </SafeAreaView>

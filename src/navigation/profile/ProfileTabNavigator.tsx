@@ -7,13 +7,17 @@ import PersonalInfoScreen from '../../screens/profile/PersonalInfo';
 import SecurityScreen from '../../screens/profile/SecurityScreen';
 import CustomTabBar from '../../components/CustomTabBar';
 import {View} from 'react-native';
+import {useTranslation} from 'react-i18next';
 
 const Tab = createMaterialTopTabNavigator<ProfileTabParamsList>();
 
 const ProfileTabNavigator: React.FC = () => {
+  const {t} = useTranslation('translation', {
+    keyPrefix: 'Profile',
+  });
   const customLabels: Record<string, string> = {
-    PersonalInfo: 'اطلاعات شخصی',
-    Security: 'امنیت',
+    PersonalInfo: t('Personal Info'),
+    Security: t('Security'),
   };
 
   // Define custom icons for each tab
@@ -22,7 +26,7 @@ const ProfileTabNavigator: React.FC = () => {
     Security: <Lock size="24" />,
   };
   return (
-    <View style={{direction: 'ltr'}}>
+    <View style={{direction: 'ltr', flex: 1}}>
       <Tab.Navigator
         direction="ltr"
         screenOptions={{

@@ -44,7 +44,11 @@
     "changeTheme": "تغییر تم",
     "profile": "پروفایل"
   },
-
+  "Profile": {
+    "Personal Info": "اطلاعات شخصی",
+    "This section is for updating your personal information": "این قسمت برای به‌روزرسانی اطلاعات شخصی شما است",
+    "Security": "امنیت "
+  },
   "Home": {
     "WalletBalance": "موجودی کیف پول",
     "rial": "ریال",
@@ -252,7 +256,7 @@
     "saleItem": "سرویس های من"
   },
   "Input": {
-    "username": "ایمیل / شماره تلفن",
+    "username": "ایمیل / شماره موبایل",
     "password": "رمز عبور",
     "New Password": "رمز عبور جدید",
     "confirmpassword": "تأیید رمز عبور",
@@ -261,13 +265,14 @@
     "Name": "نام و نام خانوادگی ",
     "lastName": "نام خانوادگی",
     "List Name": "نام لیست",
-    "phone": "شماره تلفن",
+    "phone": "تلفن ثابت",
+    "mobile": "شماره موبایل",
     "gender": "جنسیت",
     "website": "وب‌سایت",
     "Discount": "تخفیف",
     "Overview": "خلاصه",
     "amount": "مبلغ(ریال)",
-    "invalidPhoneNumber": "شماره تلفن نادرست",
+    "invalidPhoneNumber": "شماره تلفن ثابت نادرست",
     "ZIP Code": "کدپستی",
     "Orgnazier Name": "نام برگزارکننده",
     "optional": "اختیاری",
@@ -293,14 +298,18 @@
       "postalCode": "کد پستی",
       "country": "کشور"
     },
+    "Save": "ذخیره",
+
     "placeholders": {
       "username": "نام کاربری خود را وارد کنید",
+
       "email": "آدرس ایمیل خود را وارد کنید",
       "password": "رمز عبور خود را وارد کنید",
       "gender": "جنسیت خود را انتخاب کنید",
       "confirmPassword": "رمز عبور خود را تأیید کنید",
       "search": "اینجا جستجو کنید...",
-      "phoneNumber": "شماره تلفن خود را وارد کنید",
+      "phoneNumber": "شماره تلفن ثابت خود را وارد کنید",
+      "MobileNumber": "شماره موبایل خود را وارد کنید",
       "address": "آدرس خود را وارد کنید",
       "amount": "مبلغ مورد نظر خود را وارد نمایید",
       "city": "شهر خود را وارد کنید",
@@ -315,7 +324,8 @@
       "Name": "نام خود را وارد کنید",
       "lastName": "نام خانوادگی خود را وارد کنید",
       "title": "عنوانی وارد کنید",
-      "phoneOrEmail": "شماره تلفن یا ایمیل خود را وارد کنید"
+      "phoneOrEmail": "شماره تلفن یا ایمیل خود را وارد کنید",
+      "write with city code": "شماره تلفن ثابت را با کد شهر وارد کنید"
     }
   },
   "payment": {
@@ -352,6 +362,8 @@
   },
   "Validation": {
     "enterEmailOrPhoneNumber": "ایمیل یا شماره تلفن الزامی است",
+    "nationalCodeIsRequired": "کدملی الزامی است",
+    "invalidNationalCode": "کدملی وارد شده صحیح نمی باشد",
     "passwordOneUppercase": "رمز عبور باید حداقل یک حرف بزرگ داشته باشد",
     "passwordOneLowercase": "رمز عبور باید حداقل یک حرف کوچک داشته باشد",
     "passwordOneNumeric": "رمز عبور باید حداقل یک عدد داشته باشد",
@@ -366,11 +378,13 @@
     "TitleIsRequired": "عنوان الزامی است",
     "genderIsRequired": "جنسیت الزامی است",
     "usernameIsRequired": "نام کاربری الزامی است",
-    "firstNameRequired": "نام کوچک الزامی است",
+    "firstNameRequired": "نام الزامی است",
     "OrgnazierNameRequired": "نام برگزارکننده الزامی است",
     "discountCannotBeGreaterThanPrice": "تخفیف نمی تواند بیشتر از قیمت باشد",
-    "phoneNumberIsRequired": "شماره تلفن الزامی است",
-    "invalidPhoneNumber": "شماره تلفن نامعتبر است",
+    "phoneNumberIsRequired": "شماره تلفن  ثابت الزامی است",
+    "invalidPhoneNumber": "شماره تلفن  ثابت نامعتبر است",
+    "invalidMobileNumber": "شماره موبایل نامعتبر است",
+    "MobileIsRequired": "شماره موبایل الزامی است",
     "customerNameIsRequired": "نام مشتری الزامی است",
     "lastNameRequired": "نام خانوادگی الزامی است",
     "streetIsRequired": "آدرس خیابان الزامی است",

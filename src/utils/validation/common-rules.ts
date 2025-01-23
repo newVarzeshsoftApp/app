@@ -16,9 +16,26 @@ export const validateEmail = z
 
 export const validatePhoneNumber = z
   .string()
-  .min(1, {message: i18n.t('Validation.phoneNumberIsRequired')})
+  // Transform empty strings to `undefined`
+  .transform(value => value || undefined)
+  .optional()
+  .refine(
+    value =>
+      // Either undefined/empty OR match the regex
+      !value || /^0\d{2,3}[\s-]?\d{6,8}$/.test(value),
+    {message: i18n.t('Validation.invalidPhoneNumber')},
+  );
+export const validateNationalCode = z
+  .string()
+  .min(1, {message: i18n.t('Validation.nationalCodeIsRequired')})
+  .regex(/^\d{10}$/, {
+    message: i18n.t('Validation.invalidNationalCode'),
+  });
+export const validateMobileNumber = z
+  .string()
+  .min(1, {message: i18n.t('Validation.MobileIsRequired')})
   .regex(/^\+?[0-9]\d{6,14}$/, {
-    message: i18n.t('Validation.invalidPhoneNumber'),
+    message: i18n.t('Validation.invalidMobileNumber'),
   });
 
 export const validateUsername = z.string().superRefine((value, context) => {
@@ -37,10 +54,10 @@ export const validateUsername = z.string().superRefine((value, context) => {
       });
     }
   } else if (/^\+?[0-9]/.test(value)) {
-    if (!validatePhoneNumber.safeParse(value).success) {
+    if (!validateMobileNumber.safeParse(value).success) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
-        message: i18n.t('Validation.invalidPhoneNumber'),
+        message: i18n.t('Validation.invalidMobileNumber'),
       });
     }
   } else {

@@ -103,6 +103,7 @@ export type InputProps<T extends FieldValues> = {
   onpress?:()=>void
   SperatedNumber?:boolean;
   centerText?:boolean
+  PickerType?:"DatePicker" |"GenderPicker"
 };
 export interface OpenSheetParams<T extends FieldValues> extends InputProps<T> {
   title: string;

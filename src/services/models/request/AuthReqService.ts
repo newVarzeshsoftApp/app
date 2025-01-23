@@ -12,7 +12,8 @@ export interface SignUpBody {
   username?: string;
   password?: string;
   email?: string;
-  gender?: 0 | 1;
+  // gender?: 0 | 1;
+  gender?: number;
   organization?: number;
 }
 export interface RequestOTPBody {

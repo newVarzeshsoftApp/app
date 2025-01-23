@@ -108,7 +108,7 @@ const DateSelector: React.FC<DateSelectorProps> = ({mode, onDateChange}) => {
     <>
       <BottomSheet
         ref={bottomSheetRef}
-        snapPoints={[50]}
+        snapPoints={[45]}
         Title="انتخاب تاریخ"
         buttonText="تایید"
         disablePan={true}
@@ -131,7 +131,9 @@ const DateSelector: React.FC<DateSelectorProps> = ({mode, onDateChange}) => {
             type="subtitle2"
             color={dateState.savedFromDate ? 'base' : 'muted'}>
             {dateState.savedFromDate
-              ? `از ${formatJalaliDate(dateState.savedFromDate.jalaliDate)}`
+              ? `از ${formatJalaliDate(
+                  dateState?.savedFromDate?.jalaliDate ?? '',
+                )}`
               : mode === 'range'
               ? 'از تاریخ'
               : 'انتخاب تاریخ'}
@@ -154,7 +156,9 @@ const DateSelector: React.FC<DateSelectorProps> = ({mode, onDateChange}) => {
               type="subtitle2"
               color={dateState.savedToDate ? 'base' : 'muted'}>
               {dateState.savedToDate
-                ? `تا ${formatJalaliDate(dateState.savedToDate.jalaliDate)}`
+                ? `تا ${formatJalaliDate(
+                    dateState?.savedToDate?.jalaliDate ?? '',
+                  )}`
                 : 'تا تاریخ'}
             </BaseText>
             {dateState.savedToDate ? (
