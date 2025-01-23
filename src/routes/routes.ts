@@ -60,6 +60,7 @@ export const routes = {
     getUserTransactionById: (id: number) => `user/transaction/${id}`,
     getUserPayment: (query: UserPaymentQuey) =>
       `user/payments` + prepareQuery(query),
+    updateProfile: () => 'user/update-profile',
   },
   operational: {
     saleOrder: () => `sale-order`,

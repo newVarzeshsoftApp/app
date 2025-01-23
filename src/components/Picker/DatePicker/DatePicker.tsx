@@ -1,11 +1,11 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {View, StyleSheet} from 'react-native';
 import moment from 'jalali-moment';
 import WheelPicker from '../WheelPicker';
 
 export type DateSelectorState = {
-  jalaliDate: string;
-  gregorianDate: string;
+  jalaliDate?: string;
+  gregorianDate?: string;
 };
 
 interface JalaliDatePickerProps {
@@ -23,8 +23,8 @@ const JalaliDatePicker: React.FC<JalaliDatePickerProps> = ({
   const currentDay = today.jDate();
 
   // Initialize state with `initialValue` or default to today's date
-  const initialDate = initialValue
-    ? moment.from(initialValue.jalaliDate, 'fa', 'YYYY/MM/DD')
+  const initialDate = initialValue?.gregorianDate
+    ? moment.from(initialValue?.gregorianDate ?? '', 'en', 'YYYY-MM-DD')
     : today;
 
   const [selectedYear, setSelectedYear] = useState<number>(initialDate.jYear());
@@ -34,33 +34,45 @@ const JalaliDatePicker: React.FC<JalaliDatePickerProps> = ({
   const [selectedDay, setSelectedDay] = useState<number>(initialDate.jDate());
 
   // Generate years, months, and days for the picker
-  const years = Array.from({length: 50}, (_, i) => ({
-    label: `${currentYear - i}`,
-    value: `${currentYear - i}`,
-  }));
+  const years = useMemo(
+    () =>
+      Array.from({length: 50}, (_, i) => ({
+        label: `${currentYear - i}`,
+        value: `${currentYear - i}`,
+      })),
+    [currentYear],
+  );
 
-  const months = [
-    'فروردین',
-    'اردیبهشت',
-    'خرداد',
-    'تیر',
-    'مرداد',
-    'شهریور',
-    'مهر',
-    'آبان',
-    'آذر',
-    'دی',
-    'بهمن',
-    'اسفند',
-  ].map((month, index) => ({
-    label: month,
-    value: `${index + 1}`,
-  }));
+  const months = useMemo(
+    () =>
+      [
+        'فروردین',
+        'اردیبهشت',
+        'خرداد',
+        'تیر',
+        'مرداد',
+        'شهریور',
+        'مهر',
+        'آبان',
+        'آذر',
+        'دی',
+        'بهمن',
+        'اسفند',
+      ].map((month, index) => ({
+        label: month,
+        value: `${index + 1}`,
+      })),
+    [],
+  );
 
-  const days = Array.from({length: 31}, (_, i) => ({
-    label: `${i + 1}`,
-    value: `${i + 1}`,
-  }));
+  const days = useMemo(
+    () =>
+      Array.from({length: 31}, (_, i) => ({
+        label: `${i + 1}`,
+        value: `${i + 1}`,
+      })),
+    [],
+  );
 
   // Updates the selected date and triggers `onChange`
   const updateDate = () => {
@@ -72,8 +84,9 @@ const JalaliDatePicker: React.FC<JalaliDatePickerProps> = ({
       onChange({gregorianDate: gregorianDate, jalaliDate: jalaliDate});
     }
   };
+
   useEffect(() => {
-    if (!initialValue) {
+    if (!initialValue || initialValue.gregorianDate === undefined) {
       // When no initialValue, trigger onChange with current date
       const todayJalali = `${today.jYear()}/${
         today.jMonth() + 1
@@ -85,6 +98,7 @@ const JalaliDatePicker: React.FC<JalaliDatePickerProps> = ({
       });
     }
   }, []);
+
   useEffect(() => {
     // Ensure the day is valid for the selected month and year
     const maxDays = moment.jDaysInMonth(selectedYear, selectedMonth - 1);
@@ -93,8 +107,9 @@ const JalaliDatePicker: React.FC<JalaliDatePickerProps> = ({
     }
     updateDate();
   }, [selectedYear, selectedMonth, selectedDay]);
+
   useEffect(() => {
-    if (initialValue) {
+    if (initialValue && initialValue.gregorianDate !== undefined) {
       const jalaliDate = initialValue.jalaliDate;
       const gregorianDate = initialValue.gregorianDate;
       onChange?.({gregorianDate, jalaliDate});

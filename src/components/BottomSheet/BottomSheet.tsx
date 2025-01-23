@@ -363,6 +363,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
                         // disabled={buttonDisabled}
                         color="Black"
                         type="Tonal"
+                        role="button"
                         redbutton
                         rounded
                         Extraclass="flex-1"
@@ -375,6 +376,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
                         text={buttonText || ''}
                         disabled={buttonDisabled}
                         color="Black"
+                        role="button"
                         type="Fill"
                         rounded
                         Extraclass="flex-1"

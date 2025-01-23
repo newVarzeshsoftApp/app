@@ -9,7 +9,10 @@ const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin'
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const appDirectory = path.resolve(__dirname);
 const {presets} = require(`${appDirectory}/babel.config.js`);
-
+const compileNodeModules = [
+  // Add every react-native package that needs compiling
+  'react-native',
+].map(moduleName => path.resolve(appDirectory, `node_modules/${moduleName}`));
 const babelLoaderConfiguration = {
   test: /\.(js|jsx|ts|tsx)$/,
   include: [
@@ -22,6 +25,7 @@ const babelLoaderConfiguration = {
     path.resolve(__dirname, 'node_modules/react-native-svg'),
     path.resolve(__dirname, 'node_modules/react-native-progress'),
     path.resolve(__dirname, 'node_modules/react-native-collapsible'),
+    ...compileNodeModules,
   ],
   use: {
     loader: 'babel-loader',
@@ -133,7 +137,7 @@ module.exports = (env, argv) => {
         ),
       }),
       new webpack.DefinePlugin({
-        __DEV__: JSON.stringify(!isProduction),
+        __DEV__: JSON.stringify(true),
       }),
       isProduction && new CompressionPlugin(), // Gzip compression in production
       isProduction &&

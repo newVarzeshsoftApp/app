@@ -1,3 +1,5 @@
+import {genders, PickerOption} from '../../constants/options';
+
 /**
  * Checks if the given object is not empty, undefined, or null.
  *
@@ -7,7 +9,13 @@
 export const isNotEmpty = (obj: unknown): boolean => {
   return obj !== undefined && obj !== null && obj !== '';
 };
-
+const genderMap = new Map(genders.map(gender => [gender.key, gender]));
+export const getGender = (
+  genderKey?: string | number,
+): PickerOption | undefined => {
+  const key = String(genderKey ?? '');
+  return genderMap.has(key) ? genderMap.get(key) : undefined;
+};
 /**
  * Converts a query object into a query string for URL usage.
  * Skips keys with empty values and adds commas to the `order` key.

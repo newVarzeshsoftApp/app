@@ -87,7 +87,7 @@ const ControlledInput = <T extends FieldValues>({
               {...props}
               className={`${
                 centerText && 'text-center'
-              } px-4 flex-1 h-full outline-none rounded-lg duration-200 text-text-base dark:text-text-base-dark`}
+              } px-4 flex-1 h-full outline-none rtl:text-right ltr:text-left rounded-lg duration-200 text-text-base dark:text-text-base-dark`}
               editable={!disabled}
               placeholder=""
               selectionColor="#7676EE"
@@ -136,7 +136,7 @@ const ControlledInput = <T extends FieldValues>({
         {info && (
           <View className="flex flex-row items-center gap-2">
             <InfoCircle size={14} color="#7F8185" />
-            <BaseText color="secondary" type="caption">
+            <BaseText color="muted" type="badge">
               {info}
             </BaseText>
           </View>

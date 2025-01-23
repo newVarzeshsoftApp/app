@@ -47,9 +47,9 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
     SignUpMutation.mutate({
       email: data.email,
       firstName: data.Name,
-      gender: 0,
+      gender: Number(data.gender.key),
       lastName: data.lastName,
-      username: data.phone,
+      username: data.mobile,
       organization: OrganizationBySKU!.id,
       password: data.password,
     });
@@ -61,7 +61,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
       lastName: '',
       Name: '',
       password: '',
-      phone: '',
+      mobile: '',
     },
   });
   const {
@@ -134,19 +134,18 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
                     />
                     <ControlledInput
                       control={control}
-                      name="phone"
-                      label={t('phone')}
-                      PlaceHolder={placeholders('phoneNumber')}
-                      error={errors.phone?.message}
-                      accessibilityLabel="phone input field"
-                      accessibilityHint="Enter your phone number"
+                      name="mobile"
+                      label={t('mobile')}
+                      PlaceHolder={placeholders('MobileNumber')}
+                      error={errors.mobile?.message}
+                      accessibilityLabel="mobile input field"
+                      accessibilityHint="Enter your mobile number"
                     />
                     <Picker
                       name="gender"
                       control={control}
                       label={t('gender')}
                       PlaceHolder={placeholders('gender')}
-                      // onpress={openGenderSelect}
                     />
                     <ControlledInput
                       control={control}

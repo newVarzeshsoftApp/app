@@ -1,4 +1,4 @@
-import axios from 'axios';
+import axios, {AxiosResponse} from 'axios';
 import {Status} from '../models/enums';
 import {routes} from '../routes/routes';
 import axiosInstance from '../utils/AxiosInstans';
@@ -23,6 +23,7 @@ import {
   UserWalletTransactionQuery,
 } from './models/requestQueries';
 import {handleMutationError} from '../utils/helpers/errorHandler';
+import {UpdateProfileBody} from './models/request/UserReqService';
 
 const {
   baseUrl,
@@ -39,6 +40,7 @@ const {
     getUserWalletTransaction,
     getUserTransactionById,
     getUserPayment,
+    updateProfile,
   },
 } = routes;
 
@@ -138,6 +140,7 @@ const UserService = {
       throw error;
     }
   },
+
   GetUserSaleOrder: async (
     query: UserSaleItemQuey,
   ): Promise<GetUserSaleOrderRes> => {
@@ -315,6 +318,29 @@ const UserService = {
       }
     } catch (error) {
       console.error('Error in GetSaleItemByID function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
+        throw new Error(
+          error.response.data.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+  UpdateProfile: async (body: UpdateProfileBody) => {
+    try {
+      const response = await axiosInstance.put<
+        UpdateProfileBody,
+        AxiosResponse<any>
+      >(baseUrl + updateProfile(), body);
+      if (response.status === Status.Ok || response.status === Status.Created) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response}`);
+      }
+    } catch (error) {
+      console.error('Error in SignIN function:', error);
       if (axios.isAxiosError(error) && error.response) {
         handleMutationError(error);
 

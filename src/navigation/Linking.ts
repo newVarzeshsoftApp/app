@@ -30,13 +30,18 @@ const linking: LinkingOptions<RootStackParamList> = {
               },
             },
           },
-
-          SaleItemNavigator: {
-            screens: {
-              saleItem: 'sale-item',
-              saleItemDetail: 'sale-item/:id/:title?',
-            },
-          },
+          // ProfileTab: {
+          //   screens: {
+          //     PersonalInfo: 'PersonalInfo',
+          //     Security: 'Security',
+          //   },
+          // },
+          // SaleItemNavigator: {
+          //   screens: {
+          //     saleItem: 'sale-item',
+          //     saleItemDetail: 'sale-item/:id/:title?',
+          //   },
+          // },
 
           ShopNavigator: {
             screens: {
