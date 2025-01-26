@@ -14,6 +14,7 @@ import {useTranslation} from 'react-i18next';
 import Badge from '../../Badge/Badge';
 import BottomSheet, {BottomSheetMethods} from '../../BottomSheet/BottomSheet';
 import {useCartContext} from '../../../utils/CartContext';
+import CreditSubProduct from '../SubProduct';
 type CartCreditCardProps = {
   data: CartItem;
 };
@@ -32,7 +33,7 @@ const CartCreditCard: React.FC<CartCreditCardProps> = ({data}) => {
         onButtonPress={() => RemoveItemRef.current?.close()}
         deleteButtonText="حذف"
         onDeleteButtonPress={() => {
-          removeFromCart(CartId);
+          removeFromCart(CartId!);
           RemoveItemRef.current?.close();
         }}
       />
@@ -58,7 +59,7 @@ const CartCreditCard: React.FC<CartCreditCardProps> = ({data}) => {
           <View className="flex-row items-center gap-4 ">
             <BaseButton
               onPress={() => {
-                updateItemQuantity({cartId: CartId, quantity: quantity + 1});
+                updateItemQuantity({cartId: CartId!, quantity: quantity + 1});
               }}
               type="Tonal"
               color="Black"
@@ -73,7 +74,7 @@ const CartCreditCard: React.FC<CartCreditCardProps> = ({data}) => {
               text="-"
               onPress={() => {
                 updateItemQuantity({
-                  cartId: CartId,
+                  cartId: CartId!,
                   quantity: quantity === 1 ? quantity : quantity - 1,
                 });
               }}
@@ -101,26 +102,10 @@ const CartCreditCard: React.FC<CartCreditCardProps> = ({data}) => {
               {t('usedFor')}
             </BaseText>
             <View className="flex-row items-center gap-1 flex-wrap">
-              {product?.hasSubProduct ? (
-                product?.subProducts?.map((item, index) => {
-                  return (
-                    <Badge
-                      key={index}
-                      defaultMode
-                      textColor="secondaryPurple"
-                      value={item.product?.title ?? ''}
-                      className="w-fit"
-                    />
-                  );
-                })
-              ) : (
-                <Badge
-                  defaultMode
-                  textColor="secondaryPurple"
-                  value={t('noLimit')}
-                  className="w-fit"
-                />
-              )}
+              <CreditSubProduct
+                subProducts={data.product?.subProducts}
+                hasSubProduct={data.product?.hasSubProduct}
+              />
             </View>
           </View>
         </View>

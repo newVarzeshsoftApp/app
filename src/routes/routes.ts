@@ -61,6 +61,8 @@ export const routes = {
     getUserPayment: (query: UserPaymentQuey) =>
       `user/payments` + prepareQuery(query),
     updateProfile: () => 'user/update-profile',
+    updatePassword: () => 'user/update-password',
+    uploadAvatar: () => 'user/upload-avatar',
   },
   operational: {
     saleOrder: () => `sale-order`,

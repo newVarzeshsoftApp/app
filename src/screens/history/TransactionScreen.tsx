@@ -56,6 +56,8 @@ const TransactionScreen: React.FC<SaleItemDetailProps> = ({
   const {data, isLoading, isFetching, isError} = useGetTransaction({
     limit: limit,
     offset,
+    sortOrder: -1,
+    sortField: 'submitAt',
     submitAt: {
       gte: selectedDateRange.startDate?.gregorianDate
         ? selectedDateRange.startDate?.gregorianDate

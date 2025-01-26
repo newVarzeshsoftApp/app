@@ -11,13 +11,11 @@ import {zodResolver} from '@hookform/resolvers/zod';
 import BaseText from '../../components/BaseText';
 import ControlledInput from '../../components/Input/ControlledInput';
 import {useTranslation} from 'react-i18next';
-
 import BaseButton from '../../components/Button/BaseButton';
 import {useProfile} from '../../utils/hooks/useProfile';
 import Picker from '../../components/Picker/Picker';
 import {useMutation, useQueryClient} from '@tanstack/react-query';
 import UserService from '../../services/UserService';
-import {genders} from '../../constants/options';
 import {getGender} from '../../utils/helpers/helpers';
 
 const PersonalInfoScreen: React.FC = () => {
@@ -136,6 +134,21 @@ const PersonalInfoScreen: React.FC = () => {
                 />
                 <ControlledInput
                   control={control}
+                  name="email"
+                  label={t('email')}
+                  PlaceHolder={placeholders('email')}
+                  type="email"
+                  autoComplete="off"
+                  autoCorrect={false}
+                  spellCheck={false}
+                  keyboardType="default"
+                  optional
+                  error={errors.email?.message}
+                  accessibilityLabel="email input field"
+                  accessibilityHint="Enter your email"
+                />
+                <ControlledInput
+                  control={control}
                   name="mobile"
                   label={t('mobile')}
                   disabled
@@ -154,6 +167,15 @@ const PersonalInfoScreen: React.FC = () => {
                   accessibilityLabel="phone input field"
                   accessibilityHint="Enter your phone number"
                 />
+                <ControlledInput
+                  control={control}
+                  name="address"
+                  label={t('Address')}
+                  PlaceHolder={placeholders('address')}
+                  error={errors.address?.message}
+                  accessibilityLabel="address input field"
+                  accessibilityHint="Enter your address"
+                />
                 <Picker
                   name="birthday"
                   control={control}
@@ -167,17 +189,6 @@ const PersonalInfoScreen: React.FC = () => {
                   control={control}
                   label={t('gender')}
                   PlaceHolder={placeholders('gender')}
-                />
-                <ControlledInput
-                  control={control}
-                  name="email"
-                  label={t('email')}
-                  PlaceHolder={placeholders('email')}
-                  type="email"
-                  optional
-                  error={errors.email?.message}
-                  accessibilityLabel="email input field"
-                  accessibilityHint="Enter your email"
                 />
               </View>
             </FormProvider>

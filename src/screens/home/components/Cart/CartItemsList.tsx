@@ -22,7 +22,7 @@ const CartItemsList: React.FC<CartItemsListProps> = ({
     [cardComponentMapping],
   );
 
-  return <>{items.reverse().map(item => renderItem({item}))}</>;
+  return <>{items.map(item => renderItem({item}))}</>;
 };
 
 export default CartItemsList;

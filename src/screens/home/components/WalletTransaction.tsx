@@ -1,22 +1,13 @@
 import React, {useEffect, useState} from 'react';
-import {
-  ActivityIndicator,
-  FlatList,
-  Platform,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {ActivityIndicator, FlatList, Platform, View} from 'react-native';
 import {useGetWalletTransaction} from '../../../utils/hooks/User/useGetWalletTransaction';
 import {limit} from '../../../constants/options';
 import {SaleTransaction} from '../../../services/models/response/UseResrService';
 import BaseText from '../../../components/BaseText';
-import {ArrowUp} from 'iconsax-react-native';
 import {useTranslation} from 'react-i18next';
 import TransactionCard from '../../history/components/TransactionCard';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {DrawerStackParamList} from '../../../utils/types/NavigationTypes';
-import {useNavigation} from '@react-navigation/native';
 type NavigationProp = NativeStackNavigationProp<
   DrawerStackParamList,
   'HistoryNavigator'
@@ -28,7 +19,6 @@ const WalletTransaction: React.FC = ({
 }) => {
   const [offset, setOffset] = useState(0);
   const {t} = useTranslation('translation', {keyPrefix: 'Wallet'});
-  const navigation = useNavigation<NavigationProp>();
 
   const [data, setData] = useState<SaleTransaction[]>([]);
   const {
@@ -39,22 +29,22 @@ const WalletTransaction: React.FC = ({
   } = useGetWalletTransaction({
     limit: limit,
     offset,
+    sortField: 'submitAt',
+    sortOrder: -1,
   });
+
   useEffect(() => {
     if (fetchedData?.content) {
-      setData(prevItems =>
-        [...prevItems, ...fetchedData.content].sort(
-          (a, b) =>
-            new Date(b.submitAt).getTime() - new Date(a.submitAt).getTime(),
-        ),
-      );
+      setData(prevItems => [...prevItems, ...fetchedData.content]);
     }
   }, [fetchedData]);
+
   const loadMore = () => {
     if (!isError && !isFetching && data.length < (fetchedData?.total ?? 5)) {
       setOffset(prevOffset => prevOffset + limit);
     }
   };
+
   return (
     <View className="flex-1 gap-4">
       {!inMoreScreen && (

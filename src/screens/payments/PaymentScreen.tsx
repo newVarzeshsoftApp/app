@@ -1,6 +1,6 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {useEffect, useMemo, useState} from 'react';
-import {ActivityIndicator, Image, Text, View} from 'react-native';
+import {ActivityIndicator, Image, View} from 'react-native';
 import {DrawerStackParamList} from '../../utils/types/NavigationTypes';
 import {ScrollView} from 'react-native-gesture-handler';
 import {useTranslation} from 'react-i18next';
@@ -46,7 +46,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
   const CartPayment = useMutation({
     mutationFn: PaymentService.paymentVerifySubmitOrder,
     onSuccess(data, variables, context) {
-      emptyCart();
+      isSuccses && emptyCart();
       setPaymentData(data);
     },
   });
@@ -243,8 +243,9 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                         {t('Transaction number')}: {''}
                       </BaseText>
                       <BaseButton
+                        disabled={!isSuccses}
                         onPress={() =>
-                          navigation.push('HistoryNavigator', {
+                          navigation.navigate('HistoryNavigator', {
                             screen: 'DepositDetail',
                             params: {
                               id: PaymentData?.payment?.transaction?.id ?? 0,
@@ -270,8 +271,9 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                             {t('orderNumber')}: {''}
                           </BaseText>
                           <BaseButton
+                            disabled={!isSuccses}
                             onPress={() =>
-                              navigation.push('HistoryNavigator', {
+                              navigation.navigate('HistoryNavigator', {
                                 screen: 'orderDetail',
                                 params: {
                                   id: Number(item ?? 0),
@@ -288,7 +290,6 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                         </View>
                       );
                     })}
-
                     <View className="flex-row items-center justify-between ">
                       <BaseText type="body3" color="secondary">
                         {t('Amount')}: {''}

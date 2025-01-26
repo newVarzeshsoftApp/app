@@ -53,6 +53,8 @@ const OrdersScreen: React.FC<OrdersScreenProps> = ({navigation, route}) => {
     reception: {equals: false},
     start: selectedDateRange.startDate?.gregorianDate || '',
     end: selectedDateRange.endDate?.gregorianDate || '',
+    sortField: 'submitAt',
+    sortOrder: -1,
   });
   const scrollY = useSharedValue(0);
   useEffect(() => {

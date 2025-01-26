@@ -7,21 +7,21 @@ export interface AllOrganizationQuery {
 }
 export interface UserSaleItemQuey {
   status?: RegisteredServiceStatus;
-  sortOrder?: string;
-  sortField?: string;
   limit?: number;
   offset?: number;
   type?: number;
   parent?: number;
+  sortField?: string;
+  sortOrder?: -1 | 1;
 }
 //
 export interface UserPaymentQuey {
   status?: RegisteredServiceStatus;
-  sortOrder?: string;
-  sortField?: string;
   limit?: number;
   offset?: number;
   type?: number;
+  sortField?: string;
+  sortOrder?: -1 | 1;
   startPayment?: {
     lte?: string | null;
     gte?: string | null;
@@ -33,6 +33,8 @@ export interface UserSaleOrderQuery {
   start?: string;
   limit?: number;
   offset?: number;
+  sortField?: string;
+  sortOrder?: -1 | 1;
   reception?: {
     equals: boolean;
   };
@@ -58,6 +60,8 @@ export interface UserTransactionQuery {
   start?: string;
   limit?: number;
   offset?: number;
+  sortField?: string;
+  sortOrder?: -1 | 1;
   type?: {
     equals?: 0 | 1 | 2;
   };
@@ -69,4 +73,6 @@ export interface UserTransactionQuery {
 export interface UserWalletTransactionQuery {
   limit?: number;
   offset?: number;
+  sortField?: string;
+  sortOrder?: -1 | 1;
 }

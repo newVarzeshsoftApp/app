@@ -7,7 +7,6 @@ import TenstackProvider from './src/utils/Providers/TenstackProvider';
 import ToastProvider from './src/components/Toast/Toast';
 import {ThemeProvider} from './src/utils/ThemeContext';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
-
 import {Host} from 'react-native-portalize';
 import {RootNavigator} from './src/navigation/RootNavigator';
 import {CartProvider} from './src/utils/CartContext';

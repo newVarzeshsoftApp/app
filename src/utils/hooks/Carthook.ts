@@ -1,4 +1,4 @@
-import {useState, useCallback, useEffect} from 'react';
+import {useState, useCallback, useEffect, useMemo} from 'react';
 import {
   getCart,
   addCart,
@@ -18,6 +18,12 @@ export const useCart = () => {
     totalItems: 0,
     items: [],
   });
+  const sortedCartItems = useMemo(() => {
+    return [...cartSummary.items].sort(
+      (a, b) =>
+        new Date(b.submitAt!).getTime() - new Date(a.submitAt!).getTime(),
+    );
+  }, [cartSummary.items]);
 
   // Refresh cart
   const refreshCart = useCallback(async () => {
@@ -91,7 +97,7 @@ export const useCart = () => {
   }, [refreshCart]);
 
   return {
-    items: cartSummary.items,
+    items: sortedCartItems,
     totalItems: cartSummary.totalItems,
     addToCart,
     removeFromCart,

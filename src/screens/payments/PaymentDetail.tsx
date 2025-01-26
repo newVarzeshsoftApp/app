@@ -1,10 +1,8 @@
 //This component is for Payment From Wallet or Credit
-
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React from 'react';
 import {ActivityIndicator, Image, Text, View} from 'react-native';
 import {DrawerStackParamList} from '../../utils/types/NavigationTypes';
-import {useGetUserSaleItemByID} from '../../utils/hooks/User/useGetUserSaleItemByID';
 import {useTranslation} from 'react-i18next';
 import {ScrollView} from 'react-native-gesture-handler';
 import {TickCircle} from 'iconsax-react-native';
@@ -118,22 +116,27 @@ const PaymentDetail: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                       />
                     </View>
 
-                    <View className="flex-row items-center justify-between ">
-                      <BaseText type="body3" color="secondary">
-                        {t('Amount')}: {''}
-                      </BaseText>
-                      <View className="flex-row gap-1">
-                        <BaseText type="body3" color="base">
-                          {formatNumber(data?.totalAmount)}
-                        </BaseText>
-                        <BaseText type="body3" color="base">
-                          ﷼
-                        </BaseText>
-                      </View>
-                    </View>
-
                     {data.transactions?.map((item, index) => (
                       <>
+                        <View className="flex-row items-center justify-between ">
+                          <BaseText type="body3" color="secondary">
+                            {t('Transaction number')}: {''}
+                          </BaseText>
+                          <BaseButton
+                            onPress={() =>
+                              navigation.navigate('HistoryNavigator', {
+                                screen: 'WithdrawDetail',
+                                params: {id: item.id},
+                              })
+                            }
+                            size="Small"
+                            type="Outline"
+                            color="Supportive5-Blue"
+                            text={item.id.toString()}
+                            LinkButton
+                            rounded
+                          />
+                        </View>
                         <View className="flex-row items-center justify-between ">
                           <BaseText type="body3" color="secondary">
                             {t('Source')}: {''}
@@ -169,6 +172,19 @@ const PaymentDetail: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                         </View>
                         <View className="flex-row items-center justify-between ">
                           <BaseText type="body3" color="secondary">
+                            {t('Amount')}: {''}
+                          </BaseText>
+                          <View className="flex-row gap-1">
+                            <BaseText type="body3" color="base">
+                              {formatNumber(data?.totalAmount)}
+                            </BaseText>
+                            <BaseText type="body3" color="base">
+                              ﷼
+                            </BaseText>
+                          </View>
+                        </View>
+                        <View className="flex-row items-center justify-between ">
+                          <BaseText type="body3" color="secondary">
                             {t('Source residue')}: {''}
                           </BaseText>
                           <BaseText type="body3" color="base">
@@ -190,7 +206,7 @@ const PaymentDetail: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                 <BaseButton
                   onPress={() => {
                     //@ts-ignore
-                    navigation.navigate('HomeNavigator', {screen: 'wallet'});
+                    navigation.navigate('HomeNavigator', {screen: 'Home'});
                   }}
                   type={'Fill'}
                   color="Black"

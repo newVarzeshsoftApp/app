@@ -17,7 +17,8 @@ export interface CartItem {
   quantity: number;
   SelectedPriceList?: PriceList;
   SelectedContractor?: Contractors | null;
-  CartId: string;
+  CartId?: string;
+  submitAt?: string;
 }
 
 const CART_KEY = 'shopping_cart';
@@ -90,6 +91,7 @@ export const addCart = async (
         ...item,
         quantity: item.quantity ?? 1,
         CartId: generateCartId(),
+        submitAt: new Date().toISOString(),
       };
       cart.push(newItem);
     }
