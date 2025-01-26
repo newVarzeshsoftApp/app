@@ -23,12 +23,11 @@ const CustomTabBar: React.FC<CustomTabBarProps> = ({
   tabIcons = {},
   edges,
 }) => {
-  const [tabWidth, setTabWidth] = useState<number>(0); // Store the width of the tab
+  const [tabWidth, setTabWidth] = useState<number>(0);
   const translateX = useSharedValue(0);
 
-  // useEffect to update translateX when tab index changes
   useEffect(() => {
-    translateX.value = withTiming(state.index * tabWidth, {duration: 300});
+    translateX.value = withTiming(state.index * tabWidth, {duration: 200});
   }, [state.index, tabWidth]);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -42,7 +41,7 @@ const CustomTabBar: React.FC<CustomTabBarProps> = ({
 
   const handleTabLayout = (event: any) => {
     const {width} = event.nativeEvent.layout;
-    setTabWidth(width); // Set the width for the current tab
+    setTabWidth(width);
   };
 
   return (

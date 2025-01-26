@@ -51,6 +51,8 @@ const ReceptionScreen: React.FC<ReceptionScreenProps> = ({
   const {data, isLoading, isFetching, isError} = useGetUserSaleOrder({
     limit: limit,
     offset,
+    sortField: 'submitAt',
+    sortOrder: -1,
     reception: {equals: true},
     start: selectedDateRange.startDate?.gregorianDate || '',
     end: selectedDateRange.endDate?.gregorianDate || '',

@@ -1,10 +1,7 @@
 import {useQuery, UseQueryResult} from '@tanstack/react-query';
 import UserService from '../../../services/UserService';
 import {Payments} from '../../../services/models/response/UseResrService';
-import {
-  UserPaymentQuey,
-  UserSaleItemQuey,
-} from '../../../services/models/requestQueries';
+import {UserPaymentQuey} from '../../../services/models/requestQueries';
 
 export const useGetUserPayment = (
   query: UserPaymentQuey,

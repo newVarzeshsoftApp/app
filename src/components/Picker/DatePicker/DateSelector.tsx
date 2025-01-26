@@ -1,6 +1,6 @@
 import {Calendar, CloseCircle} from 'iconsax-react-native';
 import React, {useState, useCallback, useRef, useMemo} from 'react';
-import {Dimensions, TouchableOpacity, View} from 'react-native';
+import {TouchableOpacity, View} from 'react-native';
 import {useTheme} from '../../../utils/ThemeContext';
 import BaseText from '../../BaseText';
 import JalaliDatePicker, {DateSelectorState} from './DatePicker';
@@ -22,7 +22,6 @@ const formatJalaliDate = (date: string | null): string => {
 
 const DateSelector: React.FC<DateSelectorProps> = ({mode, onDateChange}) => {
   const {theme} = useTheme();
-  const screenHeight = useMemo(() => Dimensions.get('screen').height, []);
   const bottomSheetRef = useRef<BottomSheetMethods | null>(null);
 
   const [dateState, setDateState] = useState<{

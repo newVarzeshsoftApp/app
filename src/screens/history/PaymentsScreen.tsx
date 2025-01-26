@@ -3,11 +3,10 @@ import React, {
   useEffect,
   useLayoutEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
 import {useTranslation} from 'react-i18next';
-import {ActivityIndicator, Dimensions, Text, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import {PaymentRecord} from '../../services/models/response/UseResrService';
 import {useGetUserPayment} from '../../utils/hooks/User/useGetuserPaymant';
 import {limit} from '../../constants/options';
@@ -23,6 +22,7 @@ import PaymentCard from './components/PaymentCard';
 import DateSelector, {
   DateSelectorType,
 } from '../../components/Picker/DatePicker/DateSelector';
+import moment from 'jalali-moment';
 type PaymentsScreenProps = NativeStackScreenProps<
   OrderStackParamList,
   'payments'
@@ -40,7 +40,8 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({navigation}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
   const [offset, setOffset] = useState(0);
   const [items, setItems] = useState<PaymentRecord[] | []>([]);
-  const [sheetData, setSheetData] = useState<any>(null);
+  const todayJalali = moment().format('jYYYY-jMM-jDD');
+  const todayGregorian = moment().format('YYYY-MM-DD');
   const [selectedDateRange, setSelectedDateRange] = useState<DateSelectorType>({
     startDate: null,
     endDate: null,
@@ -48,6 +49,8 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({navigation}) => {
   const {data, isLoading, isFetching, isError} = useGetUserPayment({
     limit: limit,
     offset,
+    sortField: 'startPayment',
+    sortOrder: -1,
     startPayment: {
       gte: selectedDateRange.startDate?.gregorianDate || '',
       lte: selectedDateRange.endDate?.gregorianDate || '',
@@ -89,12 +92,6 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({navigation}) => {
       ),
     });
   }, [navigation]);
-  const sheetRef = useRef<any>(null);
-  const {height} = Dimensions.get('screen');
-  const openSheet = useCallback((data: any) => {
-    setSheetData(data);
-    sheetRef.current?.expand();
-  }, []);
   const handleDateChange = useCallback((date: DateSelectorType) => {
     setSelectedDateRange(date);
   }, []);

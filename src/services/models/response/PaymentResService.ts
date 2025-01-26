@@ -1,6 +1,6 @@
 import {SaleOrderItem} from '../request/OperationalReqService';
 import {GetGatewayRes} from './GetwayResService';
-import {Gateway} from './UseResrService';
+import {Gateway, SaleTransaction} from './UseResrService';
 
 export interface PaymentRes {
   url: string;
@@ -133,7 +133,7 @@ export interface PaymentVerify {
   fee: number;
   errors: string | null;
   customer: Customer;
-  transaction: Transaction;
+  transaction: SaleTransaction;
 }
 
 interface VerifyResponse {

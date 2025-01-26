@@ -47,7 +47,10 @@
   "Profile": {
     "Personal Info": "اطلاعات شخصی",
     "This section is for updating your personal information": "این قسمت برای به‌روزرسانی اطلاعات شخصی شما است",
-    "Security": "امنیت "
+    "Security": "امنیت ",
+    "Change Password": "تغییر رمز عبور",
+    "PasswordChanged": "رمز عبور با موفقیت تغییر کرد",
+    "You can change your password here": "در این بخش میتوانید رمز عبور خود را تغییر دهید"
   },
   "Home": {
     "WalletBalance": "موجودی کیف پول",
@@ -260,6 +263,7 @@
     "password": "رمز عبور",
     "New Password": "رمز عبور جدید",
     "confirmpassword": "تأیید رمز عبور",
+    "oldPassword": "رمز عبور فعلی",
     "email": "ایمیل",
     "firstName": "نام",
     "Name": "نام و نام خانوادگی ",
@@ -302,7 +306,6 @@
 
     "placeholders": {
       "username": "نام کاربری خود را وارد کنید",
-
       "email": "آدرس ایمیل خود را وارد کنید",
       "password": "رمز عبور خود را وارد کنید",
       "gender": "جنسیت خود را انتخاب کنید",
@@ -374,6 +377,7 @@
     "newPasswordLength": "رمز عبور جدید باید حداقل 6 کاراکتر باشد",
     "confirmPasswordRequired": "تأیید رمز عبور الزامی است",
     "passwordsDidNotMatch": "رمزهای عبور یکسان نیستند",
+    "passwordsDoNotMatch": "پسورد یکسان نیست",
     "nameIsRequired": "نام الزامی است",
     "TitleIsRequired": "عنوان الزامی است",
     "genderIsRequired": "جنسیت الزامی است",

@@ -19,11 +19,16 @@ import {
 import {
   UserPaymentQuey,
   UserSaleItemQuey,
+  UserSaleOrderQuery,
   UserTransactionQuery,
   UserWalletTransactionQuery,
 } from './models/requestQueries';
 import {handleMutationError} from '../utils/helpers/errorHandler';
-import {UpdateProfileBody} from './models/request/UserReqService';
+import {
+  UpdatePasswordBody,
+  UpdateProfileBody,
+  UploadAvatarBody,
+} from './models/request/UserReqService';
 
 const {
   baseUrl,
@@ -41,6 +46,8 @@ const {
     getUserTransactionById,
     getUserPayment,
     updateProfile,
+    updatePassword,
+    uploadAvatar,
   },
 } = routes;
 
@@ -142,7 +149,7 @@ const UserService = {
   },
 
   GetUserSaleOrder: async (
-    query: UserSaleItemQuey,
+    query: UserSaleOrderQuery,
   ): Promise<GetUserSaleOrderRes> => {
     try {
       const response = await axiosInstance.get<GetUserSaleOrderRes>(
@@ -344,6 +351,56 @@ const UserService = {
       if (axios.isAxiosError(error) && error.response) {
         handleMutationError(error);
 
+        throw new Error(
+          error.response.data.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+  UpdatePassword: async (body: UpdatePasswordBody) => {
+    try {
+      const response = await axiosInstance.put<
+        UpdateProfileBody,
+        AxiosResponse<any>
+      >(baseUrl + updatePassword(), body);
+      if (response.status === Status.Ok || response.status === Status.Created) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response}`);
+      }
+    } catch (error) {
+      console.error('Error in SignIN function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+
+        throw new Error(
+          error.response.data.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+
+  UploadAvatar: async (body: FormData) => {
+    try {
+      const response = await axiosInstance.patch<
+        FormData,
+        AxiosResponse<boolean>
+      >(baseUrl + uploadAvatar(), body, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      if (response.status === Status.Ok || response.status === Status.Created) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error in UploadAvatar function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
         throw new Error(
           error.response.data.message || 'Unknown error occurred',
         );

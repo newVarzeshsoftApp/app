@@ -4,9 +4,16 @@ export interface UpdateProfileBody {
   birthDate?: string;
   nationCode?: string;
   gender?: number;
-  //   gender?: 0 | 1;
+  mobile?: number;
   phone?: string;
   introductionMethod?: 0;
   address?: string;
   email?: string;
+}
+export interface UpdatePasswordBody {
+  oldPassword: string;
+  newPassword: string;
+}
+export interface UploadAvatarBody {
+  file: File;
 }

@@ -8,10 +8,7 @@ import {useTranslation} from 'react-i18next';
 import BaseButton from '../../components/Button/BaseButton';
 import WalletTransaction from './components/WalletTransaction';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {
-  HomeStackParamList,
-  WalletStackParamList,
-} from '../../utils/types/NavigationTypes';
+import {WalletStackParamList} from '../../utils/types/NavigationTypes';
 
 type WalletScreenProps = NativeStackScreenProps<WalletStackParamList, 'wallet'>;
 const WalletScreen: React.FC<WalletScreenProps> = ({navigation, route}) => {

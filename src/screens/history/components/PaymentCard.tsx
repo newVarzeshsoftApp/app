@@ -68,22 +68,40 @@ const PaymentCard: React.FC<PaymentCardProps> = ({item, navigation}) => {
           <BaseText type="body3" color="secondary">
             {t(isOrder ? 'orderNumber' : 'Transaction number')}: {''}
           </BaseText>
-          {item.transaction?.id ? (
-            <BaseButton
-              onPress={() =>
-                isOrder
-                  ? navigation.push('orderDetail', {id: item.id})
-                  : navigation.push('WithdrawDetail', {
-                      id: item.transaction?.id ?? 0,
-                    })
-              }
-              LinkButton
-              size="Small"
-              type="Outline"
-              color="Supportive5-Blue"
-              text={(isOrder ? '' : item.transaction?.id ?? 0).toString()}
-              rounded
-            />
+          {item.status === 1 ? (
+            isOrder ? (
+              item.orders.map((item, index) => {
+                return (
+                  <BaseButton
+                    onPress={() =>
+                      navigation.push('orderDetail', {id: item.id})
+                    }
+                    LinkButton
+                    size="Small"
+                    type="Outline"
+                    color="Supportive5-Blue"
+                    text={item.id.toString()}
+                    disabled={!item.id}
+                    rounded
+                  />
+                );
+              })
+            ) : (
+              <BaseButton
+                onPress={() =>
+                  navigation.push('WithdrawDetail', {
+                    id: item.transaction?.id ?? 0,
+                  })
+                }
+                LinkButton
+                disabled={!item.transaction?.id}
+                size="Small"
+                type="Outline"
+                color="Supportive5-Blue"
+                text={(item.transaction?.id ?? 0).toString()}
+                rounded
+              />
+            )
           ) : (
             <BaseText type="body3" color="base">
               -

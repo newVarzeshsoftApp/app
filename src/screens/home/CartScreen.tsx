@@ -251,6 +251,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                             {Getways?.map((item, index) => {
                               return (
                                 <BaseButton
+                                  key={index}
                                   text={item.title}
                                   type={
                                     PaymentMethod?.getway ?? null === item.id

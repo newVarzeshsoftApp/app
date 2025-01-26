@@ -102,7 +102,7 @@ const Picker = <T extends FieldValues>({
                 ) : (
                   <BottomSheet
                     ref={sheetRef}
-                    snapPoints={[45]}
+                    snapPoints={[50]}
                     Title="انتخاب تاریخ"
                     buttonText="تایید"
                     disablePan={true}
