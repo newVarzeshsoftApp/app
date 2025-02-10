@@ -3,8 +3,8 @@ import {Status} from '../models/enums';
 import {routes} from '../routes/routes';
 import axiosInstance from '../utils/AxiosInstans';
 import {ProductQuery} from './models/requestQueries';
-import {ProductPageRes} from './models/response/ProductResService';
-import {Product} from './models/response/UseResrService';
+import {Product, ProductPageRes} from './models/response/ProductResService';
+
 import {handleMutationError} from '../utils/helpers/errorHandler';
 
 const {
