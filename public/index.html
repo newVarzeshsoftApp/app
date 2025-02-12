@@ -40,9 +40,13 @@
     <div id="app-root"></div>
     <script>
         if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => {
-                navigator.serviceWorker.register('/service-worker.js');
-            });
+            if (event.request.url.includes('sentry.io')) {
+                return; // Do not intercept Sentry requests
+            } else {
+                window.addEventListener('load', () => {
+                    navigator.serviceWorker.register('/service-worker.js');
+                });
+            }
         }
     </script>
 </body>

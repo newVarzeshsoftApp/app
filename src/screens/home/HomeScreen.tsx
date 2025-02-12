@@ -9,11 +9,11 @@ const HomeScreen: React.FC = () => {
   const renderHeader = () => (
     <>
       <View className="Container py-5 web:pt-[85px] gap-5">
-        <View className="w-full h-[180px] rounded-2xl bg-neutral-200 dark:bg-neutral-900 justify-center items-center">
+        {/* <View className="w-full h-[180px] rounded-2xl bg-neutral-200 dark:bg-neutral-900 justify-center items-center">
           <BaseText color="muted" type="caption">
             محل بنر
           </BaseText>
-        </View>
+        </View> */}
         <WalletBalance />
         <View className="flex-row items-center justify-center gap-4">
           <View className="gap-4 flex-1">

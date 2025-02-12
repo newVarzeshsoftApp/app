@@ -27,7 +27,8 @@ export const useGetOrganizationBySKU = (): UseQueryResult<
     }
   };
 
-  const sku = getSKU();
+  // const sku = getSKU();
+  const sku = 'dot';
 
   return useQuery({
     queryKey: ['OrganizationBySKU', sku],
