@@ -7,12 +7,14 @@ const CompressionPlugin = require('compression-webpack-plugin');
 const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
 const ReactRefreshWebpackPlugin = require('@pmmmwh/react-refresh-webpack-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const {sentryWebpackPlugin} = require('@sentry/webpack-plugin');
+
 const appDirectory = path.resolve(__dirname);
 const {presets} = require(`${appDirectory}/babel.config.js`);
 const compileNodeModules = [
-  // Add every react-native package that needs compiling
-  'react-native',
+  'react-native', // Add every react-native package that needs compiling
 ].map(moduleName => path.resolve(appDirectory, `node_modules/${moduleName}`));
+
 const babelLoaderConfiguration = {
   test: /\.(js|jsx|ts|tsx)$/,
   include: [
@@ -71,7 +73,7 @@ const imageLoaderConfiguration = {
   use: {
     loader: 'url-loader',
     options: {
-      limit: 8192, // Inline images smaller than 8kb
+      limit: 8192,
       name: 'assets/images/[name].[hash].[ext]',
       esModule: false,
     },
@@ -115,7 +117,7 @@ module.exports = (env, argv) => {
       type: 'filesystem',
       cacheDirectory: path.resolve(__dirname, '.webpack_cache'),
     },
-    devtool: isProduction ? 'source-map' : 'eval-source-map',
+    devtool: isProduction ? 'source-map' : 'source-map',
     module: {
       rules: [
         babelLoaderConfiguration,
@@ -137,7 +139,7 @@ module.exports = (env, argv) => {
         ),
       }),
       new webpack.DefinePlugin({
-        __DEV__: JSON.stringify(true),
+        __DEV__: JSON.stringify(!isProduction),
       }),
       isProduction && new CompressionPlugin(), // Gzip compression in production
       isProduction &&
@@ -147,20 +149,16 @@ module.exports = (env, argv) => {
         }),
       new CopyWebpackPlugin({
         patterns: [
-          {
-            from: 'public/manifest.json',
-            to: 'manifest.json',
-          },
-          {
-            from: 'public/service-worker.js',
-            to: 'service-worker.js',
-          },
-          // {
-          //   from: 'public/icons',
-          //   to: 'icons',
-          // },
+          {from: 'public/manifest.json', to: 'manifest.json'},
+          {from: 'public/service-worker.js', to: 'service-worker.js'},
         ],
       }),
+      isProduction &&
+        sentryWebpackPlugin({
+          authToken: process.env.SENTRY_AUTH_TOKEN,
+          org: 'techleafsolution',
+          project: 'varzeshsoft-front-web',
+        }),
     ].filter(Boolean), // Remove falsy plugins
     optimization: {
       minimize: isProduction,

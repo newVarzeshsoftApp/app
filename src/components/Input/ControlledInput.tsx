@@ -86,8 +86,8 @@ const ControlledInput = <T extends FieldValues>({
             <TextInput
               {...props}
               className={`${
-                centerText && 'text-center'
-              } px-4 flex-1 h-full outline-none rtl:text-right ltr:text-left rounded-lg duration-200 text-text-base dark:text-text-base-dark`}
+                centerText ? '!text-center' : 'rtl:text-right ltr:text-left'
+              } px-4 flex-1 h-full outline-none  rounded-lg duration-200 text-text-base dark:text-text-base-dark`}
               editable={!disabled}
               placeholder=""
               selectionColor="#7676EE"

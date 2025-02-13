@@ -6,6 +6,7 @@ interface PaymentButtonsProps {
   NextStep: () => void;
   BackStep: () => void;
   isLoading?: boolean;
+  disabled?: boolean;
   Steps: number;
   t: (key: string) => string;
 }
@@ -14,6 +15,7 @@ const PaymentButtons: React.FC<PaymentButtonsProps> = ({
   NextStep,
   BackStep,
   isLoading,
+  disabled,
   t,
   Steps,
 }) => (
@@ -22,6 +24,7 @@ const PaymentButtons: React.FC<PaymentButtonsProps> = ({
       <View className="flex-1">
         <BaseButton
           isLoading={isLoading}
+          disabled={Steps > 1 ? disabled : false}
           onPress={NextStep}
           type="Fill"
           color="Black"

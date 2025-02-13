@@ -12,14 +12,14 @@ import BaseText from '../../components/BaseText';
 import ControlledInput from '../../components/Input/ControlledInput';
 import {useTranslation} from 'react-i18next';
 import BaseButton from '../../components/Button/BaseButton';
-import {useProfile} from '../../utils/hooks/useProfile';
 import Picker from '../../components/Picker/Picker';
 import {useMutation, useQueryClient} from '@tanstack/react-query';
 import UserService from '../../services/UserService';
 import {getGender} from '../../utils/helpers/helpers';
+import {useAuth} from '../../utils/hooks/useAuth';
 
 const PersonalInfoScreen: React.FC = () => {
-  const {data, isLoading} = useProfile();
+  const {profile} = useAuth();
 
   const {t} = useTranslation('translation', {
     keyPrefix: 'Input',
@@ -39,20 +39,20 @@ const PersonalInfoScreen: React.FC = () => {
   });
 
   useEffect(() => {
-    if (data) {
+    if (profile) {
       methods.reset({
-        firstName: data?.firstName,
-        birthday: {gregorianDate: data?.birthDate ?? undefined},
-        lastName: data?.lastName,
-        nationalCode: data?.nationCode ?? undefined,
-        address: data?.address ?? undefined,
-        email: data?.email ?? undefined,
-        phone: data?.phone ?? undefined,
-        gender: getGender(data.gender),
-        mobile: data?.mobile,
+        firstName: profile?.firstName,
+        birthday: {gregorianDate: profile?.birthDate ?? undefined},
+        lastName: profile?.lastName,
+        nationalCode: profile?.nationCode ?? undefined,
+        address: profile?.address ?? undefined,
+        email: profile?.email ?? undefined,
+        phone: profile?.phone ?? undefined,
+        gender: getGender(profile.gender),
+        mobile: profile?.mobile,
       });
     }
-  }, [data]);
+  }, [profile]);
 
   const {
     handleSubmit,

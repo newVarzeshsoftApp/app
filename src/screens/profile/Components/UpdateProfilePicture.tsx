@@ -7,15 +7,15 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {useProfile} from '../../../utils/hooks/useProfile';
 import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetOrganizationBySKU';
 import * as ImagePicker from 'react-native-image-picker';
 import {Edit2} from 'iconsax-react-native';
 import {useMutation, useQueryClient} from '@tanstack/react-query';
 import UserService from '../../../services/UserService';
+import {useAuth} from '../../../utils/hooks/useAuth';
 
 const UpdateProfilePicture: React.FC = () => {
-  const {data, isLoading} = useProfile();
+  const {profile} = useAuth();
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
   const [response, setResponse] = React.useState<any>(null);
 
@@ -73,11 +73,11 @@ const UpdateProfilePicture: React.FC = () => {
             <ActivityIndicator size="small" color="#bcdd64" />
           </View>
         ) : (
-          (data?.profile || response?.assets) && (
+          (profile?.profile || response?.assets) && (
             <Image
               className="w-full h-full rounded-full"
               source={{
-                uri: OrganizationBySKU?.imageUrl + '/' + data?.profile?.name,
+                uri: OrganizationBySKU?.imageUrl + '/' + profile?.profile?.name,
               }}
             />
           )

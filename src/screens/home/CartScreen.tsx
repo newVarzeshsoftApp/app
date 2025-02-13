@@ -28,7 +28,6 @@ import {useMutation} from '@tanstack/react-query';
 import {PaymentService} from '../../services/PaymentService';
 import {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
 import {HomeStackParamList} from '../../utils/types/NavigationTypes';
-import {useProfile} from '../../utils/hooks/useProfile';
 import moment from 'jalali-moment';
 import {OperationalService} from '../../services/Operational';
 import {SaleOrderItem} from '../../services/models/request/OperationalReqService';
@@ -38,6 +37,7 @@ import {useTheme} from '../../utils/ThemeContext';
 import LinearGradient from 'react-native-linear-gradient';
 import {formatNumber} from '../../utils/helpers/helpers';
 import RadioButton from '../../components/Button/RadioButton/RadioButton';
+import {useAuth} from '../../utils/hooks/useAuth';
 type PaymentMethodType = {
   getway?: number;
   isWallet?: boolean;
@@ -57,14 +57,17 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
   const [PaymentMethod, setPaymentMethod] = useState<PaymentMethodType | null>(
     null,
   );
+  console.log('====================================');
+  console.log(PaymentMethod);
+  console.log('====================================');
   const {data: UserCredit} = useGetUserCredit();
-  const {data: ProfileData} = useProfile();
+  const {profile: ProfileData} = useAuth();
   const {totalAmount, totalTax, totalDiscount, totalShopGift} =
     useCartTotals(items);
   const amountPayable = totalAmount + totalTax - totalDiscount;
   useEffect(() => {
-    if (Getways) {
-      setPaymentMethod({getway: Getways[0].id});
+    if ((Getways?.length ?? 0) > 0) {
+      setPaymentMethod({getway: Getways?.[0]?.id});
     }
   }, [Getways]);
   const cardComponentMapping: Record<number, React.FC<{data: CartItem}>> = {
@@ -220,69 +223,71 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
               ) : (
                 <View className="gap-4">
                   <BaseText>{t('payment Methode')}</BaseText>
-                  <View
-                    className={`CardBase ${
-                      PaymentMethod?.getway && '!border-primary-500'
-                    } `}>
-                    <View className="flex-row items-center justify-between">
-                      <BaseText type="subtitle2">{t('PaywithBank')}</BaseText>
-                      <Checkbox
-                        checked={PaymentMethod?.getway ? true : false}
-                        onCheckedChange={() =>
-                          setPaymentMethod({
-                            getway: Getways?.[0].id,
-                            source: undefined,
-                            isWallet: false,
-                          })
-                        }
-                      />
+                  {(Getways?.length ?? 0) > 0 && (
+                    <View
+                      className={`CardBase ${
+                        PaymentMethod?.getway && '!border-primary-500'
+                      } `}>
+                      <View className="flex-row items-center justify-between">
+                        <BaseText type="subtitle2">{t('PaywithBank')}</BaseText>
+                        <Checkbox
+                          checked={PaymentMethod?.getway ? true : false}
+                          onCheckedChange={() =>
+                            setPaymentMethod({
+                              getway: Getways?.[0]?.id,
+                              source: undefined,
+                              isWallet: false,
+                            })
+                          }
+                        />
+                      </View>
+                      <View className="gap-2">
+                        <BaseText type="subtitle3" color="secondary">
+                          {t('Select Getway')}
+                        </BaseText>
+                        {isLoading ? (
+                          <ActivityIndicator size="large" color="#bcdd64" />
+                        ) : (
+                          Getways && (
+                            <ScrollView
+                              horizontal
+                              showsHorizontalScrollIndicator={false}>
+                              {Getways?.map((item, index) => {
+                                return (
+                                  <BaseButton
+                                    key={index}
+                                    text={item.title}
+                                    type={
+                                      PaymentMethod?.getway ?? null === item.id
+                                        ? 'Fill'
+                                        : 'Outline'
+                                    }
+                                    srcLeft={
+                                      item.icon
+                                        ? {uri: item.icon}
+                                        : item.type === 0
+                                        ? require('../../assets/icons/zarinpal.png')
+                                        : require('../../assets/icons/payping.png')
+                                    }
+                                    size="Large"
+                                    color="Black"
+                                    rounded
+                                    onPress={() => {
+                                      setPaymentMethod({
+                                        getway: item.id,
+                                        source: undefined,
+                                        isWallet: false,
+                                      });
+                                    }}
+                                  />
+                                );
+                              })}
+                            </ScrollView>
+                          )
+                        )}
+                      </View>
                     </View>
-                    <View className="gap-2">
-                      <BaseText type="subtitle3" color="secondary">
-                        {t('Select Getway')}
-                      </BaseText>
-                      {isLoading ? (
-                        <ActivityIndicator size="large" color="#bcdd64" />
-                      ) : (
-                        Getways && (
-                          <ScrollView
-                            horizontal
-                            showsHorizontalScrollIndicator={false}>
-                            {Getways?.map((item, index) => {
-                              return (
-                                <BaseButton
-                                  key={index}
-                                  text={item.title}
-                                  type={
-                                    PaymentMethod?.getway ?? null === item.id
-                                      ? 'Fill'
-                                      : 'Outline'
-                                  }
-                                  srcLeft={
-                                    item.icon
-                                      ? {uri: item.icon}
-                                      : item.type === 0
-                                      ? require('../../assets/icons/zarinpal.png')
-                                      : require('../../assets/icons/payping.png')
-                                  }
-                                  size="Large"
-                                  color="Black"
-                                  rounded
-                                  onPress={() => {
-                                    setPaymentMethod({
-                                      getway: item.id,
-                                      source: undefined,
-                                      isWallet: false,
-                                    });
-                                  }}
-                                />
-                              );
-                            })}
-                          </ScrollView>
-                        )
-                      )}
-                    </View>
-                  </View>
+                  )}
                   {/*  خرید با کیف پول  */}
                   <TouchableOpacity
                     disabled={Number(UserCredit?.result ?? 0) <= totalAmount}
@@ -415,6 +420,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
       </ScrollView>
       {items.length > 0 && (
         <PaymentButtons
+          disabled={!PaymentMethod}
           isLoading={CreatePayment.isPending || SaleOrder.isPending}
           Steps={steps}
           BackStep={() => setSteps(1)}

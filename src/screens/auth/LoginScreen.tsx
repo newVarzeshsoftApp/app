@@ -136,7 +136,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
             ]}
             className={`w-full overflow-hidden relative`}>
             <ResponsiveImage
-              customSource={organization?.banners[0]?.srcset}
+              customSource={organization?.banners?.[0]?.srcset}
               fallback={'../../assets/images/testImage.png'}
               resizeMode="cover"
               style={{

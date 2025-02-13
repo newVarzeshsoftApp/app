@@ -4,24 +4,30 @@ const {
   wrapWithReanimatedMetroConfig,
 } = require('react-native-reanimated/metro-config');
 
-module.exports = (async () => {
-  // Get the default configuration
-  const defaultConfig = await getDefaultConfig(__dirname);
+const {withSentryConfig} = require('@sentry/react-native/metro');
 
-  // Merge the default configuration with your custom settings
-  const config = mergeConfig(defaultConfig, {
-    transformer: {
-      babelTransformerPath: require.resolve('react-native-svg-transformer'), // SVG transformer
-    },
-    resolver: {
-      assetExts: defaultConfig.resolver.assetExts.filter(ext => ext !== 'svg'), // Exclude SVG from asset extensions
-      sourceExts: [...defaultConfig.resolver.sourceExts, 'svg'], // Add SVG to source extensions
-    },
-  });
+module.exports = withSentryConfig(
+  (async () => {
+    // Get the default configuration
+    const defaultConfig = await getDefaultConfig(__dirname);
 
-  // Apply NativeWind configuration with your custom settings
-  const nativeWindConfig = withNativeWind(config, {input: './global.css'});
+    // Merge the default configuration with your custom settings
+    const config = mergeConfig(defaultConfig, {
+      transformer: {
+        babelTransformerPath: require.resolve('react-native-svg-transformer'), // SVG transformer
+      },
+      resolver: {
+        assetExts: defaultConfig.resolver.assetExts.filter(
+          ext => ext !== 'svg',
+        ), // Exclude SVG from asset extensions
+        sourceExts: [...defaultConfig.resolver.sourceExts, 'svg'], // Add SVG to source extensions
+      },
+    });
 
-  // Wrap the configuration with Reanimated's Metro config
-  return wrapWithReanimatedMetroConfig(nativeWindConfig);
-})();
+    // Apply NativeWind configuration with your custom settings
+    const nativeWindConfig = withNativeWind(config, {input: './global.css'});
+
+    // Wrap the configuration with Reanimated's Metro config
+    return wrapWithReanimatedMetroConfig(nativeWindConfig);
+  })(),
+);

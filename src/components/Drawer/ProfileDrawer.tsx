@@ -1,14 +1,14 @@
 import React from 'react';
 import {Image, Text, View} from 'react-native';
 
-import {useProfile} from '../../utils/hooks/useProfile';
 import LinearGradient from 'react-native-linear-gradient';
 import BaseText from '../BaseText';
 import {ArrowLeft2} from 'iconsax-react-native';
 import ProfilePic from '../header/ProfilePic';
+import {useAuth} from '../../utils/hooks/useAuth';
 
 const ProfileDrawer: React.FC = () => {
-  const {data, isLoading, isSuccess} = useProfile();
+  const {profile} = useAuth();
 
   return (
     <View className="w-full h-[100px] relative  overflow-hidden rounded-3xl">
@@ -48,10 +48,10 @@ const ProfileDrawer: React.FC = () => {
           <ProfilePic />
           <View className="gap-1 items-start">
             <BaseText type="title4">
-              {data?.firstName} {data?.lastName}
+              {profile?.firstName} {profile?.lastName}
             </BaseText>
             <BaseText type="subtitle2" color="muted">
-              {data?.email || data?.mobile}
+              {profile?.email || profile?.mobile}
             </BaseText>
           </View>
         </View>
