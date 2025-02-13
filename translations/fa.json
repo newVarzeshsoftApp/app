@@ -251,6 +251,7 @@
     "WalletCredit": "موجودی کیف پول",
     "Wallet Recharge": "شارژ کیف پول",
     "transactions": "تراکنش ها",
+    "noGetwayFound": "هیچ درگاهی پیدا نشد",
     "noTransaction": " تراکنشی ثبت نشده",
     "Select Payment Method": "انتخاب درگاه پرداخت",
     "Select one of the amounts below or enter your desired amount": "از بین مبالغ  زیر انتخاب کنید و یا مبلغ مورد نظر خود را وارد نمایید."

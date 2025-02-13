@@ -3,6 +3,7 @@ import {NavigatorScreenParams} from '@react-navigation/native';
 export type RootStackParamList = {
   Auth: undefined;
   Root: NavigatorScreenParams<DrawerStackParamList>;
+  notFound: undefined;
   SaleItem:
     | {
         screen: keyof SaleItemStackParamList;

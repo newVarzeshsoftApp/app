@@ -376,8 +376,11 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
                         ListEmptyComponent={
                           !isLoading ? (
                             <View className="flex-1 items-center justify-center flex-row py-10">
-                              <BaseText type="subtitle1" color="secondary">
-                                {t('noServicesFound')}
+                              <BaseText
+                                type="subtitle1"
+                                color="secondary"
+                                className="text-center">
+                                {t('noGetwayFound')}
                               </BaseText>
                             </View>
                           ) : null

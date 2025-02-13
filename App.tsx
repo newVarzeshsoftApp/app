@@ -35,12 +35,6 @@ function App() {
               <CartProvider>
                 <View className="flex-1 bg-neutral-100 dark:bg-neutral-dark-100 max-w-[450px] web:overflow-hidden mx-auto w-full">
                   <Host>
-                    <Button
-                      title="Try!"
-                      onPress={() => {
-                        throw new Error('Test Error');
-                      }}
-                    />
                     <RootNavigator />
                     <ToastProvider />
                   </Host>

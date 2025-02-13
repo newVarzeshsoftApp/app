@@ -32,18 +32,15 @@ import {
 } from '../../services/models/response/ProductResService';
 import BaseButton from '../../components/Button/BaseButton';
 import RadioButton from '../../components/Button/RadioButton/RadioButton';
-import {Calendar, Clock, CloseCircle, Gift} from 'iconsax-react-native';
-import {ConvertDuration, formatNumber} from '../../utils/helpers/helpers';
-import moment from 'jalali-moment';
+import {CloseCircle} from 'iconsax-react-native';
+import {formatNumber} from '../../utils/helpers/helpers';
 import PriceListDetail from './components/PriceListDetail';
 import CustomCollapsible from '../../components/CustomCollapsible';
 import UserRadioButton from '../../components/Button/RadioButton/UserRadioButton';
-import {User} from '../../services/models/response/UseResrService';
-import {useProfile} from '../../utils/hooks/useProfile';
-import {addCart} from '../../utils/helpers/CartStorage';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useCartContext} from '../../utils/CartContext';
 import usePriceCalculations from '../../utils/hooks/usePriceCalculations';
+import {useAuth} from '../../utils/hooks/useAuth';
 
 type ServiceDetailProp = NativeStackScreenProps<
   ShopStackParamList,
@@ -53,7 +50,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
   // Use shared value instead of scroll offset
   const scrollY = useSharedValue(0);
   const IMageHight = 285;
-  const {data: ProfileData} = useProfile();
+  const {profile: ProfileData} = useAuth();
   const {addToCart} = useCartContext();
 
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();

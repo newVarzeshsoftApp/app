@@ -2,11 +2,11 @@ import React from 'react';
 import {Image, Text, View} from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 
-import {useProfile} from '../../utils/hooks/useProfile';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
+import {useAuth} from '../../utils/hooks/useAuth';
 
 const ProfilePic: React.FC = () => {
-  const {data, isLoading, isSuccess} = useProfile();
+  const {profile, isProfileLoading} = useAuth();
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
   return (
     <LinearGradient
@@ -21,16 +21,16 @@ const ProfilePic: React.FC = () => {
         alignItems: 'center',
       }}>
       <View className="w-[44px] h-[44px] rounded-full dark:bg-neutral-dark-300 bg-neutral-0 justify-center items-center">
-        {isLoading && (
+        {isProfileLoading && (
           <View className="w-[40px] h-[40px] dark:bg-neutral-dark-300 bg-neutral-0 rounded-full animate-pulse"></View>
         )}
-        {isSuccess && (
+        {profile && (
           <>
-            {data.profile ? (
+            {profile.profile ? (
               <Image
                 className="w-[40px] h-[40px] rounded-full"
                 source={{
-                  uri: OrganizationBySKU?.imageUrl + '/' + data.profile.name,
+                  uri: OrganizationBySKU?.imageUrl + '/' + profile.profile.name,
                 }}
               />
             ) : (
@@ -38,8 +38,8 @@ const ProfilePic: React.FC = () => {
                 className="w-[40px] h-[40px] rounded-full"
                 source={{
                   uri: `https://avatar.iran.liara.run/public/${
-                    data.gender === 0 ? 'boy' : 'girl'
-                  }?username=${data.firstName}`,
+                    profile.gender === 0 ? 'boy' : 'girl'
+                  }?username=${profile.firstName}`,
                 }}
               />
             )}

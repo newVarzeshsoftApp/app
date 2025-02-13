@@ -14,7 +14,7 @@ import {handleMutationError} from '../../utils/helpers/errorHandler';
 import moment from 'jalali-moment';
 import {useCartContext} from '../../utils/CartContext';
 import {PaymentVerifyRes} from '../../services/models/response/PaymentResService';
-import {useProfile} from '../../utils/hooks/useProfile';
+import {useAuth} from '../../utils/hooks/useAuth';
 type PaymentScreenProps = NativeStackScreenProps<
   DrawerStackParamList,
   'Paymentresult'
@@ -22,7 +22,7 @@ type PaymentScreenProps = NativeStackScreenProps<
 const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'payment'});
   const [PaymentData, setPaymentData] = useState<PaymentVerifyRes | null>(null);
-  const {data: ProfileData} = useProfile();
+  const {profile: ProfileData} = useAuth();
 
   const [isSuccses, SetisSuccses] = useState(route.params?.Status === 'OK');
   const {totalItems, items, emptyCart} = useCartContext();
