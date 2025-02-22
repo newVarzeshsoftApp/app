@@ -73,7 +73,7 @@ const Picker = <T extends FieldValues>({
                 {PickerType === 'GenderPicker' ? (
                   <BottomSheet
                     ref={sheetRef}
-                    snapPoints={[40]}
+                    snapPoints={[50]}
                     Title={auth('Select Gender')}
                     buttonText={auth(`Continue`)}
                     buttonDisabled={value === null}

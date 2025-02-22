@@ -25,6 +25,7 @@ import {
 } from '../../utils/validation/auth/ResetPasswordSchema';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
 import ResponsiveImage from '../../components/ResponsiveImage';
+import Logo from '../../components/Logo';
 
 type ResetPasswordScreenProps = NativeStackScreenProps<
   AuthStackParamList,
@@ -72,15 +73,9 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
   return (
     <SafeAreaView className="flex-1 justify-between">
       <View
-        style={{height: screenHeight * (bigScreen ? 0.21 : 0.11)}}
+        style={{height: screenHeight * 0.14}}
         className=" w-full flex items-center justify-center">
-        <View className="flex flex-row gap-4  w-[185px] h-[55px]">
-          <ResponsiveImage
-            customSource={OrganizationBySKU?.brandedLogo.srcset}
-            fallback={require('../../assets/images/testImage.png')}
-            resizeMode="contain"
-          />
-        </View>
+        <Logo />
       </View>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

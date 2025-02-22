@@ -6,6 +6,7 @@ import {useGetOrganizationBySKU} from '../utils/hooks/Organization/useGetOrganiz
 import {Menu} from 'iconsax-react-native';
 import {DrawerActions} from '@react-navigation/native';
 import ProfilePic from './header/ProfilePic';
+import Logo from './Logo';
 
 function Header({navigation}: {navigation: any}) {
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
@@ -14,11 +15,7 @@ function Header({navigation}: {navigation: any}) {
     <SafeAreaView className="dark:bg-neutral-dark-300/90 web:backdrop-blur max-w-[450px] mx-auto  bg-neutral-0/95 border web:justify-center  android:justify-center border-neutral-0 rounded-b-[32px] dark:border-neutral-dark-400/40 -translate-y-1 shadow android:h-[100px] web:h-[80px] web:fixed web:left-1/2 web:-translate-x-1/2  w-full ios:h-[120px]  ">
       <View className="px-5 flex-row justify-between">
         <View className="w-[45px] h-[45px]">
-          <ResponsiveImage
-            customSource={OrganizationBySKU?.officialLogo.srcset}
-            fallback={require('../assets/images/testImage.png')}
-            resizeMode="contain"
-          />
+          <Logo header />
         </View>
         <View className="flex-row items-center gap-4">
           <TouchableOpacity

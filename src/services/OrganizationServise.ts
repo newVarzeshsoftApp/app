@@ -59,12 +59,16 @@ const OrganizationServise = {
       throw error;
     }
   },
-  GetOrganizationBySKU: async (
-    sku: string,
-  ): Promise<GetAllOrganizationResponse> => {
+  GetOrganizationBySKU: async (): Promise<GetAllOrganizationResponse> => {
     try {
+      const headers: Record<string, string> = {};
+      // 'Referer-key' only in development mode
+      if (process.env.NODE_ENV === 'development') {
+        headers['Referer-key'] = 'http://dot.varzeshsoft.com/';
+      }
       const response = await axiosInstance.get<GetAllOrganizationResponse>(
-        baseUrl + getOrganizationBySKU(sku),
+        baseUrl + getOrganizationBySKU(),
+        {headers},
       );
       if (response.status === Status.Ok) {
         return response.data;

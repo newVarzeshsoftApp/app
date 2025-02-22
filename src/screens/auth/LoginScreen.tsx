@@ -33,6 +33,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import ResponsiveImage from '../../components/ResponsiveImage';
 import {BlurView} from '@react-native-community/blur';
+import {getColors} from 'react-native-image-colors';
+import LinearGradient from 'react-native-linear-gradient';
+import Logo from '../../components/Logo';
 
 type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -41,12 +44,37 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
   const {data: organization} = useGetOrganizationBySKU();
   const {t} = useTranslation('translation', {keyPrefix: 'Input'});
   const queryClient = useQueryClient();
+  const [GradientColors, setGradientColors] = useState<string[] | null>(null);
   const {t: placeholders} = useTranslation('translation', {
     keyPrefix: 'Input.placeholders',
   });
   const {t: auth} = useTranslation('translation', {
     keyPrefix: 'Auth',
   });
+
+  useEffect(() => {
+    if (!organization || GradientColors) return;
+    const logoUrl =
+      organization?.officialLogo?.srcset?.['default'] ||
+      organization?.brandedLogo?.srcset?.['default'];
+    if (!logoUrl) return;
+    const url = `${process.env.IMAGE_BASE_URL}/${logoUrl}`;
+    getColors(url, {
+      fallback: '#228B22',
+      cache: true,
+      key: url,
+      pixelSpacing: 10,
+      quality: 'highest',
+    })
+      .then(colors => {
+        const filteredColors = Object?.keys(colors)
+          ?.filter(key => key !== 'platform')
+          ?.map(key => (colors as any)[key]);
+        setGradientColors(filteredColors);
+      })
+      .catch(error => console.error('Error fetching colors:', error));
+  }, [organization, GradientColors]);
+
   const loginMutation = useMutation({
     mutationFn: AuthService.SignIN,
     onSuccess(data, variables, context) {
@@ -106,12 +134,24 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
   });
   const LogoAnimatedStyle = useAnimatedStyle(() => {
     return {
-      bottom: interpolate(
-        scrollY.value,
-        [0, IMageHight],
-        [40, screenHeight * 0.25],
-        Extrapolate.CLAMP,
-      ),
+      transform: [
+        {
+          scale: interpolate(
+            scrollY.value,
+            [0, IMageHight],
+            [1, 0.1], // لوگو کمی کوچک شود
+            Extrapolate.CLAMP,
+          ),
+        },
+        {
+          translateY: interpolate(
+            scrollY.value,
+            [0, IMageHight],
+            [0, screenHeight * -0.15], // لوگو به سمت پایین حرکت کند
+            Extrapolate.CLAMP,
+          ),
+        },
+      ],
     };
   });
 
@@ -119,7 +159,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
     <View className="flex-1">
       <Animated.ScrollView
         onScroll={scrollHandler}
-        scrollEventThrottle={10}
+        scrollEventThrottle={16}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={{flexGrow: 1}}
         showsVerticalScrollIndicator={false}
@@ -135,10 +175,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
               ImageAnimatedStyle,
             ]}
             className={`w-full overflow-hidden relative`}>
-            <ResponsiveImage
-              customSource={organization?.banners?.[0]?.srcset}
-              fallback={'../../assets/images/testImage.png'}
-              resizeMode="cover"
+            <LinearGradient
+              colors={GradientColors || ['#000000']}
               style={{
                 width: '100%',
                 height: screenHeight * 0.6,
@@ -151,38 +189,28 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
                   flexDirection: 'row',
                   gap: 4,
                   zIndex: 20,
-                  height: 55,
-                  left: 0,
-                  right: 0,
+                  height: IMageHight,
                   width: '100%',
-                  marginHorizontal: 'auto',
+                  top: 0,
                   alignItems: 'center',
                   justifyContent: 'center',
                 },
                 LogoAnimatedStyle,
               ]}>
-              <ResponsiveImage
-                customSource={organization?.brandedLogo.srcset}
-                fallback={'../../assets/images/testImage.png'}
-                resizeMode="contain"
-                style={{
-                  width: 185,
-                  height: 55,
-                }}
-              />
+              <Logo />
             </Animated.View>
             {Platform.OS === 'web' ? (
-              <View className="w-full absolute  top-0 left-0 h-full backdrop-blur bg-black/40"></View>
+              <View className="w-full absolute  top-0 left-0 h-full backdrop-blur-3xl bg-black/40"></View>
             ) : (
               <BlurView
                 style={{
                   position: 'absolute',
                   zIndex: 0,
-                  bottom: -100,
+                  bottom: 100,
                   width: '100%',
                   height: screenHeight * 0.6,
                 }}
-                // blurType="chromeMaterial"
+                blurType="chromeMaterial"
                 blurAmount={16}
               />
             )}

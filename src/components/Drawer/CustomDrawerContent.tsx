@@ -20,6 +20,8 @@ import {useMutation, useQueryClient} from '@tanstack/react-query';
 import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {removeTokens} from '../../utils/helpers/tokenStorage';
+import {CommonActions} from '@react-navigation/native';
+import {navigationRef} from '../../navigation/navigationRef';
 
 const CustomDrawerContent: React.FC<DrawerContentComponentProps> = props => {
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
@@ -31,10 +33,12 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = props => {
       await removeTokens();
       queryClient.invalidateQueries({queryKey: ['Tokens']});
       queryClient.removeQueries();
-      props.navigation.reset({
-        index: 0,
-        routes: [{name: 'Auth'}],
-      });
+      if (navigationRef.isReady()) {
+        navigationRef.current?.reset({
+          index: 0,
+          routes: [{name: 'Root'}], // به صفحه NotFound برو تا RootNavigator دوباره رندر شود
+        });
+      }
     },
     onError: handleMutationError,
   });
