@@ -24,7 +24,7 @@ export const routes = {
   organization: {
     getAllOrganization: (query: AllOrganizationQuery) =>
       'organization' + prepareQuery(query),
-    getOrganizationBySKU: (sku: string) => `organization/by-sku/${sku}`,
+    getOrganizationBySKU: () => `organization/by-sku`,
     getOrganizationByID: (id: number) => `organization/by-sku/${id}`,
   },
   product: {

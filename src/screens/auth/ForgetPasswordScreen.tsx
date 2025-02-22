@@ -27,6 +27,7 @@ import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
 import ResponsiveImage from '../../components/ResponsiveImage';
+import Logo from '../../components/Logo';
 
 type ForgetPasswordScreenProps = NativeStackScreenProps<
   AuthStackParamList,
@@ -71,24 +72,18 @@ const ForgetPasswordScreen: React.FC<ForgetPasswordScreenProps> = ({
   const {
     handleSubmit,
     control,
-    formState: {errors, isValid},
+    formState: {errors},
   } = methods;
-  const {width: screenWidth, height: screenHeight} = Dimensions.get('screen');
+  const {height: screenHeight} = Dimensions.get('screen');
   const bigScreen = screenHeight > 800;
 
   return (
     <View className="flex-1  justify-between pt-20 Container">
       <View className="flex-1">
         <View
-          style={{height: screenHeight * (bigScreen ? 0.21 : 0.11)}}
+          style={{height: screenHeight * 0.14}}
           className=" w-full flex items-center justify-center">
-          <View className="flex flex-row gap-4  w-[185px] h-[55px] ">
-            <ResponsiveImage
-              customSource={OrganizationBySKU?.brandedLogo.srcset}
-              fallback={require('../../assets/images/testImage.png')}
-              resizeMode="contain"
-            />
-          </View>
+          <Logo />
         </View>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}

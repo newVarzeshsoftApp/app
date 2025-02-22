@@ -26,6 +26,7 @@ import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
 import ResponsiveImage from '../../components/ResponsiveImage';
 import Picker from '../../components/Picker/Picker';
+import Logo from '../../components/Logo';
 type SignupScreenProps = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
 const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Input'});
@@ -67,9 +68,9 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
   const {
     handleSubmit,
     control,
-    formState: {errors, isValid},
+    formState: {errors},
   } = methods;
-  const {width: screenWidth, height: screenHeight} = Dimensions.get('screen');
+  const {height: screenHeight} = Dimensions.get('screen');
   const bigScreen = screenHeight > 800;
 
   return (
@@ -84,15 +85,9 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
         <SafeAreaView className="flex-1 justify-between">
           <View>
             <View
-              style={{height: screenHeight * 0.1}}
-              className=" w-full flex items-center justify-center ">
-              <View className="flex flex-row gap-4 w-[185px] h-[55px] ">
-                <ResponsiveImage
-                  customSource={OrganizationBySKU?.brandedLogo.srcset}
-                  fallback={require('../../assets/images/testImage.png')}
-                  resizeMode="contain"
-                />
-              </View>
+              style={{height: screenHeight * 0.14}}
+              className=" w-full flex items-center justify-center">
+              <Logo />
             </View>
             <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : undefined}

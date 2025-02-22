@@ -171,16 +171,29 @@ module.exports = (env, argv) => {
         chunks: 'all', // Split vendor and app code
       },
     },
+    // devServer: {
+    //   static: {
+    //     directory: path.join(__dirname, 'public'),
+    //     watch: false,
+    //   },
+    //   compress: true,
+    //   hot: true, // Enable HMR
+    //   port: 3000,
+    //   historyApiFallback: true, // Handle React Router
+    // },
+
     devServer: {
       static: {
         directory: path.join(__dirname, 'public'),
         watch: false,
       },
       compress: true,
-      hot: true, // Enable HMR
-      port: 3000,
+      hot: true, // Enable HMR      port: 3000,
+      allowedHosts: 'all',
+      host: '0.0.0.0',
       historyApiFallback: true, // Handle React Router
     },
+
     performance: {
       hints: false,
       maxEntrypointSize: 512000, // Performance budget
