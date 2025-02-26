@@ -113,7 +113,7 @@
     @apply bg-transparent border border-transparent;
   }
   .BaseServiceCard {
-    @apply dark:bg-neutral-dark-300/50 bg-neutral-0/50  w-full  p-4 rounded-3xl  border border-neutral-0 dark:border-neutral-dark-400/50;
+    @apply dark:bg-neutral-dark-300/50 bg-neutral-0/50  w-full  p-4 rounded-3xl  border border-neutral-0 dark:border-neutral-dark-400/50 min-w-[320px];
   }
 
   .Outline-Supportive5-Blue {

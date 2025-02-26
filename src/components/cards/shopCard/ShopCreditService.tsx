@@ -24,7 +24,10 @@ const ShopCreditService: React.FC<ShopServiceProps> = ({data}) => {
           </View>
         </View>
         <View className="flex-row items-center justify-between  gap-4">
-          <BaseText type="title4" color="supportive1">
+          <BaseText
+            type="title4"
+            color="supportive1"
+            className="max-w-[200px] line-clamp-1">
             {data.title}
           </BaseText>
           <View>

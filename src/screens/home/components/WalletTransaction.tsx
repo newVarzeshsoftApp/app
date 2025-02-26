@@ -56,7 +56,9 @@ const WalletTransaction: React.FC = ({
       )}
       <FlatList
         data={data}
-        renderItem={({item, index}) => <TransactionCard item={item} />}
+        renderItem={({item, index}) => (
+          <TransactionCard summaryView item={item} />
+        )}
         ItemSeparatorComponent={() => <View style={{height: 16}} />}
         onEndReached={loadMore}
         keyExtractor={(item, index) => `key` + index}

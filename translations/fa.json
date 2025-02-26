@@ -8,7 +8,8 @@
     "cart": "سبدخرید",
     "wallet": "کیف پول",
     "Error500": "خطای ۵۰۰",
-    "more": "مشاهده بیشتر"
+    "more": "مشاهده بیشتر",
+    "myServices": "خدمات من"
   },
   "Auth": {
     "login": "ورود",
@@ -42,7 +43,9 @@
     "payments": "پرداخت ها",
     "logout": "خروج",
     "changeTheme": "تغییر تم",
-    "profile": "پروفایل"
+    "profile": "پروفایل",
+    "all": "همه",
+    "noServicesFound": "هیچ سرویسی پیدا نشد"
   },
   "Profile": {
     "Personal Info": "اطلاعات شخصی",

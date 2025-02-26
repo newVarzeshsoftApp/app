@@ -186,7 +186,6 @@ export interface subProducts {
   deletedAt?: string | null;
   amount?: number | null;
   tax?: number;
-
   OrganizationUnit?: OrganizationUnit | null;
   SaleUnit?: SaleUnit | null;
   organizationUnitId?: number | null;

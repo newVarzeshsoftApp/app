@@ -1,5 +1,5 @@
 import React from 'react';
-import {FlatList, Image, Platform, Text, View} from 'react-native';
+import {FlatList, Image, Platform, TouchableOpacity, View} from 'react-native';
 import {useGetUserCredit} from '../../utils/hooks/User/useUserCredit';
 import BaseText from '../../components/BaseText';
 import {formatNumber} from '../../utils/helpers/helpers';
@@ -9,14 +9,20 @@ import BaseButton from '../../components/Button/BaseButton';
 import WalletTransaction from './components/WalletTransaction';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {WalletStackParamList} from '../../utils/types/NavigationTypes';
+import {Refresh} from 'iconsax-react-native';
 
 type WalletScreenProps = NativeStackScreenProps<WalletStackParamList, 'wallet'>;
 const WalletScreen: React.FC<WalletScreenProps> = ({navigation, route}) => {
-  const {data, isLoading} = useGetUserCredit();
+  const {data, isLoading, refetch} = useGetUserCredit();
   const {t} = useTranslation('translation', {keyPrefix: 'Wallet'});
   const renderHeader = () => (
     <View className="Container py-5 web:pt-[85px] gap-5">
       <View className="CardBase h-[180px] justify-center items-center relative overflow-hidden">
+        <TouchableOpacity
+          onPress={() => refetch()}
+          className={`absolute top-4 right-4 ${isLoading && 'animate-spin'}`}>
+          <Refresh size="20" color="#FFFFFF" />
+        </TouchableOpacity>
         <View className="flex-row  items-center gap-1 z-10">
           <BaseText type="title1" color="base">
             {formatNumber(data?.result ?? 0)}

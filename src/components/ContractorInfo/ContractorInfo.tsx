@@ -26,7 +26,7 @@ const ContractorInfo: React.FC<ContractorInfoProps> = ({
   );
   return (
     <View className="dark:bg-neutral-dark-100 bg-neutral-100 flex-row w-fit gap-2 ios:pr-3 web:pl-3 rounded-full p-1">
-      <View className="h-6 w-6  rounded-full overflow-hidden">
+      <View className="h-6 w-6  dark:bg-neutral-dark-200 bg-neutral-200 rounded-full overflow-hidden">
         <Image
           style={{width: 24, height: 24}}
           source={{

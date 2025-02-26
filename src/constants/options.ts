@@ -87,3 +87,21 @@ export enum PaymentStatus {
 //                 ?.map((value: SaleOrder) => (value.totalAmount || 0) + (value.discount || 0))
 //                 .reduce((a: any, b: any) => +a + b, 0);
 //               return (receptionAmount ?? 0) + (normalOrderAmount ?? 0);
+
+export const ColorRingConfig = {
+  red: {
+    progress: '#fd504f',
+    unfilled: 'rgba(254, 201, 203, 0.3)',
+    TextColor: 'error',
+  },
+  orange: {
+    progress: '#ff9134',
+    unfilled: 'rgba(255, 221, 192, 0.3)',
+    TextColor: 'warning',
+  },
+  green: {
+    progress: '#37c976',
+    unfilled: 'rgba(193, 238, 213, 0.3)',
+    TextColor: 'success',
+  },
+};

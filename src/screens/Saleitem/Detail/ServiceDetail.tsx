@@ -25,6 +25,7 @@ import BottomSheet, {
 } from '../../../components/BottomSheet/BottomSheet';
 import Badge from '../../../components/Badge/Badge';
 import ContractorInfo from '../../../components/ContractorInfo/ContractorInfo';
+import {useCart} from '../../../utils/hooks/Carthook';
 type ServiceDetailNavigationProp = NativeStackNavigationProp<
   SaleItemStackParamList,
   'saleItemDetail'
@@ -48,6 +49,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
   const bottomsheetRef = useRef<BottomSheetMethods>(null);
   const {height} = Dimensions.get('screen');
   const {t} = useTranslation('translation', {keyPrefix: 'Detail'});
+  const {addToCart} = useCart();
   const {data: UserSession, isLoading: UserSessionisLoading} =
     useGetUserSessionByID(data.id);
   // Use shared value instead of scroll offset
@@ -183,15 +185,26 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                         </View>
                       </View>
                       <View className="flex-row gap-2">
-                        <BaseButton
-                          color="Black"
-                          LeftIcon={RepeatCircle}
-                          LeftIconVariant="Bold"
-                          type="Fill"
-                          text={t('Renewal')}
-                          rounded
-                          Extraclass="!flex-1"
-                        />
+                        {data.isOnline && (
+                          <BaseButton
+                            color="Black"
+                            onPress={() => {
+                              addToCart({
+                                product: data.product!,
+                                SelectedContractor: data.contractor,
+                                SelectedPriceList: data?.product?.priceList[0],
+                              });
+
+                              // navigation.navigate('cart')
+                            }}
+                            LeftIcon={RepeatCircle}
+                            LeftIconVariant="Bold"
+                            type="Fill"
+                            text={t('Renewal')}
+                            rounded
+                            Extraclass="!flex-1"
+                          />
+                        )}
                         <BaseButton
                           color="Black"
                           type="Outline"
