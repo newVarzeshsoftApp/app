@@ -124,18 +124,20 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
                   </View>
                 </View>
               </View>
-              <View className="flex-1 w-full max-w-[160px] ">
-                <BaseButton
-                  type="Fill"
-                  color="Supportive1-Yellow"
-                  size="Medium"
-                  text={t('Renewal')}
-                  LeftIcon={RepeatCircle}
-                  rounded
-                  LeftIconVariant="Bold"
-                  className="!flex-1"
-                />
-              </View>
+              {data.product?.isOnline && (
+                <View className="flex-1 w-full max-w-[160px] ">
+                  <BaseButton
+                    type="Fill"
+                    color="Supportive1-Yellow"
+                    size="Medium"
+                    text={t('Renewal')}
+                    LeftIcon={RepeatCircle}
+                    rounded
+                    LeftIconVariant="Bold"
+                    className="!flex-1"
+                  />
+                </View>
+              )}
             </View>
             <View>
               <View className="gap-2 pb-4 border-b border-neutral-200 dark:border-neutral-dark-200">

@@ -1,7 +1,14 @@
 import React from 'react';
 import {TouchableOpacity, Text, View, StyleProp, ViewStyle} from 'react-native';
 import {BottomTabBarProps} from '@react-navigation/bottom-tabs';
-import {Home2, Message, ShoppingBag, Wallet2} from 'iconsax-react-native';
+import {
+  Home2,
+  Message,
+  Profile,
+  ProfileCircle,
+  ShoppingBag,
+  Wallet2,
+} from 'iconsax-react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -25,6 +32,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
     ticket: <Message size="24" />,
     cart: <ShoppingBag size="24" />,
     wallet: <Wallet2 size="24" />,
+    myServices: <Profile size="24" />,
   };
   const {totalItems} = useCartContext();
   const focusedRoute = state.routes[state.index];
@@ -103,7 +111,11 @@ const TabBar: React.FC<BottomTabBarProps> = ({
         const iconElement = tabIcons[route.name] || <Home2 size="24" />;
 
         return (
-          <TouchableOpacity key={index} onPress={onPress}>
+          <TouchableOpacity
+            onPress={route.name === 'ticket' ? undefined : onPress}
+            disabled={route.name === 'ticket'}
+            style={{opacity: route.name === 'ticket' ? 0.4 : 1}}
+            key={index}>
             <Animated.View
               style={[
                 {
@@ -138,7 +150,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
                 <Animated.View
                   style={[animatedTextStyle]}
                   className="flex-row items-center">
-                  <BaseText type="caption" color="button">
+                  <BaseText type="subtitle3" color="button">
                     {t(label)}
                   </BaseText>
                 </Animated.View>

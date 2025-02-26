@@ -1,6 +1,5 @@
-import React from 'react';
-import {Image, Text, View} from 'react-native';
-import ResponsiveImage from '../../ResponsiveImage';
+import React, {useMemo} from 'react';
+import {Image, View} from 'react-native';
 import {Content} from '../../../services/models/response/UseResrService';
 import {Circle} from 'react-native-progress';
 import BaseText from '../../BaseText';
@@ -9,6 +8,8 @@ import {useTheme} from '../../../utils/ThemeContext';
 import moment from 'jalali-moment';
 import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetOrganizationBySKU';
 import ContractorInfo from '../../ContractorInfo/ContractorInfo';
+import {ColorRingConfig} from '../../../constants/options';
+import {TypeTextColor} from '../../../models/stylingTypes';
 
 const ServiceCard: React.FC<{data: Content}> = ({data}) => {
   const progress =
@@ -19,6 +20,18 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
 
   const {theme} = useTheme();
+  const isExpired = moment().isAfter(moment.utc(data?.end));
+  const Useable = !isExpired && data?.usable;
+  const remainingCredit = (data?.credit ?? 0) - (data?.usedCredit ?? 0);
+
+  const colors = useMemo(() => {
+    if (remainingCredit === 0) return ColorRingConfig.red;
+    if (remainingCredit < 5) return ColorRingConfig.orange;
+    return {
+      ...ColorRingConfig.green,
+    };
+  }, [remainingCredit, theme]);
+
   return (
     <View className="BaseServiceCard">
       <View className="w-full h-[185px] bg-neutral-0 dark:bg-neutral-dark-0 rounded-3xl overflow-hidden">
@@ -34,8 +47,10 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
       </View>
       <View className="py-3 items-center flex-row justify-between border-b border-neutral-0 dark:border-neutral-dark-400/50">
         <View className="flex-row gap-2 items-center">
-          {(data.usable ?? false) && (
-            <View className="w-2 h-2 rounded-full bg-success-500"></View>
+          {Useable ? (
+            <View className="w-2 h-2 rounded-full bg-success-500" />
+          ) : (
+            <View className="w-2 h-2 rounded-full bg-error-500" />
           )}
           <BaseText type="title4">{data.title}</BaseText>
         </View>
@@ -46,13 +61,13 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
             thickness={3}
             borderWidth={0}
             strokeCap={'round'}
-            color={theme === 'dark' ? '#37C976' : '#37C976'}
-            unfilledColor={theme === 'dark' ? '#175432' : '#C1EED5'}
+            color={colors.progress}
+            unfilledColor={colors.unfilled}
             showsText={false}
           />
           <View className="flex-row gap-1 items-center">
-            <BaseText type="title4" color="success">
-              {(data?.credit ?? 0) - (data?.usedCredit ?? 0)}
+            <BaseText type="title4" color={colors.TextColor as TypeTextColor}>
+              {remainingCredit}
             </BaseText>
             <BaseText type="title4" color="muted">
               {data.credit} /

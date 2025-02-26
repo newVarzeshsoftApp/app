@@ -20,8 +20,13 @@ type NavigationProps = NativeStackNavigationProp<DrawerStackParamList>;
 type TransactionProps = {
   item: SaleTransaction;
   inDetail?: boolean;
+  summaryView?: boolean;
 };
-const TransactionCard: React.FC<TransactionProps> = ({item, inDetail}) => {
+const TransactionCard: React.FC<TransactionProps> = ({
+  item,
+  inDetail,
+  summaryView,
+}) => {
   const navigation = useNavigation<NavigationProps>();
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
   const isWithdraw = [
@@ -32,81 +37,85 @@ const TransactionCard: React.FC<TransactionProps> = ({item, inDetail}) => {
   return (
     <View className="CardBase">
       <View className="gap-2">
-        <View className="flex-row items-center justify-between">
-          <BaseText type="body3" color="secondary">
-            {t('Type')}: {''}
-          </BaseText>
-          {isWithdraw ? (
-            <View className="flex-row gap-2">
-              <MoneySend size={20} color="#FD504F" variant="Bold" />
-              <BaseText type="subtitle2" color="error">
-                {t('withdraw')}
+        {!summaryView && (
+          <>
+            <View className="flex-row items-center justify-between">
+              <BaseText type="body3" color="secondary">
+                {t('Type')}: {''}
               </BaseText>
+              {isWithdraw ? (
+                <View className="flex-row gap-2">
+                  <MoneySend size={20} color="#FD504F" variant="Bold" />
+                  <BaseText type="subtitle2" color="error">
+                    {t('withdraw')}
+                  </BaseText>
+                </View>
+              ) : (
+                <View className="flex-row gap-2">
+                  <MoneyRecive size={20} color="#37C976" variant="Bold" />
+                  <BaseText type="subtitle2" color="success">
+                    {t('deposit')}
+                  </BaseText>
+                </View>
+              )}
             </View>
-          ) : (
-            <View className="flex-row gap-2">
-              <MoneyRecive size={20} color="#37C976" variant="Bold" />
-              <BaseText type="subtitle2" color="success">
-                {t('deposit')}
-              </BaseText>
-            </View>
-          )}
-        </View>
-        {isWithdraw && (
-          <View className="flex-row items-center justify-between ">
-            <BaseText type="body3" color="secondary">
-              {t('orderNumber')}: {''}
-            </BaseText>
-            {inDetail ? (
-              <BaseText type="body3" color="base">
-                {item.id}
-              </BaseText>
-            ) : (
-              <BaseButton
-                onPress={() =>
-                  navigation.navigate('HistoryNavigator', {
-                    screen: 'orderDetail',
-                    params: {id: item.orderId ?? 0},
-                  })
-                }
-                // orderDetail
-                LinkButton
-                size="Small"
-                type="Outline"
-                color="Supportive5-Blue"
-                text={(item.orderId ?? 0).toString()}
-                rounded
-              />
-            )}
-          </View>
-        )}
-        <View className="flex-row items-center justify-between ">
-          <BaseText type="body3" color="secondary">
-            {t('Source')}: {''}
-          </BaseText>
-          <View className="flex-row gap-1 items-center">
-            <BaseText type="body3" color="base">
-              {item.gateway?.title ??
-                t(`${TransactionSourceType[item.sourceType ?? 0]}`)}
-            </BaseText>
-            {[
-              'OfferedDiscount',
-              'WalletGift',
-              'ChargingService',
-              'Loan',
-            ].includes(TransactionSourceType[item.sourceType ?? 0]) ? (
-              <Badge
-                color="primary"
-                textColor="supportive5"
-                CreditMode={['ChargingService'].includes(
-                  TransactionSourceType[item.sourceType ?? 0],
+            {isWithdraw && (
+              <View className="flex-row items-center justify-between ">
+                <BaseText type="body3" color="secondary">
+                  {t('orderNumber')}: {''}
+                </BaseText>
+                {inDetail ? (
+                  <BaseText type="body3" color="base">
+                    {item.id}
+                  </BaseText>
+                ) : (
+                  <BaseButton
+                    onPress={() =>
+                      navigation.navigate('HistoryNavigator', {
+                        screen: 'orderDetail',
+                        params: {id: item.orderId ?? 0},
+                      })
+                    }
+                    // orderDetail
+                    LinkButton
+                    size="Small"
+                    type="Outline"
+                    color="Supportive5-Blue"
+                    text={(item.orderId ?? 0).toString()}
+                    rounded
+                  />
                 )}
-                defaultMode
-                value={item?.title ?? ''}
-              />
-            ) : null}
-          </View>
-        </View>
+              </View>
+            )}
+            <View className="flex-row items-center justify-between ">
+              <BaseText type="body3" color="secondary">
+                {t('Source')}: {''}
+              </BaseText>
+              <View className="flex-row gap-1 items-center">
+                <BaseText type="body3" color="base">
+                  {item.gateway?.title ??
+                    t(`${TransactionSourceType[item.sourceType ?? 0]}`)}
+                </BaseText>
+                {[
+                  'OfferedDiscount',
+                  'WalletGift',
+                  'ChargingService',
+                  'Loan',
+                ].includes(TransactionSourceType[item.sourceType ?? 0]) ? (
+                  <Badge
+                    color="primary"
+                    textColor="supportive5"
+                    CreditMode={['ChargingService'].includes(
+                      TransactionSourceType[item.sourceType ?? 0],
+                    )}
+                    defaultMode
+                    value={item?.title ?? ''}
+                  />
+                ) : null}
+              </View>
+            </View>
+          </>
+        )}
         <View className="flex-row items-center justify-between ">
           <BaseText type="body3" color="secondary">
             {t('DateAndTime')}: {''}
