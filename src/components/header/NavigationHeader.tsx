@@ -13,6 +13,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import {useTheme} from '../../utils/ThemeContext';
 import {useNavigation} from '@react-navigation/native';
+import {goBackSafe} from '../../navigation/navigationRef';
 
 // Make SafeAreaView animatable
 const AnimatedSafeAreaView = Animated.createAnimatedComponent(SafeAreaView);
@@ -37,14 +38,6 @@ const NavigationHeader: React.FC<NavigationHeaderProps> = ({
 }) => {
   const {theme} = useTheme();
   const baseRange = theme === 'dark' ? '#1b1d21' : '#f4f4f5';
-  const navigation = useNavigation();
-  const handleBackPress = () => {
-    if (onBackPress) {
-      onBackPress();
-    } else if (navigation.canGoBack()) {
-      navigation.goBack();
-    }
-  };
 
   // Animated style for the SafeAreaView
   const SafeAreaAnimatedStyle = useAnimatedStyle(() => {
@@ -89,8 +82,7 @@ const NavigationHeader: React.FC<NavigationHeaderProps> = ({
       <Animated.View style={[styles.container]}>
         <View style={styles.leftButton}>
           <BaseButton
-            disabled={navigation.canGoBack() === false}
-            onPress={handleBackPress}
+            onPress={goBackSafe}
             noText
             LeftIcon={ArrowRight2}
             type="Outline"

@@ -13,6 +13,7 @@ import BaseButton from '../../components/Button/BaseButton';
 import {useGetUserSaleOrderByID} from '../../utils/hooks/User/useGetUserSaleOrderByID';
 import {TransactionSourceType} from '../../constants/options';
 import Badge from '../../components/Badge/Badge';
+import {navigate} from '../../navigation/navigationRef';
 type PaymentScreenProps = NativeStackScreenProps<
   DrawerStackParamList,
   'PaymentDetail'
@@ -102,9 +103,12 @@ const PaymentDetail: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                       </BaseText>
                       <BaseButton
                         onPress={() =>
-                          navigation.navigate('HistoryNavigator', {
-                            screen: 'orderDetail',
-                            params: {id: data.id},
+                          navigate('Root', {
+                            screen: 'HistoryNavigator',
+                            params: {
+                              screen: 'orderDetail',
+                              params: {id: data.id},
+                            },
                           })
                         }
                         size="Small"
@@ -124,9 +128,12 @@ const PaymentDetail: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                           </BaseText>
                           <BaseButton
                             onPress={() =>
-                              navigation.navigate('HistoryNavigator', {
-                                screen: 'WithdrawDetail',
-                                params: {id: item.id},
+                              navigate('Root', {
+                                screen: 'HistoryNavigator',
+                                params: {
+                                  screen: 'WithdrawDetail',
+                                  params: {id: data.id},
+                                },
                               })
                             }
                             size="Small"
@@ -205,8 +212,12 @@ const PaymentDetail: React.FC<PaymentScreenProps> = ({navigation, route}) => {
               <View className="gap-2">
                 <BaseButton
                   onPress={() => {
-                    //@ts-ignore
-                    navigation.navigate('HomeNavigator', {screen: 'Home'});
+                    navigate('Root', {
+                      screen: 'HomeNavigator',
+                      params: {
+                        screen: 'Home',
+                      },
+                    });
                   }}
                   type={'Fill'}
                   color="Black"

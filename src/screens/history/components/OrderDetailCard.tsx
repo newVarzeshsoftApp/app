@@ -7,9 +7,9 @@ import {SaleOrderByIDRes} from '../../../services/models/response/UseResrService
 import moment from 'jalali-moment';
 import Badge from '../../../components/Badge/Badge';
 import {formatNumber} from '../../../utils/helpers/helpers';
-import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {OrderStackParamList} from '../../../utils/types/NavigationTypes';
+import {navigate} from '../../../navigation/navigationRef';
 type OrderDetailProps = {
   item: SaleOrderByIDRes;
   isReseption?: boolean;
@@ -21,7 +21,6 @@ type NavigationProps = NativeStackNavigationProp<
 
 const OrderDetailCard: React.FC<OrderDetailProps> = ({item, isReseption}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
-  const navigation = useNavigation<NavigationProps>();
   return (
     <View className="CardBase">
       <View className="gap-2">
@@ -50,8 +49,12 @@ const OrderDetailCard: React.FC<OrderDetailProps> = ({item, isReseption}) => {
               <BaseButton
                 size="Small"
                 onPress={() =>
-                  navigation.push('orderDetail', {
-                    id: Number(item.saleOrderReceptionId ?? 0),
+                  navigate('Root', {
+                    screen: 'HistoryNavigator',
+                    params: {
+                      screen: 'orderDetail',
+                      params: {id: Number(item.saleOrderReceptionId ?? 0)},
+                    },
                   })
                 }
                 type="Outline"

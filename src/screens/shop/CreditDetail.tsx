@@ -21,6 +21,7 @@ import BaseButton from '../../components/Button/BaseButton';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useCartContext} from '../../utils/CartContext';
 import CreditSubProduct from '../../components/cards/SubProduct';
+import {navigate} from '../../navigation/navigationRef';
 
 type CreditDetailProp = NativeStackScreenProps<
   ShopStackParamList,
@@ -81,13 +82,8 @@ const CreditDetail: React.FC<CreditDetailProp> = ({navigation, route}) => {
     try {
       await addToCart({product: data!});
       // Navigate to HomeNavigator and open cart screen
-      //@ts-ignore
-      navigation.push('Root', {
-        screen: 'HomeNavigator',
-        params: {
-          screen: 'cart',
-        },
-      });
+
+      navigate('Root', {screen: 'HomeNavigator', params: {screen: 'cart'}});
     } catch (error) {
       handleMutationError(error);
       console.error('Failed to add to cart:', error);

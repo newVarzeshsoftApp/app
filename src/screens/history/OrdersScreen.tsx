@@ -4,10 +4,9 @@ import React, {
   useEffect,
   useLayoutEffect,
   useMemo,
-  useRef,
   useState,
 } from 'react';
-import {ActivityIndicator, Dimensions, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
 import Animated, {
   useAnimatedScrollHandler,
   useSharedValue,
@@ -20,9 +19,6 @@ import {SaleOrderContent} from '../../services/models/response/UseResrService';
 import OrderCard from './components/OrderCard';
 import {limit} from '../../constants/options';
 import BaseText from '../../components/BaseText';
-import BottomSheet from '../../components/BottomSheet/BottomSheet';
-import {formatNumber} from '../../utils/helpers/helpers';
-import Badge from '../../components/Badge/Badge';
 import DateSelector, {
   DateSelectorType,
 } from '../../components/Picker/DatePicker/DateSelector';
@@ -108,9 +104,7 @@ const OrdersScreen: React.FC<OrdersScreenProps> = ({navigation, route}) => {
           data={items}
           ListHeaderComponent={headerComponentMemo}
           keyExtractor={(item, index) => `key` + index}
-          renderItem={({item}) => (
-            <OrderCard item={item} navigation={navigation} />
-          )}
+          renderItem={({item}) => <OrderCard item={item} />}
           onScroll={scrollHandler}
           onEndReached={loadMore}
           onEndReachedThreshold={0.5}

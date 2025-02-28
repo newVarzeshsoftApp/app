@@ -38,6 +38,7 @@ import LinearGradient from 'react-native-linear-gradient';
 import {formatNumber} from '../../utils/helpers/helpers';
 import RadioButton from '../../components/Button/RadioButton/RadioButton';
 import {useAuth} from '../../utils/hooks/useAuth';
+import {navigate} from '../../navigation/navigationRef';
 type PaymentMethodType = {
   getway?: number;
   isWallet?: boolean;
@@ -85,9 +86,9 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     mutationFn: PaymentService.CreatePayment,
     onSuccess(data, variables, context) {
       if (data?.url) {
-        const drawerNavigation = navigation.getParent();
-        drawerNavigation?.navigate('WebViewParamsList', {
-          url: data.url,
+        navigate('Root', {
+          screen: 'WebViewParamsList',
+          params: {url: data.url},
         });
       }
     },
@@ -97,8 +98,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     mutationFn: OperationalService.SaleOrder,
     onSuccess(data, variables, context) {
       emptyCart();
-      const drawerNavigation = navigation.getParent();
-      drawerNavigation?.navigate('PaymentDetail', {id: data});
+      navigate('Root', {screen: 'PaymentDetail', params: {id: data}});
     },
   });
 

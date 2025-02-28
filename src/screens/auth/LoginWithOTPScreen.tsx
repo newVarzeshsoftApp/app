@@ -18,6 +18,7 @@ import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
 import ResponsiveImage from '../../components/ResponsiveImage';
+import {navigate} from '../../navigation/navigationRef';
 
 type LoginWithOTPScreenProps = NativeStackScreenProps<
   AuthStackParamList,
@@ -39,9 +40,9 @@ const LoginWithOTPScreen: React.FC<LoginWithOTPScreenProps> = ({
   const RequestOTP = useMutation({
     mutationFn: AuthService.RequestOTP,
     onSuccess(data, variables) {
-      navigation.push('OTP', {
-        username: variables.username,
-        LoginWithOTP: true,
+      navigate('Auth', {
+        screen: 'OTP',
+        params: {username: variables.username, resetPassword: true},
       });
     },
     onError: handleMutationError,
@@ -66,10 +67,9 @@ const LoginWithOTPScreen: React.FC<LoginWithOTPScreenProps> = ({
   } = methods;
   const {width: screenWidth, height: screenHeight} = Dimensions.get('screen');
   const bigScreen = screenHeight > 800;
-
   return (
     <View className="flex-1  pt-20">
-      <SafeAreaView className="flex-1 justify-between ">
+      <SafeAreaView className="flex-1 justify-between">
         <View className="flex-1">
           <View
             style={{height: screenHeight * (bigScreen ? 0.21 : 0.11)}}

@@ -15,6 +15,7 @@ import moment from 'jalali-moment';
 import {useCartContext} from '../../utils/CartContext';
 import {PaymentVerifyRes} from '../../services/models/response/PaymentResService';
 import {useAuth} from '../../utils/hooks/useAuth';
+import {navigate} from '../../navigation/navigationRef';
 type PaymentScreenProps = NativeStackScreenProps<
   DrawerStackParamList,
   'Paymentresult'
@@ -54,8 +55,9 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
     mutationFn: PaymentService.CreatePayment,
     onSuccess(data, variables, context) {
       if (data?.url) {
-        navigation.navigate('WebViewParamsList', {
-          url: data.url, // Passing the URL as a parameter
+        navigate('Root', {
+          screen: 'WebViewParamsList',
+          params: {url: data.url},
         });
       }
     },
@@ -245,10 +247,13 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                       <BaseButton
                         disabled={!isSuccses}
                         onPress={() =>
-                          navigation.navigate('HistoryNavigator', {
-                            screen: 'DepositDetail',
+                          navigate('Root', {
+                            screen: 'HistoryNavigator',
                             params: {
-                              id: PaymentData?.payment?.transaction?.id ?? 0,
+                              screen: 'DepositDetail',
+                              params: {
+                                id: PaymentData?.payment?.transaction?.id ?? 0,
+                              },
                             },
                           })
                         }
@@ -273,10 +278,13 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                           <BaseButton
                             disabled={!isSuccses}
                             onPress={() =>
-                              navigation.navigate('HistoryNavigator', {
-                                screen: 'orderDetail',
+                              navigate('Root', {
+                                screen: 'HistoryNavigator',
                                 params: {
-                                  id: Number(item ?? 0),
+                                  screen: 'orderDetail',
+                                  params: {
+                                    id: Number(item ?? 0),
+                                  },
                                 },
                               })
                             }
@@ -343,9 +351,15 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
               <BaseButton
                 onPress={() => {
                   route.params?.isDeposit
-                    ? //@ts-ignore
-                      navigation.navigate('HomeNavigator', {screen: 'wallet'})
-                    : navigation.navigate('HomeNavigator');
+                    ? navigate('Root', {
+                        screen: 'HomeNavigator',
+                        params: {
+                          screen: 'wallet',
+                        },
+                      })
+                    : navigate('Root', {
+                        screen: 'HomeNavigator',
+                      });
                 }}
                 type={isSuccses ? 'Fill' : 'Outline'}
                 color="Black"

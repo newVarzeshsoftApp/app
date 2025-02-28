@@ -14,6 +14,7 @@ export type ITextType =
   | 'caption'
   | 'placeholder'
   | 'badge';
+  
 export type TypeTextColor =
   | 'base'
   | 'secondary'

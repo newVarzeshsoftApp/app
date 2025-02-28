@@ -106,9 +106,7 @@ const ReceptionScreen: React.FC<ReceptionScreenProps> = ({
         data={items}
         ListHeaderComponent={headerComponentMemo}
         keyExtractor={(item, index) => item.id.toString() || index.toString()}
-        renderItem={({item}) => (
-          <ReceptionCard item={item} navigation={navigation} />
-        )}
+        renderItem={({item}) => <ReceptionCard item={item} />}
         onScroll={scrollHandler}
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}

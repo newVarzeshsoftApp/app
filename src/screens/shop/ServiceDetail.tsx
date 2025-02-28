@@ -41,6 +41,7 @@ import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useCartContext} from '../../utils/CartContext';
 import usePriceCalculations from '../../utils/hooks/usePriceCalculations';
 import {useAuth} from '../../utils/hooks/useAuth';
+import {navigate} from '../../navigation/navigationRef';
 
 type ServiceDetailProp = NativeStackScreenProps<
   ShopStackParamList,
@@ -161,13 +162,8 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
         SelectedContractor: SelectedContractor,
       });
       // Navigate to HomeNavigator and open cart screen
-      //@ts-ignore
-      navigation.push('Root', {
-        screen: 'HomeNavigator',
-        params: {
-          screen: 'cart',
-        },
-      });
+
+      navigate('Root', {screen: 'HomeNavigator', params: {screen: 'cart'}});
     } catch (error) {
       handleMutationError(error);
       console.error('Failed to add to cart:', error);

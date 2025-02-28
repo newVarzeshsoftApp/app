@@ -59,7 +59,7 @@ export type HomeStackParamList = {
   saleItem: undefined;
   ticket: undefined;
   cart: undefined;
-  wallet: WalletStackParamList;
+  wallet: NavigatorScreenParams<WalletStackParamList> | undefined;
   myServices: undefined;
 };
 type ShopDetail = {

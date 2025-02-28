@@ -12,11 +12,11 @@ import BottomSheet, {
   BottomSheetMethods,
 } from '../../../components/BottomSheet/BottomSheet';
 import Badge from '../../../components/Badge/Badge';
+import {navigate} from '../../../navigation/navigationRef';
 interface OrderCardProps {
   item: SaleOrderContent;
-  navigation: NativeStackNavigationProp<OrderStackParamList, 'orders'>;
 }
-const OrderCard: React.FC<OrderCardProps> = ({item, navigation}) => {
+const OrderCard: React.FC<OrderCardProps> = ({item}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
   const sheetRef = useRef<BottomSheetMethods>(null);
   const {height} = Dimensions.get('screen');
@@ -133,7 +133,12 @@ const OrderCard: React.FC<OrderCardProps> = ({item, navigation}) => {
         </View>
         <View className="flex-row gap-2">
           <BaseButton
-            onPress={() => navigation.navigate('orderDetail', {id: item.id})}
+            onPress={() =>
+              navigate('Root', {
+                screen: 'HistoryNavigator',
+                params: {screen: 'orderDetail', params: {id: item.id}},
+              })
+            }
             LinkButton
             color="Black"
             type="TextButton"

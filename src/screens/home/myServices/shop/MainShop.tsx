@@ -1,4 +1,3 @@
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import React, {useCallback, useState} from 'react';
 import {
   Text,
@@ -8,24 +7,17 @@ import {
   FlatList,
   Platform,
 } from 'react-native';
-import {DrawerStackParamList} from '../../../../utils/types/NavigationTypes';
-import {limit, ProductType} from '../../../../constants/options';
 import {useTranslation} from 'react-i18next';
-import {useNavigation} from '@react-navigation/native';
 import {UseGetProduct} from '../../../../utils/hooks/Product/UseGetProduct';
 import BaseText from '../../../../components/BaseText';
-import {AppRoutes} from '../../../../navigation/routes';
+import {ProductType, limit} from '../../../../constants/options';
+import {ArrowUp, Box, Calendar1, Card} from 'iconsax-react-native';
+import {navigate} from '../../../../navigation/navigationRef';
 
 // Import correct card components
 import ShopCreditService from '../../../../components/cards/shopCard/ShopCreditService';
 import ShopPackageService from '../../../../components/cards/shopCard/ShopPackageService';
 import ShopServiceCard from '../../../../components/cards/shopCard/ShopServiceCard';
-import {ArrowUp, Box, Calendar1, Card} from 'iconsax-react-native';
-
-type NavigationProp = NativeStackNavigationProp<
-  DrawerStackParamList,
-  'HomeNavigator'
->;
 
 const cardComponentMapping: Record<number, React.FC<{data: any}>> = {
   [ProductType.Service]: ShopServiceCard,
@@ -35,7 +27,6 @@ const cardComponentMapping: Record<number, React.FC<{data: any}>> = {
 
 function MainShop({inMoreScreen = false}: {inMoreScreen?: boolean}) {
   const {t} = useTranslation('translation', {keyPrefix: 'Drawer'});
-  const navigation = useNavigation<NavigationProp>();
   const [offset, setOffset] = useState(0);
 
   // Fetch product data for each category
@@ -47,31 +38,52 @@ function MainShop({inMoreScreen = false}: {inMoreScreen?: boolean}) {
       category: {equals: ''},
     });
 
-  // Define product sections with proper links
+  // Define product sections with navigation
   const productSections = [
     {
       title: t('Service'),
-      linkProduct: AppRoutes.SERVICE(),
-      linkDetail: (id: number, title: string) =>
-        AppRoutes.SERVICE_DETAIL(id, title),
+      navigateToCategory: () =>
+        navigate('Root', {
+          screen: 'ShopNavigator',
+          params: {screen: 'service'},
+        }),
+      navigateToDetail: (id: number, title: string) =>
+        navigate('Root', {
+          screen: 'ShopNavigator',
+          params: {screen: 'serviceDetail', params: {id, title}},
+        }),
       type: ProductType.Service,
       icon: <Calendar1 size="28" color="#FFFFFF" variant="Bold" />,
       data: fetchProductData(ProductType.Service),
     },
     {
       title: t('creditService'),
-      linkProduct: AppRoutes.CREDIT_SERVICE(),
-      linkDetail: (id: number, title: string) =>
-        AppRoutes.CREDIT_DETAIL(id, title),
+      navigateToCategory: () =>
+        navigate('Root', {
+          screen: 'ShopNavigator',
+          params: {screen: 'creditService'},
+        }),
+      navigateToDetail: (id: number, title: string) =>
+        navigate('Root', {
+          screen: 'ShopNavigator',
+          params: {screen: 'creditDetail', params: {id, title}},
+        }),
       type: ProductType.Credit,
       icon: <Card size="28" color="#fed376" variant="Bold" />,
       data: fetchProductData(ProductType.Credit),
     },
     {
       title: t('package'),
-      linkProduct: AppRoutes.PACKAGE_SERVICE(),
-      linkDetail: (id: number, title: string) =>
-        AppRoutes.PACKAGE_DETAIL(id, title),
+      navigateToCategory: () =>
+        navigate('Root', {
+          screen: 'ShopNavigator',
+          params: {screen: 'packageService'},
+        }),
+      navigateToDetail: (id: number, title: string) =>
+        navigate('Root', {
+          screen: 'ShopNavigator',
+          params: {screen: 'packageDetail', params: {id, title}},
+        }),
       type: ProductType.Package,
       icon: <Box size="28" color="#5bc8ff" variant="Bold" />,
       data: fetchProductData(ProductType.Package),
@@ -86,15 +98,11 @@ function MainShop({inMoreScreen = false}: {inMoreScreen?: boolean}) {
         <TouchableOpacity
           key={item.id}
           onPress={() => {
-            const detailLink = productSections.find(
-              section => section.type === sectionType,
-            )?.linkDetail;
-            if (detailLink) {
-              navigation.navigate(
-                //@ts-ignore
-                'ShopNavigator',
-                detailLink(item.id, item.title),
-              );
+            const section = productSections.find(
+              sec => sec.type === sectionType,
+            );
+            if (section) {
+              section.navigateToDetail(item.id, item.title);
             }
           }}>
           <CardComponent data={item} />
@@ -103,7 +111,7 @@ function MainShop({inMoreScreen = false}: {inMoreScreen?: boolean}) {
         <Text>Unknown type: {sectionType}</Text>
       );
     },
-    [cardComponentMapping, productSections],
+    [productSections],
   );
 
   return (
@@ -119,7 +127,7 @@ function MainShop({inMoreScreen = false}: {inMoreScreen?: boolean}) {
           )}
           keyExtractor={item => `section-${item.type}`}
           renderItem={({item}) => {
-            const {title, type, data, linkProduct, icon} = item;
+            const {title, type, data, navigateToCategory, icon} = item;
             const {data: items, isLoading} = data;
 
             return (
@@ -135,10 +143,7 @@ function MainShop({inMoreScreen = false}: {inMoreScreen?: boolean}) {
                   {/* Button to navigate to the full category page */}
                   <TouchableOpacity
                     className="flex-row gap-1 items-center"
-                    onPress={() => {
-                      //@ts-ignore
-                      navigation.navigate('ShopNavigator', linkProduct);
-                    }}>
+                    onPress={navigateToCategory}>
                     <BaseText type="body2" color="secondary">
                       {t('all')}
                     </BaseText>

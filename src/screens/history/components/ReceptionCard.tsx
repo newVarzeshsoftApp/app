@@ -9,11 +9,11 @@ import moment from 'jalali-moment';
 import {formatNumber} from '../../../utils/helpers/helpers';
 import BaseButton from '../../../components/Button/BaseButton';
 import Badge from '../../../components/Badge/Badge';
+import {navigate} from '../../../navigation/navigationRef';
 interface OrderCardProps {
   item: SaleOrderContent;
-  navigation: NativeStackNavigationProp<OrderStackParamList, 'reception'>;
 }
-const ReceptionCard: React.FC<OrderCardProps> = ({item, navigation}) => {
+const ReceptionCard: React.FC<OrderCardProps> = ({item}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
   const Titles = useMemo(() => {
     return item?.items?.map((item, index) => item.title).join(', ');
@@ -115,7 +115,12 @@ const ReceptionCard: React.FC<OrderCardProps> = ({item, navigation}) => {
       </View>
       <View className="flex-row gap-2">
         <BaseButton
-          onPress={() => navigation.push('orderDetail', {id: item.id})}
+          onPress={() =>
+            navigate('Root', {
+              screen: 'HistoryNavigator',
+              params: {screen: 'orderDetail', params: {id: item.id}},
+            })
+          }
           LinkButton
           color="Black"
           type="TextButton"
