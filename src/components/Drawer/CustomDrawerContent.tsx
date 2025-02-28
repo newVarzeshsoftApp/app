@@ -21,7 +21,11 @@ import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {removeTokens} from '../../utils/helpers/tokenStorage';
 import {CommonActions} from '@react-navigation/native';
-import {navigationRef} from '../../navigation/navigationRef';
+import {
+  navigate,
+  navigationRef,
+  resetNavigationHistory,
+} from '../../navigation/navigationRef';
 
 const CustomDrawerContent: React.FC<DrawerContentComponentProps> = props => {
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
@@ -29,16 +33,16 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = props => {
   const queryClient = useQueryClient();
   const Logout = useMutation({
     mutationFn: AuthService.Logout,
-    onSuccess: async (data, variables, context) => {
+    onSuccess: async () => {
       await removeTokens();
       queryClient.invalidateQueries({queryKey: ['Tokens']});
       queryClient.removeQueries();
-      if (navigationRef.isReady()) {
-        navigationRef.current?.reset({
-          index: 0,
-          routes: [{name: 'Root'}], // به صفحه NotFound برو تا RootNavigator دوباره رندر شود
-        });
-      }
+
+      // ✅ ریست کردن تاریخچه‌ی نویگیشن
+      resetNavigationHistory();
+
+      // ✅ نویگیت به صفحه Root
+      navigate('Root');
     },
     onError: handleMutationError,
   });
@@ -52,7 +56,7 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = props => {
             <View className=" w-full flex-row h-[45px] items-center justify-between relative ">
               <View></View>
               <TouchableOpacity
-                onPress={() => props.navigation.navigate('Home')}>
+                onPress={() => navigate('Root', {screen: 'HomeNavigator'})}>
                 <View className="w-[45px] h-[45px] ">
                   <ResponsiveImage
                     customSource={OrganizationBySKU?.officialLogo.srcset}
@@ -74,7 +78,7 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = props => {
               showsVerticalScrollIndicator={false}>
               <View className="gap-4">
                 <TouchableOpacity
-                  onPress={() => props.navigation.navigate('ProfileTab')}>
+                  onPress={() => navigate('Root', {screen: 'ProfileTab'})}>
                   <ProfileDrawer />
                 </TouchableOpacity>
                 <MenuDrawer {...props} />

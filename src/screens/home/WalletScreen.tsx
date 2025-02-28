@@ -10,6 +10,7 @@ import WalletTransaction from './components/WalletTransaction';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {WalletStackParamList} from '../../utils/types/NavigationTypes';
 import {Refresh} from 'iconsax-react-native';
+import {navigate} from '../../navigation/navigationRef';
 
 type WalletScreenProps = NativeStackScreenProps<WalletStackParamList, 'wallet'>;
 const WalletScreen: React.FC<WalletScreenProps> = ({navigation, route}) => {
@@ -42,7 +43,17 @@ const WalletScreen: React.FC<WalletScreenProps> = ({navigation, route}) => {
             size="Large"
             rounded
             color="Black"
-            onPress={() => navigation.push('ChargeWalletScreen')}
+            onPress={() =>
+              navigate('Root', {
+                screen: 'HomeNavigator',
+                params: {
+                  screen: 'wallet',
+                  params: {
+                    screen: 'ChargeWalletScreen',
+                  },
+                },
+              })
+            }
             text={t('Wallet Recharge')}
           />
         </View>

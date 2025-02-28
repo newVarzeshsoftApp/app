@@ -25,6 +25,7 @@ import {limit, ProductType} from '../../constants/options';
 import CategoryList from './components/CategoryList';
 import ShopPackageService from '../../components/cards/shopCard/ShopPackageService';
 import BaseText from '../../components/BaseText';
+import {navigate} from '../../navigation/navigationRef';
 type PackageServiceProp = NativeStackScreenProps<
   ShopStackParamList,
   'packageService'
@@ -127,9 +128,12 @@ const PackageServiceScreen: React.FC<PackageServiceProp> = ({
           <View className="Container">
             <TouchableOpacity
               onPress={() =>
-                navigation.push('packageDetail', {
-                  id: item.id,
-                  title: item.title,
+                navigate('Root', {
+                  screen: 'ShopNavigator',
+                  params: {
+                    screen: 'packageDetail',
+                    params: {id: item.id, title: item.title},
+                  },
                 })
               }>
               <ShopPackageService data={item} />

@@ -22,6 +22,7 @@ import {UseGetProduct} from '../../utils/hooks/Product/UseGetProduct';
 import CategoryList from './components/CategoryList';
 import ShopServiceCard from '../../components/cards/shopCard/ShopServiceCard';
 import BaseText from '../../components/BaseText';
+import {navigate} from '../../navigation/navigationRef';
 
 type ServiceScreenProp = NativeStackScreenProps<ShopStackParamList, 'service'>;
 const ServiceScreen: React.FC<ServiceScreenProp> = ({navigation, route}) => {
@@ -109,9 +110,12 @@ const ServiceScreen: React.FC<ServiceScreenProp> = ({navigation, route}) => {
           <View className="Container">
             <TouchableOpacity
               onPress={() =>
-                navigation.push('serviceDetail', {
-                  id: item.id,
-                  title: item.title,
+                navigate('Root', {
+                  screen: 'ShopNavigator',
+                  params: {
+                    screen: 'serviceDetail',
+                    params: {id: item.id, title: item.title},
+                  },
                 })
               }>
               <ShopServiceCard data={item} />

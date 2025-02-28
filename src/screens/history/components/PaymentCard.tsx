@@ -10,11 +10,11 @@ import {formatNumber} from '../../../utils/helpers/helpers';
 import {PaymentStatus} from '../../../constants/options';
 import Badge from '../../../components/Badge/Badge';
 import BaseButton from '../../../components/Button/BaseButton';
+import {navigate} from '../../../navigation/navigationRef';
 interface PaymentCardProps {
   item: PaymentRecord;
-  navigation: NativeStackNavigationProp<OrderStackParamList, 'payments'>;
 }
-const PaymentCard: React.FC<PaymentCardProps> = ({item, navigation}) => {
+const PaymentCard: React.FC<PaymentCardProps> = ({item}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
   const isOrder = item.isDeposit === false;
   return (
@@ -74,7 +74,10 @@ const PaymentCard: React.FC<PaymentCardProps> = ({item, navigation}) => {
                 return (
                   <BaseButton
                     onPress={() =>
-                      navigation.push('orderDetail', {id: item.id})
+                      navigate('Root', {
+                        screen: 'HistoryNavigator',
+                        params: {screen: 'orderDetail', params: {id: item.id}},
+                      })
                     }
                     LinkButton
                     size="Small"
@@ -89,8 +92,12 @@ const PaymentCard: React.FC<PaymentCardProps> = ({item, navigation}) => {
             ) : (
               <BaseButton
                 onPress={() =>
-                  navigation.push('WithdrawDetail', {
-                    id: item.transaction?.id ?? 0,
+                  navigate('Root', {
+                    screen: 'HistoryNavigator',
+                    params: {
+                      screen: 'WithdrawDetail',
+                      params: {id: item.transaction?.id ?? 0},
+                    },
                   })
                 }
                 LinkButton

@@ -6,7 +6,6 @@ import BaseButton from '../../../components/Button/BaseButton';
 import {MoneyRecive, MoneySend} from 'iconsax-react-native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {DrawerStackParamList} from '../../../utils/types/NavigationTypes';
-import {useNavigation} from '@react-navigation/native';
 import {SaleTransaction} from '../../../services/models/response/UseResrService';
 import moment from 'jalali-moment';
 import {formatNumber} from '../../../utils/helpers/helpers';
@@ -15,6 +14,7 @@ import {
   TransactionType,
 } from '../../../constants/options';
 import Badge from '../../../components/Badge/Badge';
+import {navigate} from '../../../navigation/navigationRef';
 
 type NavigationProps = NativeStackNavigationProp<DrawerStackParamList>;
 type TransactionProps = {
@@ -27,7 +27,6 @@ const TransactionCard: React.FC<TransactionProps> = ({
   inDetail,
   summaryView,
 }) => {
-  const navigation = useNavigation<NavigationProps>();
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
   const isWithdraw = [
     TransactionType.Settle,
@@ -71,9 +70,12 @@ const TransactionCard: React.FC<TransactionProps> = ({
                 ) : (
                   <BaseButton
                     onPress={() =>
-                      navigation.navigate('HistoryNavigator', {
-                        screen: 'orderDetail',
-                        params: {id: item.orderId ?? 0},
+                      navigate('Root', {
+                        screen: 'HistoryNavigator',
+                        params: {
+                          screen: 'orderDetail',
+                          params: {id: item.orderId ?? 0},
+                        },
                       })
                     }
                     // orderDetail
@@ -170,9 +172,12 @@ const TransactionCard: React.FC<TransactionProps> = ({
       <View className="flex-row gap-2">
         <BaseButton
           onPress={() =>
-            navigation.navigate('HistoryNavigator', {
-              screen: isWithdraw ? 'WithdrawDetail' : 'DepositDetail',
-              params: {id: item.id},
+            navigate('Root', {
+              screen: 'HistoryNavigator',
+              params: {
+                screen: isWithdraw ? 'WithdrawDetail' : 'DepositDetail',
+                params: {id: item.id},
+              },
             })
           }
           color="Black"

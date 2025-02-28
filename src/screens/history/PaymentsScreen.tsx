@@ -105,9 +105,7 @@ const PaymentsScreen: React.FC<PaymentsScreenProps> = ({navigation}) => {
       <Animated.FlatList
         data={items}
         keyExtractor={(item, index) => index.toString()}
-        renderItem={({item}) => (
-          <PaymentCard item={item} navigation={navigation} />
-        )}
+        renderItem={({item}) => <PaymentCard item={item} />}
         ListHeaderComponent={headerComponentMemo}
         onScroll={scrollHandler}
         onEndReached={loadMore}

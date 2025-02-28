@@ -26,6 +26,7 @@ import BottomSheet, {
 import Badge from '../../../components/Badge/Badge';
 import ContractorInfo from '../../../components/ContractorInfo/ContractorInfo';
 import {useCart} from '../../../utils/hooks/Carthook';
+import {navigate} from '../../../navigation/navigationRef';
 type ServiceDetailNavigationProp = NativeStackNavigationProp<
   SaleItemStackParamList,
   'saleItemDetail'
@@ -195,7 +196,10 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                                 SelectedPriceList: data?.product?.priceList[0],
                               });
 
-                              // navigation.navigate('cart')
+                              navigate('Root', {
+                                screen: 'HomeNavigator',
+                                params: {screen: 'cart'},
+                              });
                             }}
                             LeftIcon={RepeatCircle}
                             LeftIconVariant="Bold"

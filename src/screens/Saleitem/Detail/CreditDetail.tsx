@@ -22,6 +22,7 @@ import {
 } from 'react-native-reanimated';
 import Animated from 'react-native-reanimated';
 import CreditSubProduct from '../../../components/cards/SubProduct';
+import {navigate} from '../../../navigation/navigationRef';
 type CreditDetailProp = NativeStackNavigationProp<
   SaleItemStackParamList,
   'saleItemDetail'
@@ -183,14 +184,11 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
                         </BaseText>
                         <BaseButton
                           onPress={() => {
-                            navigation.getParent()?.navigate('Root', {
+                            navigate('Root', {
                               screen: 'HistoryNavigator',
                               params: {
-                                initial: false,
                                 screen: 'orderDetail',
-                                params: {
-                                  id: item?.order ?? 0,
-                                },
+                                params: {id: item?.order ?? 0},
                               },
                             });
                           }}

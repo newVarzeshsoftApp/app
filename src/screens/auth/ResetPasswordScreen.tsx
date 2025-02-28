@@ -26,6 +26,7 @@ import {
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
 import ResponsiveImage from '../../components/ResponsiveImage';
 import Logo from '../../components/Logo';
+import {navigate, resetNavigationHistory} from '../../navigation/navigationRef';
 
 type ResetPasswordScreenProps = NativeStackScreenProps<
   AuthStackParamList,
@@ -49,7 +50,8 @@ const ResetPasswordScreen: React.FC<ResetPasswordScreenProps> = ({
     mutationFn: AuthService.UpdatePassword,
     onSuccess(data, variables) {
       queryClient.invalidateQueries({queryKey: ['Tokens']});
-      navigation.getParent()?.navigate('Root');
+      resetNavigationHistory();
+      navigate('Root', {screen: 'HomeNavigator'});
     },
     onError: handleMutationError,
   });

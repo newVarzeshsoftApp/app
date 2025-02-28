@@ -27,6 +27,7 @@ import BaseText from '../../components/BaseText';
 import CategoryList from './components/CategoryList';
 import {manualItem} from './constant/constant';
 import ShopCreditService from '../../components/cards/shopCard/ShopCreditService';
+import {navigate} from '../../navigation/navigationRef';
 
 type CreditDetailProp = NativeStackScreenProps<
   ShopStackParamList,
@@ -131,9 +132,12 @@ const CreditServiceSreen: React.FC<CreditDetailProp> = ({
           <View className="Container">
             <TouchableOpacity
               onPress={() =>
-                navigation.push('creditDetail', {
-                  id: item.id,
-                  title: item.title,
+                navigate('Root', {
+                  screen: 'ShopNavigator',
+                  params: {
+                    screen: 'creditDetail',
+                    params: {id: item.id, title: item.title},
+                  },
                 })
               }>
               <ShopCreditService data={item} />

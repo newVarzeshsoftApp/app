@@ -19,6 +19,7 @@ import moment from 'jalali-moment';
 import {formatNumber} from '../../utils/helpers/helpers';
 import {TransactionSourceType} from '../../constants/options';
 import Badge from '../../components/Badge/Badge';
+import {navigate} from '../../navigation/navigationRef';
 type WithdrawDetailScreenProps = NativeStackScreenProps<
   OrderStackParamList,
   'WithdrawDetail'
@@ -147,8 +148,12 @@ const WithdrawDetailScreen: React.FC<WithdrawDetailScreenProps> = ({
                             <BaseButton
                               size="Small"
                               onPress={() =>
-                                navigation.push('orderDetail', {
-                                  id: data?.orderId ?? 0,
+                                navigate('Root', {
+                                  screen: 'HistoryNavigator',
+                                  params: {
+                                    screen: 'orderDetail',
+                                    params: {id: data?.orderId ?? 0},
+                                  },
                                 })
                               }
                               type="Outline"

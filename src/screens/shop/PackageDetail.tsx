@@ -29,6 +29,7 @@ import {subProducts} from '../../services/models/response/UseResrService';
 import {Product} from '../../services/models/response/ProductResService';
 import BaseButton from '../../components/Button/BaseButton';
 import {useCartContext} from '../../utils/CartContext';
+import {navigate} from '../../navigation/navigationRef';
 
 type ServiceScreenProp = NativeStackScreenProps<
   ShopStackParamList,
@@ -80,11 +81,22 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
           <TouchableOpacity
             key={item.product?.id}
             onPress={() =>
-              //@ts-ignore
-              navigation.push(routeName, {
-                id: item.product?.id,
-                title: item.product?.title,
-                canBuy: false,
+              // @ts-ignore
+              // navigation.push(routeName, {
+              // id: item.product?.id,
+              // title: item.product?.title,
+              // canBuy: false,
+              // })
+              navigate('Root', {
+                screen: 'ShopNavigator',
+                params: {
+                  screen: routeName as any,
+                  params: {
+                    id: item.product?.id ?? 0,
+                    title: item.product?.title ?? '',
+                    // canBuy: false,
+                  },
+                },
               })
             }>
             <CardComponent key={item.id} data={item?.product!} />
@@ -99,13 +111,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
   const handleAddToCart = useCallback(() => {
     addToCart({product: data!});
     // Navigate to HomeNavigator and open cart screen
-    //@ts-ignore
-    navigation.push('Root', {
-      screen: 'HomeNavigator',
-      params: {
-        screen: 'cart',
-      },
-    });
+    navigate('Root', {screen: 'HomeNavigator', params: {screen: 'cart'}});
   }, [data]);
   return (
     <View className="flex-1">

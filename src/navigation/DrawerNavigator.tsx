@@ -8,7 +8,7 @@ import {DrawerStackParamList} from '../utils/types/NavigationTypes';
 import CustomDrawerContent from '../components/Drawer/CustomDrawerContent';
 import PaymentScreen from '../screens/payments/PaymentScreen';
 import {useFocusEffect} from '@react-navigation/native';
-import {navigationRef} from './navigationRef';
+import {goBackSafe, navigationRef} from './navigationRef';
 import {Alert, BackHandler, Platform} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import WebViewScreen from '../screens/web/WebViewScreen';
@@ -30,29 +30,21 @@ const DrawerNavigator: React.FC = () => {
 
       const onBackPress = () => {
         try {
-          if (!navigationRef.isReady() || !navigationRef.current) {
-            return false;
+          goBackSafe(); // ✅ حالا دقیقا مثل goBackSafe کار می‌کنه!
+
+          // بررسی کنیم که اگر امکان برگشت نبود، پیام خروج نمایش داده بشه
+          if (!navigationRef.canGoBack()) {
+            Alert.alert(
+              'Exit App',
+              'Do you want to quit the app?',
+              [
+                {text: 'Cancel', style: 'cancel'},
+                {text: 'OK', onPress: () => BackHandler.exitApp()},
+              ],
+              {cancelable: false},
+            );
           }
 
-          const navigation = navigationRef.current;
-          const state = navigation.getState();
-          if (!state?.routes?.length) {
-            return false;
-          }
-          const previousRoute = state.routes[state.routes.length - 2];
-          if (navigation.canGoBack() && previousRoute?.name !== 'Auth') {
-            navigation.goBack();
-            return true;
-          }
-          Alert.alert(
-            'Exit App',
-            'Do you want to quit the app?',
-            [
-              {text: 'Cancel', style: 'cancel'},
-              {text: 'OK', onPress: () => BackHandler.exitApp()},
-            ],
-            {cancelable: false},
-          );
           return true;
         } catch (error) {
           console.warn('Navigation error:', error);

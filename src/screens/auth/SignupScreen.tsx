@@ -24,9 +24,9 @@ import {useMutation} from '@tanstack/react-query';
 import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
-import ResponsiveImage from '../../components/ResponsiveImage';
 import Picker from '../../components/Picker/Picker';
 import Logo from '../../components/Logo';
+import {navigate} from '../../navigation/navigationRef';
 type SignupScreenProps = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
 const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Input'});
@@ -39,7 +39,12 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
   const SignUpMutation = useMutation({
     mutationFn: AuthService.SignUp,
     onSuccess(data, variables, context) {
-      navigation.push('OTP', {username: variables.username!});
+      // navigation.push('OTP', {username: variables.username!});
+
+      navigate('Auth', {
+        screen: 'OTP',
+        params: {username: variables.username!},
+      });
     },
     onError: handleMutationError,
   });
@@ -182,7 +187,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
                 {auth('alredyRegistered')}
               </BaseText>
               <TouchableOpacity
-                onPress={() => navigation.push('Login')}
+                onPress={() => navigate('Auth', {screen: 'Login'})}
                 accessibilityLabel="Navigate to login screen"
                 accessibilityRole="button">
                 <BaseText type="button1" color="active">

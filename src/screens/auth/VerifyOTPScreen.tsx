@@ -25,6 +25,7 @@ import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {showToast} from '../../components/Toast/Toast';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
 import ResponsiveImage from '../../components/ResponsiveImage';
+import {navigate, resetNavigationHistory} from '../../navigation/navigationRef';
 type VerifyOTPScreenProps = NativeStackScreenProps<AuthStackParamList, 'OTP'>;
 
 const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
@@ -47,10 +48,11 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
     mutationFn: AuthService.VerifyToken,
     onSuccess(data, variables, context) {
       if (route.params.resetPassword === true) {
-        navigation.push('ResetPassword');
+        navigate('Auth', {screen: 'ResetPassword'});
       } else {
         queryClient.invalidateQueries({queryKey: ['Tokens']});
-        navigation.getParent()?.navigate('Root');
+        resetNavigationHistory();
+        navigate('Root', {screen: 'HomeNavigator'});
       }
     },
     onError: handleMutationError,
@@ -115,11 +117,11 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
                   </BaseText>
                   <TouchableOpacity
                     onPress={() =>
-                      navigation.push(
-                        route.params.LoginWithOTP
+                      navigate('Auth', {
+                        screen: route.params.LoginWithOTP
                           ? 'LoginWithOTP'
                           : 'ForgetPassword',
-                      )
+                      })
                     }
                     className="flex-row gap-1">
                     <Edit2 size="14" color="#BCDD64" variant="Bold" />

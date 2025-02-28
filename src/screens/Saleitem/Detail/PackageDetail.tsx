@@ -28,6 +28,7 @@ import ServiceCard from '../../../components/cards/Service/ServiceCard';
 import CreditCard from '../../../components/cards/Service/CreditCard';
 import ReceptionCard from '../../../components/cards/Service/ReceptionCard';
 import PackageCard from '../../../components/cards/Service/PackageCard';
+import {navigate} from '../../../navigation/navigationRef';
 type PackageDetailProp = NativeStackNavigationProp<
   SaleItemStackParamList,
   'saleItemDetail'
@@ -67,10 +68,12 @@ const PackageDetail: React.FC<PackageDetailProps> = ({
           <TouchableOpacity
             key={item.product?.id}
             onPress={() =>
-              navigation.push('saleItemDetail', {
-                // screen: 'saleItemDetail',
-                id: item.id,
-                title: item.title || 'undefined',
+              navigate('Root', {
+                screen: 'SaleItemNavigator',
+                params: {
+                  screen: 'saleItemDetail',
+                  params: {id: item.id, title: item.title || 'undefined'},
+                },
               })
             }>
             <CardComponent key={item.id} data={item} />

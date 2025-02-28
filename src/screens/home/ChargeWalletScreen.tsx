@@ -37,6 +37,7 @@ import {useMutation} from '@tanstack/react-query';
 import {PaymentService} from '../../services/PaymentService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useGetGetway} from '../../utils/hooks/Getway/useGetGetway';
+import {navigate} from '../../navigation/navigationRef';
 type WalletScreenProps = NativeStackScreenProps<
   WalletStackParamList,
   'ChargeWalletScreen'
@@ -158,9 +159,9 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
     mutationFn: PaymentService.CreatePayment,
     onSuccess(data, variables, context) {
       if (data?.url) {
-        const drawerNavigation = navigation.getParent();
-        drawerNavigation?.navigate('WebViewParamsList', {
-          url: data.url,
+        navigate('Root', {
+          screen: 'WebViewParamsList',
+          params: {url: data.url},
         });
       }
     },

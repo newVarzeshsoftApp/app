@@ -19,6 +19,7 @@ import moment from 'jalali-moment';
 import {TransactionSourceType} from '../../constants/options';
 import {formatNumber} from '../../utils/helpers/helpers';
 import Badge from '../../components/Badge/Badge';
+import {navigate} from '../../navigation/navigationRef';
 type DepositDetailScreenProps = NativeStackScreenProps<
   OrderStackParamList,
   'DepositDetail'
@@ -125,8 +126,12 @@ const DepositDetailScreen: React.FC<DepositDetailScreenProps> = ({
                             </BaseText>
                             <BaseButton
                               onPress={() =>
-                                navigation.push('orderDetail', {
-                                  id: data?.orderId ?? 0,
+                                navigate('Root', {
+                                  screen: 'HistoryNavigator',
+                                  params: {
+                                    screen: 'orderDetail',
+                                    params: {id: data?.orderId ?? 0},
+                                  },
                                 })
                               }
                               size="Small"

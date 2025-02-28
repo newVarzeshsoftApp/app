@@ -28,6 +28,7 @@ import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
 import ResponsiveImage from '../../components/ResponsiveImage';
 import Logo from '../../components/Logo';
+import {navigate} from '../../navigation/navigationRef';
 
 type ForgetPasswordScreenProps = NativeStackScreenProps<
   AuthStackParamList,
@@ -49,9 +50,9 @@ const ForgetPasswordScreen: React.FC<ForgetPasswordScreenProps> = ({
   const RequestOTP = useMutation({
     mutationFn: AuthService.RequestOTP,
     onSuccess(data, variables) {
-      navigation.push('OTP', {
-        username: variables.username,
-        resetPassword: true,
+      navigate('Auth', {
+        screen: 'OTP',
+        params: {username: variables.username, resetPassword: true},
       });
     },
     onError: handleMutationError,

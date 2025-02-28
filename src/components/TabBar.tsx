@@ -18,6 +18,9 @@ import BaseText from './BaseText';
 import {useTranslation} from 'react-i18next';
 import {useTheme} from '../utils/ThemeContext';
 import {useCartContext} from '../utils/CartContext';
+import {useNavigationStore} from '../store/navigationStore';
+import {navigate} from '../navigation/navigationRef';
+import {HomeStackParamList} from '../utils/types/NavigationTypes';
 
 const TabBar: React.FC<BottomTabBarProps> = ({
   state,
@@ -93,7 +96,10 @@ const TabBar: React.FC<BottomTabBarProps> = ({
             target: route.key,
             canPreventDefault: true,
           });
-
+          navigate('Root', {
+            screen: 'HomeNavigator',
+            params: {screen: route.name as any},
+          });
           if (!isFocused && !event.defaultPrevented) {
             navigation.navigate(route.name);
           }

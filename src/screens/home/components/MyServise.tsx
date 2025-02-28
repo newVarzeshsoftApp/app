@@ -21,6 +21,7 @@ import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {DrawerStackParamList} from '../../../utils/types/NavigationTypes';
 import {limit} from '../../../constants/options';
+import {navigate} from '../../../navigation/navigationRef';
 type NavigationProp = NativeStackNavigationProp<
   DrawerStackParamList,
   'HomeNavigator'
@@ -35,7 +36,7 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
   };
 
   const {t} = useTranslation('translation', {keyPrefix: 'Home'});
-  const navigation = useNavigation<NavigationProp>();
+  // const navigation = useNavigation<NavigationProp>();
   const [offset, setOffset] = useState(0);
   const [data, setData] = useState<Content[]>([]);
   const {
@@ -73,8 +74,7 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
           <TouchableOpacity
             key={item.product?.id}
             onPress={() => {
-              //@ts-ignore
-              navigation.push('Root', {
+              navigate('Root', {
                 screen: 'SaleItemNavigator',
                 params: {
                   screen: 'saleItemDetail',
@@ -101,12 +101,9 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
           {(fetchedData?.total ?? 1) > 4 && (
             <TouchableOpacity
               onPress={() => {
-                //@ts-ignore
-                navigation.push('Root', {
+                navigate('Root', {
                   screen: 'SaleItemNavigator',
-                  params: {
-                    screen: 'saleItem',
-                  },
+                  params: {screen: 'saleItem'},
                 });
               }}
               className="flex-row gap-1 items-center ">

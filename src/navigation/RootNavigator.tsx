@@ -1,7 +1,6 @@
 import React, {useEffect} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import AuthNavigator from './auth/AuthNavigator';
-
 import {useTheme} from '../utils/ThemeContext';
 import {
   DefaultTheme,
@@ -43,7 +42,6 @@ export const RootNavigator: React.FC = () => {
 
   const MinimalTheme: Theme = {
     ...DefaultTheme,
-
     colors: {
       ...DefaultTheme.colors,
       background: theme === 'dark' ? '#16181b' : '#F4F4F5',

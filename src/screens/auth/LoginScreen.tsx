@@ -36,6 +36,7 @@ import {BlurView} from '@react-native-community/blur';
 import {getColors} from 'react-native-image-colors';
 import LinearGradient from 'react-native-linear-gradient';
 import Logo from '../../components/Logo';
+import {navigate, resetNavigationHistory} from '../../navigation/navigationRef';
 
 type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -79,7 +80,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
     mutationFn: AuthService.SignIN,
     onSuccess(data, variables, context) {
       queryClient.invalidateQueries({queryKey: ['Tokens']});
-      navigation.getParent()?.navigate('Root', {screen: 'HomeNavigator'});
+      resetNavigationHistory();
+      navigate('Root', {screen: 'HomeNavigator'});
     },
     onError: handleMutationError,
   });
@@ -256,14 +258,14 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
               <View className="flex flex-row justify-between w-full items-center">
                 <TouchableOpacity
                   accessibilityLabel="Navigate to Forget Password screen"
-                  onPress={() => navigation.push('LoginWithOTP')}>
+                  onPress={() => navigate('Auth', {screen: 'LoginWithOTP'})}>
                   <BaseText type="button2" color="secondary">
                     {auth('LoginWithOTP')}
                   </BaseText>
                 </TouchableOpacity>
                 <TouchableOpacity
                   accessibilityLabel="Navigate to Forget Password screen"
-                  onPress={() => navigation.push('ForgetPassword')}>
+                  onPress={() => navigate('Auth', {screen: 'ForgetPassword'})}>
                   <BaseText type="button2" color="active">
                     {auth('ForgetPassword')}
                   </BaseText>
@@ -293,7 +295,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
               {auth('notRegistered')}
             </BaseText>
             <TouchableOpacity
-              onPress={() => navigation.push('Signup')}
+              onPress={() => navigate('Auth', {screen: 'Signup'})}
               accessibilityLabel="Navigate to Signup screen"
               accessibilityRole="button">
               <BaseText type="button1" color="active">
