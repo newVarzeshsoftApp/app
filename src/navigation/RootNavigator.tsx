@@ -7,18 +7,23 @@ import {
   NavigationContainer,
   Theme,
 } from '@react-navigation/native';
-import {Platform} from 'react-native';
+import {ActivityIndicator, Platform, View} from 'react-native';
 import {RootStackParamList} from '../utils/types/NavigationTypes';
 import DrawerNavigator from './DrawerNavigator';
 import {navigationRef} from './navigationRef';
 import linking from './Linking';
 import {useAuth} from '../utils/hooks/useAuth';
 import NotFound from '../screens/NotFound';
+import {useNavigationStore} from '../store/navigationStore';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 export const RootNavigator: React.FC = () => {
-  const {isLoggedIn, SKU} = useAuth();
+  const {isLoggedIn, SKU, isLoading} = useAuth();
+  const {setInitialRoute} = useNavigationStore();
 
+  useEffect(() => {
+    !isLoading && setInitialRoute(isLoggedIn);
+  }, [isLoggedIn, isLoading]);
   useEffect(() => {
     if (Platform.OS === 'web') {
       const unsubscribe = navigationRef.current?.addListener('state', e => {
@@ -56,15 +61,21 @@ export const RootNavigator: React.FC = () => {
       theme={MinimalTheme}
       linking={linking}
       ref={navigationRef}>
-      <Stack.Navigator screenOptions={{headerShown: false}}>
-        {SKU === null ? (
-          <Stack.Screen name="notFound" component={NotFound} />
-        ) : isLoggedIn ? (
-          <Stack.Screen name="Root" component={DrawerNavigator} />
-        ) : (
-          <Stack.Screen name="Auth" component={AuthNavigator} />
-        )}
-      </Stack.Navigator>
+      {isLoading ? (
+        <View className="w-full h-screen items-center justify-center">
+          <ActivityIndicator size="large" color="#bcdd64" />
+        </View>
+      ) : (
+        <Stack.Navigator screenOptions={{headerShown: false}}>
+          {SKU === null ? (
+            <Stack.Screen name="notFound" component={NotFound} />
+          ) : isLoggedIn ? (
+            <Stack.Screen name="Root" component={DrawerNavigator} />
+          ) : (
+            <Stack.Screen name="Auth" component={AuthNavigator} />
+          )}
+        </Stack.Navigator>
+      )}
     </NavigationContainer>
   );
 };

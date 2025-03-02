@@ -3,9 +3,10 @@ import {SENTRY} from '../helpers/sentryConfig';
 import {getTokens} from '../helpers/tokenStorage';
 import {useProfile} from './useProfile';
 import {GetSKU} from '../helpers/GetSKU';
+import {useGetOrganizationBySKU} from './Organization/useGetOrganizationBySKU';
 
 export const useAuth = () => {
-  const SKU = GetSKU();
+  const {data: SKU, isLoading} = useGetOrganizationBySKU();
 
   // Get token using react-query
   const {data: tokens, isLoading: isTokensLoading} = useQuery({
@@ -33,7 +34,7 @@ export const useAuth = () => {
       phone: profile.mobile,
       email: profile.email ?? '',
       gender: profile.gender,
-      SKU,
+      SKU: SKU?.sku,
     });
   } else {
     // Clear user data in Sentry if not logged in
@@ -47,5 +48,6 @@ export const useAuth = () => {
     isProfileLoading,
     profile,
     SKU: SKU,
+    isLoading,
   };
 };
