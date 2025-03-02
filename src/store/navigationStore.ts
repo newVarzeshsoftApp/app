@@ -6,6 +6,7 @@ interface NavigationState {
     name: keyof RootStackParamList;
     params?: RootStackParamList[keyof RootStackParamList];
   }[];
+  setInitialRoute: (isLoggedIn: boolean) => void;
   addRoute: (
     name: keyof RootStackParamList,
     params?: RootStackParamList[keyof RootStackParamList],
@@ -18,16 +19,21 @@ interface NavigationState {
 }
 
 export const useNavigationStore = create<NavigationState>((set, get) => ({
-  history: [
-    {
-      name: 'Root',
-      params: {
-        screen: 'HomeNavigator',
-        params: {screen: 'Home'},
-      },
-    },
-  ],
+  history: [],
 
+  setInitialRoute: isLoggedIn => {
+    set({
+      history: [
+        {
+          name: isLoggedIn ? 'Root' : 'Auth',
+          params: isLoggedIn
+            ? {screen: 'HomeNavigator', params: {screen: 'Home'}}
+            : {screen: 'Login'},
+        },
+      ],
+    });
+    console.log(`🔄 Initial Route Set: ${isLoggedIn ? 'Root' : 'Auth'}`);
+  },
   /**
    * Adds a new route to the history
    */
