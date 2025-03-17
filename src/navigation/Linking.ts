@@ -17,19 +17,19 @@ const linking: LinkingOptions<RootStackParamList> = {
       },
       Root: {
         screens: {
-          // HomeNavigator: {
-          //   screens: {
-          //     Home: 'home',
-          //     ticket: 'tickets',
-          //     cart: 'cart',
-          //     wallet: {
-          //       screens: {
-          //         wallet: 'wallet',
-          //         ChargeWalletScreen: 'charge-wallet',
-          //       },
-          //     },
-          //   },
-          // },
+          HomeNavigator: {
+            screens: {
+              Home: 'home',
+              ticket: 'tickets',
+              cart: 'cart',
+              wallet: {
+                screens: {
+                  wallet: 'wallet',
+                  ChargeWalletScreen: 'charge-wallet',
+                },
+              },
+            },
+          },
 
           ShopNavigator: {
             screens: {

@@ -1,9 +1,8 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useState} from 'react';
 import {
   ActivityIndicator,
   Image,
   Platform,
-  Text,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -17,18 +16,17 @@ import {useAuth} from '../../../utils/hooks/useAuth';
 const UpdateProfilePicture: React.FC = () => {
   const {profile} = useAuth();
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
-  const [response, setResponse] = React.useState<any>(null);
-
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const UploadProfile = useMutation({
     mutationFn: UserService.UploadAvatar,
-    onSuccess(data, variables, context) {
-      if (data) {
-        queryClient.invalidateQueries({queryKey: ['Profile']});
-      }
+    onSuccess() {
+      queryClient.invalidateQueries({queryKey: ['Profile']});
+      setSelectedImage(null);
     },
   });
+
   const SelectImage = useCallback(() => {
     ImagePicker.launchImageLibrary(
       {
@@ -46,6 +44,9 @@ const UpdateProfilePicture: React.FC = () => {
             if (!imageUri) {
               throw new Error('Invalid image URI');
             }
+
+            setSelectedImage(imageUri);
+
             const response = await fetch(imageUri);
             const blob = await response.blob();
 
@@ -55,14 +56,24 @@ const UpdateProfilePicture: React.FC = () => {
               blob,
               res.assets[0].fileName || 'profile.jpg',
             );
+
             UploadProfile.mutate(formData);
           } catch (error) {
             console.error('Image upload failed:', error);
+            setSelectedImage(null);
           }
         }
       },
     );
   }, []);
+
+  const profileImageUrl =
+    OrganizationBySKU?.imageUrl && profile?.profile?.name
+      ? `${OrganizationBySKU.imageUrl}/${profile.profile.name}`
+      : `https://avatar.iran.liara.run/public/${
+          profile?.gender === 0 ? 'boy' : 'girl'
+        }?username=${profile?.firstName || 'user'}`;
+
   return (
     <View className="justify-center items-center">
       <TouchableOpacity
@@ -73,16 +84,12 @@ const UpdateProfilePicture: React.FC = () => {
             <ActivityIndicator size="small" color="#bcdd64" />
           </View>
         ) : (
-          (profile?.profile || response?.assets) && (
-            <Image
-              className="w-full h-full rounded-full"
-              source={{
-                uri: OrganizationBySKU?.imageUrl + '/' + profile?.profile?.name,
-              }}
-            />
-          )
+          <Image
+            className="w-full h-full rounded-full"
+            source={{uri: profileImageUrl}}
+          />
         )}
-        <View className="bg-primary-500 p-1 rounded-full border-2 border-neutral-100  dark:border-neutral-dark-100 absolute bottom-0">
+        <View className="bg-primary-500 p-1 rounded-full border-2 border-neutral-100 dark:border-neutral-dark-100 absolute bottom-0">
           <Edit2 color="white" size={16} />
         </View>
       </TouchableOpacity>

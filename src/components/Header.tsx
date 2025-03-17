@@ -1,5 +1,5 @@
 import React from 'react';
-import {TouchableOpacity, View} from 'react-native';
+import {Platform, TouchableOpacity, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import ResponsiveImage from './ResponsiveImage';
 import {useGetOrganizationBySKU} from '../utils/hooks/Organization/useGetOrganizationBySKU';
@@ -7,6 +7,7 @@ import {Menu} from 'iconsax-react-native';
 import {DrawerActions} from '@react-navigation/native';
 import ProfilePic from './header/ProfilePic';
 import Logo from './Logo';
+import {navigate} from '../navigation/navigationRef';
 
 function Header({navigation}: {navigation: any}) {
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
@@ -19,11 +20,17 @@ function Header({navigation}: {navigation: any}) {
         </View>
         <View className="flex-row items-center gap-4">
           <TouchableOpacity
-            onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+            onPress={() => {
+              navigation.dispatch(DrawerActions.openDrawer());
+              if (Platform.OS === 'web') {
+                window.history.pushState({drawerOpen: true}, '', 'Drawer');
+              }
+            }}
             className="w-12 h-12 rounded-full items-center justify-center bg-neutral-100  dark:bg-neutral-dark-100">
             <Menu size="24" color="#717181" variant="Bold" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('ProfileTab')}>
+          <TouchableOpacity
+            onPress={() => navigate('Root', {screen: 'ProfileTab'})}>
             <ProfilePic />
           </TouchableOpacity>
         </View>

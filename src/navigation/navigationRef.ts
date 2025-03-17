@@ -1,6 +1,7 @@
 import {createNavigationContainerRef} from '@react-navigation/native';
 import {RootStackParamList} from '../utils/types/NavigationTypes';
 import {useNavigationStore} from '../store/navigationStore';
+import linking from './Linking';
 
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
@@ -10,6 +11,7 @@ export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 export function navigate<T extends keyof RootStackParamList>(
   name: T,
   params?: RootStackParamList[T] | undefined,
+  skipHistoryUpdate: boolean = false,
 ) {
   if (!navigationRef.isReady()) {
     console.warn('🚨 navigationRef is not ready');
@@ -20,6 +22,15 @@ export function navigate<T extends keyof RootStackParamList>(
   useNavigationStore.getState().addRoute(name, params);
 
   navigationRef.navigate(name as any, params as any);
+  const url = linking.getStateFromPath
+    ? linking.getStateFromPath(name) || ''
+    : '';
+  if (!skipHistoryUpdate) {
+    const url = linking.getStateFromPath
+      ? linking.getStateFromPath(name) || ''
+      : '';
+    window.history.pushState({name, params}, '', url.toString());
+  }
 }
 
 /**
@@ -42,6 +53,7 @@ export function goBackSafe() {
       previousRoute.name as any,
       previousRoute.params as any,
     );
+    window.history.back();
   } else {
     console.warn('🚨 No previous route found, using default goBack');
     if (navigationRef.canGoBack()) {

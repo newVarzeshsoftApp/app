@@ -22,6 +22,32 @@ export const RootNavigator: React.FC = () => {
   const {setInitialRoute} = useNavigationStore();
 
   useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      const state = event.state;
+      if (state && state.name) {
+        console.log(
+          `🔄 Browser navigation detected: ${state.name}`,
+          state.params,
+        );
+
+        const currentRoute = useNavigationStore.getState().history.at(-1);
+        if (currentRoute?.name === state.name) {
+          console.log('⏭ Skipping redundant popstate event.');
+          return;
+        }
+
+        useNavigationStore.getState().addRoute(state.name, state.params);
+        navigationRef.navigate(state.name as any, state.params as any);
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+  useEffect(() => {
     !isLoading && setInitialRoute(isLoggedIn);
   }, [isLoggedIn, isLoading]);
   useEffect(() => {

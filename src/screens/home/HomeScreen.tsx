@@ -8,7 +8,7 @@ const HomeScreen: React.FC = () => {
   const renderHeader = () => (
     <>
       <View className="Container py-5 web:pt-[85px] gap-5">
-        <WalletBalance inWallet />
+        <WalletBalance />
       </View>
     </>
   );
