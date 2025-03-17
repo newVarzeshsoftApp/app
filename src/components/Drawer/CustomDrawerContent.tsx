@@ -20,7 +20,7 @@ import {useMutation, useQueryClient} from '@tanstack/react-query';
 import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {removeTokens} from '../../utils/helpers/tokenStorage';
-import {CommonActions} from '@react-navigation/native';
+import {CommonActions, DrawerActions} from '@react-navigation/native';
 import {
   navigate,
   navigationRef,
@@ -38,10 +38,8 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = props => {
       queryClient.invalidateQueries({queryKey: ['Tokens']});
       queryClient.removeQueries();
 
-      // ✅ ریست کردن تاریخچه‌ی نویگیشن
       resetNavigationHistory();
 
-      // ✅ نویگیت به صفحه Root
       navigate('Root');
     },
     onError: handleMutationError,
@@ -67,7 +65,10 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = props => {
               </TouchableOpacity>
               <View></View>
               <TouchableOpacity
-                onPress={props.navigation.closeDrawer}
+                // onPress={props.navigation.closeDrawer}
+                onPress={() =>
+                  props.navigation.dispatch(DrawerActions.closeDrawer())
+                }
                 className="rotate-45 h-6 w-6 absolute top-0 web:left-0   android:right-0 ios:right-0 bottom-0 ">
                 <Add size="24" color="#717181" />
               </TouchableOpacity>
