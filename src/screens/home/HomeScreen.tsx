@@ -9,11 +9,6 @@ const HomeScreen: React.FC = () => {
     <>
       <View className="Container py-5 web:pt-[85px] gap-5">
         <WalletBalance inWallet />
-        <View className="w-full h-[180px] rounded-2xl bg-neutral-200 dark:bg-neutral-900 justify-center items-center">
-          <BaseText color="muted" type="caption">
-            محل بنر
-          </BaseText>
-        </View>
       </View>
     </>
   );

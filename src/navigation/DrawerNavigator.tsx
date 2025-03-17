@@ -30,9 +30,8 @@ const DrawerNavigator: React.FC = () => {
 
       const onBackPress = () => {
         try {
-          goBackSafe(); // ✅ حالا دقیقا مثل goBackSafe کار می‌کنه!
+          goBackSafe();
 
-          // بررسی کنیم که اگر امکان برگشت نبود، پیام خروج نمایش داده بشه
           if (!navigationRef.canGoBack()) {
             Alert.alert(
               'Exit App',
@@ -57,9 +56,11 @@ const DrawerNavigator: React.FC = () => {
         BackHandler.removeEventListener('hardwareBackPress', onBackPress);
     }, []),
   );
+
   return (
     <GestureHandlerRootView style={{flex: 1}}>
       <Drawer.Navigator
+        backBehavior="none"
         screenOptions={() => ({
           drawerStyle: {width: '100%'},
           drawerType: 'slide',

@@ -17,29 +17,17 @@ const linking: LinkingOptions<RootStackParamList> = {
       },
       Root: {
         screens: {
-          HomeNavigator: {
-            screens: {
-              Home: 'home',
-              ticket: 'tickets',
-              cart: 'cart',
-              wallet: {
-                screens: {
-                  wallet: 'wallet',
-                  ChargeWalletScreen: 'charge-wallet',
-                },
-              },
-            },
-          },
-          // ProfileTab: {
+          // HomeNavigator: {
           //   screens: {
-          //     PersonalInfo: 'PersonalInfo',
-          //     Security: 'Security',
-          //   },
-          // },
-          // SaleItemNavigator: {
-          //   screens: {
-          //     saleItem: 'sale-item',
-          //     saleItemDetail: 'sale-item/:id/:title?',
+          //     Home: 'home',
+          //     ticket: 'tickets',
+          //     cart: 'cart',
+          //     wallet: {
+          //       screens: {
+          //         wallet: 'wallet',
+          //         ChargeWalletScreen: 'charge-wallet',
+          //       },
+          //     },
           //   },
           // },
 

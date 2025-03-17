@@ -161,7 +161,7 @@ const CreditDetail: React.FC<CreditDetailProp> = ({navigation, route}) => {
                             colors={[
                               'rgba(254, 211, 118, 0.8)',
                               'rgba(254, 211, 118, 0.2)',
-                              '#2a2d33',
+                              theme === 'dark' ? '#2a2d33' : '#f4f4f5',
                             ]}
                             locations={[0, 0, 0.3, 0.5]}
                             className=""
