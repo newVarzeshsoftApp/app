@@ -21,6 +21,7 @@ const linking: LinkingOptions<RootStackParamList> = {
             screens: {
               Home: 'home',
               ticket: 'tickets',
+              Drawer: 'Drawer',
               cart: 'cart',
               wallet: {
                 screens: {
@@ -30,7 +31,6 @@ const linking: LinkingOptions<RootStackParamList> = {
               },
             },
           },
-
           ShopNavigator: {
             screens: {
               creditService: 'shop/credit',
