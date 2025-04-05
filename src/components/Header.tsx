@@ -23,7 +23,7 @@ function Header({navigation}: {navigation: any}) {
             onPress={() => {
               navigation.dispatch(DrawerActions.openDrawer());
               if (Platform.OS === 'web') {
-                window.history.pushState({drawerOpen: true}, '', 'Drawer');
+                window.history.pushState({name: 'Drawer'}, '', 'Drawer');
               }
             }}
             className="w-12 h-12 rounded-full items-center justify-center bg-neutral-100  dark:bg-neutral-dark-100">
