@@ -96,9 +96,9 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
     });
   }, [normalizedItems]);
   useEffect(() => {
-    const {Authority, isDeposit, code, RefID} = route.params || {};
+    const {Authority, isDeposite, code, RefID} = route.params || {};
     if (Authority) {
-      if (isDeposit) {
+      if (isDeposite) {
         WalletCharge.mutate({
           authority: Authority,
           code,
@@ -121,14 +121,14 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
         });
       }
     }
-  }, [route.params?.Authority, route.params?.isDeposit, Items, ProfileData]);
+  }, [route.params?.Authority, route.params?.isDeposite, Items, ProfileData]);
   const CreateNewPayment = () => {
     if (PaymentData) {
       CreatePayment.mutate({
         amount: PaymentData?.payment.amount || 0,
         description: 'پرداخت',
         gateway: PaymentData?.payment.gateway.id,
-        isDeposit: route.params?.isDeposit ? true : false,
+        isDeposit: route.params?.isDeposite ? true : false,
       });
     }
   };
@@ -350,7 +350,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
               )}
               <BaseButton
                 onPress={() => {
-                  route.params?.isDeposit
+                  route.params?.isDeposite
                     ? navigate('Root', {
                         screen: 'HomeNavigator',
                         params: {
@@ -365,7 +365,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                 color="Black"
                 size="Large"
                 text={
-                  route.params?.isDeposit ? t('BackToWallet') : t('BackToHome')
+                  route.params?.isDeposite ? t('BackToWallet') : t('BackToHome')
                 }
                 rounded
               />

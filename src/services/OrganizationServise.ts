@@ -63,9 +63,9 @@ const OrganizationServise = {
     try {
       const headers: Record<string, string> = {};
       // 'Referer-key' only in development mode
-      if (process.env.NODE_ENV === 'development') {
-        headers['Referer-key'] = 'http://app.varzeshsoft.com/';
-      }
+      // if (process.env.NODE_ENV === 'development') {
+      //   headers['Referer-key'] = 'http://dot.varzeshsoft.com/';
+      // }
       const response = await axiosInstance.get<GetAllOrganizationResponse>(
         baseUrl + getOrganizationBySKU(),
         {headers},
