@@ -1,33 +1,24 @@
-import React, {useState} from 'react';
-import {Image, Text, TouchableOpacity, View} from 'react-native';
+import React from 'react';
+import {Image, View} from 'react-native';
 import {Product} from '../../../services/models/response/ProductResService';
-import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetOrganizationBySKU';
 import BaseText from '../../BaseText';
 import Badge from '../../Badge/Badge';
 import {useTranslation} from 'react-i18next';
 import {formatNumber} from '../../../utils/helpers/helpers';
 import {TruncatedText} from '../../TruncatedText';
+import {useBase64ImageFromMedia} from '../../../utils/hooks/useBase64Image';
 type ShopServiceProps = {
   data: Product;
 };
 const ShopServiceCard: React.FC<ShopServiceProps> = ({data}) => {
-  const {data: OrganizationBySKU} = useGetOrganizationBySKU();
   const {t} = useTranslation('translation', {keyPrefix: 'Shop.Service'});
-  const [isOverflow, setIsOverflow] = useState(false);
-  const handleTextLayout = (event: any) => {
-    const {height} = event.nativeEvent.layout;
-    const lineHeight = 16;
-    const maxHeight = lineHeight * 2;
-    setIsOverflow(height >= maxHeight);
-  };
+  const {data: ImageSrc} = useBase64ImageFromMedia(data?.image?.name, 'Media');
   return (
     <View className="BaseServiceCard">
       <View className="w-full h-[185px] bg-neutral-0 dark:bg-neutral-dark-0 rounded-3xl overflow-hidden">
         <Image
           style={{width: '100%', height: '100%'}}
-          source={{
-            uri: (OrganizationBySKU?.imageUrl ?? '') + '/' + data?.image?.name,
-          }}
+          source={{uri: ImageSrc}}
         />
       </View>
       <View className="gap-2 pt-3">

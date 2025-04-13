@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import {View, Image} from 'react-native';
 import BaseText from '../BaseText';
-import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
+import {useBase64ImageFromMedia} from '../../utils/hooks/useBase64Image';
 
 interface ContractorInfoProps {
   imageName?: string;
@@ -16,24 +16,21 @@ const ContractorInfo: React.FC<ContractorInfoProps> = ({
   lastName,
   gender,
 }) => {
-  const {data: OrganizationBySKU} = useGetOrganizationBySKU();
-  const Avatar = useMemo(
-    () =>
-      `https://avatar.iran.liara.run/public/${
-        (gender ?? 0) === 0 ? 'boy' : 'girl'
-      }?username=${firstName}`,
-    [],
-  );
+  const avatarUri = useMemo(() => {
+    return `https://avatar.iran.liara.run/public/${
+      (gender ?? 0) === 0 ? 'boy' : 'girl'
+    }?username=${firstName}`;
+  }, [gender, firstName]);
+
+  const {data: base64Image} = useBase64ImageFromMedia(imageName, 'Media');
+
   return (
-    <View className="dark:bg-neutral-dark-100 bg-neutral-100 flex-row w-fit gap-2 ios:pr-3 web:pl-3 rounded-full p-1">
-      <View className="h-6 w-6  dark:bg-neutral-dark-200 bg-neutral-200 rounded-full overflow-hidden">
+    <View className="dark:bg-neutral-dark-100 bg-neutral-100 flex-row w-fit gap-2 ios:pr-3 web:pl-3 rounded-full p-1 items-center">
+      <View className="h-6 w-6 dark:bg-neutral-dark-200 bg-neutral-200 rounded-full overflow-hidden">
         <Image
           style={{width: 24, height: 24}}
-          source={{
-            uri: imageName
-              ? OrganizationBySKU?.imageUrl + '/' + imageName
-              : Avatar,
-          }}
+          source={{uri: base64Image ?? avatarUri}}
+          resizeMode="cover"
         />
       </View>
       <BaseText type="body3" color="secondary">

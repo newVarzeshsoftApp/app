@@ -27,6 +27,7 @@ import Badge from '../../../components/Badge/Badge';
 import ContractorInfo from '../../../components/ContractorInfo/ContractorInfo';
 import {useCart} from '../../../utils/hooks/Carthook';
 import {navigate} from '../../../navigation/navigationRef';
+import {useBase64ImageFromMedia} from '../../../utils/hooks/useBase64Image';
 type ServiceDetailNavigationProp = NativeStackNavigationProp<
   SaleItemStackParamList,
   'saleItemDetail'
@@ -51,6 +52,11 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
   const {height} = Dimensions.get('screen');
   const {t} = useTranslation('translation', {keyPrefix: 'Detail'});
   const {addToCart} = useCart();
+  const imageName = data?.product?.image?.name;
+  const {data: base64Image, isLoading: imageLoading} = useBase64ImageFromMedia(
+    imageName,
+    'Media',
+  );
   const {data: UserSession, isLoading: UserSessionisLoading} =
     useGetUserSessionByID(data.id);
   // Use shared value instead of scroll offset
@@ -125,9 +131,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
             <Animated.Image
               style={[{width: '100%', height: IMageHight}, ImageAnimatedStyle]}
               source={{
-                uri:
-                  (OrganizationBySKU?.imageUrl ?? '') +
-                  data?.product?.image?.name,
+                uri: base64Image,
               }}
             />
 

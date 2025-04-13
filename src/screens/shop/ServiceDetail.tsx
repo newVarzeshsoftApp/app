@@ -42,6 +42,7 @@ import {useCartContext} from '../../utils/CartContext';
 import usePriceCalculations from '../../utils/hooks/usePriceCalculations';
 import {useAuth} from '../../utils/hooks/useAuth';
 import {navigate} from '../../navigation/navigationRef';
+import {useBase64ImageFromMedia} from '../../utils/hooks/useBase64Image';
 
 type ServiceDetailProp = NativeStackScreenProps<
   ShopStackParamList,
@@ -65,6 +66,11 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
     useState<Contractors | null>(null);
   const [SelectedPriceList, setSelectedPriceList] = useState<PriceList | null>(
     null,
+  );
+  const imageName = data?.image?.name;
+  const {data: base64Image, isLoading: imageLoading} = useBase64ImageFromMedia(
+    imageName,
+    'Media',
   );
   const {theme} = useTheme();
   const BaseColor = theme === 'dark' ? '#232529' : 'rgba(244,244,245,0.3)';
@@ -246,10 +252,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
             <Animated.Image
               style={[{width: '100%', height: IMageHight}, ImageAnimatedStyle]}
               source={{
-                uri:
-                  (OrganizationBySKU?.imageUrl ?? '') +
-                  '/' +
-                  (data?.image?.name ?? ''),
+                uri: base64Image,
               }}
             />
 

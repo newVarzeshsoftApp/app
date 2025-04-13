@@ -214,6 +214,7 @@ export interface Content {
   type?: number;
   title?: string;
   quantity?: number;
+  image: Image | null;
   price?: number;
   amount?: number;
   priceId?: number;

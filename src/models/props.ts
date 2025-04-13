@@ -70,6 +70,8 @@ export interface ICheckboxProps extends PressableProps {
   haveArrow?:boolean
   readonly?:boolean
 }
+
+export type IMAGE_TYPE= 'Media' | 'App'
 export interface UserRadioButtonProps extends PressableProps {
   id?: string;
   checked: boolean;

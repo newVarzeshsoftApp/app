@@ -12,6 +12,7 @@ const Logo: React.FC<{header?: boolean}> = ({header}) => {
 
   return (
     <ResponsiveImage
+      ImageType="App"
       customSource={customSource}
       fallback={'../../assets/images/testImage.png'}
       resizeMode="contain"
