@@ -77,6 +77,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     },
     ref,
   ) => {
+    const [visible, setVisible] = useState(false);
     const insets = useSafeAreaInsets();
     const {height} = Dimensions.get('screen');
     const {theme} = useTheme();
@@ -155,7 +156,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
 
     // ================ Imperative methods =================
     const expand = useCallback(() => {
-      // Snap to whatever the user put as the *first* snap point
+      setVisible(true);
       topAnimation.value = withSpring(initialSnapOffset, {
         damping: 100,
         stiffness: 400,
@@ -167,6 +168,9 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         damping: 100,
         stiffness: 400,
       });
+      setTimeout(() => {
+        setVisible(false);
+      }, 500);
     }, [height]);
 
     useImperativeHandle(ref, () => ({expand, close}), [expand, close]);
@@ -285,6 +289,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
 
     // Combine scroll & pan gestures for the ScrollView
     const scrollViewGesture = Gesture.Native();
+    if (!visible) return null;
 
     return (
       <Portal>

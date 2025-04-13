@@ -1,22 +1,18 @@
 import React, {useRef} from 'react';
-import {Image, Text, View} from 'react-native';
+import {Image, View} from 'react-native';
 import {CartItem} from '../../../utils/helpers/CartStorage';
 import {useTranslation} from 'react-i18next';
-import {useCart} from '../../../utils/hooks/Carthook';
 import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetOrganizationBySKU';
 
 import {Trash} from 'iconsax-react-native';
 import BaseButton from '../../Button/BaseButton';
 import BaseText from '../../BaseText';
-import {
-  ConvertDuration,
-  convertToPersianTimeLabel,
-  formatNumber,
-} from '../../../utils/helpers/helpers';
+import {ConvertDuration, formatNumber} from '../../../utils/helpers/helpers';
 import BottomSheet, {BottomSheetMethods} from '../../BottomSheet/BottomSheet';
 import ContractorInfo from '../../ContractorInfo/ContractorInfo';
 import {useCartContext} from '../../../utils/CartContext';
 import usePriceCalculations from '../../../utils/hooks/usePriceCalculations';
+import ResponsiveImage from '../../ResponsiveImage';
 type CartServiceCardProps = {
   data: CartItem;
 };
@@ -39,21 +35,20 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
         onButtonPress={() => RemoveItemRef.current?.close()}
         deleteButtonText="حذف"
         onDeleteButtonPress={() => {
-          removeFromCart(CartId);
+          CartId && removeFromCart(CartId);
           RemoveItemRef.current?.close();
         }}
       />
       <View className="CardBase gap-3">
         <View className="w-full h-[185px] bg-neutral-0 dark:bg-neutral-dark-0 rounded-3xl  relative">
-          <Image
-            style={{width: '100%', height: '100%'}}
-            source={{
-              uri:
-                (OrganizationBySKU?.imageUrl ?? '') +
-                '/' +
-                product?.image?.name,
-            }}
-          />
+          {product.image!.name && (
+            <ResponsiveImage
+              customSource={{default: product.image!.name}}
+              ImageType="Media"
+              resizeMode="cover"
+              style={{width: '100%', height: 200}}
+            />
+          )}
         </View>
         <View className="flex-row items-center justify-between">
           <BaseText type="subtitle2" color="base">
@@ -82,6 +77,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
           <View className="flex-row items-center gap-4 ">
             <BaseButton
               onPress={() =>
+                CartId &&
                 updateItemQuantity({cartId: CartId, quantity: quantity + 1})
               }
               type="Tonal"
@@ -96,6 +92,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
               color="Black"
               text="-"
               onPress={() =>
+                CartId &&
                 updateItemQuantity({
                   cartId: CartId,
                   quantity: quantity === 1 ? quantity : quantity - 1,

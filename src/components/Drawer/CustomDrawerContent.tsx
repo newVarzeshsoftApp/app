@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  Image,
-  Platform,
-  ScrollView,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {Image, ScrollView, TouchableOpacity, View} from 'react-native';
 import {DrawerContentComponentProps} from '@react-navigation/drawer';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
@@ -57,6 +51,7 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = props => {
                 onPress={() => navigate('Root', {screen: 'HomeNavigator'})}>
                 <View className="w-[45px] h-[45px] ">
                   <ResponsiveImage
+                    ImageType="App"
                     customSource={OrganizationBySKU?.officialLogo.srcset}
                     fallback={require('../../assets/images/testImage.png')}
                     resizeMode="contain"

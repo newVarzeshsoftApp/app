@@ -10,6 +10,7 @@ import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetO
 import ContractorInfo from '../../ContractorInfo/ContractorInfo';
 import {ColorRingConfig} from '../../../constants/options';
 import {TypeTextColor} from '../../../models/stylingTypes';
+import {useBase64ImageFromMedia} from '../../../utils/hooks/useBase64Image';
 
 const ServiceCard: React.FC<{data: Content}> = ({data}) => {
   const progress =
@@ -23,7 +24,7 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
   const isExpired = moment().isAfter(moment.utc(data?.end));
   const Useable = !isExpired && data?.usable;
   const remainingCredit = (data?.credit ?? 0) - (data?.usedCredit ?? 0);
-
+  const {data: ImageSrc} = useBase64ImageFromMedia(data?.image?.name, 'Media');
   const colors = useMemo(() => {
     if (remainingCredit === 0) return ColorRingConfig.red;
     if (remainingCredit < 5) return ColorRingConfig.orange;
@@ -38,10 +39,7 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
         <Image
           style={{width: '100%', height: '100%'}}
           source={{
-            uri:
-              (OrganizationBySKU?.imageUrl ?? '') +
-              '/' +
-              data?.product?.image?.name,
+            uri: ImageSrc,
           }}
         />
       </View>

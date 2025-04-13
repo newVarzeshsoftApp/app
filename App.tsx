@@ -11,7 +11,8 @@ import {Host} from 'react-native-portalize';
 import {RootNavigator} from './src/navigation/RootNavigator';
 import {CartProvider} from './src/utils/CartContext';
 import {SENTRY, SENTRY_DSN} from './src/utils/helpers/sentryConfig';
-
+import {Buffer} from 'buffer';
+global.Buffer = global.Buffer || Buffer;
 SENTRY.init({
   dsn: SENTRY_DSN,
   tracesSampleRate: 1.0,

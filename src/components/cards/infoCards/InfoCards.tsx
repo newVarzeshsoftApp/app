@@ -1,12 +1,5 @@
 import React, {useEffect, useRef} from 'react';
-import {
-  Dimensions,
-  Image,
-  Platform,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {TouchableOpacity, View} from 'react-native';
 import {useTranslation} from 'react-i18next';
 import {
   CloseCircle,

@@ -1,3 +1,4 @@
+import {get} from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 import {
   AllOrganizationQuery,
   CategoryQuery,
@@ -77,5 +78,9 @@ export const routes = {
     createPayment: () => `payment/intial`,
     paymentVerify: () => `payment/verify`,
     paymentVerifySubmitOrder: () => `payment/verify/submit-order`,
+  },
+  media: {
+    getAppMedia: (name: string) => 'media/app/' + name,
+    getMedia: (name: string) => 'media/' + name,
   },
 };

@@ -34,6 +34,7 @@
     "ajv-keywords": "^5.1.0",
     "autoprefixer": "^10.4.20",
     "axios": "^1.7.7",
+    "buffer": "^6.0.3",
     "dotenv-webpack": "^8.1.0",
     "i18next": "^23.16.5",
     "iconsax-react-native": "^0.0.8",

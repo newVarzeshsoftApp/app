@@ -37,6 +37,7 @@ import {getColors} from 'react-native-image-colors';
 import LinearGradient from 'react-native-linear-gradient';
 import Logo from '../../components/Logo';
 import {navigate, resetNavigationHistory} from '../../navigation/navigationRef';
+import {MediaService} from '../../services/MediaService';
 
 type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
@@ -59,7 +60,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
       organization?.officialLogo?.srcset?.['default'] ||
       organization?.brandedLogo?.srcset?.['default'];
     if (!logoUrl) return;
-    const url = `${process.env.IMAGE_BASE_URL}/${logoUrl}`;
+    const url = MediaService.GetImageUrl(logoUrl, 'App');
     getColors(url, {
       fallback: '#228B22',
       cache: true,
@@ -141,7 +142,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
           scale: interpolate(
             scrollY.value,
             [0, IMageHight],
-            [1, 0.1], // لوگو کمی کوچک شود
+            [1, 0.1],
             Extrapolate.CLAMP,
           ),
         },
@@ -149,7 +150,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
           translateY: interpolate(
             scrollY.value,
             [0, IMageHight],
-            [0, screenHeight * -0.15], // لوگو به سمت پایین حرکت کند
+            [0, screenHeight * -0.15],
             Extrapolate.CLAMP,
           ),
         },
