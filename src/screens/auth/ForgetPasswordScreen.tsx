@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Dimensions,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
+import {View, Dimensions, KeyboardAvoidingView, Platform} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {AuthStackParamList} from '../../utils/types/NavigationTypes';
 import {FormProvider, SubmitHandler, useForm} from 'react-hook-form';
@@ -15,18 +8,14 @@ import {
   ForgetPasswordSchemaType,
 } from '../../utils/validation/auth/ForgetPasswordSchema';
 import {zodResolver} from '@hookform/resolvers/zod';
-import {SafeAreaView} from 'react-native-safe-area-context';
-
 import BaseText from '../../components/BaseText';
 import ControlledInput from '../../components/Input/ControlledInput';
 import {useTranslation} from 'react-i18next';
 import BaseButton from '../../components/Button/BaseButton';
-import {ArrowLeft, ArrowRight2} from 'iconsax-react-native';
 import {useMutation} from '@tanstack/react-query';
 import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
-import ResponsiveImage from '../../components/ResponsiveImage';
 import Logo from '../../components/Logo';
 import {navigate} from '../../navigation/navigationRef';
 

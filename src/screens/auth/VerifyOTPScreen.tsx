@@ -92,7 +92,7 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
         <View
           style={{height: screenHeight * (bigScreen ? 0.21 : 0.11)}}
           className=" w-full flex items-center justify-center">
-          <View className="flex flex-row gap-4 w-[185px] h-[55px]">
+          <View className="flex flex-row items-center justify-center gap-4 w-[185px] h-[55px]">
             <Logo />
           </View>
         </View>
