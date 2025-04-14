@@ -12,7 +12,6 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import BaseText from '../../components/BaseText';
 import BaseButton from '../../components/Button/BaseButton';
 import {ArrowLeft2, ArrowRight2} from 'iconsax-react-native';
-import {useTheme} from '../../utils/ThemeContext';
 import OrderDetailCard from './components/OrderDetailCard';
 import ItemCard from './components/ItemCard';
 import TransactionCard from './components/TransactionCard';

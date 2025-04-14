@@ -93,11 +93,7 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
           style={{height: screenHeight * (bigScreen ? 0.21 : 0.11)}}
           className=" w-full flex items-center justify-center">
           <View className="flex flex-row gap-4 w-[185px] h-[55px]">
-            <ResponsiveImage
-              customSource={OrganizationBySKU?.brandedLogo.srcset}
-              fallback={require('../../assets/images/testImage.png')}
-              resizeMode="contain"
-            />
+            <Logo />
           </View>
         </View>
         <KeyboardAvoidingView

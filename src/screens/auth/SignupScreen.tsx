@@ -146,6 +146,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
                       control={control}
                       label={t('gender')}
                       PlaceHolder={placeholders('gender')}
+                      error={errors.gender?.message}
                     />
                     <ControlledInput
                       control={control}

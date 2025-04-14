@@ -76,3 +76,10 @@ export interface UserWalletTransactionQuery {
   sortField?: string;
   sortOrder?: -1 | 1;
 }
+
+export interface AdvertisementQuery {
+  offset?: number;
+  limit?: number;
+  sortField?: string;
+  sortOrder?: -1 | 1;
+}

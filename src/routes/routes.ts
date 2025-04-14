@@ -1,5 +1,6 @@
 import {get} from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 import {
+  AdvertisementQuery,
   AllOrganizationQuery,
   CategoryQuery,
   ProductQuery,
@@ -82,5 +83,9 @@ export const routes = {
   media: {
     getAppMedia: (name: string) => 'media/app/' + name,
     getMedia: (name: string) => 'media/' + name,
+  },
+  advertisement: {
+    getAdvertisement: (query: AdvertisementQuery) =>
+      `advertisement` + prepareQuery(query),
   },
 };
