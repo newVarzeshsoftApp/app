@@ -1,7 +1,6 @@
 import React from 'react';
 import {
   View,
-  Text,
   Dimensions,
   KeyboardAvoidingView,
   Platform,
@@ -24,7 +23,6 @@ import {
   ResetPasswordSchemaType,
 } from '../../utils/validation/auth/ResetPasswordSchema';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
-import ResponsiveImage from '../../components/ResponsiveImage';
 import Logo from '../../components/Logo';
 import {navigate, resetNavigationHistory} from '../../navigation/navigationRef';
 

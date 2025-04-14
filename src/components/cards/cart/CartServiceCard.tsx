@@ -3,7 +3,6 @@ import {Image, View} from 'react-native';
 import {CartItem} from '../../../utils/helpers/CartStorage';
 import {useTranslation} from 'react-i18next';
 import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetOrganizationBySKU';
-
 import {Trash} from 'iconsax-react-native';
 import BaseButton from '../../Button/BaseButton';
 import BaseText from '../../BaseText';
@@ -30,7 +29,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
       <BottomSheet
         Title={t('Confirm removal')}
         ref={RemoveItemRef}
-        snapPoints={[30]}
+        snapPoints={[50]}
         buttonText="لغو"
         onButtonPress={() => RemoveItemRef.current?.close()}
         deleteButtonText="حذف"
@@ -40,7 +39,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
         }}
       />
       <View className="CardBase gap-3">
-        <View className="w-full h-[185px] bg-neutral-0 dark:bg-neutral-dark-0 rounded-3xl  relative">
+        <View className="w-full h-[185px] bg-neutral-0 dark:bg-neutral-dark-0 rounded-3xl  relative overflow-hidden">
           {product.image!.name && (
             <ResponsiveImage
               customSource={{default: product.image!.name}}

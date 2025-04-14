@@ -1,11 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {
-  View,
-  TouchableOpacity,
-  Dimensions,
-  Platform,
-  I18nManager,
-} from 'react-native';
+import {View, TouchableOpacity, Dimensions, Platform} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {AuthStackParamList} from '../../utils/types/NavigationTypes';
 import {
@@ -31,7 +25,6 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import ResponsiveImage from '../../components/ResponsiveImage';
 import {BlurView} from '@react-native-community/blur';
 import {getColors} from 'react-native-image-colors';
 import LinearGradient from 'react-native-linear-gradient';

@@ -321,10 +321,10 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                       <WalletBalance
                         inWallet
                         NoCredit={
-                          Number(UserCredit?.result ?? 0) <= totalAmount
+                          Number(UserCredit?.result ?? 0) <= amountPayable
                         }
                       />
-                      {Number(UserCredit?.result ?? 0) <= totalAmount && (
+                      {Number(UserCredit?.result ?? 0) <= amountPayable && (
                         <BaseText type="badge" color="error">
                           موجودی ناکافی
                         </BaseText>
@@ -387,7 +387,8 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                             {!disable ? (
                               <RadioButton
                                 disabled={
-                                  Number(UserCredit?.result ?? 0) <= totalAmount
+                                  Number(UserCredit?.result ?? 0) <=
+                                  amountPayable
                                 }
                                 checked={PaymentMethod?.source === item.id}
                                 onCheckedChange={() =>

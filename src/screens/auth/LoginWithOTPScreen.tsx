@@ -17,17 +17,15 @@ import {useMutation} from '@tanstack/react-query';
 import AuthService from '../../services/AuthService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
-import ResponsiveImage from '../../components/ResponsiveImage';
 import {navigate} from '../../navigation/navigationRef';
+import Logo from '../../components/Logo';
 
 type LoginWithOTPScreenProps = NativeStackScreenProps<
   AuthStackParamList,
   'LoginWithOTP'
 >;
 
-const LoginWithOTPScreen: React.FC<LoginWithOTPScreenProps> = ({
-  navigation,
-}) => {
+const LoginWithOTPScreen: React.FC<LoginWithOTPScreenProps> = () => {
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
 
   const {t} = useTranslation('translation', {keyPrefix: 'Input'});
@@ -63,7 +61,7 @@ const LoginWithOTPScreen: React.FC<LoginWithOTPScreenProps> = ({
   const {
     handleSubmit,
     control,
-    formState: {errors, isValid},
+    formState: {errors},
   } = methods;
   const {width: screenWidth, height: screenHeight} = Dimensions.get('screen');
   const bigScreen = screenHeight > 800;
@@ -75,11 +73,7 @@ const LoginWithOTPScreen: React.FC<LoginWithOTPScreenProps> = ({
             style={{height: screenHeight * (bigScreen ? 0.21 : 0.11)}}
             className=" w-full flex items-center justify-center">
             <View className="flex flex-row gap-4 w-[185px] h-[55px]">
-              <ResponsiveImage
-                customSource={OrganizationBySKU?.brandedLogo.srcset}
-                fallback={require('../../assets/images/testImage.png')}
-                resizeMode="contain"
-              />
+              <Logo />
             </View>
           </View>
           <KeyboardAvoidingView
