@@ -51,7 +51,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
   const onSubmit: SubmitHandler<SignupSchemaType> = async data => {
     SignUpMutation.mutate({
-      email: data.email,
+      email: data.email?.trim() || undefined,
       firstName: data.Name,
       gender: Number(data.gender.key),
       lastName: data.lastName,

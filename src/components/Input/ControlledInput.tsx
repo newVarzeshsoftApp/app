@@ -50,7 +50,7 @@ const ControlledInput = <T extends FieldValues>({
               LeftIcon
                 ? 'pl-4'
                 : RightIcon || type === 'password'
-                ? 'pr-4 pl-2'
+                ? 'px-1'
                 : 'pl-2'
             } flex flex-row items-center overflow-hidden justify-center gap-2 rounded-2xl border ${
               disabled ? 'bg-neutral-100 dark:bg-neutral-dark-100' : ''
