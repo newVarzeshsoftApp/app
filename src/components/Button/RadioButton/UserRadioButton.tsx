@@ -12,6 +12,7 @@ import {ICheckboxProps, UserRadioButtonProps} from '../../../models/props';
 import BaseText from '../../BaseText';
 import {ArrowDown2} from 'iconsax-react-native';
 import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetOrganizationBySKU';
+import {useBase64ImageFromMedia} from '../../../utils/hooks/useBase64Image';
 
 const UserRadioButton: React.FC<UserRadioButtonProps> = ({
   id,
@@ -64,6 +65,10 @@ const UserRadioButton: React.FC<UserRadioButtonProps> = ({
   const animatedRadioStyle = useAnimatedStyle(() => ({
     transform: [{scale: radioScale.value}],
   }));
+  const {data: base64Image, isLoading: imageLoading} = useBase64ImageFromMedia(
+    ImageUrl,
+    'Media',
+  );
 
   return (
     <Pressable
@@ -84,10 +89,8 @@ const UserRadioButton: React.FC<UserRadioButtonProps> = ({
             <Image
               style={{width: 36, height: 36}}
               source={
-                ImageUrl
-                  ? {
-                      uri: OrganizationBySKU?.imageUrl + '/' + ImageUrl,
-                    }
+                base64Image
+                  ? {uri: base64Image}
                   : {
                       uri: `https://avatar.iran.liara.run/public/${
                         genders === 0 ? 'boy' : 'girl'

@@ -18,6 +18,7 @@ import {navigate} from '../../../../navigation/navigationRef';
 import ShopCreditService from '../../../../components/cards/shopCard/ShopCreditService';
 import ShopPackageService from '../../../../components/cards/shopCard/ShopPackageService';
 import ShopServiceCard from '../../../../components/cards/shopCard/ShopServiceCard';
+import {useTheme} from '../../../../utils/ThemeContext';
 
 const cardComponentMapping: Record<number, React.FC<{data: any}>> = {
   [ProductType.Service]: ShopServiceCard,
@@ -28,7 +29,7 @@ const cardComponentMapping: Record<number, React.FC<{data: any}>> = {
 function MainShop({inMoreScreen = false}: {inMoreScreen?: boolean}) {
   const {t} = useTranslation('translation', {keyPrefix: 'Drawer'});
   const [offset, setOffset] = useState(0);
-
+  const {theme} = useTheme();
   // Fetch product data for each category
   const fetchProductData = (type: ProductType) =>
     UseGetProduct({
@@ -53,7 +54,13 @@ function MainShop({inMoreScreen = false}: {inMoreScreen?: boolean}) {
           params: {screen: 'serviceDetail', params: {id, title}},
         }),
       type: ProductType.Service,
-      icon: <Calendar1 size="28" color="#FFFFFF" variant="Bold" />,
+      icon: (
+        <Calendar1
+          size="28"
+          color={theme === 'dark' ? '#FFFFFF' : '#7f8185'}
+          variant="Bold"
+        />
+      ),
       data: fetchProductData(ProductType.Service),
     },
     {
@@ -148,7 +155,7 @@ function MainShop({inMoreScreen = false}: {inMoreScreen?: boolean}) {
                       {t('all')}
                     </BaseText>
                     <View className="-rotate-45">
-                      <ArrowUp size="24" color="#55575c" />
+                      <ArrowUp size="16" color="#55575c" />
                     </View>
                   </TouchableOpacity>
                 </View>

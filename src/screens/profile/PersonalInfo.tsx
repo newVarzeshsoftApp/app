@@ -95,7 +95,7 @@ const PersonalInfoScreen: React.FC = () => {
       contentContainerStyle={{flexGrow: 1}}>
       <View
         style={{direction: 'rtl'}}
-        className="Container flex-1 justify-between py-4 gap-6 ">
+        className="Container flex-1 justify-between py-4 gap-6">
         {/* ProfilePicture */}
         <UpdateProfilePicture />
         <KeyboardAvoidingView

@@ -189,7 +189,8 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
       <BottomSheet
         ref={BottomSheetPriceListRef}
         scrollView
-        snapPoints={[70, 90]}
+        disablePan
+        snapPoints={[90]}
         Title={t('select sessions')}>
         <View className="gap-3">
           {SortedPriceList.map((item, index) => {
@@ -218,7 +219,8 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
       <BottomSheet
         ref={BottomSheetContractorRef}
         scrollView
-        snapPoints={[50, 70]}
+        disablePan
+        snapPoints={[70]}
         Title={t('Contractor List')}>
         <View className="gap-3">
           {data?.contractors.map((item, index) => {
