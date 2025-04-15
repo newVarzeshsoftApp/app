@@ -111,7 +111,7 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
                 {t('all')}
               </BaseText>
               <View className="-rotate-45">
-                <ArrowUp size="24" color="#55575c" />
+                <ArrowUp size="16" color="#55575c" />
               </View>
             </TouchableOpacity>
           )}

@@ -290,7 +290,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                   )}
                   {/*  خرید با کیف پول  */}
                   <TouchableOpacity
-                    disabled={Number(UserCredit?.result ?? 0) <= totalAmount}
+                    disabled={Number(UserCredit?.result ?? 0) < amountPayable}
                     onPress={() =>
                       setPaymentMethod({
                         isWallet: true,
@@ -300,12 +300,12 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                     }
                     className={`CardBase ${
                       PaymentMethod?.isWallet && '!border-primary-500'
-                    } `}>
+                    }`}>
                     <View className="flex-row items-center justify-between">
                       <BaseText type="subtitle2">{t('PaywithWallet')}</BaseText>
                       <Checkbox
                         disabled={
-                          Number(UserCredit?.result ?? 0) <= totalAmount
+                          Number(UserCredit?.result ?? 0) < amountPayable
                         }
                         checked={PaymentMethod?.isWallet === true}
                         onCheckedChange={() =>
@@ -317,14 +317,15 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                         }
                       />
                     </View>
+
                     <View className="gap-1">
                       <WalletBalance
                         inWallet
                         NoCredit={
-                          Number(UserCredit?.result ?? 0) <= amountPayable
+                          Number(UserCredit?.result ?? 0) < amountPayable
                         }
                       />
-                      {Number(UserCredit?.result ?? 0) <= amountPayable && (
+                      {Number(UserCredit?.result ?? 0) < amountPayable && (
                         <BaseText type="badge" color="error">
                           موجودی ناکافی
                         </BaseText>

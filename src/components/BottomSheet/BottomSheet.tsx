@@ -349,7 +349,6 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
                   }>
                   <Animated.ScrollView
                     scrollEnabled={enableScroll}
-                    bounces={false}
                     showsHorizontalScrollIndicator={false}
                     showsVerticalScrollIndicator={false}
                     scrollEventThrottle={16}

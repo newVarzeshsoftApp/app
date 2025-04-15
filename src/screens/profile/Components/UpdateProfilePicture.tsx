@@ -89,7 +89,7 @@ const UpdateProfilePicture: React.FC = () => {
     <View className="justify-center items-center">
       <TouchableOpacity
         onPress={SelectImage}
-        className="w-[100px] h-[100px] rounded-full bg-neutral-500 relative overflow-hidden">
+        className="w-[100px] h-[100px] rounded-full bg-neutral-500 relative ">
         {UploadProfile.isPending || (isLoading && !base64Image) ? (
           <View className="flex-1 justify-center items-center">
             <ActivityIndicator size="small" color="#bcdd64" />
@@ -102,7 +102,7 @@ const UpdateProfilePicture: React.FC = () => {
           />
         )}
 
-        <View className="bg-primary-500 p-1 rounded-full border-2 border-neutral-100 dark:border-neutral-dark-100 absolute bottom-0 right-0">
+        <View className="bg-primary-500 p-1 rounded-full border-2 border-neutral-100 dark:border-neutral-dark-100 absolute bottom-0 right-0 z-10">
           <Edit2 color="white" size={16} />
         </View>
       </TouchableOpacity>

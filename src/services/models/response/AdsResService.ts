@@ -17,7 +17,7 @@ export interface BannerContent {
   title: string;
   link: string;
   description: string;
-  linkAction: number;
+  linkAction: 0 | 1;
   priority: number;
   ratio: string;
 }

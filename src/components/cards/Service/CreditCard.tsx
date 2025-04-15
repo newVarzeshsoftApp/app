@@ -33,7 +33,7 @@ const CreditCard: React.FC<{data: Content}> = ({data}) => {
         </View>
         <TouchableOpacity className="flex-row gap-1 items-center ">
           <View className="-rotate-45">
-            <ArrowUp size="24" color="#55575c" />
+            <ArrowUp size="16" color="#55575c" />
           </View>
         </TouchableOpacity>
       </View>

@@ -1,5 +1,12 @@
 import React, {useRef, useEffect} from 'react';
-import {FlatList, View, Image, Dimensions} from 'react-native';
+import {
+  FlatList,
+  View,
+  Image,
+  Dimensions,
+  TouchableOpacity,
+  Linking,
+} from 'react-native';
 import {BannerContent} from '../services/models/response/AdsResService';
 import {useBase64ImageFromMedia} from '../utils/hooks/useBase64Image';
 
@@ -13,25 +20,38 @@ interface BannerSliderProps {
   data: BannerContent[];
 }
 
-const BannerImage: React.FC<{name?: string}> = ({name}) => {
-  const {data: base64Image} = useBase64ImageFromMedia(name, 'Media');
+const BannerImage: React.FC<{item: BannerContent}> = ({item}) => {
+  const {data: base64Image} = useBase64ImageFromMedia(
+    item.profile?.name,
+    'Media',
+  );
 
-  if (!base64Image) {
-    return (
-      <View className="w-[320px] h-[160px] rounded-2xl bg-white/10 dark:bg-neutral-dark-300" />
-    );
-  }
+  const handlePress = () => {
+    if (item.linkAction === 0 && item.link) {
+      Linking.openURL(item.link).catch(err =>
+        console.warn('Failed to open link:', err),
+      );
+    }
+  };
+
+  const content = base64Image ? (
+    <Image
+      source={{uri: base64Image}}
+      style={{width: 340, height: 200}}
+      resizeMode="cover"
+    />
+  ) : null;
 
   return (
-    <View className="w-[320px] h-[160px] rounded-2xl overflow-hidden bg-white/10 dark:bg-neutral-dark-300">
-      {base64Image && (
-        <Image
-          source={{uri: base64Image}}
-          style={{width: 340, height: 200}}
-          resizeMode="cover"
-        />
+    <TouchableOpacity
+      onPress={handlePress}
+      activeOpacity={0.8}
+      disabled={item.linkAction !== 0}
+      className="w-[320px] h-[160px] rounded-2xl overflow-hidden bg-white/10 dark:bg-neutral-dark-300">
+      {content || (
+        <View className="w-full h-full bg-white/10 dark:bg-neutral-dark-300" />
       )}
-    </View>
+    </TouchableOpacity>
   );
 };
 
@@ -57,7 +77,7 @@ const BannerSlider: React.FC<BannerSliderProps> = ({data}) => {
 
   const renderItem = ({item}: {item: BannerContent}) => (
     <View className="px-4">
-      <BannerImage name={item.profile?.name} />
+      <BannerImage item={item} />
     </View>
   );
 
