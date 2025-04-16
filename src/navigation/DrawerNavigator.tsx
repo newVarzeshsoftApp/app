@@ -27,7 +27,6 @@ const DrawerNavigator: React.FC = () => {
       if (Platform.OS === 'web') {
         return;
       }
-
       const onBackPress = () => {
         try {
           goBackSafe();

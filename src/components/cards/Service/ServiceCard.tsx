@@ -24,7 +24,10 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
   const isExpired = moment().isAfter(moment.utc(data?.end));
   const Useable = !isExpired && data?.usable;
   const remainingCredit = (data?.credit ?? 0) - (data?.usedCredit ?? 0);
-  const {data: ImageSrc} = useBase64ImageFromMedia(data?.image?.name, 'Media');
+  const {data: ImageSrc} = useBase64ImageFromMedia(
+    data.product?.image?.name,
+    'Media',
+  );
   const colors = useMemo(() => {
     if (remainingCredit === 0) return ColorRingConfig.red;
     if (remainingCredit < 5) return ColorRingConfig.orange;

@@ -23,6 +23,24 @@ export const ThemeProvider = ({children}: ThemeProviderProps) => {
       );
     }
   }, []);
+  useEffect(() => {
+    // Load theme from localStorage on web
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      const savedTheme = localStorage.getItem('theme');
+      if (savedTheme === 'dark' || savedTheme === 'light') {
+        setColorScheme(savedTheme);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    // Save theme to localStorage on change
+    if (Platform.OS === 'web' && colorScheme) {
+      localStorage.setItem('theme', colorScheme);
+      document.documentElement.classList.remove('light', 'dark');
+      document.documentElement.classList.add(colorScheme);
+    }
+  }, [colorScheme]);
   return (
     <ThemeContext.Provider
       value={{
