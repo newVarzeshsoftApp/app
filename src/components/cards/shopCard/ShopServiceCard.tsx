@@ -12,10 +12,18 @@ type ShopServiceProps = {
 };
 const ShopServiceCard: React.FC<ShopServiceProps> = ({data}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Shop.Service'});
-  const {data: ImageSrc} = useBase64ImageFromMedia(data?.image?.name, 'Media');
+  const {data: ImageSrc, isLoading} = useBase64ImageFromMedia(
+    data?.image?.name,
+    'Media',
+  );
   return (
     <View className="BaseServiceCard">
-      <View className="w-full h-[185px] bg-neutral-0 dark:bg-neutral-dark-0 rounded-3xl overflow-hidden">
+      <View
+        className={`w-full h-[185px]  rounded-3xl overflow-hidden ${
+          isLoading
+            ? 'bg-black/20 dark:bg-white/20 animate-pulse'
+            : 'bg-neutral-0 dark:bg-neutral-dark-0'
+        }`}>
         <Image
           style={{width: '100%', height: '100%'}}
           source={{uri: ImageSrc}}
