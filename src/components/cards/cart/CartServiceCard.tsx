@@ -1,8 +1,7 @@
 import React, {useRef} from 'react';
-import {Image, View} from 'react-native';
+import {View} from 'react-native';
 import {CartItem} from '../../../utils/helpers/CartStorage';
 import {useTranslation} from 'react-i18next';
-import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetOrganizationBySKU';
 import {Trash} from 'iconsax-react-native';
 import BaseButton from '../../Button/BaseButton';
 import BaseText from '../../BaseText';
@@ -16,7 +15,6 @@ type CartServiceCardProps = {
   data: CartItem;
 };
 const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
-  const {data: OrganizationBySKU} = useGetOrganizationBySKU();
   const {t} = useTranslation('translation', {keyPrefix: 'Cart'});
   const {product, quantity, CartId, SelectedContractor, SelectedPriceList} =
     data;
@@ -29,7 +27,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
       <BottomSheet
         Title={t('Confirm removal')}
         ref={RemoveItemRef}
-        snapPoints={[50]}
+        snapPoints={[25]}
         buttonText="لغو"
         onButtonPress={() => RemoveItemRef.current?.close()}
         deleteButtonText="حذف"

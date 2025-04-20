@@ -12,7 +12,7 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import {useTheme} from '../../utils/ThemeContext';
-import {useNavigation} from '@react-navigation/native';
+
 import {goBackSafe} from '../../navigation/navigationRef';
 
 // Make SafeAreaView animatable

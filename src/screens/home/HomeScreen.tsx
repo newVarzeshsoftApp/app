@@ -6,7 +6,7 @@ import {useGetAds} from '../../utils/hooks/Ads/useGetAds';
 import BannerSlider from '../../components/AdsSlider';
 
 const HomeScreen: React.FC = () => {
-  const {data: Ads, isLoading} = useGetAds({limit: 100});
+  const {data: Ads, isLoading} = useGetAds({limit: 100, sortField: 'priority'});
   const renderHeader = () => (
     <>
       <View className="Container py-5 web:pt-[85px] gap-5">

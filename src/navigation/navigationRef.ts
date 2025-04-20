@@ -1,8 +1,8 @@
 import {createNavigationContainerRef} from '@react-navigation/native';
+import {Platform} from 'react-native';
 import {RootStackParamList} from '../utils/types/NavigationTypes';
 import {useNavigationStore} from '../store/navigationStore';
 import linking from './Linking';
-import {Platform} from 'react-native';
 
 export const navigationRef = createNavigationContainerRef<RootStackParamList>();
 
@@ -11,21 +11,16 @@ export const navigationRef = createNavigationContainerRef<RootStackParamList>();
  */
 export function navigate<T extends keyof RootStackParamList>(
   name: T,
-  params?: RootStackParamList[T] | undefined,
+  params?: RootStackParamList[T],
 ) {
-  if (!navigationRef.isReady()) {
-    console.warn('🚨 navigationRef is not ready');
-    return;
-  }
+  if (!navigationRef.isReady()) return;
 
-  console.log(`🟢 Navigating to: ${name}`, params);
   useNavigationStore.getState().addRoute(name, params);
-
   navigationRef.navigate(name as any, params as any);
 
   if (Platform.OS === 'web') {
-    const url = linking.getStateFromPath
-      ? linking.getStateFromPath(name) || ''
+    const url = linking.getPathFromState
+      ? linking.getPathFromState({routes: [{name, params}]})
       : '';
     window.history.pushState({name, params}, '', url.toString());
   }
@@ -34,21 +29,13 @@ export function navigate<T extends keyof RootStackParamList>(
 /**
  * Go back to the previous screen and remove the last route from history
  */
-
 export function goBackSafe() {
-  if (!navigationRef.isReady()) {
-    console.warn('🚨 navigationRef is not ready');
-    return;
-  }
+  if (!navigationRef.isReady()) return;
 
   const previousRoute = useNavigationStore.getState().goBack();
 
   if (previousRoute) {
-    console.log(
-      `🔙 Navigating back to: ${previousRoute.name}`,
-      previousRoute.params,
-    );
-    navigationRef?.navigate(
+    navigationRef.navigate(
       previousRoute.name as any,
       previousRoute.params as any,
     );
@@ -57,15 +44,16 @@ export function goBackSafe() {
       window.history.back();
     }
   } else {
-    console.warn('🚨 No previous route found!');
-    if (navigationRef?.canGoBack()) {
-      navigationRef?.goBack(); // Go back to the previous route normally
+    if (navigationRef.canGoBack()) {
+      navigationRef.goBack();
     } else if (Platform.OS === 'web') {
       const confirmExit = window.confirm('Do you want to exit the app?');
       if (confirmExit) {
-        window.history.back();
+        navigate('Root', {
+          screen: 'HomeNavigator',
+        });
       } else {
-        window.history.pushState({}, '', ''); // Stay in the app
+        window.history.pushState({}, '', '');
       }
     }
   }
@@ -75,6 +63,5 @@ export function goBackSafe() {
  * Reset the navigation history
  */
 export function resetNavigationHistory() {
-  console.log('🧹 Resetting navigation history');
   useNavigationStore.getState().resetHistory();
 }

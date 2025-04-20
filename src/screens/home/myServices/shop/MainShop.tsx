@@ -26,7 +26,7 @@ const cardComponentMapping: Record<number, React.FC<{data: any}>> = {
   [ProductType.Package]: ShopPackageService,
 };
 
-function MainShop({inMoreScreen = false}: {inMoreScreen?: boolean}) {
+function MainShop() {
   const {t} = useTranslation('translation', {keyPrefix: 'Drawer'});
   const [offset, setOffset] = useState(0);
   const {theme} = useTheme();

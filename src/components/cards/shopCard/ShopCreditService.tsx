@@ -39,10 +39,18 @@ const ShopCreditService: React.FC<ShopServiceProps> = ({data}) => {
         </View>
       </View>
       <View className="pt-3 gap-3">
-        <BaseText type="subtitle3" color="secondary">
-          {t('usedFor')}
-        </BaseText>
+        <View className="flex-row items-center justify-between">
+          <BaseText type="subtitle3" color="secondary">
+            {t('usedFor')}
+          </BaseText>
+          {(data?.subProducts?.length ?? 0) > 0 && (
+            <BaseText type="subtitle3" color="muted">
+              {t('IncludesCount', {count: data?.subProducts?.length ?? 0})}
+            </BaseText>
+          )}
+        </View>
         <CreditSubProduct
+          inCard
           subProducts={data?.subProducts}
           hasSubProduct={data?.hasSubProduct}
         />
