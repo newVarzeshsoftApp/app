@@ -30,6 +30,7 @@ import {Product} from '../../services/models/response/ProductResService';
 import BaseButton from '../../components/Button/BaseButton';
 import {useCartContext} from '../../utils/CartContext';
 import {navigate} from '../../navigation/navigationRef';
+import {useTheme} from '../../utils/ThemeContext';
 
 type ServiceScreenProp = NativeStackScreenProps<
   ShopStackParamList,
@@ -41,7 +42,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Shop.Package'});
   const {data, isLoading} = UseGetProductByID(route.params.id);
   const {addToCart} = useCartContext();
-
+  const {theme} = useTheme();
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: event => {
       scrollY.value = event.contentOffset.y;
@@ -81,12 +82,6 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
           <TouchableOpacity
             key={item.product?.id}
             onPress={() =>
-              // @ts-ignore
-              // navigation.push(routeName, {
-              // id: item.product?.id,
-              // title: item.product?.title,
-              // canBuy: false,
-              // })
               navigate('Root', {
                 screen: 'ShopNavigator',
                 params: {
@@ -142,18 +137,22 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
           onScroll={scrollHandler}
-          contentContainerStyle={{flexGrow: 1}}>
+          contentContainerStyle={{flexGrow: 1, paddingBottom: 50}}>
           <SafeAreaView className="flex-1">
             <View className="gap-5 pt-20 pb-6   flex-1 justify-between Container">
               <View className="gap-5">
                 {' '}
                 {/* Package Detail */}
                 <LinearGradient
-                  colors={[
-                    'rgba(91, 200, 255, 1)',
-                    'rgba(91, 200, 255, 0.5)',
-                    '#2a2d33',
-                  ]}
+                  colors={
+                    theme === 'light'
+                      ? ['rgba(91, 200, 255, 0.5)', '#f0f9ff']
+                      : [
+                          'rgba(91, 200, 255, 1)',
+                          'rgba(91, 200, 255, 0.5)',
+                          '#2a2d33',
+                        ]
+                  }
                   locations={[0, 0, 1]}
                   start={{x: 1, y: 0}}
                   style={{
@@ -218,20 +217,21 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
                   </View>
                 </View>
               </View>
-
-              {!route.params.readonly && (
-                <BaseButton
-                  onPress={handleAddToCart}
-                  color="Black"
-                  type="Fill"
-                  text={t('addToCart')}
-                  rounded
-                  size="Large"
-                />
-              )}
             </View>
           </SafeAreaView>
         </Animated.ScrollView>
+      )}
+      {!route.params.readonly && (
+        <View className="px-4 py-4 absolute bottom-0 w-full z-10">
+          <BaseButton
+            onPress={handleAddToCart}
+            color="Black"
+            type="Fill"
+            text={t('addToCart')}
+            rounded
+            size="Large"
+          />
+        </View>
       )}
     </View>
   );

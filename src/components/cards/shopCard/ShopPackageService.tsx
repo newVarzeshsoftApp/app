@@ -7,15 +7,11 @@ import Badge from '../../Badge/Badge';
 import {ConvertDuration, formatNumber} from '../../../utils/helpers/helpers';
 import {useTranslation} from 'react-i18next';
 import {TruncatedText} from '../../TruncatedText';
-import {
-  Content,
-  subProducts,
-} from '../../../services/models/response/UseResrService';
-import PackageCreditCard from './PackageItems/PackageCreditCard';
-import PackageServiceCard from './PackageItems/PackageServiceCard';
+
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {ShopStackParamList} from '../../../utils/types/NavigationTypes';
+import {ScrollView} from 'react-native-gesture-handler';
 type ShopServiceProps = {
   data: Product;
 };
@@ -25,47 +21,9 @@ type NavigationProps = NativeStackNavigationProp<
 >;
 const ShopPackageService: React.FC<ShopServiceProps> = ({data}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Shop.Package'});
-  const navigation = useNavigation<NavigationProps>();
 
-  const cardComponentMapping: Record<number, React.FC<{data: subProducts}>> = {
-    // 0: ProductCard,
-    1: PackageServiceCard,
-    2: PackageCreditCard,
-    // 3: ReceptionCard,
-    // 4: PackageCard,
-  };
-  const navigationMapping: Record<number, string> = {
-    1: 'serviceDetail',
-    2: 'creditDetail',
-  };
-  const renderItem = useCallback(
-    ({item}: {item: subProducts}) => {
-      const CardComponent = cardComponentMapping[item.product?.type!];
-      const routeName = navigationMapping[item.product?.type!];
-      if (CardComponent) {
-        return (
-          <TouchableOpacity
-            key={item.product?.id}
-            onPress={() =>
-              //@ts-ignore
-              navigation.push(routeName, {
-                id: item.product?.id,
-                title: item.product?.title,
-                readonly: true,
-                contractorId: item.contractorId,
-                priceId: item.priceId,
-              })
-            }>
-            <CardComponent key={item.id} data={item} />
-          </TouchableOpacity>
-        );
-      }
-      return <Text>Unknown type: {item.product?.type}</Text>;
-    },
-    [cardComponentMapping],
-  );
   return (
-    <View className="BaseServiceCard">
+    <View className="BaseServiceCard h-full">
       <View className="gap-4 pb-4 border-b border-neutral-0 dark:border-neutral-dark-400/50 ">
         <View className="flex-row items-center  gap-4">
           <Box1 size="28" color="#5bc8ff" variant="Bold" />
@@ -87,22 +45,29 @@ const ShopPackageService: React.FC<ShopServiceProps> = ({data}) => {
       </View>
       <View className="pt-4 gap-4">
         <View className="gap-2">
-          <BaseText type="body3" color="secondary">
-            {t('ItemsOfPackage')}
-          </BaseText>
-          <View className="flex flex-row flex-wrap gap-1">
-            {data.hasSubProduct ? (
-              <FlatList
-                data={data?.subProducts ?? []}
-                keyExtractor={(item, index) => `key-${index}`}
-                renderItem={renderItem}
-                horizontal
-                showsVerticalScrollIndicator={false}
-                showsHorizontalScrollIndicator={false}
-                ItemSeparatorComponent={() => <View style={{width: 16}} />}
-                scrollEventThrottle={16}
-                style={{flex: 1}}
-              />
+          <View className="flex-row items-center justify-between">
+            <BaseText type="body3" color="secondary">
+              {t('ItemsOfPackage')}
+            </BaseText>
+            {(data?.subProducts?.length ?? 0) > 0 && (
+              <BaseText type="subtitle3" color="muted">
+                {t('IncludesCount', {count: data?.subProducts?.length ?? 0})}
+              </BaseText>
+            )}
+          </View>
+
+          <View className="flex-row gap-2 max-w-[310px] flex-wrap">
+            {data?.hasSubProduct ? (
+              data?.subProducts?.map((item, index) => (
+                <Badge
+                  key={index}
+                  CreditMode={item.product?.type === 2}
+                  defaultMode
+                  textColor="supportive5"
+                  className="w-fit"
+                  value={item.product?.title ?? ''}
+                />
+              ))
             ) : (
               <Badge
                 color="secondary"

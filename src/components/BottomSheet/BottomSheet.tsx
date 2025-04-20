@@ -352,6 +352,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
                     showsHorizontalScrollIndicator={false}
                     showsVerticalScrollIndicator={false}
                     scrollEventThrottle={16}
+                    contentContainerStyle={{paddingBottom: insets.bottom}}
                     onScroll={onScroll}>
                     {children}
                   </Animated.ScrollView>
@@ -360,7 +361,9 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
                 // Non-scrollable Content
                 <View className="flex-grow gap-3">
                   <View className="flex-1">{children}</View>
-                  <View className="flex-row  justify-center gap-3">
+                  <View
+                    className="flex-row  justify-center gap-3"
+                    style={{paddingBottom: insets.bottom}}>
                     {deleteButtonText && onDeleteButtonPress && (
                       <BaseButton
                         text={deleteButtonText || ''}

@@ -119,7 +119,8 @@
       "usedFor": "موارد استفاده",
       "Charge balance": "موجودی شارژ",
       "description": "توضیحات",
-      "addToCart": "افزودن به سبد خرید"
+      "addToCart": "افزودن به سبد خرید",
+      "IncludesCount": "شامل {{count}} مورد"
     },
     "Service": {
       "noServicesFound": "هیچ سرویسی پیدا نشد",
@@ -142,7 +143,8 @@
       "Contractor List": "لیست مربیان",
       "Total Price": "قیمت قابل پرداخت",
       "Price": "قیمت",
-      "tax": "مالیات"
+      "tax": "مالیات",
+      "IncludesCount": "شامل {{count}} مورد"
     },
     "Package": {
       "noServicesFound": "هیچ سرویسی پیدا نشد",
@@ -152,7 +154,8 @@
       "ItemsOfPackage": "آیتم های پکیج",
       "package": "پکیج",
       "description": "توضیحات",
-      "addToCart": "افزودن به سبد خرید"
+      "addToCart": "افزودن به سبد خرید",
+      "IncludesCount": "شامل {{count}} سرویس"
     }
   },
   "Detail": {

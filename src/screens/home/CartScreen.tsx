@@ -58,9 +58,6 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
   const [PaymentMethod, setPaymentMethod] = useState<PaymentMethodType | null>(
     null,
   );
-  console.log('====================================');
-  console.log(PaymentMethod);
-  console.log('====================================');
   const {data: UserCredit} = useGetUserCredit();
   const {profile: ProfileData} = useAuth();
   const {totalAmount, totalTax, totalDiscount, totalShopGift} =
