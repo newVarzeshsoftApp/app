@@ -12,8 +12,8 @@ import Animated, {
   useAnimatedStyle,
 } from 'react-native-reanimated';
 import {useTheme} from '../../utils/ThemeContext';
-
 import {goBackSafe} from '../../navigation/navigationRef';
+import {useNavigation} from '@react-navigation/native';
 
 // Make SafeAreaView animatable
 const AnimatedSafeAreaView = Animated.createAnimatedComponent(SafeAreaView);
@@ -22,6 +22,7 @@ type NavigationHeaderProps = {
   navigation?: NativeStackNavigationProp<any, any>;
   title?: string | undefined;
   onBackPress?: () => void;
+  MainBack?: boolean;
   scrollY?: Animated.SharedValue<number>;
   range?: number[];
   rangeColor?: any;
@@ -32,13 +33,14 @@ const NavigationHeader: React.FC<NavigationHeaderProps> = ({
   title = '',
   onBackPress,
   range,
+  MainBack,
   scrollY,
   rangeColor,
   CenterText,
 }) => {
   const {theme} = useTheme();
   const baseRange = theme === 'dark' ? '#1b1d21' : '#f4f4f5';
-
+  const navigate = useNavigation();
   // Animated style for the SafeAreaView
   const SafeAreaAnimatedStyle = useAnimatedStyle(() => {
     if (scrollY && range) {
@@ -82,7 +84,7 @@ const NavigationHeader: React.FC<NavigationHeaderProps> = ({
       <Animated.View style={[styles.container]}>
         <View style={styles.leftButton}>
           <BaseButton
-            onPress={goBackSafe}
+            onPress={() => (MainBack ? navigate.goBack() : goBackSafe())}
             noText
             LeftIcon={ArrowRight2}
             type="Outline"

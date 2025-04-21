@@ -11,6 +11,7 @@ import {useNavigation} from '@react-navigation/native';
 
 import {HomeStackParamList} from '../../../utils/types/NavigationTypes';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {navigate} from '../../../navigation/navigationRef';
 type NavigationProps = NativeStackNavigationProp<HomeStackParamList>;
 function WalletBalance({
   inWallet,
@@ -41,7 +42,13 @@ function WalletBalance({
     <TouchableOpacity
       disabled={inWallet}
       //@ts-ignore
-      onPress={() => navigation.navigate('wallet', {screen: 'wallet'})}
+
+      onPress={() =>
+        navigate('Root', {
+          screen: 'HomeNavigator',
+          params: {screen: 'wallet', params: {screen: 'wallet'}},
+        })
+      }
       className="w-full h-[110px] relative ">
       <LinearGradient
         colors={NoCredit ? Redcolors : inWallet ? Walletcolors : colors}

@@ -1,16 +1,28 @@
-import React from 'react';
-import {Text, View} from 'react-native';
-import BaseText from '../components/BaseText';
+import React, {useEffect} from 'react';
+import {View, Text} from 'react-native';
+import {navigate} from '../navigation/navigationRef';
+import {useAuth} from '../utils/hooks/useAuth';
 
-const NotFound: React.FC = () => {
+const NotFound = () => {
+  const {isLoggedIn} = useAuth();
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      isLoggedIn
+        ? navigate('Root', {
+            screen: 'HomeNavigator',
+            params: {screen: 'Home'},
+          })
+        : navigate('Auth', {
+            screen: 'Login',
+          });
+    }, 200);
+
+    return () => clearTimeout(timeout);
+  }, []);
+
   return (
-    <View className="h-screen flex-1 justify-center items-center">
-      <BaseText color="Primary600" type="title1">
-        401
-      </BaseText>
-      <BaseText color="muted" type="body1">
-        عدم دسترسی
-      </BaseText>
+    <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+      <Text>صفحه‌ای که دنبالش بودی پیدا نشد. انتقال به صفحه اصلی...</Text>
     </View>
   );
 };

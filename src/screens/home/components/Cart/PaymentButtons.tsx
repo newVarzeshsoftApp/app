@@ -19,7 +19,7 @@ const PaymentButtons: React.FC<PaymentButtonsProps> = ({
   t,
   Steps,
 }) => (
-  <View className="absolute  web:bottom-28 bottom-32 left-0 right-0  flex-1 Container">
+  <View className="absolute  web:bottom-24 bottom-32 left-0 right-0  flex-1 Container">
     <View className="flex-row  items-center gap-4 px-[2px] ">
       <View className="flex-1">
         <BaseButton
