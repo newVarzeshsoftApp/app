@@ -9,6 +9,8 @@ import Animated, {
 } from 'react-native-reanimated';
 import BaseText from './BaseText';
 import {useTheme} from '../utils/ThemeContext';
+import {navigate} from '../navigation/navigationRef';
+import {ProfileTabParamsList} from '../utils/types/NavigationTypes';
 
 interface CustomTabBarProps extends MaterialTopTabBarProps {
   customLabels?: Record<string, string>;
@@ -58,7 +60,10 @@ const CustomTabBar: React.FC<CustomTabBarProps> = ({
               canPreventDefault: true,
             });
             if (!isFocused && !event.defaultPrevented) {
-              navigation.navigate(route.name);
+              navigate('Root', {
+                screen: 'ProfileTab',
+                params: {screen: route.name as keyof ProfileTabParamsList},
+              });
             }
           };
 

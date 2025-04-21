@@ -72,6 +72,7 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
       headerShown: true,
       header: () => (
         <NavigationHeader
+          MainBack
           CenterText
           range={[0, 100]}
           scrollY={scrollY}

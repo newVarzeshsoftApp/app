@@ -261,7 +261,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                                     }
                                     srcLeft={
                                       item.icon
-                                        ? {uri: item.icon}
+                                        ? {uri: item?.icon}
                                         : item.type === 0
                                         ? require('../../assets/icons/zarinpal.png')
                                         : require('../../assets/icons/payping.png')
@@ -271,7 +271,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                                     rounded
                                     onPress={() => {
                                       setPaymentMethod({
-                                        getway: item.id,
+                                        getway: item?.id,
                                         source: undefined,
                                         isWallet: false,
                                       });
@@ -336,7 +336,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                         PaymentMethod?.source && '!border-primary-500'
                       }`}>
                       <BaseText type="subtitle2">{t('PaywithCredit')}</BaseText>
-                      {Credits.content.map((item, index) => {
+                      {Credits?.content?.map((item, index) => {
                         const disable =
                           (item?.credit ?? 0) - (item?.usedCredit ?? 0) <
                           amountPayable;
@@ -388,9 +388,9 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                                   Number(UserCredit?.result ?? 0) <=
                                   amountPayable
                                 }
-                                checked={PaymentMethod?.source === item.id}
+                                checked={PaymentMethod?.source === item?.id}
                                 onCheckedChange={() =>
-                                  setPaymentMethod({source: item.id})
+                                  setPaymentMethod({source: item?.id})
                                 }
                               />
                             ) : (

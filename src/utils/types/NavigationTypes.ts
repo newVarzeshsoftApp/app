@@ -25,7 +25,7 @@ export type DrawerStackParamList = {
   SaleItemNavigator: NavigatorScreenParams<SaleItemStackParamList> | undefined;
   ShopNavigator: NavigatorScreenParams<ShopStackParamList> | undefined;
   HistoryNavigator: NavigatorScreenParams<OrderStackParamList> | undefined;
-  ProfileTab: undefined;
+  ProfileTab: NavigatorScreenParams<ProfileTabParamsList> | undefined;
   Paymentresult:
     | {
         code: string;

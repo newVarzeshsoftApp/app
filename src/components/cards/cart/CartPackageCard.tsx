@@ -28,12 +28,12 @@ const CartPackageCard: React.FC<CartPackageCardProps> = ({data}) => {
       <BottomSheet
         Title={t('Confirm removal')}
         ref={RemoveItemRef}
-        snapPoints={[30]}
+        snapPoints={[50, 80]}
         buttonText="لغو"
         onButtonPress={() => RemoveItemRef.current?.close()}
         deleteButtonText="حذف"
         onDeleteButtonPress={() => {
-          removeFromCart(CartId);
+          CartId && removeFromCart(CartId);
           RemoveItemRef.current?.close();
         }}
       />
@@ -42,7 +42,7 @@ const CartPackageCard: React.FC<CartPackageCardProps> = ({data}) => {
           <View className="flex-row items-center gap-2">
             <Box1 size="24" color="#5bc8ff" variant="Bold" />
             <BaseText type="subtitle2" color="supportive5">
-              {product.title}
+              {product?.title ?? ''}
             </BaseText>
           </View>
           <BaseButton
@@ -58,6 +58,7 @@ const CartPackageCard: React.FC<CartPackageCardProps> = ({data}) => {
           <View className="flex-row items-center gap-4 ">
             <BaseButton
               onPress={() =>
+                CartId &&
                 updateItemQuantity({cartId: CartId, quantity: quantity + 1})
               }
               type="Tonal"
@@ -72,6 +73,7 @@ const CartPackageCard: React.FC<CartPackageCardProps> = ({data}) => {
               color="Black"
               text="-"
               onPress={() =>
+                CartId &&
                 updateItemQuantity({
                   cartId: CartId,
                   quantity: quantity === 1 ? quantity : quantity - 1,
@@ -80,7 +82,7 @@ const CartPackageCard: React.FC<CartPackageCardProps> = ({data}) => {
             />
           </View>
           <BaseText type="subtitle2" color="base">
-            {formatNumber(product.price)} ﷼
+            {formatNumber(product?.price ?? 0)} ﷼
           </BaseText>
         </View>
 
@@ -94,7 +96,7 @@ const CartPackageCard: React.FC<CartPackageCardProps> = ({data}) => {
                 {t('Duration')}
               </BaseText>
               <BaseText type="subtitle3" color="base">
-                {convertToPersianTimeLabel(product.duration)}
+                {convertToPersianTimeLabel(product?.duration ?? 0)}
               </BaseText>
             </View>
             <BaseText type="subtitle3" color="secondary">

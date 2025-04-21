@@ -27,7 +27,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
       <BottomSheet
         Title={t('Confirm removal')}
         ref={RemoveItemRef}
-        snapPoints={[25]}
+        snapPoints={[50, 80]}
         buttonText="لغو"
         onButtonPress={() => RemoveItemRef.current?.close()}
         deleteButtonText="حذف"

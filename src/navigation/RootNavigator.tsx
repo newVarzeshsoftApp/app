@@ -91,6 +91,7 @@ export const RootNavigator: React.FC = () => {
           ) : (
             <Stack.Screen name="Auth" component={AuthNavigator} />
           )}
+          <Stack.Screen name="notFound" component={NotFound} />
         </Stack.Navigator>
       )}
     </NavigationContainer>

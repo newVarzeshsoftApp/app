@@ -16,7 +16,6 @@ const HistoryNavigator: React.FC = () => {
       initialRouteName="orders"
       screenOptions={() => ({
         headerTransparent: true,
-
         headerShown: false,
       })}>
       <Stack.Screen name="orders" component={OrdersScreen} />

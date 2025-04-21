@@ -4,22 +4,22 @@ import BaseText from '../../../../components/BaseText';
 import {formatNumber} from '../../../../utils/helpers/helpers';
 
 interface OrderSummaryProps {
-  totalItems: number;
-  totalAmount: number;
-  totalDiscount: number;
-  totalTax: number;
-  totalShopGift: number;
-  amountPayable: number;
+  totalItems?: number;
+  totalAmount?: number;
+  totalDiscount?: number;
+  totalTax?: number;
+  totalShopGift?: number;
+  amountPayable?: number;
   t: (key: string) => string;
 }
 
 const OrderSummary: React.FC<OrderSummaryProps> = ({
-  totalItems,
-  totalAmount,
-  totalDiscount,
-  totalTax,
-  totalShopGift,
-  amountPayable,
+  totalItems = 0,
+  totalAmount = 0,
+  totalDiscount = 0,
+  totalTax = 0,
+  totalShopGift = 0,
+  amountPayable = 0,
   t,
 }) => (
   <View className="gap-4">

@@ -21,7 +21,7 @@ import Animated, {
   runOnJS,
 } from 'react-native-reanimated';
 import {Gesture, GestureDetector} from 'react-native-gesture-handler';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
+import {SafeAreaView, useSafeAreaInsets} from 'react-native-safe-area-context';
 import {Portal} from 'react-native-portalize';
 
 import {useTheme} from '../../utils/ThemeContext';
@@ -293,110 +293,109 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
 
     return (
       <Portal>
-        {/* Backdrop */}
-        <TouchableWithoutFeedback onPress={close}>
-          <Animated.View
-            style={[
-              styles.backDrop,
-              backDropAnimation,
-              {backgroundColor: 'rgba(0,0,0,1)'},
-            ]}
-          />
-        </TouchableWithoutFeedback>
+        <SafeAreaView edges={['bottom']} style={{flex: 1}}>
+          {/* Backdrop */}
+          <TouchableWithoutFeedback onPress={close}>
+            <Animated.View
+              style={[
+                styles.backDrop,
+                backDropAnimation,
+                {backgroundColor: 'rgba(0,0,0,1)'},
+              ]}
+            />
+          </TouchableWithoutFeedback>
 
-        {/* Main container with gesture handling */}
-        <GestureDetector gesture={disablePan ? Gesture.Tap() : pan}>
-          <Animated.View
-            style={[
-              styles.container,
-              animationStyle,
-              {
-                paddingBottom: insets.bottom,
-              },
-            ]}>
-            {/* Optional "grabber line" */}
-            {!disablePan && (
-              <View style={styles.lineContainer}>
-                <View style={styles.line} />
-              </View>
-            )}
-
-            <View
-              className={`Container gap-4 mx-auto flex-1 android:pb-4 web:pb-4 ${
-                disablePan ? 'pt-4' : ''
-              }`}>
-              {Title && (
-                <View className="flex-row items-center justify-between">
-                  <BaseText type="title4">{Title || ''}</BaseText>
-                  <BaseButton
-                    onPress={close}
-                    LeftIcon={CloseCircle}
-                    size="Medium"
-                    type="TextButton"
-                    noText
-                    color="Black"
-                  />
+          {/* Main container with gesture handling */}
+          <GestureDetector gesture={disablePan ? Gesture.Tap() : pan}>
+            <Animated.View
+              style={[
+                styles.container,
+                animationStyle,
+                {
+                  paddingBottom: insets.bottom,
+                },
+              ]}>
+              {/* Optional "grabber line" */}
+              {!disablePan && (
+                <View style={styles.lineContainer}>
+                  <View style={styles.line} />
                 </View>
               )}
 
-              {scrollView ? (
-                // Scrollable Content
-                <GestureDetector
-                  gesture={
-                    disablePan
-                      ? scrollViewGesture
-                      : Gesture.Simultaneous(scrollViewGesture, panScroll)
-                  }>
-                  <Animated.ScrollView
-                    scrollEnabled={enableScroll}
-                    showsHorizontalScrollIndicator={false}
-                    showsVerticalScrollIndicator={false}
-                    scrollEventThrottle={16}
-                    contentContainerStyle={{paddingBottom: insets.bottom}}
-                    onScroll={onScroll}>
-                    {children}
-                  </Animated.ScrollView>
-                </GestureDetector>
-              ) : (
-                // Non-scrollable Content
-                <View className="flex-grow gap-3">
-                  <View className="flex-1">{children}</View>
-                  <View
-                    className="flex-row  justify-center gap-3"
-                    style={{paddingBottom: insets.bottom}}>
-                    {deleteButtonText && onDeleteButtonPress && (
-                      <BaseButton
-                        text={deleteButtonText || ''}
-                        // disabled={buttonDisabled}
-                        color="Black"
-                        type="Tonal"
-                        role="button"
-                        redbutton
-                        rounded
-                        Extraclass="flex-1"
-                        size="Large"
-                        onPress={onDeleteButtonPress}
-                      />
-                    )}
-                    {buttonText && onButtonPress && (
-                      <BaseButton
-                        text={buttonText || ''}
-                        disabled={buttonDisabled}
-                        color="Black"
-                        role="button"
-                        type="Fill"
-                        rounded
-                        Extraclass="flex-1"
-                        size="Large"
-                        onPress={onButtonPress}
-                      />
-                    )}
+              <View
+                className={`Container gap-4 mx-auto flex-1 android:pb-4 web:pb-4 ${
+                  disablePan ? 'pt-4' : ''
+                }`}>
+                {Title && (
+                  <View className="flex-row items-center justify-between">
+                    <BaseText type="title4">{Title || ''}</BaseText>
+                    <BaseButton
+                      onPress={close}
+                      LeftIcon={CloseCircle}
+                      size="Medium"
+                      type="TextButton"
+                      noText
+                      color="Black"
+                    />
                   </View>
-                </View>
-              )}
-            </View>
-          </Animated.View>
-        </GestureDetector>
+                )}
+
+                {scrollView ? (
+                  // Scrollable Content
+                  <GestureDetector
+                    gesture={
+                      disablePan
+                        ? scrollViewGesture
+                        : Gesture.Simultaneous(scrollViewGesture, panScroll)
+                    }>
+                    <Animated.ScrollView
+                      scrollEnabled={enableScroll}
+                      showsHorizontalScrollIndicator={false}
+                      showsVerticalScrollIndicator={false}
+                      scrollEventThrottle={16}
+                      onScroll={onScroll}>
+                      {children}
+                    </Animated.ScrollView>
+                  </GestureDetector>
+                ) : (
+                  // Non-scrollable Content
+                  <View className="flex-grow gap-3">
+                    <View className="flex-1">{children}</View>
+                    <View className="flex-row  justify-center gap-3">
+                      {deleteButtonText && onDeleteButtonPress && (
+                        <BaseButton
+                          text={deleteButtonText || ''}
+                          // disabled={buttonDisabled}
+                          color="Black"
+                          type="Tonal"
+                          role="button"
+                          redbutton
+                          rounded
+                          Extraclass="flex-1"
+                          size="Large"
+                          onPress={onDeleteButtonPress}
+                        />
+                      )}
+                      {buttonText && onButtonPress && (
+                        <BaseButton
+                          text={buttonText || ''}
+                          disabled={buttonDisabled}
+                          color="Black"
+                          role="button"
+                          type="Fill"
+                          rounded
+                          Extraclass="flex-1"
+                          size="Large"
+                          onPress={onButtonPress}
+                        />
+                      )}
+                    </View>
+                  </View>
+                )}
+              </View>
+            </Animated.View>
+          </GestureDetector>
+        </SafeAreaView>
       </Portal>
     );
   },

@@ -32,29 +32,29 @@ export function navigate<T extends keyof RootStackParamList>(
 export function goBackSafe() {
   if (!navigationRef.isReady()) return;
 
+  const {goBack, canGoBack} = navigationRef;
   const previousRoute = useNavigationStore.getState().goBack();
 
   if (previousRoute) {
+    // Go to the last route from history (Zustand store)
     navigationRef.navigate(
       previousRoute.name as any,
       previousRoute.params as any,
     );
-
-    if (Platform.OS === 'web') {
-      window.history.back();
-    }
-  } else {
-    if (navigationRef.canGoBack()) {
-      navigationRef.goBack();
-    } else if (Platform.OS === 'web') {
-      const confirmExit = window.confirm('Do you want to exit the app?');
-      if (confirmExit) {
-        navigate('Root', {
-          screen: 'HomeNavigator',
-        });
-      } else {
-        window.history.pushState({}, '', '');
-      }
+  } else if (canGoBack()) {
+    // Native back navigation
+    goBack();
+  } else if (Platform.OS === 'web') {
+    // At root – ask user to exit or go home
+    const confirmExit = window.confirm('Do you want to exit the app?');
+    if (confirmExit) {
+      // Navigate to root screen (manually, not using back)
+      navigationRef.navigate('Root', {
+        screen: 'HomeNavigator',
+      } as any);
+    } else {
+      // Don't mess up the history stack anymore
+      // Just stay on the same page
     }
   }
 }

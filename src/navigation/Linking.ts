@@ -5,6 +5,7 @@ const linking: LinkingOptions<RootStackParamList> = {
   prefixes: ['http://localhost:3000', 'http://185.126.10.3:3000'],
   config: {
     screens: {
+      notFound: '*',
       Auth: {
         screens: {
           Login: 'auth/login',

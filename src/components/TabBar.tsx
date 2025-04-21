@@ -18,7 +18,6 @@ import BaseText from './BaseText';
 import {useTranslation} from 'react-i18next';
 import {useTheme} from '../utils/ThemeContext';
 import {useCartContext} from '../utils/CartContext';
-import {useNavigationStore} from '../store/navigationStore';
 import {navigate} from '../navigation/navigationRef';
 import {HomeStackParamList} from '../utils/types/NavigationTypes';
 
@@ -50,7 +49,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
       className="flex-row ios:absolute android:absolute bottom-7  web:backdrop-blur max-w-[408px] mx-auto  left-[18px] right-[18px] web:fixed web:bottom-4 
     justify-around items-center dark:bg-neutral-dark-300/80
      bg-neutral-0/80 border border-neutral-0 dark:border-neutral-dark-400/40 
-     p-4 rounded-full shadow-lg gap-1">
+     px-4 py-2 rounded-full shadow-lg gap-1">
       {state.routes.map((route, index) => {
         const {options} = descriptors[route.key];
         const label =
@@ -96,12 +95,12 @@ const TabBar: React.FC<BottomTabBarProps> = ({
             target: route.key,
             canPreventDefault: true,
           });
-          navigate('Root', {
-            screen: 'HomeNavigator',
-            params: {screen: route.name as any},
-          });
+
           if (!isFocused && !event.defaultPrevented) {
-            navigation.navigate(route.name);
+            navigate('Root', {
+              screen: 'HomeNavigator',
+              params: {screen: route.name as keyof HomeStackParamList},
+            });
           }
         };
 

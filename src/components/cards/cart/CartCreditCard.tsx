@@ -1,17 +1,14 @@
 import {FlashCircle, Trash} from 'iconsax-react-native';
 import React, {useRef} from 'react';
-import {Text, View} from 'react-native';
+import {View} from 'react-native';
 import BaseText from '../../BaseText';
-import {Product} from '../../../services/models/response/ProductResService';
 import BaseButton from '../../Button/BaseButton';
 import {
   convertToPersianTimeLabel,
   formatNumber,
 } from '../../../utils/helpers/helpers';
 import {CartItem} from '../../../utils/helpers/CartStorage';
-import {useCart} from '../../../utils/hooks/Carthook';
 import {useTranslation} from 'react-i18next';
-import Badge from '../../Badge/Badge';
 import BottomSheet, {BottomSheetMethods} from '../../BottomSheet/BottomSheet';
 import {useCartContext} from '../../../utils/CartContext';
 import CreditSubProduct from '../SubProduct';
@@ -28,7 +25,7 @@ const CartCreditCard: React.FC<CartCreditCardProps> = ({data}) => {
       <BottomSheet
         Title={t('Confirm removal')}
         ref={RemoveItemRef}
-        snapPoints={[30]}
+        snapPoints={[50, 80]}
         buttonText="لغو"
         onButtonPress={() => RemoveItemRef.current?.close()}
         deleteButtonText="حذف"
@@ -101,10 +98,11 @@ const CartCreditCard: React.FC<CartCreditCardProps> = ({data}) => {
             <BaseText type="subtitle3" color="secondary">
               {t('usedFor')}
             </BaseText>
-            <View className="flex-row items-center gap-1 flex-wrap">
+            <View className="flex-row items-center gap-1 ">
               <CreditSubProduct
                 subProducts={data.product?.subProducts}
                 hasSubProduct={data.product?.hasSubProduct}
+                inCard
               />
             </View>
           </View>
