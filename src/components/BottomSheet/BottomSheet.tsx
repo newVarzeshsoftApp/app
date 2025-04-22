@@ -164,13 +164,18 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     }, [initialSnapOffset]);
 
     const close = useCallback(() => {
-      topAnimation.value = withSpring(height, {
-        damping: 100,
-        stiffness: 400,
-      });
-      setTimeout(() => {
-        setVisible(false);
-      }, 500);
+      topAnimation.value = withSpring(
+        height,
+        {
+          damping: 100,
+          stiffness: 400,
+        },
+        isFinished => {
+          if (isFinished) {
+            runOnJS(setVisible)(false);
+          }
+        },
+      );
     }, [height]);
 
     useImperativeHandle(ref, () => ({expand, close}), [expand, close]);
@@ -226,14 +231,22 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         topAnimation.value = newOffset;
       })
       .onEnd(() => {
-        // If user drags beyond last snap + threshold => close
+        runOnJS(setEnableScroll)(true);
+
         if (topAnimation.value > lastSnapOffset + 50) {
-          topAnimation.value = withSpring(height, {
-            damping: 100,
-            stiffness: 400,
-          });
+          topAnimation.value = withSpring(
+            height,
+            {
+              damping: 100,
+              stiffness: 400,
+            },
+            isFinished => {
+              if (isFinished) {
+                runOnJS(setVisible)(false);
+              }
+            },
+          );
         } else {
-          // Snap to the nearest
           const closestSnap = findClosestSnap(topAnimation.value);
           topAnimation.value = withSpring(closestSnap, {
             damping: 100,
@@ -295,16 +308,13 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       <Portal>
         <SafeAreaView edges={['bottom']} style={{flex: 1}}>
           {/* Backdrop */}
-          <TouchableWithoutFeedback onPress={close}>
-            <Animated.View
-              style={[
-                styles.backDrop,
-                backDropAnimation,
-                {backgroundColor: 'rgba(0,0,0,1)'},
-              ]}
-            />
-          </TouchableWithoutFeedback>
-
+          {visible && (
+            <Animated.View style={[StyleSheet.absoluteFill, backDropAnimation]}>
+              <TouchableWithoutFeedback onPress={close}>
+                <View style={{flex: 1, backgroundColor: 'rgba(0,0,0,1)'}} />
+              </TouchableWithoutFeedback>
+            </Animated.View>
+          )}
           {/* Main container with gesture handling */}
           <GestureDetector gesture={disablePan ? Gesture.Tap() : pan}>
             <Animated.View
