@@ -2,7 +2,7 @@ import React from 'react';
 import {useTranslation} from 'react-i18next';
 import {TouchableOpacity, View} from 'react-native';
 import {Content} from '../../../services/models/response/UseResrService';
-import {ArrowUp, Box1, FlashCircle} from 'iconsax-react-native';
+import {ArrowUp, FlashCircle} from 'iconsax-react-native';
 import BaseText from '../../BaseText';
 import moment from 'jalali-moment';
 import {formatNumber} from '../../../utils/helpers/helpers';
