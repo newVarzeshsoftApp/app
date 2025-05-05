@@ -89,7 +89,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
                   params: {
                     id: item.product?.id ?? 0,
                     title: item.product?.title ?? '',
-                    // canBuy: false,
+                    readonly: true,
                   },
                 },
               })

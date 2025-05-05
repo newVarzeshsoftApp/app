@@ -31,7 +31,8 @@ export const TruncatedText: React.FC<TruncatedTextProps> = ({
     <View>
       <BaseText type="body3" color="secondary">
         {truncatedText}
-        {HaveMore && (
+        {HaveMore && !onPressMore && '...'}
+        {HaveMore && onPressMore && (
           <TouchableOpacity onPress={toggleExpand}>
             <BaseText type="body3" color="secondaryPurple">
               ...{moreText ? moreText : t('more')}
