@@ -32,7 +32,7 @@ const CreditSubProduct: React.FC<SubProductProps> = ({
   return (
     <View
       className={`flex-row items-center gap-1  ${
-        inCard ? 'max-w-[310px] overflow-hidden' : 'flex-wrap gap-3'
+        inCard ? 'max-w-[280px] overflow-hidden' : 'flex-wrap gap-3'
       }`}>
       {hasSubProduct ? (
         subProducts?.map((item, index) => {

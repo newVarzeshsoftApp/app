@@ -78,11 +78,11 @@ const ShopPackageService: React.FC<ShopServiceProps> = ({data}) => {
           </View>
         </View>
         {data.description && (
-          <View className="gap-2">
+          <View className="gap-2 ">
             <BaseText type="body3" color="secondary">
               {t('description')}
             </BaseText>
-            <TruncatedText length={90} text={data.description} />
+            <TruncatedText length={45} text={data.description} />
           </View>
         )}
       </View>
