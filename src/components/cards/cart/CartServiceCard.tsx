@@ -38,9 +38,9 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
       />
       <View className="CardBase gap-3">
         <View className="w-full h-[185px] bg-neutral-0 dark:bg-neutral-dark-0 rounded-3xl  relative overflow-hidden">
-          {product.image!.name && (
+          {product.image?.name && (
             <ResponsiveImage
-              customSource={{default: product.image!.name}}
+              customSource={{default: product.image?.name}}
               ImageType="Media"
               resizeMode="cover"
               style={{width: '100%', height: 200}}
