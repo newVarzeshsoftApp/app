@@ -110,7 +110,9 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
               {t('Number of sessions')} :
             </BaseText>
             <BaseText type="subtitle3" color="base">
-              {SelectedPriceList?.min} جلسه
+              {data.product.unlimited
+                ? t('unlimited')
+                : `${SelectedPriceList?.min} جلسه`}{' '}
             </BaseText>
           </View>
           <View className="flex-row items-center justify-between">

@@ -201,9 +201,13 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                   asButton
                   haveArrow
                   onCheckedChange={() => setSelectedPriceList(item)}
-                  label={`${item?.min ?? 0} جلسه  ${formatNumber(
-                    item?.price ?? 0,
-                  )} ﷼ `}
+                  label={
+                    data?.unlimited
+                      ? `${t('unlimited')} ${formatNumber(item?.price ?? 0)} ﷼ `
+                      : `${item?.min ?? 0} جلسه  ${formatNumber(
+                          item?.price ?? 0,
+                        )} ﷼ `
+                  }
                 />
                 <CustomCollapsible isOpened={SelectedPriceList === item}>
                   <PriceListDetail
@@ -312,10 +316,14 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                                   BottomSheetPriceListRef.current?.expand()
                                 }
                                 label={`${
-                                  SelectedPriceList?.min ?? 0
-                                } جلسه  ${formatNumber(
+                                  data?.unlimited
+                                    ? t('unlimited')
+                                    : `${SelectedPriceList?.min ?? 0} ${t(
+                                        'session',
+                                      )}`
+                                } ${formatNumber(
                                   SelectedPriceList?.price ?? 0,
-                                )} ﷼ `}
+                                )} ﷼`}
                               />
                               <PriceListDetail
                                 SelectedPriceList={SelectedPriceList}
@@ -388,7 +396,11 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                             )}
                             <View className="flex-row items-center justify-between gap-2">
                               <BaseText type="body3" color="secondary">
-                                {t('Price')} {SelectedPriceList?.min} جلسه :
+                                {t('Price')}{' '}
+                                {data?.unlimited
+                                  ? ''
+                                  : `${SelectedPriceList?.min} جلسه`}{' '}
+                                :
                               </BaseText>
                               <BaseText type="body3" color="base">
                                 {formatNumber(SelectedPriceList?.price ?? 0)} ﷼

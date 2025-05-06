@@ -28,6 +28,15 @@ const ShopServiceCard: React.FC<ShopServiceProps> = ({data}) => {
           style={{width: '100%', height: '100%'}}
           source={{uri: ImageSrc}}
         />
+        {data.unlimited && (
+          <View className="absolute top-2 right-2">
+            <Badge
+              value={t('unlimited')}
+              color="success"
+              textColor="secondary"
+            />
+          </View>
+        )}
       </View>
       <View className="gap-2 pt-3">
         <BaseText type="title4">{data.title}</BaseText>
@@ -38,7 +47,10 @@ const ShopServiceCard: React.FC<ShopServiceProps> = ({data}) => {
         )}
         <View className="flex-row items-center justify-between gap-4">
           <BaseText type="body3" color="secondary">
-            {t('SingleservicePrice')} :
+            {data.unlimited
+              ? t('unlimitedServicePrice')
+              : t('SingleservicePrice')}{' '}
+            :
           </BaseText>
           <BaseText type="body3" color="secondaryPurple">
             {formatNumber(data.price ?? 0)} ﷼
