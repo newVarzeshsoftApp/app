@@ -123,7 +123,7 @@ const TransactionCard: React.FC<TransactionProps> = ({
             {t('DateAndTime')}: {''}
           </BaseText>
           <BaseText type="body3" color="base">
-            {moment(item.createdAt).format('jYYYY/jMM/jDD HH:MM')}
+            {moment(item.submitAt).format('jYYYY/jMM/jDD HH:MM')}
           </BaseText>
         </View>
         <View className="flex-row items-center justify-between ">

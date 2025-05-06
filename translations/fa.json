@@ -101,6 +101,9 @@
     "Confirm removal": "آیا از حذف این آیتم اطمینان دارید؟",
     "Number of sessions": "تعداد جلسات",
     "SingleservicePrice": "قیمت هر جلسه",
+    "unlimitedServicePrice": "قیمت",
+    "unlimited": "نامحدود",
+
     "Purchase profit": "سود شما از خرید",
     "shopGift": "هدیه خرید",
     "tax": "مالیات",
@@ -128,6 +131,8 @@
       "more": "مشاهده بیشتر",
       "service": "سرویس جلسه ای",
       "SingleservicePrice": "قیمت هر جلسه",
+      "unlimitedServicePrice": "قیمت",
+      "unlimited": "نامحدود",
       "addToCart": "افزودن به سبد خرید",
       "Number of sessions": "تعداد جلسات",
       "select sessions": "انتخاب  جلسه",
