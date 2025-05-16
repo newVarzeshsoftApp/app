@@ -82,7 +82,10 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
         contractorId: item?.SelectedContractor?.contractorId ?? null,
         start: moment().format('YYYY-MM-DD'),
         end: moment()
-          .add(item.SelectedPriceList?.duration ?? item.product.duration)
+          .add(
+            item.SelectedPriceList?.duration ?? item.product.duration,
+            'days',
+          )
           .format('YYYY-MM-DD'),
         isOnline: true,
         amount: amount,
@@ -98,7 +101,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
   useEffect(() => {
     const {Authority, isDeposite, code, RefID} = route.params || {};
     if (Authority) {
-      if (isDeposite) {
+      if (isDeposite === true) {
         WalletCharge.mutate({
           authority: Authority,
           code,

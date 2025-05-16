@@ -238,7 +238,7 @@ function InfoCards({
                 defaultMode
                 className="w-fit"
                 textColor="secondaryPurple"
-                value={data?.vipLocker?.locker?.lockerId}
+                value={data?.vipLocker?.locker?.lockerNumber}
               />
               <BaseText type="subtitle3" color="secondary">
                 {convertToPersianTimeLabel(data?.vipLocker?.duration)}
