@@ -101,7 +101,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
   useEffect(() => {
     const {Authority, isDeposite, code, RefID} = route.params || {};
     if (Authority) {
-      if (isDeposite === true) {
+      if (isDeposite === 'true') {
         WalletCharge.mutate({
           authority: Authority,
           code,
@@ -353,7 +353,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
               )}
               <BaseButton
                 onPress={() => {
-                  route.params?.isDeposite
+                  route.params?.isDeposite === 'true'
                     ? navigate('Root', {
                         screen: 'HomeNavigator',
                         params: {
@@ -368,7 +368,9 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                 color="Black"
                 size="Large"
                 text={
-                  route.params?.isDeposite ? t('BackToWallet') : t('BackToHome')
+                  route.params?.isDeposite === 'true'
+                    ? t('BackToWallet')
+                    : t('BackToHome')
                 }
                 rounded
               />
