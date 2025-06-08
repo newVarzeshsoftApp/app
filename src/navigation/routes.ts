@@ -79,11 +79,11 @@ export const AppRoutes = {
     type: string,
     Authority: string,
     Status: 'OK' | 'NOK',
-    RefID: string,
+    refId: string,
     isDeposit?: boolean,
   ) => ({
     screen: 'Paymentresult' as keyof DrawerStackParamList,
-    params: {code, type, Authority, Status, RefID, isDeposit},
+    params: {code, type, Authority, Status, refId, isDeposit},
   }),
   PAYMENT_DETAIL: (id: string) => ({
     screen: 'PaymentDetail' as keyof DrawerStackParamList,

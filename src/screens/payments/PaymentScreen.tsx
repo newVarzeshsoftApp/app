@@ -99,19 +99,19 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
     });
   }, [normalizedItems]);
   useEffect(() => {
-    const {Authority, isDeposite, code, RefID} = route.params || {};
-    if (Authority || RefID) {
+    const {Authority, isDeposite, code, refId} = route.params || {};
+    if (Authority || refId) {
       if (isDeposite === 'true') {
         WalletCharge.mutate({
           authority: Authority,
           code,
-          refId: RefID,
+          refId: refId,
         });
       } else if (Items.length > 0 && ProfileData) {
         CartPayment.mutate({
           authority: Authority,
           code,
-          refId: RefID,
+          refId: refId,
           isonlineShop: true,
           orders: [
             {
