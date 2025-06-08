@@ -100,7 +100,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
   }, [normalizedItems]);
   useEffect(() => {
     const {Authority, isDeposite, code, RefID} = route.params || {};
-    if (Authority) {
+    if (Authority || RefID) {
       if (isDeposite === 'true') {
         WalletCharge.mutate({
           authority: Authority,
