@@ -32,7 +32,7 @@ export type DrawerStackParamList = {
         type: string;
         Authority: string;
         Status: 'OK' | 'NOK';
-        RefID: string;
+        refId: string;
         isDeposite?: string;
       }
     | undefined;
