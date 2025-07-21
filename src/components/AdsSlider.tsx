@@ -22,17 +22,12 @@ const BannerImage: React.FC<{name?: string}> = ({name}) => {
 
   if (!base64Image && isLoading) {
     return (
-      <View
-        style={{width: ITEM_WIDTH, height: 150}}
-        className="rounded-lg bg-black/20 dark:bg-white/20 animate-pulse"
-      />
+      <View className="w-full h-[150px] rounded-lg bg-black/20 dark:bg-white/20 animate-pulse" />
     );
   }
 
   return (
-    <View
-      style={{width: ITEM_WIDTH, height: 150}}
-      className="rounded-lg overflow-hidden bg-white/10 dark:bg-neutral-dark-300">
+    <View className="w-full h-[150px] rounded-lg overflow-hidden bg-white/10 dark:bg-neutral-dark-300">
       {base64Image && (
         <Image
           source={{uri: base64Image}}
@@ -68,14 +63,12 @@ const BannerSlider: React.FC<BannerSliderProps> = ({data}) => {
       horizontal
       pagingEnabled
       decelerationRate="fast"
-      snapToInterval={ITEM_WIDTH + 10}
+      snapToInterval={ITEM_WIDTH}
       snapToAlignment="center"
       showsHorizontalScrollIndicator={false}
       keyExtractor={(item, index) => `banner-${index}`}
       renderItem={renderItem}
       scrollEventThrottle={16}
-      ItemSeparatorComponent={() => <View style={{width: 10}} />}
-      contentContainerStyle={{paddingHorizontal: 20}}
     />
   );
 };
