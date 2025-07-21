@@ -16,6 +16,7 @@ import {useCartContext} from '../../utils/CartContext';
 import {PaymentVerifyRes} from '../../services/models/response/PaymentResService';
 import {useAuth} from '../../utils/hooks/useAuth';
 import {navigate} from '../../navigation/navigationRef';
+import {ProductType} from '../../constants/options';
 type PaymentScreenProps = NativeStackScreenProps<
   DrawerStackParamList,
   'Paymentresult'
@@ -68,9 +69,17 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
       const amount = item.SelectedPriceList
         ? item.SelectedPriceList.price
         : item.product.price;
-      const discount = item.SelectedPriceList
-        ? item?.SelectedPriceList?.discountOnlineShopPercentage ?? 0
-        : item?.product?.discount ?? 0;
+
+      const discount =
+        item.product.type === ProductType.Package
+          ? item.product.subProducts?.reduce(
+              (sum, subProduct) => sum + (subProduct.discount || 0),
+              0,
+            ) || 0
+          : item.SelectedPriceList
+          ? item?.SelectedPriceList?.discountOnlineShopPercentage ?? 0
+          : item?.product?.discount ?? 0;
+
       return {
         quantity: 1,
         product: item.product.id,
@@ -89,7 +98,10 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
           .format('YYYY-MM-DD'),
         isOnline: true,
         amount: amount,
-        discount: (amount * discount) / 100,
+        discount:
+          item.product.type === ProductType.Package
+            ? discount
+            : (amount * discount) / 100,
         priceId: item.SelectedPriceList?.id ?? null,
         price: amount,
         duration: item.SelectedPriceList
