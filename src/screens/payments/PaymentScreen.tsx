@@ -86,7 +86,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
         tax: item?.product?.tax,
         user: ProfileData?.id,
         manualPrice: false,
-        type: item.product.type,
+        type: item.product.type === ProductType.Package ? 4 : item.product.type,
         contractor: item?.SelectedContractor?.contractorId ?? null,
         contractorId: item?.SelectedContractor?.contractorId ?? null,
         start: moment().format('YYYY-MM-DD'),

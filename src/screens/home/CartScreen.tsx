@@ -130,7 +130,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
           ? item?.product?.tax
           : (amount * (item?.product?.tax ?? 0)) / 100,
         manualPrice: false,
-        type: item.product.type,
+        type: item.product.type === ProductType.Package ? 4 : item.product.type,
         contractor: item?.SelectedContractor?.contractorId ?? null,
         contractorId: item?.SelectedContractor?.contractorId ?? null,
         start: moment().format('YYYY-MM-DD'),
