@@ -26,21 +26,29 @@ const ControlledInput = <T extends FieldValues>({
   ...props
 }: InputProps<T> & TextInputProps) => {
   const [showPassword, setShowPassword] = useState(false);
+  const [localError, setLocalError] = useState<string | undefined>();
+
+  const {t} = useTranslation('translation', {keyPrefix: 'Input'});
 
   const togglePasswordVisibility = () => {
     setShowPassword(prev => !prev);
   };
-  const {t} = useTranslation('translation', {keyPrefix: 'Input'});
+
+  const containsNonEnglish = (text: string) => {
+    // Detect Persian characters (including numbers)
+    return /[^\x00-\x7F]/.test(text);
+  };
 
   return (
     <View
-      className={`flex flex-col  gap-1 w-full ${disabled ? 'opacity-50' : ''}`}>
+      className={`flex flex-col gap-1 w-full ${disabled ? 'opacity-50' : ''}`}>
       {/* Label */}
       {label && (
-        <BaseText type="title4" className="!capitalize ">
+        <BaseText type="title4" className="!capitalize">
           {label} {optional && `(${t('optional')})`}
         </BaseText>
       )}
+
       <Controller
         control={control}
         name={name}
@@ -55,7 +63,7 @@ const ControlledInput = <T extends FieldValues>({
             } flex flex-row items-center overflow-hidden justify-center gap-2 rounded-2xl border ${
               disabled ? 'bg-neutral-100 dark:bg-neutral-dark-100' : ''
             } ${
-              error && !disabled
+              error || localError
                 ? 'border-[#F55F56]'
                 : 'border-neutral-300 dark:border-neutral-dark-300'
             }`}>
@@ -76,7 +84,7 @@ const ControlledInput = <T extends FieldValues>({
                     : LeftIcon
                     ? 'left-[20%] rtl:right-[20%]'
                     : 'left-[6%] rtl:right-[6%]'
-                }  rtl:text-left text-text-muted dark:text-text-muted-dark w-fit`}
+                } rtl:text-left text-text-muted dark:text-text-muted-dark w-fit`}
                 style={{pointerEvents: 'none'}}>
                 {PlaceHolder}
               </BaseText>
@@ -87,7 +95,7 @@ const ControlledInput = <T extends FieldValues>({
               {...props}
               className={`${
                 centerText ? '!text-center' : 'rtl:text-right ltr:text-left'
-              } px-4 flex-1 h-full outline-none  rounded-lg duration-200 text-text-base dark:text-text-base-dark`}
+              } px-4 flex-1 h-full outline-none rounded-lg duration-200 text-text-base dark:text-text-base-dark`}
               editable={!disabled}
               placeholder=""
               selectionColor="#7676EE"
@@ -96,8 +104,12 @@ const ControlledInput = <T extends FieldValues>({
               value={SperatedNumber ? formatNumber(value) : value}
               onBlur={onBlur}
               onChangeText={text => {
+                if (containsNonEnglish(text)) {
+                  setLocalError(t('onlyEnglish'));
+                  return;
+                }
+                setLocalError(undefined);
                 if (SperatedNumber) {
-                  // Store raw number in form state
                   onChange(text.replace(/,/g, ''));
                 } else {
                   onChange(text);
@@ -131,23 +143,22 @@ const ControlledInput = <T extends FieldValues>({
           </View>
         )}
       />
+
       <View className="h-[14px]">
-        {/* Info Text */}
-        {info && !error && (
+        {(error || localError) && (
           <View className="flex flex-row items-center gap-2">
-            <InfoCircle size={14} color="#7F8185" />
-            <BaseText color="muted" type="badge">
-              {info}
+            <InfoCircle size={14} color="#FD504F" />
+            <BaseText color="error" type="badge">
+              {error || localError}
             </BaseText>
           </View>
         )}
 
-        {/* Error Text */}
-        {error && (
+        {!error && !localError && info && (
           <View className="flex flex-row items-center gap-2">
-            <InfoCircle size={14} color="#FD504F" />
-            <BaseText color="error" type="badge">
-              {error}
+            <InfoCircle size={14} color="#7F8185" />
+            <BaseText color="muted" type="badge">
+              {info}
             </BaseText>
           </View>
         )}

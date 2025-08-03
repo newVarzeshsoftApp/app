@@ -68,33 +68,41 @@ export const validateUsername = z.string().superRefine((value, context) => {
   }
 });
 
+// export const validatePassword = z
+//   .string()
+//   .min(1, {message: i18n.t('Validation.passwordRequired')})
+//   .min(6, {message: i18n.t('Validation.passwordLengthMin')})
+//   .regex(new RegExp('.*[A-Z].*'), {
+//     message: i18n.t('Validation.passwordOneUppercase'),
+//   })
+//   .regex(new RegExp('.*[a-z].*'), {
+//     message: i18n.t('Validation.passwordOneLowercase'),
+//   })
+//   .regex(new RegExp('.*\\d.*'), {
+//     message: i18n.t('Validation.passwordOneNumeric'),
+//   });
+
+// export const validateNewPassword = z
+//   .string()
+//   .min(1, {message: i18n.t('Validation.passwordRequired')})
+//   .min(6, {message: i18n.t('Validation.passwordLengthMin')})
+//   .regex(new RegExp('.*[A-Z].*'), {
+//     message: i18n.t('Validation.passwordOneUppercase'),
+//   })
+//   .regex(new RegExp('.*[a-z].*'), {
+//     message: i18n.t('Validation.passwordOneLowercase'),
+//   })
+//   .regex(new RegExp('.*\\d.*'), {
+//     message: i18n.t('Validation.passwordOneNumeric'),
+//   });
+
 export const validatePassword = z
   .string()
-  .min(1, {message: i18n.t('Validation.passwordRequired')})
-  .min(6, {message: i18n.t('Validation.passwordLengthMin')})
-  .regex(new RegExp('.*[A-Z].*'), {
-    message: i18n.t('Validation.passwordOneUppercase'),
-  })
-  .regex(new RegExp('.*[a-z].*'), {
-    message: i18n.t('Validation.passwordOneLowercase'),
-  })
-  .regex(new RegExp('.*\\d.*'), {
-    message: i18n.t('Validation.passwordOneNumeric'),
-  });
+  .min(1, {message: i18n.t('Validation.passwordRequired')});
 
 export const validateNewPassword = z
   .string()
-  .min(1, {message: i18n.t('Validation.passwordRequired')})
-  .min(6, {message: i18n.t('Validation.passwordLengthMin')})
-  .regex(new RegExp('.*[A-Z].*'), {
-    message: i18n.t('Validation.passwordOneUppercase'),
-  })
-  .regex(new RegExp('.*[a-z].*'), {
-    message: i18n.t('Validation.passwordOneLowercase'),
-  })
-  .regex(new RegExp('.*\\d.*'), {
-    message: i18n.t('Validation.passwordOneNumeric'),
-  });
+  .min(1, {message: i18n.t('Validation.passwordRequired')});
 
 export const validateConfirmPassword = z
   .string()
