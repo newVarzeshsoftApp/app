@@ -40,7 +40,7 @@ const LoginWithOTPScreen: React.FC<LoginWithOTPScreenProps> = () => {
     onSuccess(data, variables) {
       navigate('Auth', {
         screen: 'OTP',
-        params: {username: variables.username, resetPassword: true},
+        params: {username: variables.username, resetPassword: false},
       });
     },
     onError: handleMutationError,

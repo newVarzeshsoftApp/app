@@ -83,10 +83,10 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     mutationFn: PaymentService.CreatePayment,
     onSuccess(data, variables, context) {
       if (data?.url) {
-        navigate('Root', {
-          screen: 'WebViewParamsList',
-          params: {url: data.url},
-        });
+        // navigate('Root', {
+        //   screen: 'WebViewParamsList',
+        //   params: {url: data.url},
+        // });
       }
     },
   });
@@ -135,7 +135,10 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
         contractorId: item?.SelectedContractor?.contractorId ?? null,
         start: moment().format('YYYY-MM-DD'),
         end: moment()
-          .add(item.SelectedPriceList?.duration ?? item.product.duration)
+          .add(
+            item.SelectedPriceList?.duration ?? item.product.duration,
+            'days',
+          )
           .format('YYYY-MM-DD'),
 
         isOnline: true,
