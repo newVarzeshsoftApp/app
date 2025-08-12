@@ -364,6 +364,7 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
                             </View>
                           ))}
                     </View>
+                    <BaseText type="title3">مبلغ (ریال)</BaseText>
                     <KeyboardAvoidingView
                       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                       style={{flex: 1}}>
