@@ -88,4 +88,8 @@ export const routes = {
     getAdvertisement: (query: AdvertisementQuery) =>
       `advertisement` + prepareQuery(query),
   },
+  walletGift: {
+    getWalletGift: (query: AdvertisementQuery) =>
+      `wallet/gift/query` + prepareQuery(query),
+  },
 };

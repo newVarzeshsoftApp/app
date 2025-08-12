@@ -12,6 +12,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import Animated, {
@@ -25,7 +26,7 @@ import {WalletStackParamList} from '../../utils/types/NavigationTypes';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import LinearGradient from 'react-native-linear-gradient';
 import WalletBalance from './components/WalletBalance';
-import {Add, Minus, MoneyRecive} from 'iconsax-react-native';
+import {Add, Gift, Minus, MoneyRecive} from 'iconsax-react-native';
 import BaseText from '../../components/BaseText';
 import BaseButton from '../../components/Button/BaseButton';
 import {formatNumber} from '../../utils/helpers/helpers';
@@ -38,6 +39,7 @@ import {PaymentService} from '../../services/PaymentService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useGetGetway} from '../../utils/hooks/Getway/useGetGetway';
 import {navigate} from '../../navigation/navigationRef';
+import {useGetAllWalletGift} from '../../utils/hooks/User/useGetAllWalletGift';
 type WalletScreenProps = NativeStackScreenProps<
   WalletStackParamList,
   'ChargeWalletScreen'
@@ -46,6 +48,7 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
   navigation,
   route,
 }) => {
+  const {data: walletGift} = useGetAllWalletGift({});
   useEffect(() => {
     const parent = navigation.getParent();
     // Hide the tab bar when ChargeWalletScreen is focused
@@ -190,25 +193,67 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
       if (holdInterval) clearInterval(holdInterval as NodeJS.Timeout);
     };
   }, [pressTimer, holdInterval]);
+  //   <BaseButton
+  //   text={`${item.title}\n${formatNumber(item.fromPrice)}﷼\n+${formatNumber(
+  //     item.gift,
+  //   )} هدیه`}
+  //   type={isSelected ? 'Fill' : 'Outline'}
+  //   size="Large"
+  //   onPress={onSelect}
+  //   Extraclass="flex-1"
+  //   color="Black"
+  //   rounded
+  // />
   const PriceButton = memo(
     ({
-      price,
+      item,
       isSelected,
       onSelect,
     }: {
-      price: any;
+      item: {title: string; fromPrice: number; gift: number};
       isSelected: boolean;
       onSelect: () => void;
     }) => (
-      <BaseButton
-        text={`${formatNumber(price)}﷼`}
-        type={isSelected ? 'Fill' : 'Outline'}
-        size="Large"
-        onPress={onSelect}
-        Extraclass="flex-1"
-        color="Black"
-        rounded
-      />
+      <TouchableOpacity onPress={onSelect} className="w-full relative ">
+        <LinearGradient
+          colors={['#FED376', isSelected ? '#FED376' : BaseColor]}
+          start={Platform.OS === 'web' ? {x: 0, y: 1} : {x: 1, y: -1}}
+          locations={[0.0001, 1]}
+          style={{
+            flex: 1,
+            borderRadius: 16,
+            justifyContent: 'center',
+            alignItems: 'center',
+          }}>
+          <View className="flex-1 p-[2px] w-full h-full relative z-10 overflow-hidden ">
+            <View className=" flex-1 w-full justify-between items-center px-4 py-3 flex-row overflow-hidden h-full dark:bg-neutral-dark-300/80 bg-neutral-0/80 rounded-[15px]">
+              <View className="items-start gap-1.5">
+                <View className="flex-row items-center gap-2 ">
+                  <BaseText type="body2">{item.title}</BaseText>
+                  <View className="flex-row items-center gap-0.5">
+                    <BaseText type="body2">
+                      {formatNumber(item.fromPrice)}
+                    </BaseText>
+                    <BaseText type="body3" color="secondary">
+                      ﷼
+                    </BaseText>
+                  </View>
+                </View>
+                <View className="flex-row items-center gap-2">
+                  <BaseText color="supportive2" type="body2">
+                    شارژ هدیه :
+                  </BaseText>
+                  <BaseText color="supportive2" type="body2">
+                    {formatNumber(item.gift)} ریال
+                  </BaseText>
+                </View>
+              </View>
+
+              <Gift size="24" variant="Bold" color="#b28bc9" />
+            </View>
+          </View>
+        </LinearGradient>
+      </TouchableOpacity>
     ),
   );
   const {
@@ -274,21 +319,52 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
                         </BaseText>
                       </View>
                     </View>
-                    <View className="flex-wrap flex-row justify-between web:h-[120px]">
-                      {price.map((item, index) => (
-                        <View
-                          key={index}
-                          style={{width: '49%', marginBottom: 8}}>
-                          <PriceButton
-                            isSelected={Number(watchAmount) === item}
-                            onSelect={() =>
-                              methods.setValue('amount', item.toString())
-                            }
-                            price={item}
-                          />
-                        </View>
-                      ))}
+                    <View
+                      className={
+                        walletGift && walletGift.length > 0
+                          ? 'gap-4'
+                          : 'flex-wrap flex-row justify-between web:h-[120px]'
+                      }>
+                      {walletGift && walletGift.length > 0
+                        ? walletGift.map((item: any, index: number) => (
+                            <View key={item.id}>
+                              <PriceButton
+                                isSelected={
+                                  Number(watchAmount) === item.fromPrice
+                                }
+                                onSelect={() =>
+                                  methods.setValue(
+                                    'amount',
+                                    item.fromPrice.toString(),
+                                  )
+                                }
+                                item={item}
+                              />
+                            </View>
+                          ))
+                        : price.map((item, index) => (
+                            <View
+                              key={index}
+                              style={{width: '49%', marginBottom: 8}}>
+                              <BaseButton
+                                text={`${formatNumber(item)}﷼`}
+                                type={
+                                  Number(watchAmount) === item
+                                    ? 'Fill'
+                                    : 'Outline'
+                                }
+                                size="Large"
+                                onPress={() =>
+                                  methods.setValue('amount', item.toString())
+                                }
+                                Extraclass="flex-1"
+                                color="Black"
+                                rounded
+                              />
+                            </View>
+                          ))}
                     </View>
+                    <BaseText type="title3">مبلغ (ریال)</BaseText>
                     <KeyboardAvoidingView
                       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
                       style={{flex: 1}}>
