@@ -19,10 +19,10 @@ export function navigate<T extends keyof RootStackParamList>(
   navigationRef.navigate(name as any, params as any);
 
   if (Platform.OS === 'web') {
-    const url = linking.getPathFromState
-      ? linking.getPathFromState({routes: [{name, params}]})
+    const url = linking?.getPathFromState
+      ? linking?.getPathFromState({routes: [{name, params}]})
       : '';
-    window.history.pushState({name, params}, '', url.toString());
+    window?.history?.pushState({name, params}, '', url?.toString());
   }
 }
 
@@ -46,7 +46,7 @@ export function goBackSafe() {
     goBack();
   } else if (Platform.OS === 'web') {
     // At root – ask user to exit or go home
-    const confirmExit = window.confirm('Do you want to exit the app?');
+    const confirmExit = window?.confirm('Do you want to exit the app?');
     if (confirmExit) {
       // Navigate to root screen (manually, not using back)
       navigationRef.navigate('Root', {

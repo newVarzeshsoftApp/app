@@ -17,14 +17,14 @@ const CreditSubProduct: React.FC<SubProductProps> = ({
   const {t} = useTranslation('translation', {keyPrefix: 'Home'});
   const getTitle = (item: subProducts): string => {
     if (item.product?.title) {
-      return item.product.title;
+      return item.product?.title;
     } else if (item?.category?.title) {
-      return `${t('allServicesInCategory')} ${item.category.title}`;
+      return `${t('allServicesInCategory')} ${item.category?.title}`;
     } else if (item.SaleUnit?.title) {
-      return `${t('allServicesInSalesUnit')} ${item.SaleUnit.title}`;
+      return `${t('allServicesInSalesUnit')} ${item.SaleUnit?.title}`;
     } else if (item.OrganizationUnit?.title) {
       return `${t('allServicesInOrganizationalUnit')} ${
-        item.OrganizationUnit.title
+        item.OrganizationUnit?.title
       }`;
     }
     return t('noLimit');

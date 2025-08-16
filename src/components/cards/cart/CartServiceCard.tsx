@@ -38,9 +38,9 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
       />
       <View className="CardBase gap-3">
         <View className="w-full h-[185px] bg-neutral-0 dark:bg-neutral-dark-0 rounded-3xl  relative overflow-hidden">
-          {product.image?.name && (
+          {product?.image?.name && (
             <ResponsiveImage
-              customSource={{default: product.image?.name}}
+              customSource={{default: product?.image?.name}}
               ImageType="Media"
               resizeMode="cover"
               style={{width: '100%', height: 200}}
@@ -49,7 +49,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
         </View>
         <View className="flex-row items-center justify-between">
           <BaseText type="subtitle2" color="base">
-            {product.title}
+            {product?.title}
           </BaseText>
           <BaseButton
             noText
@@ -110,7 +110,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
               {t('Number of sessions')} :
             </BaseText>
             <BaseText type="subtitle3" color="base">
-              {data.product.unlimited
+              {data?.product?.unlimited
                 ? t('unlimited')
                 : `${SelectedPriceList?.min} جلسه`}{' '}
             </BaseText>
@@ -141,7 +141,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
               </BaseText>
             </View>
           )}
-          {product.isCashBack && (
+          {product?.isCashBack && (
             <View className="flex-row items-center justify-between">
               <BaseText type="subtitle3" color="supportive2">
                 {t('shopGift')} :

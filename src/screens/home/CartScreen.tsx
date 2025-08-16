@@ -83,10 +83,10 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     mutationFn: PaymentService.CreatePayment,
     onSuccess(data, variables, context) {
       if (data?.url) {
-        // navigate('Root', {
-        //   screen: 'WebViewParamsList',
-        //   params: {url: data.url},
-        // });
+        navigate('Root', {
+          screen: 'WebViewParamsList',
+          params: {url: data.url},
+        });
       }
     },
   });
@@ -112,8 +112,8 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     const submitAt = moment().format('YYYY-MM-DD HH:DD');
     const Items: SaleOrderItem[] = normalizedItems.map(item => {
       const amount = item.SelectedPriceList
-        ? item.SelectedPriceList.price
-        : item.product.price;
+        ? item.SelectedPriceList?.price
+        : item.product?.price;
       const discount =
         item.product.type === ProductType.Package
           ? item.product.subProducts?.reduce(
@@ -130,7 +130,8 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
           ? item?.product?.tax
           : (amount * (item?.product?.tax ?? 0)) / 100,
         manualPrice: false,
-        type: item.product.type === ProductType.Package ? 4 : item.product.type,
+        type:
+          item.product?.type === ProductType.Package ? 4 : item.product?.type,
         contractor: item?.SelectedContractor?.contractorId ?? null,
         contractorId: item?.SelectedContractor?.contractorId ?? null,
         start: moment().format('YYYY-MM-DD'),
@@ -145,7 +146,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
         user: ProfileData?.id,
         amount: amount,
         discount:
-          item.product.type === ProductType.Package
+          item.product?.type === ProductType.Package
             ? discount
             : (amount * discount) / 100,
         priceId: item.SelectedPriceList?.id ?? null,

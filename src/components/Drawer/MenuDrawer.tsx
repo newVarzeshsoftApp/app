@@ -18,14 +18,14 @@ const getActiveRouteName = (state: NavigationState | undefined): string => {
     if (!state?.index || !state?.routes) {
       return '';
     }
-    const route = state.routes[state.index];
+    const route = state?.routes?.[state.index];
     if (!route) {
       return '';
     }
-    if (route.state && 'routes' in route.state) {
-      return getActiveRouteName(route.state as NavigationState);
+    if (route?.state && 'routes' in route.state) {
+      return getActiveRouteName(route?.state as NavigationState);
     }
-    return route.name || '';
+    return route?.name || '';
   } catch (error) {
     console.warn('Error getting active route name:', error);
     return '';
@@ -69,7 +69,7 @@ const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
                   color={theme === 'dark' ? '#eaeaeb' : '#232529'}
                   variant="Bold"
                 />
-                <BaseText type="title4">{t(item.title)}</BaseText>
+                <BaseText type="title4">{t(item?.title)}</BaseText>
               </View>
               <View
                 className={`${
@@ -84,8 +84,8 @@ const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
             {Platform.OS === 'web' ? (
               <Collapse isOpened={!!openSections[index]}>
                 <View className="px-8 pt-4">
-                  {item.children.map((child, childIndex) => {
-                    const AvtiveTab = currentRoute === child.slug;
+                  {item?.children?.map((child, childIndex) => {
+                    const AvtiveTab = currentRoute === child?.slug;
                     return (
                       <TouchableOpacity
                         key={childIndex}
@@ -93,9 +93,9 @@ const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
                         onPress={() =>
                           navigate('Root', {
                             // @ts-ignore
-                            screen: item.slug,
+                            screen: item?.slug,
                             // @ts-ignore
-                            params: {screen: child.slug},
+                            params: {screen: child?.slug},
                           })
                         }>
                         {AvtiveTab && (
@@ -105,7 +105,7 @@ const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
                           type="title4"
                           color={AvtiveTab ? 'base' : 'secondary'}
                           key={childIndex}>
-                          {t(child.title)}
+                          {t(child?.title)}
                         </BaseText>
                       </TouchableOpacity>
                     );
@@ -117,8 +117,8 @@ const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
                 collapsed={!openSections[index]}
                 style={{zIndex: 10}}>
                 <View className="px-8 pt-4 z-10">
-                  {item.children.map((child, childIndex) => {
-                    const AvtiveTab = currentRoute === child.slug;
+                  {item?.children?.map((child, childIndex) => {
+                    const AvtiveTab = currentRoute === child?.slug;
                     return (
                       <TouchableOpacity
                         key={childIndex}
@@ -126,16 +126,16 @@ const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
                         onPress={() =>
                           navigate('Root', {
                             // @ts-ignore
-                            screen: item.slug,
+                            screen: item?.slug,
                             // @ts-ignore
-                            params: {screen: child.slug},
+                            params: {screen: child?.slug},
                           })
                         }>
                         {AvtiveTab && (
                           <View className="h-[60%] w-[4px] rounded-full bg-secondary-500 absolute -right-[2.5px] top-1/2 transform -translate-y-1/2" />
                         )}
                         <BaseText type="title4" key={childIndex}>
-                          {t(child.title)}
+                          {t(child?.title)}
                         </BaseText>
                       </TouchableOpacity>
                     );

@@ -142,7 +142,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
       CreatePayment.mutate({
         amount: PaymentData?.payment.amount || 0,
         description: 'پرداخت',
-        gateway: PaymentData?.payment.gateway.id,
+        gateway: PaymentData?.payment?.gateway?.id,
         isDeposit: route.params?.isDeposite ? true : false,
       });
     }
@@ -331,7 +331,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                         {t('Payment gateway')}: {''}
                       </BaseText>
                       <BaseText type="body3" color="base">
-                        {PaymentData.payment.gateway.title}
+                        {PaymentData?.payment?.gateway?.title}
                       </BaseText>
                     </View>
                     <View className="flex-row items-center justify-between ">

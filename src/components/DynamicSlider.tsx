@@ -26,7 +26,7 @@ const DynamicSlider = forwardRef<DynamicSliderHandle, DynamicSliderProps<any>>(
     const flatListRef = useRef<FlatList<any>>(null);
     const [currentIndex, setCurrentIndex] = useState(0);
     const handleScroll = (event: any) => {
-      const offsetX = event.nativeEvent.contentOffset.x;
+      const offsetX = event?.nativeEvent?.contentOffset?.x;
       const newIndex = Math.round(offsetX / width);
       onIndexChange?.(newIndex);
       setCurrentIndex(newIndex);

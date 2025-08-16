@@ -41,8 +41,8 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
     set(state => {
       if (
         state.history.length > 0 &&
-        state.history[state.history.length - 1].name === name &&
-        JSON.stringify(state.history[state.history.length - 1].params) ===
+        state?.history?.[state.history.length - 1]?.name === name &&
+        JSON.stringify(state?.history?.[state.history.length - 1]?.params) ===
           JSON.stringify(params)
       ) {
         console.log(
@@ -67,14 +67,14 @@ export const useNavigationStore = create<NavigationState>((set, get) => ({
     } | null = null;
 
     set(state => {
-      if (state.history.length > 1) {
-        previousRoute = state.history[state.history.length - 2];
+      if (state?.history?.length > 1) {
+        previousRoute = state?.history?.[state.history.length - 2];
         console.log(
-          `🔙 Found previous route: ${previousRoute.name}`,
-          previousRoute.params,
+          `🔙 Found previous route: ${previousRoute?.name}`,
+          previousRoute?.params,
         );
 
-        const newHistory = state.history.slice(0, -1);
+        const newHistory = state?.history?.slice(0, -1);
         console.log('📜 Updated History after goBack:', newHistory); // ✅ Log updated history after going back
         return {history: newHistory};
       } else {

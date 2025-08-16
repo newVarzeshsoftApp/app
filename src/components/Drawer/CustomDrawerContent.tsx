@@ -52,7 +52,7 @@ const CustomDrawerContent: React.FC<DrawerContentComponentProps> = props => {
                 <View className="w-[45px] h-[45px] ">
                   <ResponsiveImage
                     ImageType="App"
-                    customSource={OrganizationBySKU?.officialLogo.srcset}
+                    customSource={OrganizationBySKU?.officialLogo?.srcset}
                     fallback={require('../../assets/images/testImage.png')}
                     resizeMode="contain"
                   />

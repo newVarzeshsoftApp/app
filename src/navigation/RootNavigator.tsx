@@ -24,7 +24,7 @@ export const RootNavigator: React.FC = () => {
   useEffect(() => {
     if (Platform.OS === 'web') {
       const handlePopState = (event: PopStateEvent) => {
-        const state = event.state;
+        const state = event?.state;
         if (state?.name === 'Drawer') {
           window?.history?.back();
           return;
@@ -46,7 +46,7 @@ export const RootNavigator: React.FC = () => {
       const unsubscribe = navigationRef?.current?.addListener('state', e => {
         try {
           if (e?.data?.state) {
-            window.scrollTo(0, 0);
+            window?.scrollTo(0, 0);
           }
         } catch (error) {
           console.warn('Navigation state error:', error);

@@ -24,7 +24,7 @@ export const OperationalService = {
       if (axios.isAxiosError(error) && error.response) {
         handleMutationError(error);
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;

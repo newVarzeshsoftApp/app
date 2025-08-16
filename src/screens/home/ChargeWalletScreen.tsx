@@ -87,7 +87,7 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
   }, [navigation, scrollY]);
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: event => {
-      scrollY.value = event.contentOffset.y;
+      scrollY.value = event?.contentOffset?.y;
     },
   });
   const price = [5000000, 10000000, 15000000, 20000000];
@@ -183,7 +183,7 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
   );
   useEffect(() => {
     if (Getways && Getways.length > 0) {
-      setSelectedGateway(Getways[0].id);
+      setSelectedGateway(Getways[0]?.id);
     }
   }, [Getways]);
   // Cleanup effect for timers
@@ -326,16 +326,16 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
                           : 'flex-wrap flex-row justify-between web:h-[120px]'
                       }>
                       {walletGift && walletGift.length > 0
-                        ? walletGift.map((item: any, index: number) => (
+                        ? walletGift?.map((item: any, index: number) => (
                             <View key={item.id}>
                               <PriceButton
                                 isSelected={
-                                  Number(watchAmount) === item.fromPrice
+                                  Number(watchAmount) === item?.fromPrice
                                 }
                                 onSelect={() =>
                                   methods.setValue(
                                     'amount',
-                                    item.fromPrice.toString(),
+                                    item?.fromPrice?.toString(),
                                   )
                                 }
                                 item={item}
@@ -419,21 +419,21 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
                         keyExtractor={(item, index) => `key` + index}
                         renderItem={({item}) => (
                           <BaseButton
-                            text={item.title}
+                            text={item?.title}
                             type={
-                              selectedGateway === item.id ? 'Fill' : 'Outline'
+                              selectedGateway === item?.id ? 'Fill' : 'Outline'
                             }
                             srcLeft={
-                              item.icon
-                                ? {uri: item.icon}
-                                : item.type === 0
+                              item?.icon
+                                ? {uri: item?.icon}
+                                : item?.type === 0
                                 ? require('../../assets/icons/zarinpal.png')
                                 : require('../../assets/icons/payping.png')
                             }
                             size="Large"
                             color="Black"
                             rounded
-                            onPress={() => setSelectedGateway(item.id)}
+                            onPress={() => setSelectedGateway(item?.id)}
                           />
                         )}
                         horizontal

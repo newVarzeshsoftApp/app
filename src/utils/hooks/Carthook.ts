@@ -21,7 +21,7 @@ export const useCart = () => {
   const sortedCartItems = useMemo(() => {
     return [...cartSummary.items].sort(
       (a, b) =>
-        new Date(b.submitAt!).getTime() - new Date(a.submitAt!).getTime(),
+        new Date(b?.submitAt!).getTime() - new Date(a?.submitAt!).getTime(),
     );
   }, [cartSummary.items]);
 

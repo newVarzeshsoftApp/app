@@ -258,10 +258,10 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     // ================ Gesture: Scrollable =================
     const onScroll = useAnimatedScrollHandler({
       onBeginDrag: event => {
-        scrollBegin.value = event.contentOffset.y;
+        scrollBegin.value = event?.contentOffset?.y;
       },
       onScroll: event => {
-        scrollY.value = event.contentOffset.y;
+        scrollY.value = event?.contentOffset?.y;
       },
     });
 
