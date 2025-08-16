@@ -64,7 +64,7 @@ const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
               onPress={() => toggleSection(index)}
               className="bg-neutral-0 dark:bg-neutral-dark-200 flex-row justify-between px-5 py-3 rounded-2xl">
               <View className="flex-row items-center gap-3">
-                <item?.Icon
+                <item.Icon
                   size="24"
                   color={theme === 'dark' ? '#eaeaeb' : '#232529'}
                   variant="Bold"
