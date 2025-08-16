@@ -13,8 +13,8 @@ const axiosInstance = axios.create({
 axiosInstance.interceptors.request.use(async config => {
   const tokens = await getTokens();
 
-  if (tokens.accessToken) {
-    config.headers.Authorization = `Bearer ${tokens.accessToken}`;
+  if (tokens?.accessToken) {
+    config.headers.Authorization = `Bearer ${tokens?.accessToken}`;
   }
   return config;
 });
@@ -29,47 +29,47 @@ axiosInstance.interceptors.response.use(
     return response;
   },
   async error => {
-    const originalRequest = error.config;
+    const originalRequest = error?.config;
 
     // Log detailed error information
-    if (error.response) {
+    if (error?.response) {
       console.error('Axios Error Response:', {
-        status: error.response.status,
-        data: error.response.data,
-        headers: error.response.headers,
+        status: error?.response?.status,
+        data: error?.response?.data,
+        headers: error?.response?.headers,
       });
-    } else if (error.request) {
-      console.error('Axios Error Request:', error.request);
+    } else if (error?.request) {
+      console.error('Axios Error Request:', error?.request);
     } else {
-      console.error('Axios Error Message:', error.message);
+      console.error('Axios Error Message:', error?.message);
     }
-    if (originalRequest.url?.includes('auth/refresh')) {
+    if (originalRequest?.url?.includes('auth/refresh')) {
       await removeTokens();
       navigate('Auth');
       if (Platform.OS === 'web') {
-        window.location.reload();
+        window?.location?.reload();
       }
       throw error;
     }
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error?.response?.status === 401 && !originalRequest?._retry) {
       originalRequest._retry = true;
       console.warn('Unauthorized (401), attempting to refresh tokens...');
 
       try {
         const refreshedTokens: SignInResponse = await AuthService.Refresh();
         await storeTokens(
-          refreshedTokens.accessToken,
-          refreshedTokens.refreshToken,
+          refreshedTokens?.accessToken,
+          refreshedTokens?.refreshToken,
         );
 
-        originalRequest.headers.Authorization = `Bearer ${refreshedTokens.accessToken}`;
+        originalRequest.headers.Authorization = `Bearer ${refreshedTokens?.accessToken}`;
         return axiosInstance(originalRequest);
       } catch (refreshError) {
         console.warn('Token refresh failed, removing tokens...');
         await removeTokens();
         navigate('Auth');
         if (Platform.OS === 'web') {
-          window.location.reload();
+          window?.location?.reload();
         }
         throw refreshError;
       }

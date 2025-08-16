@@ -34,7 +34,7 @@ export const PaymentService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -57,7 +57,7 @@ export const PaymentService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -82,7 +82,7 @@ export const PaymentService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;

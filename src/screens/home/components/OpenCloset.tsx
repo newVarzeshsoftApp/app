@@ -95,7 +95,7 @@ const OpenCloset: React.FC = () => {
               VIP
             </BaseText>
             {(() => {
-              const vipId = data.vipLocker.locker.lockerId;
+              const vipId = data.vipLocker?.locker?.lockerId;
               const vipKey = getLockerKey('vip', vipId);
               return (
                 <View className="items-center flex-row justify-between bg-white dark:bg-neutral-dark-100 px-4 py-2 rounded-full">
@@ -112,7 +112,7 @@ const OpenCloset: React.FC = () => {
                       <BaseText type="subtitle2" color="muted">
                         {t('Closet')} :
                       </BaseText>
-                      <BaseText>{data.vipLocker.locker.lockerNumber}</BaseText>
+                      <BaseText>{data.vipLocker?.locker?.lockerNumber}</BaseText>
                     </View>
                   </View>
                   <BaseButton
@@ -121,8 +121,8 @@ const OpenCloset: React.FC = () => {
                     onPress={() =>
                       OpenLocker({
                         lockerId: vipId,
-                        relayNumber: data.vipLocker.locker.relayNumber,
-                        relayOnTime: data.vipLocker.locker.relayOnTime,
+                        relayNumber: data.vipLocker?.locker?.relayNumber,
+                        relayOnTime: data.vipLocker?.locker?.relayOnTime,
                         type: 'vip',
                       })
                     }

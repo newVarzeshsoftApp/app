@@ -68,19 +68,19 @@ export const addCart = async (
       const existingItem = cart[existingItemIndex];
 
       const isSamePriceList =
-        existingItem.SelectedPriceList?.id === item.SelectedPriceList?.id;
+        existingItem?.SelectedPriceList?.id === item?.SelectedPriceList?.id;
 
       const isSameContractor =
-        existingItem.SelectedContractor?.id === item.SelectedContractor?.id;
+        existingItem?.SelectedContractor?.id === item?.SelectedContractor?.id;
 
       if (isSamePriceList && isSameContractor) {
         // اگر همه موارد یکسان بود، quantity را افزایش می‌دهیم
-        existingItem.quantity += item.quantity ?? 1;
+        existingItem.quantity += item?.quantity ?? 1;
       } else {
         // اگر متفاوت بودند، آیتم جدید اضافه میشه
         const newItem: CartItem = {
           ...item,
-          quantity: item.quantity ?? 1,
+          quantity: item?.quantity ?? 1,
           CartId: generateCartId(),
         };
         cart.push(newItem);

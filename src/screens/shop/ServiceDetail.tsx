@@ -100,8 +100,8 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
 
   useEffect(() => {
     if (route.params.priceId) {
-      const findPriceList = data?.priceList.find(
-        (item, index) => item.id === route.params.priceId,
+      const findPriceList = data?.priceList?.find(
+        (item, index) => item?.id === route.params.priceId,
       );
       if (findPriceList) {
         setSelectedPriceList(findPriceList);
@@ -124,8 +124,8 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
 
   useEffect(() => {
     if (route.params.contractorId) {
-      const foundedContractor = data?.contractors.find(
-        (item, index) => item.contractor?.id === route.params.contractorId,
+      const foundedContractor = data?.contractors?.find(
+        (item, index) => item?.contractor?.id === route.params.contractorId,
       );
       if (foundedContractor) {
         setSelectedContractor(foundedContractor);
@@ -133,7 +133,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
       }
     }
     if (data?.requiredContractor) {
-      setSelectedContractor(data.contractors[0]);
+      setSelectedContractor(data?.contractors?.[0]);
     }
   }, [data?.requiredContractor, data?.contractors, route.params.priceId]);
 
@@ -154,7 +154,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
 
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: event => {
-      scrollY.value = event.contentOffset.y;
+      scrollY.value = event?.contentOffset?.y;
     },
   });
 
@@ -227,19 +227,19 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
         snapPoints={[70]}
         Title={t('Contractor List')}>
         <View className="gap-3">
-          {data?.contractors.map((item, index) => {
+          {data?.contractors?.map((item, index) => {
             return (
               <>
                 <UserRadioButton
                   key={index}
-                  genders={item.contractor?.gender ?? 0}
+                  genders={item?.contractor?.gender ?? 0}
                   checked={SelectedContractor === item}
                   onCheckedChange={() => {
                     setSelectedContractor(item);
                     BottomSheetContractorRef.current?.close();
                   }}
                   Name={`${item?.contractor?.firstName} ${item?.contractor?.lastName}`}
-                  ImageUrl={item.contractor?.profile?.name}
+                  ImageUrl={item?.contractor?.profile?.name}
                 />
               </>
             );

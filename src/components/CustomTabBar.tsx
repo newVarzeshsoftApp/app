@@ -42,7 +42,7 @@ const CustomTabBar: React.FC<CustomTabBarProps> = ({
   const Border = theme === 'dark' ? '#4d4d50' : '#aaabad';
 
   const handleTabLayout = (event: any) => {
-    const {width} = event.nativeEvent.layout;
+    const {width} = event?.nativeEvent?.layout;
     setTabWidth(width);
   };
 

@@ -47,7 +47,7 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
   const VerifyToken = useMutation({
     mutationFn: AuthService.VerifyToken,
     onSuccess(data, variables, context) {
-      if (route.params.resetPassword === true) {
+      if (route.params?.resetPassword === true) {
         navigate('Auth', {screen: 'ResetPassword'});
       } else {
         queryClient.invalidateQueries({queryKey: ['Tokens']});
@@ -60,7 +60,7 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
   const ResendCode = useMutation({
     mutationFn: AuthService.RequestOTP,
     onSuccess(data) {
-      if (data.result) {
+      if (data?.result) {
         showToast({type: 'success', text1: 'Code send'});
         resetOTPInput();
       }
@@ -80,8 +80,8 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
     if (OTP.length === Config.OTPLength) {
       VerifyToken.mutate({
         code: OTP,
-        organization: OrganizationBySKU!.id,
-        username: route.params.username,
+        organization: OrganizationBySKU?.id!,
+        username: route.params?.username,
       });
     }
   }, [OTP]);
@@ -114,7 +114,7 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
                   <TouchableOpacity
                     onPress={() =>
                       navigate('Auth', {
-                        screen: route.params.LoginWithOTP
+                        screen: route.params?.LoginWithOTP
                           ? 'LoginWithOTP'
                           : 'ForgetPassword',
                       })
@@ -122,7 +122,7 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
                     className="flex-row gap-1">
                     <Edit2 size="14" color="#BCDD64" variant="Bold" />
                     <BaseText type="subtitle2" color="active">
-                      {route.params.username}
+                      {route.params?.username}
                     </BaseText>
                   </TouchableOpacity>
                   <BaseText type="subtitle2" color="muted">
@@ -156,7 +156,7 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
             VerifyToken.mutate({
               code: OTP,
               organization: 0,
-              username: route.params.username,
+              username: route.params?.username,
             })
           }
           type="Fill"
@@ -181,7 +181,7 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
             onPress={() =>
               ResendCode.mutate({
                 organization: 1,
-                username: route.params.username,
+                username: route.params?.username,
               })
             }
             accessibilityLabel="Resend the code"

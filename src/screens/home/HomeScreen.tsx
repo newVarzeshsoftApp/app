@@ -14,7 +14,7 @@ const HomeScreen: React.FC = () => {
         {isLoading ? (
           <View className="w-full h-[160px] rounded-[16px]  dark:bg-white/20 bg-black/20 animate-pulse" />
         ) : (
-          Ads && Ads.content && <BannerSlider data={Ads.content} />
+          Ads && Ads?.content && <BannerSlider data={Ads?.content} />
         )}
       </View>
     </>

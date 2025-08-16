@@ -29,7 +29,7 @@ const OrganizationServise = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -53,7 +53,7 @@ const OrganizationServise = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -63,9 +63,9 @@ const OrganizationServise = {
     try {
       const headers: Record<string, string> = {};
       // 'Referer-key' only in development mode
-      if (process.env.NODE_ENV === 'development') {
-        headers['Referer-key'] = 'http://dot.varzeshsoft.com/';
-      }
+      // if (process.env.NODE_ENV === 'development') {
+      //   headers['Referer-key'] = 'http://dot.varzeshsoft.com/';
+      // }
       const response = await axiosInstance.get<GetAllOrganizationResponse>(
         baseUrl + getOrganizationBySKU(),
         {headers},
@@ -81,7 +81,7 @@ const OrganizationServise = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;

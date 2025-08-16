@@ -45,7 +45,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
   const {theme} = useTheme();
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: event => {
-      scrollY.value = event.contentOffset.y;
+      scrollY.value = event?.contentOffset?.y;
     },
   });
   useLayoutEffect(() => {
@@ -75,30 +75,30 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
   };
   const renderItem = useCallback(
     ({item}: {item: subProducts}) => {
-      const CardComponent = cardComponentMapping[item.product?.type!];
-      const routeName = navigationMapping[item.product?.type!];
+      const CardComponent = cardComponentMapping[item?.product?.type!];
+      const routeName = navigationMapping[item?.product?.type!];
       if (CardComponent) {
         return (
           <TouchableOpacity
-            key={item.product?.id}
+            key={item?.product?.id}
             onPress={() =>
               navigate('Root', {
                 screen: 'ShopNavigator',
                 params: {
                   screen: routeName as any,
                   params: {
-                    id: item.product?.id ?? 0,
-                    title: item.product?.title ?? '',
+                    id: item?.product?.id ?? 0,
+                    title: item?.product?.title ?? '',
                     readonly: true,
                   },
                 },
               })
             }>
-            <CardComponent key={item.id} data={item?.product!} />
+            <CardComponent key={item?.id} data={item?.product!} />
           </TouchableOpacity>
         );
       }
-      return <Text>Unknown type: {item.product?.type}</Text>;
+      return <Text>Unknown type: {item?.product?.type}</Text>;
     },
     [cardComponentMapping],
   );

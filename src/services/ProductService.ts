@@ -27,7 +27,7 @@ export const ProductService = {
       console.error('Error in GetProductPage function:', error);
       if (axios.isAxiosError(error) && error.response) {
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -48,7 +48,7 @@ export const ProductService = {
       if (axios.isAxiosError(error) && error.response) {
         handleMutationError(error);
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -69,7 +69,7 @@ export const ProductService = {
       if (axios.isAxiosError(error) && error.response) {
         handleMutationError(error);
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;

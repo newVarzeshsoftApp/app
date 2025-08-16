@@ -68,7 +68,7 @@ const UserService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -91,7 +91,7 @@ const UserService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -116,7 +116,7 @@ const UserService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -141,7 +141,7 @@ const UserService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -167,7 +167,7 @@ const UserService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -190,7 +190,7 @@ const UserService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -213,7 +213,7 @@ const UserService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -236,7 +236,7 @@ const UserService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -261,7 +261,7 @@ const UserService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -283,7 +283,7 @@ const UserService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -307,7 +307,7 @@ const UserService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -329,7 +329,7 @@ const UserService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -352,7 +352,7 @@ const UserService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -375,7 +375,7 @@ const UserService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;
@@ -402,7 +402,7 @@ const UserService = {
       if (axios.isAxiosError(error) && error.response) {
         handleMutationError(error);
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;

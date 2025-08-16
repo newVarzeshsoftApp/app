@@ -25,7 +25,7 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
   const Useable = !isExpired && data?.usable;
   const remainingCredit = (data?.credit ?? 0) - (data?.usedCredit ?? 0);
   const {data: ImageSrc} = useBase64ImageFromMedia(
-    data.product?.image?.name,
+    data?.product?.image?.name,
     'Media',
   );
   const colors = useMemo(() => {
@@ -53,7 +53,7 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
           ) : (
             <View className="w-2 h-2 rounded-full bg-error-500" />
           )}
-          <BaseText type="title4">{data.title}</BaseText>
+          <BaseText type="title4">{data?.title}</BaseText>
         </View>
         <View className="flex-row items-center gap-2">
           <Circle
@@ -71,7 +71,7 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
               {remainingCredit}
             </BaseText>
             <BaseText type="title4" color="muted">
-              {data.credit} /
+              {data?.credit} /
             </BaseText>
           </View>
         </View>
@@ -83,7 +83,7 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
               firstName={data?.contractor?.firstName}
               imageName={data?.contractor?.profile?.name}
               lastName={data?.contractor?.lastName}
-              gender={data.contractor.gender}
+              gender={data?.contractor?.gender}
             />
           ) : (
             <View></View>
@@ -96,7 +96,7 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
         <View className="flex-row items-center justify-between ">
           <BaseText type="body3" color="secondary">
             {t('start')} {''} : {''}
-            {moment(data.start)
+            {moment(data?.start)
               .local(
                 // @ts-ignore
                 'fa',
@@ -105,7 +105,7 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
           </BaseText>
           <BaseText type="body3" color="secondary">
             {t('end')} {''} : {''}
-            {moment(data.end)
+            {moment(data?.end)
               .local(
                 // @ts-ignore
                 'fa',

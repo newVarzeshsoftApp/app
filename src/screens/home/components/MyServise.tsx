@@ -52,7 +52,7 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
 
   useEffect(() => {
     if (fetchedData?.content) {
-      setData(prevItems => [...prevItems, ...fetchedData.content]);
+      setData(prevItems => [...prevItems, ...fetchedData?.content]);
     }
   }, [fetchedData]);
   const loadMore = () => {
@@ -68,17 +68,17 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
 
   const renderItem = useCallback(
     ({item}: {item: Content}) => {
-      const CardComponent = cardComponentMapping[item.type!];
+      const CardComponent = cardComponentMapping[item?.type!];
       if (CardComponent) {
         return (
           <TouchableOpacity
-            key={item.product?.id}
+            key={item?.product?.id}
             onPress={() => {
               navigate('Root', {
                 screen: 'SaleItemNavigator',
                 params: {
                   screen: 'saleItemDetail',
-                  params: {id: item.id, title: item.title || 'undefined'},
+                  params: {id: item?.id, title: item?.title || 'undefined'},
                 },
               });
             }}>
@@ -86,7 +86,7 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
           </TouchableOpacity>
         );
       }
-      return <Text>Unknown type: {item.type}</Text>;
+      return <Text>Unknown type: {item?.type}</Text>;
     },
     [cardComponentMapping],
   );

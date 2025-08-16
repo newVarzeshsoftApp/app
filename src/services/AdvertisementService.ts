@@ -29,7 +29,7 @@ const AdvertisementService = {
         handleMutationError(error);
 
         throw new Error(
-          error.response.data.message || 'Unknown error occurred',
+          error.response?.data?.message || 'Unknown error occurred',
         );
       }
       throw error;

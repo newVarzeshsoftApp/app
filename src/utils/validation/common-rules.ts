@@ -47,14 +47,14 @@ export const validateUsername = z.string().superRefine((value, context) => {
     return;
   }
   if (/^[a-zA-Z]/.test(value)) {
-    if (!validateEmail.safeParse(value).success) {
+    if (!validateEmail.safeParse(value)?.success) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: i18n.t('Validation.invalidEmail'),
       });
     }
   } else if (/^\+?[0-9]/.test(value)) {
-    if (!validateMobileNumber.safeParse(value).success) {
+    if (!validateMobileNumber.safeParse(value)?.success) {
       context.addIssue({
         code: z.ZodIssueCode.custom,
         message: i18n.t('Validation.invalidMobileNumber'),

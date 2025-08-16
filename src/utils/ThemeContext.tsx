@@ -18,7 +18,7 @@ export const ThemeProvider = ({children}: ThemeProviderProps) => {
   const {colorScheme, setColorScheme, toggleColorScheme} = useColorScheme();
   useEffect(() => {
     if (Platform.OS === 'web' && typeof document !== 'undefined') {
-      document.documentElement.classList.add(
+      document?.documentElement?.classList?.add(
         colorScheme ? colorScheme : 'dark',
       );
     }
@@ -37,8 +37,8 @@ export const ThemeProvider = ({children}: ThemeProviderProps) => {
     // Save theme to localStorage on change
     if (Platform.OS === 'web' && colorScheme) {
       localStorage.setItem('theme', colorScheme);
-      document.documentElement.classList.remove('light', 'dark');
-      document.documentElement.classList.add(colorScheme);
+      document?.documentElement?.classList?.remove('light', 'dark');
+      document?.documentElement?.classList?.add(colorScheme);
     }
   }, [colorScheme]);
   return (

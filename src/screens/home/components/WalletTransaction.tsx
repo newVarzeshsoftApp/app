@@ -35,7 +35,7 @@ const WalletTransaction: React.FC = ({
 
   useEffect(() => {
     if (fetchedData?.content) {
-      setData(prevItems => [...prevItems, ...fetchedData.content]);
+      setData(prevItems => [...prevItems, ...fetchedData?.content]);
     }
   }, [fetchedData]);
 
