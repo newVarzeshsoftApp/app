@@ -40,6 +40,7 @@ import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useGetGetway} from '../../utils/hooks/Getway/useGetGetway';
 import {navigate} from '../../navigation/navigationRef';
 import {useGetAllWalletGift} from '../../utils/hooks/User/useGetAllWalletGift';
+import {WalletGiftItem} from '../../services/models/response/WalletGiftResServise';
 type WalletScreenProps = NativeStackScreenProps<
   WalletStackParamList,
   'ChargeWalletScreen'
@@ -210,7 +211,7 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
       isSelected,
       onSelect,
     }: {
-      item: {title: string; fromPrice: number; gift: number};
+      item: WalletGiftItem;
       isSelected: boolean;
       onSelect: () => void;
     }) => (
@@ -229,10 +230,17 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
             <View className=" flex-1 w-full justify-between items-center px-4 py-3 flex-row overflow-hidden h-full dark:bg-neutral-dark-300/80 bg-neutral-0/80 rounded-[15px]">
               <View className="items-start gap-1.5">
                 <View className="flex-row items-center gap-2 ">
-                  <BaseText type="body2">{item.title}</BaseText>
                   <View className="flex-row items-center gap-0.5">
                     <BaseText type="body2">
-                      {formatNumber(item.fromPrice)}
+                      از {formatNumber(item.fromPrice)}
+                    </BaseText>
+                    <BaseText type="body3" color="secondary">
+                      ﷼
+                    </BaseText>
+                  </View>
+                  <View className="flex-row items-center gap-0.5">
+                    <BaseText type="body2">
+                      تا {formatNumber(item.toPrice)}
                     </BaseText>
                     <BaseText type="body3" color="secondary">
                       ﷼
@@ -244,7 +252,9 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
                     شارژ هدیه :
                   </BaseText>
                   <BaseText color="supportive2" type="body2">
-                    {formatNumber(item.gift)} ریال
+                    {item.type === 1
+                      ? `${formatNumber(item.gift)} ریال`
+                      : `${item.gift}%`}
                   </BaseText>
                 </View>
               </View>
@@ -330,7 +340,8 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
                             <View key={item.id}>
                               <PriceButton
                                 isSelected={
-                                  Number(watchAmount) === item?.fromPrice
+                                  Number(watchAmount) >= item?.fromPrice &&
+                                  Number(watchAmount) <= item?.toPrice
                                 }
                                 onSelect={() =>
                                   methods.setValue(
@@ -410,7 +421,74 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
                         />
                       </View>
                     </KeyboardAvoidingView>
-                    <View className="gap-4">
+                    <View>
+                      {(() => {
+                        const currentAmount = Number(
+                          watchAmount?.replace(/,/g, '') || 0,
+                        );
+
+                        if (currentAmount === 0) return null; // No amount entered, return null
+
+                        // Find matching gift for the entered amount
+                        const matchingGift = walletGift?.find(
+                          gift =>
+                            currentAmount >= gift.fromPrice &&
+                            currentAmount <= gift.toPrice,
+                        );
+
+                        if (matchingGift) {
+                          // Check if the gift is a percentage (type 0) or a fixed amount (type 1)
+                          if (matchingGift.type === 0) {
+                            // If it's percentage, calculate the bonus amount based on the entered amount
+                            const bonusAmount = Math.floor(
+                              (currentAmount * matchingGift.gift) / 100,
+                            );
+                            const totalAmount = currentAmount + bonusAmount;
+                            return (
+                              <BaseText
+                                type="title4"
+                                color="secondary"
+                                className="text-start">
+                                با پرداخت مبلغ{' '}
+                                <BaseText type="title4" color="Success600">
+                                  {formatNumber(currentAmount)} ریال
+                                </BaseText>
+                                ، مبلغ{' '}
+                                <BaseText type="title4" color="Success600">
+                                  {formatNumber(totalAmount)} ریال
+                                </BaseText>{' '}
+                                به موجودی کیف پول شما اضافه میشود.
+                              </BaseText>
+                            );
+                          } else {
+                            // If it's a fixed amount, directly add the gift to the entered amount
+                            const totalAmount =
+                              currentAmount + matchingGift.gift;
+
+                            return (
+                              <BaseText
+                                type="title4"
+                                color="secondary"
+                                className="text-start">
+                                با پرداخت مبلغ{' '}
+                                <BaseText type="title4" color="Success600">
+                                  {formatNumber(currentAmount)} ریال
+                                </BaseText>
+                                ، مبلغ{' '}
+                                <BaseText type="title4" color="Success600">
+                                  {formatNumber(matchingGift.gift)} ریال
+                                </BaseText>{' '}
+                                به موجودی کیف پول شما اضافه میشود.
+                              </BaseText>
+                            );
+                          }
+                        } else {
+                          // If no matching gift, return null (nothing displayed)
+                          return null;
+                        }
+                      })()}
+                    </View>
+                    <View className="gap-4 mt-4">
                       <BaseText type="subtitle2" color="secondary">
                         {t('Select Payment Method')}
                       </BaseText>
