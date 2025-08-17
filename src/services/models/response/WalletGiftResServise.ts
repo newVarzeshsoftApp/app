@@ -2,7 +2,7 @@ export interface WalletGiftItem {
   title: string;
   fromPrice: number;
   toPrice: number;
-  type: number;
+  type: number; // ۰ مبلغ, ۱ درصد
   gift: number;
   organizationUnits: any;
   id: number;
