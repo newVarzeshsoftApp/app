@@ -420,74 +420,75 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
                           Extraclass="w-12 h-12"
                         />
                       </View>
-                    </KeyboardAvoidingView>
-                    <View>
-                      {(() => {
-                        const currentAmount = Number(
-                          watchAmount?.replace(/,/g, '') || 0,
-                        );
+                      <View>
+                        {(() => {
+                          const currentAmount = Number(
+                            watchAmount?.replace(/,/g, '') || 0,
+                          );
 
-                        if (currentAmount === 0) return null; // No amount entered, return null
+                          if (currentAmount === 0) return null; // No amount entered, return null
 
-                        // Find matching gift for the entered amount
-                        const matchingGift = walletGift?.find(
-                          gift =>
-                            currentAmount >= gift.fromPrice &&
-                            currentAmount <= gift.toPrice,
-                        );
+                          // Find matching gift for the entered amount
+                          const matchingGift = walletGift?.find(
+                            gift =>
+                              currentAmount >= gift.fromPrice &&
+                              currentAmount <= gift.toPrice,
+                          );
 
-                        if (matchingGift) {
-                          // Check if the gift is a percentage (type 0) or a fixed amount (type 1)
-                          if (matchingGift.type === 0) {
-                            // If it's percentage, calculate the bonus amount based on the entered amount
-                            const bonusAmount = Math.floor(
-                              (currentAmount * matchingGift.gift) / 100,
-                            );
-                            const totalAmount = currentAmount + bonusAmount;
-                            return (
-                              <BaseText
-                                type="title4"
-                                color="secondary"
-                                className="text-start">
-                                با پرداخت مبلغ{' '}
-                                <BaseText type="title4" color="Success600">
-                                  {formatNumber(currentAmount)} ریال
+                          if (matchingGift) {
+                            // Check if the gift is a percentage (type 0) or a fixed amount (type 1)
+                            if (matchingGift.type === 0) {
+                              // If it's percentage, calculate the bonus amount based on the entered amount
+                              const bonusAmount = Math.floor(
+                                (currentAmount * matchingGift.gift) / 100,
+                              );
+                              const totalAmount = currentAmount + bonusAmount;
+                              return (
+                                <BaseText
+                                  type="title4"
+                                  color="secondary"
+                                  className="text-start">
+                                  با پرداخت مبلغ{' '}
+                                  <BaseText type="title4" color="Success600">
+                                    {formatNumber(currentAmount)} ریال
+                                  </BaseText>
+                                  ، مبلغ{' '}
+                                  <BaseText type="title4" color="Success600">
+                                    {formatNumber(totalAmount)} ریال
+                                  </BaseText>{' '}
+                                  به موجودی کیف پول شما اضافه میشود.
                                 </BaseText>
-                                ، مبلغ{' '}
-                                <BaseText type="title4" color="Success600">
-                                  {formatNumber(totalAmount)} ریال
-                                </BaseText>{' '}
-                                به موجودی کیف پول شما اضافه میشود.
-                              </BaseText>
-                            );
+                              );
+                            } else {
+                              // If it's a fixed amount, directly add the gift to the entered amount
+                              const totalAmount =
+                                currentAmount + matchingGift.gift;
+
+                              return (
+                                <BaseText
+                                  type="title4"
+                                  color="secondary"
+                                  className="text-start">
+                                  با پرداخت مبلغ{' '}
+                                  <BaseText type="title4" color="Success600">
+                                    {formatNumber(currentAmount)} ریال
+                                  </BaseText>
+                                  ، مبلغ{' '}
+                                  <BaseText type="title4" color="Success600">
+                                    {formatNumber(matchingGift.gift)} ریال
+                                  </BaseText>{' '}
+                                  به موجودی کیف پول شما اضافه میشود.
+                                </BaseText>
+                              );
+                            }
                           } else {
-                            // If it's a fixed amount, directly add the gift to the entered amount
-                            const totalAmount =
-                              currentAmount + matchingGift.gift;
-
-                            return (
-                              <BaseText
-                                type="title4"
-                                color="secondary"
-                                className="text-start">
-                                با پرداخت مبلغ{' '}
-                                <BaseText type="title4" color="Success600">
-                                  {formatNumber(currentAmount)} ریال
-                                </BaseText>
-                                ، مبلغ{' '}
-                                <BaseText type="title4" color="Success600">
-                                  {formatNumber(matchingGift.gift)} ریال
-                                </BaseText>{' '}
-                                به موجودی کیف پول شما اضافه میشود.
-                              </BaseText>
-                            );
+                            // If no matching gift, return null (nothing displayed)
+                            return null;
                           }
-                        } else {
-                          // If no matching gift, return null (nothing displayed)
-                          return null;
-                        }
-                      })()}
-                    </View>
+                        })()}
+                      </View>
+                    </KeyboardAvoidingView>
+
                     <View className="gap-4 mt-4">
                       <BaseText type="subtitle2" color="secondary">
                         {t('Select Payment Method')}
