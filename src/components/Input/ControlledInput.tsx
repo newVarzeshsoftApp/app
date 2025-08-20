@@ -104,7 +104,7 @@ const ControlledInput = <T extends FieldValues>({
               value={SperatedNumber ? formatNumber(value) : value}
               onBlur={onBlur}
               onChangeText={text => {
-                if (containsNonEnglish(text)) {
+                if (!props.noEnValidator && containsNonEnglish(text)) {
                   setLocalError(t('onlyEnglish'));
                   return;
                 }
