@@ -106,6 +106,7 @@ export type InputProps<T extends FieldValues> = {
   SperatedNumber?:boolean;
   centerText?:boolean
   PickerType?:"DatePicker" |"GenderPicker"
+  noEnValidator?: boolean;                // If true, disables English-only validation
 };
 export interface OpenSheetParams<T extends FieldValues> extends InputProps<T> {
   title: string;

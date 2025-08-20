@@ -118,6 +118,7 @@ const PersonalInfoScreen: React.FC = () => {
                   label={t('firstName')}
                   PlaceHolder={placeholders('Name')}
                   type="text"
+                  noEnValidator
                   accessibilityLabel="full Name input field"
                   accessibilityHint="Enter your full Name"
                   error={errors.firstName?.message}
@@ -128,6 +129,7 @@ const PersonalInfoScreen: React.FC = () => {
                   label={t('lastName')}
                   PlaceHolder={placeholders('lastName')}
                   type="text"
+                  noEnValidator
                   accessibilityLabel="full Name input field"
                   accessibilityHint="Enter your full Name"
                   error={errors.lastName?.message}
@@ -172,6 +174,7 @@ const PersonalInfoScreen: React.FC = () => {
                   name="address"
                   label={t('Address')}
                   PlaceHolder={placeholders('address')}
+                  noEnValidator
                   error={errors.address?.message}
                   accessibilityLabel="address input field"
                   accessibilityHint="Enter your address"

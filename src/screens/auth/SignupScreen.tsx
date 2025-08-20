@@ -107,6 +107,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
                       label={t('firstName')}
                       PlaceHolder={placeholders('Name')}
                       type="text"
+                      noEnValidator
                       accessibilityLabel="full Name input field"
                       accessibilityHint="Enter your full Name"
                       error={errors.Name?.message}
@@ -117,6 +118,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
                       label={t('lastName')}
                       PlaceHolder={placeholders('lastName')}
                       type="text"
+                      noEnValidator
                       accessibilityLabel="full Name input field"
                       accessibilityHint="Enter your full Name"
                       error={errors.lastName?.message}
