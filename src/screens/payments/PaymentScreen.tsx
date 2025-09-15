@@ -27,6 +27,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
   const {profile: ProfileData} = useAuth();
 
   const [isSuccses, SetisSuccses] = useState(route.params?.Status === 'OK');
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const {totalItems, items, emptyCart} = useCartContext();
 
   const normalizedItems = useMemo(() => {
@@ -42,14 +43,23 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
     mutationFn: PaymentService.paymentVerify,
     onSuccess(data, variables, context) {
       setPaymentData(data);
+      setIsInitialLoading(false);
     },
-    onError: handleMutationError,
+    onError: error => {
+      handleMutationError(error);
+      setIsInitialLoading(false);
+    },
   });
   const CartPayment = useMutation({
     mutationFn: PaymentService.paymentVerifySubmitOrder,
     onSuccess(data, variables, context) {
       isSuccses && emptyCart();
       setPaymentData(data);
+      setIsInitialLoading(false);
+    },
+    onError: error => {
+      handleMutationError(error);
+      setIsInitialLoading(false);
     },
   });
   const CreatePayment = useMutation({
@@ -112,29 +122,36 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
   }, [normalizedItems]);
   useEffect(() => {
     const {Authority, isDeposite, code, refId} = route.params || {};
+
     if (Authority || refId) {
-      if (isDeposite === 'true') {
-        WalletCharge.mutate({
-          authority: Authority,
-          code,
-          refId: refId,
-        });
-      } else if (Items.length > 0 && ProfileData) {
-        CartPayment.mutate({
-          authority: Authority,
-          code,
-          refId: refId,
-          isonlineShop: true,
-          orders: [
-            {
-              items: Items,
-              user: ProfileData.id,
-              location: '',
-              submitAt: moment().format('YYYY-MM-DD HH:mm'),
-            },
-          ],
-        });
-      }
+      const timer = setTimeout(() => {
+        if (isDeposite === 'true') {
+          WalletCharge.mutate({
+            authority: Authority,
+            code,
+            refId: refId,
+          });
+        } else if (Items.length > 0 && ProfileData) {
+          CartPayment.mutate({
+            authority: Authority,
+            code,
+            refId: refId,
+            isonlineShop: true,
+            orders: [
+              {
+                items: Items,
+                user: ProfileData.id,
+                location: '',
+                submitAt: moment().format('YYYY-MM-DD HH:mm'),
+              },
+            ],
+          });
+        }
+      }, 4000);
+
+      return () => clearTimeout(timer);
+    } else {
+      setIsInitialLoading(false);
     }
   }, [route.params?.Authority, route.params?.isDeposite, Items, ProfileData]);
   const CreateNewPayment = () => {
@@ -195,9 +212,16 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                 </View>
               </>
               {!PaymentData ? (
-                WalletCharge.isPending || CartPayment.isPending ? (
+                isInitialLoading ||
+                WalletCharge.isPending ||
+                CartPayment.isPending ? (
                   <View className="flex-1 items-center justify-center">
                     <ActivityIndicator size="large" color="#bcdd64" />
+                    {isInitialLoading && (
+                      <BaseText type="body2" color="muted" className="mt-4">
+                        در حال آماده‌سازی...
+                      </BaseText>
+                    )}
                   </View>
                 ) : (
                   <View className="w-full h-full items-center justify-center">
