@@ -2,22 +2,19 @@ import axios, {AxiosResponse} from 'axios';
 import {Status} from '../models/enums';
 import {routes} from '../routes/routes';
 import axiosInstance from '../utils/AxiosInstans';
-import {AdvertisementQuery} from './models/requestQueries';
 import {handleMutationError} from '../utils/helpers/errorHandler';
-import {BannerListResponse} from './models/response/AdsResService';
-import {CreateAdvertisementBody} from './models/request/AdvertisementReqService';
+import {ConfigResponse} from './models/response/ConfigResService';
 
 const {
   baseUrl,
-  advertisement: {getAdvertisement, createAdvertisement},
+  config: {getConfigs, createConfig},
 } = routes;
-const AdvertisementService = {
-  GetAllOrganization: async (
-    query: AdvertisementQuery,
-  ): Promise<BannerListResponse> => {
+
+const ConfigService = {
+  GetConfigs: async (): Promise<ConfigResponse> => {
     try {
-      const response = await axiosInstance.get<BannerListResponse>(
-        baseUrl + getAdvertisement(query),
+      const response = await axiosInstance.get<ConfigResponse>(
+        baseUrl + getConfigs(),
       );
       if (response.status === Status.Ok) {
         return response.data;
@@ -25,10 +22,9 @@ const AdvertisementService = {
         throw new Error(`Request failed with status ${response.status}`);
       }
     } catch (error) {
-      console.error('Error in GetProfile function:', error);
+      console.error('Error in GetConfigs function:', error);
       if (axios.isAxiosError(error) && error.response) {
         handleMutationError(error);
-
         throw new Error(
           error.response?.data?.message || 'Unknown error occurred',
         );
@@ -36,19 +32,20 @@ const AdvertisementService = {
       throw error;
     }
   },
-  CreateAdvertisement: async (body: CreateAdvertisementBody): Promise<any> => {
+
+  CreateConfig: async (body: any): Promise<any> => {
     try {
-      const response = await axiosInstance.post<
-        CreateAdvertisementBody,
-        AxiosResponse<any>
-      >(baseUrl + createAdvertisement(), body);
+      const response = await axiosInstance.post<any, AxiosResponse<any>>(
+        baseUrl + createConfig(),
+        body,
+      );
       if (response.status === Status.Ok || response.status === Status.Created) {
         return response.data;
       } else {
         throw new Error(`Request failed with status ${response.status}`);
       }
     } catch (error) {
-      console.error('Error in CreateAdvertisement function:', error);
+      console.error('Error in CreateConfig function:', error);
       if (axios.isAxiosError(error) && error.response) {
         handleMutationError(error);
         throw new Error(
@@ -60,4 +57,5 @@ const AdvertisementService = {
   },
 };
 
-export default AdvertisementService;
+export default ConfigService;
+

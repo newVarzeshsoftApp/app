@@ -4,9 +4,13 @@ import WalletBalance from './components/WalletBalance';
 import MainShop from './myServices/shop/MainShop';
 import {useGetAds} from '../../utils/hooks/Ads/useGetAds';
 import BannerSlider from '../../components/AdsSlider';
+import {useGetUnansweredSurvey} from '../../utils/hooks/Survey/useGetUnansweredSurvey';
 
 const HomeScreen: React.FC = () => {
   const {data: Ads, isLoading} = useGetAds({limit: 100, sortField: 'priority'});
+  const {data: UnansweredSurvey, isLoading: isUnansweredSurveyLoading} =
+    useGetUnansweredSurvey();
+  console.log(UnansweredSurvey);
   const renderHeader = () => (
     <>
       <View className="Container py-5 web:pt-[85px] gap-5">

@@ -54,10 +54,10 @@ export const ProductService = {
       throw error;
     }
   },
-  GetProductQuery: async (): Promise<any> => {
+  GetProductQuery: async (query: ProductQuery): Promise<any> => {
     try {
-      const response = await axiosInstance.get<AxiosResponse<any>>(
-        baseUrl + getProductQuery(),
+      const response = await axiosInstance.get<any>(
+        baseUrl + getProductQuery(query),
       );
       if (response.status === Status.Ok || response.status === Status.Created) {
         return response.data;

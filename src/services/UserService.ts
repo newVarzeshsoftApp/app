@@ -22,6 +22,7 @@ import {
   UserSaleOrderQuery,
   UserTransactionQuery,
   UserWalletTransactionQuery,
+  IntroductionMethodQuery,
 } from './models/requestQueries';
 import {handleMutationError} from '../utils/helpers/errorHandler';
 import {
@@ -45,6 +46,9 @@ const {
     getUserWalletTransaction,
     getUserTransactionById,
     getUserPayment,
+    getUserPaymentById,
+    getUserVipLocker,
+    getIntroductionMethod,
     updateProfile,
     updatePassword,
     uploadAvatar,
@@ -399,6 +403,71 @@ const UserService = {
       }
     } catch (error) {
       console.error('Error in UploadAvatar function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+        throw new Error(
+          error.response?.data?.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+  GetUserPaymentById: async (id: number): Promise<any> => {
+    try {
+      const response = await axiosInstance.get<any>(
+        baseUrl + getUserPaymentById(id),
+      );
+      if (response.status === Status.Ok) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error in GetUserPaymentById function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+        throw new Error(
+          error.response?.data?.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+  GetUserVipLocker: async (): Promise<any> => {
+    try {
+      const response = await axiosInstance.get<any>(
+        baseUrl + getUserVipLocker(),
+      );
+      if (response.status === Status.Ok) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error in GetUserVipLocker function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+        throw new Error(
+          error.response?.data?.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+  GetIntroductionMethod: async (
+    query: IntroductionMethodQuery,
+  ): Promise<any> => {
+    try {
+      const response = await axiosInstance.get<any>(
+        baseUrl + getIntroductionMethod(query),
+      );
+      if (response.status === Status.Ok) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error in GetIntroductionMethod function:', error);
       if (axios.isAxiosError(error) && error.response) {
         handleMutationError(error);
         throw new Error(
