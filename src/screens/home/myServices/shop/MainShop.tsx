@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import {
   Text,
   TouchableOpacity,
@@ -19,6 +19,8 @@ import ShopCreditService from '../../../../components/cards/shopCard/ShopCreditS
 import ShopPackageService from '../../../../components/cards/shopCard/ShopPackageService';
 import ShopServiceCard from '../../../../components/cards/shopCard/ShopServiceCard';
 import {useTheme} from '../../../../utils/ThemeContext';
+import MainPageSurveyCard from '../../components/MainPageSurveyCard';
+import {Survey} from '../../../../services/models/response/SurveyResService';
 
 const cardComponentMapping: Record<number, React.FC<{data: any}>> = {
   [ProductType.Service]: ShopServiceCard,
@@ -26,7 +28,24 @@ const cardComponentMapping: Record<number, React.FC<{data: any}>> = {
   [ProductType.Package]: ShopPackageService,
 };
 
-function MainShop() {
+type ProductSection = {
+  title: string;
+  navigateToCategory: () => void;
+  navigateToDetail: (id: number, title: string) => void;
+  type: ProductType;
+  icon: React.ReactNode;
+  data: ReturnType<typeof UseGetProduct>;
+};
+
+type ListItem =
+  | {kind: 'section'; section: ProductSection}
+  | {kind: 'survey-card'};
+
+interface MainShopProps {
+  survey?: Survey;
+}
+
+function MainShop({survey}: MainShopProps) {
   const {t} = useTranslation('translation', {keyPrefix: 'Drawer'});
   const [offset, setOffset] = useState(0);
   const {theme} = useTheme();
@@ -40,7 +59,7 @@ function MainShop() {
     });
 
   // Define product sections with navigation
-  const productSections = [
+  const productSections: ProductSection[] = [
     {
       title: t('Service'),
       navigateToCategory: () =>
@@ -121,6 +140,31 @@ function MainShop() {
     [productSections],
   );
 
+  const filteredSections = productSections.filter(
+    ({data}) => (data?.data?.content?.length ?? 0) > 0,
+  );
+
+  const listData = useMemo<ListItem[]>(() => {
+    const sectionItems: ListItem[] = filteredSections.map(section => ({
+      kind: 'section' as const,
+      section,
+    }));
+
+    if (!survey) {
+      return sectionItems;
+    }
+
+    if (sectionItems.length === 0) {
+      return [{kind: 'survey-card' as const}];
+    }
+
+    const withSurvey = [...sectionItems];
+    withSurvey.splice(Math.min(1, withSurvey.length), 0, {
+      kind: 'survey-card' as const,
+    });
+    return withSurvey;
+  }, [filteredSections, survey]);
+
   return (
     <>
       {productSections.some(({data}) => data?.isLoading) ? (
@@ -129,12 +173,25 @@ function MainShop() {
         </View>
       ) : (
         <FlatList
-          data={productSections.filter(
-            ({data}) => (data?.data?.content?.length ?? 0) > 0,
-          )}
-          keyExtractor={item => `section-${item.type}`}
+          data={listData}
+          keyExtractor={item =>
+            item.kind === 'survey-card'
+              ? 'survey-card'
+              : `section-${item.section.type}`
+          }
           renderItem={({item}) => {
-            const {title, type, data, navigateToCategory, icon} = item;
+            if (item.kind === 'survey-card') {
+              if (!survey) {
+                return null;
+              }
+              return (
+                <View className="mb-6">
+                  <MainPageSurveyCard survey={survey} />
+                </View>
+              );
+            }
+
+            const {title, type, data, navigateToCategory, icon} = item.section;
             const {data: items, isLoading} = data;
 
             return (

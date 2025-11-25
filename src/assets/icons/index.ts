@@ -1,0 +1,10 @@
+export {default as GiftIcon} from './gift.svg';
+export {default as ArrowUpIcon} from './ArrowUp.svg';
+export {default as CheckIcon} from './check.svg';
+export {default as CrossIcon} from './cross.svg';
+export {default as ClosetIcon} from './Closet.svg';
+export {default as LogoIcon} from './Logo.svg';
+export {default as LogoWithTextIcon} from './LogoWithText.svg';
+export {default as MedicalBagIcon} from './MedicalBag.svg';
+export {default as BmiIcon} from './BMI.svg';
+export {default as ClipboardTickIcon} from './clipboard-tick.svg';

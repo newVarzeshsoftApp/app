@@ -4,6 +4,7 @@ import ShopNavigator from './shop/ShopNavigator';
 import HistoryNavigator from './history/HistoryNavigator';
 import HomeNavigator from './home/HomeNavigator';
 import SaleItemNavigator from './Saleitem/SaleItemStackNatigator';
+import SurveyNavigator from './survey/SurveyNavigator';
 import {DrawerStackParamList} from '../utils/types/NavigationTypes';
 import CustomDrawerContent from '../components/Drawer/CustomDrawerContent';
 import PaymentScreen from '../screens/payments/PaymentScreen';
@@ -70,6 +71,7 @@ const DrawerNavigator: React.FC = () => {
         initialRouteName="HomeNavigator"
         drawerContent={props => <CustomDrawerContent {...props} />}>
         <Drawer.Screen name="HomeNavigator" component={HomeNavigator} />
+        <Drawer.Screen name="SurveyNavigator" component={SurveyNavigator} />
         <Drawer.Screen
           name="ProfileTab"
           options={{
