@@ -1,8 +1,9 @@
-import {get} from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 import {
   AdvertisementQuery,
   AllOrganizationQuery,
   CategoryQuery,
+  GatewayLogQuery,
+  IntroductionMethodQuery,
   ProductQuery,
   UserPaymentQuey,
   UserSaleItemQuey,
@@ -23,26 +24,33 @@ export const routes = {
     logout: () => 'auth/logout',
     refresh: () => 'auth/refresh',
   },
+  admin: {
+    login: () => 'admin/login',
+    logout: () => 'admin/logout',
+    profile: () => 'admin/profile',
+    refresh: () => 'admin/refresh',
+  },
   organization: {
     getAllOrganization: (query: AllOrganizationQuery) =>
       'organization' + prepareQuery(query),
     getOrganizationBySKU: () => `organization/by-sku`,
-    getOrganizationByID: (id: number) => `organization/by-sku/${id}`,
+    getOrganizationByID: (id: number) => `organization/${id}`,
+    createOrganization: () => 'organization',
+    updateOrganization: (id: number) => `organization/${id}`,
   },
   product: {
     getProductPage: (query: ProductQuery) =>
       `product/page` + prepareQuery(query),
-    getProductQuery: () => `product/query`,
+    getProductQuery: (query: ProductQuery) =>
+      `product/query` + prepareQuery(query),
     getProductByID: (id: number) => `product/${id}`,
   },
-
   category: {
     categoryPage: (query: CategoryQuery) =>
       `category/page` + prepareQuery(query),
     categoryQuery: (query: CategoryQuery) =>
       `category/query` + prepareQuery(query),
   },
-
   user: {
     getUserCredit: () => `user/credit`,
     getUserDashboard: () => `user/dashbord`,
@@ -62,6 +70,10 @@ export const routes = {
     getUserTransactionById: (id: number) => `user/transaction/${id}`,
     getUserPayment: (query: UserPaymentQuey) =>
       `user/payments` + prepareQuery(query),
+    getUserPaymentById: (id: number) => `user/payment/${id}`,
+    getUserVipLocker: () => 'user/vip/locker',
+    getIntroductionMethod: (query: IntroductionMethodQuery) =>
+      `user/introduction-method` + prepareQuery(query),
     updateProfile: () => 'user/update-profile',
     updatePassword: () => 'user/update-password',
     uploadAvatar: () => 'user/upload-avatar',
@@ -74,6 +86,12 @@ export const routes = {
   },
   gateway: {
     getGateway: () => `gateway`,
+    getGatewayPage: () => `gateway/page`,
+    getGatewayQuery: () => `gateway/query`,
+  },
+  gatewayLog: {
+    getGatewayLog: (query: GatewayLogQuery) =>
+      `gateway-log` + prepareQuery(query),
   },
   Payment: {
     createPayment: () => `payment/intial`,
@@ -83,13 +101,32 @@ export const routes = {
   media: {
     getAppMedia: (name: string) => 'media/app/' + name,
     getMedia: (name: string) => 'media/' + name,
+    uploadMedia: () => 'media/upload',
   },
   advertisement: {
     getAdvertisement: (query: AdvertisementQuery) =>
       `advertisement` + prepareQuery(query),
+    createAdvertisement: () => 'advertisement/create',
   },
   walletGift: {
     getWalletGift: (query: AdvertisementQuery) =>
       `wallet/gift/query` + prepareQuery(query),
+  },
+  introductionMethod: {
+    getAll: (query: IntroductionMethodQuery) =>
+      `introduction-method` + prepareQuery(query),
+    getPage: (query: IntroductionMethodQuery) =>
+      `introduction-method/page` + prepareQuery(query),
+    getQuery: (query: IntroductionMethodQuery) =>
+      `introduction-method/query` + prepareQuery(query),
+  },
+  survey: {
+    getUnanswered: () => 'survey/unanswered',
+    getById: (id: number) => `survey/${id}`,
+    submitAnswers: () => 'survey/answers/submit',
+  },
+  config: {
+    getConfigs: () => 'config',
+    createConfig: () => 'config',
   },
 };

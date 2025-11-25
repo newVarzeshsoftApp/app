@@ -83,3 +83,19 @@ export interface AdvertisementQuery {
   sortField?: string;
   sortOrder?: -1 | 1;
 }
+
+export interface IntroductionMethodQuery {
+  offset?: number;
+  limit?: number;
+  sortField?: string;
+  sortOrder?: -1 | 1;
+}
+
+export interface GatewayLogQuery {
+  status?: 'connected' | 'disconnected' | 'error' | 'success';
+  type?: 'message' | 'connection';
+  user?: number;
+  pattern?: string;
+  offset?: string;
+  limit?: string;
+}

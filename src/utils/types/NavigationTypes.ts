@@ -25,6 +25,7 @@ export type DrawerStackParamList = {
   SaleItemNavigator: NavigatorScreenParams<SaleItemStackParamList> | undefined;
   ShopNavigator: NavigatorScreenParams<ShopStackParamList> | undefined;
   HistoryNavigator: NavigatorScreenParams<OrderStackParamList> | undefined;
+  SurveyNavigator: NavigatorScreenParams<SurveyStackParamList> | undefined;
   ProfileTab: NavigatorScreenParams<ProfileTabParamsList> | undefined;
   Paymentresult:
     | {
@@ -61,6 +62,11 @@ export type HomeStackParamList = {
   cart: undefined;
   wallet: NavigatorScreenParams<WalletStackParamList> | undefined;
   myServices: undefined;
+};
+
+export type SurveyStackParamList = {
+  SurveyList: undefined;
+  SurveyDetail: {id: number; title?: string};
 };
 type ShopDetail = {
   id: number;

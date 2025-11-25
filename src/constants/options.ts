@@ -1,5 +1,5 @@
 // Multilang support
-import {HambergerMenu, Shop} from 'iconsax-react-native';
+import {HambergerMenu, Shop, MessageQuestion} from 'iconsax-react-native';
 import en from '../../translations/en.json';
 import fa from '../../translations/fa.json';
 import {MenuItem} from '../models/props';
@@ -44,6 +44,12 @@ export const menuItems: MenuItem[] = [
       {title: 'orders', slug: 'orders'},
       {title: 'payments', slug: 'payments'},
     ],
+  },
+  {
+    title: 'survey',
+    slug: 'SurveyNavigator',
+    Icon: MessageQuestion,
+    children: [{title: 'surveyList', slug: 'SurveyList'}],
   },
 ];
 export enum TransactionSourceType {
