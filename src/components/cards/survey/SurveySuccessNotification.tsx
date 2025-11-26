@@ -27,7 +27,7 @@ const SurveySuccessNotification: React.FC<SurveySuccessNotificationProps> = ({
 
   // Calculate top position considering header (approximately 80-100px)
   const headerHeight =
-    Platform.OS === 'ios' ? 100 : Platform.OS === 'android' ? 80 : 90;
+    Platform.OS === 'ios' ? 100 : Platform.OS === 'android' ? 80 : 20;
   const topOffset = insets.top + headerHeight;
 
   const handleClose = useCallback(() => {

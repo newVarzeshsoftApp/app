@@ -43,9 +43,10 @@ type ListItem =
 
 interface MainShopProps {
   survey?: Survey;
+  isSingleSurvey?: boolean;
 }
 
-function MainShop({survey}: MainShopProps) {
+function MainShop({survey, isSingleSurvey}: MainShopProps) {
   const {t} = useTranslation('translation', {keyPrefix: 'Drawer'});
   const [offset, setOffset] = useState(0);
   const {theme} = useTheme();
@@ -186,7 +187,10 @@ function MainShop({survey}: MainShopProps) {
               }
               return (
                 <View className="mb-6">
-                  <MainPageSurveyCard survey={survey} />
+                  <MainPageSurveyCard
+                    survey={survey}
+                    isSingleSurvey={isSingleSurvey}
+                  />
                 </View>
               );
             }

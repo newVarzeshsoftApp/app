@@ -10,9 +10,13 @@ import BaseButton from '../../../components/Button/BaseButton';
 
 interface MainPageSurveyCardProps {
   survey?: Survey;
+  isSingleSurvey?: boolean;
 }
 
-const MainPageSurveyCard: React.FC<MainPageSurveyCardProps> = ({survey}) => {
+const MainPageSurveyCard: React.FC<MainPageSurveyCardProps> = ({
+  survey,
+  isSingleSurvey,
+}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Survey'});
   const hasSurvey = !!survey;
   const {theme} = useTheme();
@@ -45,11 +49,22 @@ const MainPageSurveyCard: React.FC<MainPageSurveyCardProps> = ({survey}) => {
   }
 
   const handleNavigateToSurveys = useCallback(() => {
-    navigate('Root', {
-      screen: 'SurveyNavigator',
-      params: {screen: 'SurveyList'},
-    });
-  }, []);
+    if (!survey) {
+      return;
+    }
+
+    if (isSingleSurvey) {
+      navigate('Root', {
+        screen: 'SurveyNavigator',
+        params: {screen: 'SurveyDetail', params: {id: survey.id}},
+      });
+    } else {
+      navigate('Root', {
+        screen: 'SurveyNavigator',
+        params: {screen: 'SurveyList'},
+      });
+    }
+  }, [isSingleSurvey, survey]);
 
   return (
     <LinearGradient

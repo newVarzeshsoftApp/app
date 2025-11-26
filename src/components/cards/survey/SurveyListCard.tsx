@@ -59,15 +59,17 @@ const SurveyListCard: React.FC<SurveyListCardProps> = ({
             {survey.gift && (
               <View className="flex-row items-center justify-start gap-2">
                 <GiftIcon width={24} height={24} />
-                <BaseText type="caption" color="secondaryPurple">
-                  {survey.gift?.title}{' '}
+                <View className="flex-row items-center gap-0">
                   <BaseText
                     type="caption"
                     color="secondaryPurple"
                     className="!font-semibold">
                     {t('giftLabel')}
                   </BaseText>
-                </BaseText>
+                  <BaseText type="caption" color="secondaryPurple">
+                    {survey.gift?.title}{' '}
+                  </BaseText>
+                </View>
               </View>
             )}
             <View className="flex-row items-center justify-between">

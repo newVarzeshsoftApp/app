@@ -12,4 +12,3 @@ export const useSubmitSurveyAnswers = (): UseMutationResult<
       SurveyService.SubmitAnswers(body),
   });
 };
-

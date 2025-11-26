@@ -17,6 +17,7 @@ import {useTranslation} from 'react-i18next';
 import {TaskSquare} from 'iconsax-react-native';
 import {GiftIcon} from '../../assets/icons';
 import moment from 'jalali-moment';
+import SurveyListCard from '../../components/cards/survey/SurveyListCard';
 const SurveyListScreen: React.FC = () => {
   const navigation =
     useNavigation<NativeStackNavigationProp<SurveyStackParamList>>();
@@ -45,61 +46,9 @@ const SurveyListScreen: React.FC = () => {
 
   const renderItem = useCallback(
     ({item}: {item: Survey}) => (
-      <TouchableOpacity onPress={() => handleNavigateToDetail(item)}>
-        <View className="BaseServiceCard mb-4">
-          <View>
-            <View className="flex-row items-center  gap-4 pb-4 border-b border-neutral-200/40 dark:border-neutral-dark-400/50">
-              <View className="bg-supportive5-500/20 rounded-full w-10 h-10 flex-row items-center justify-center">
-                <TaskSquare size="24" variant="Bold" color="#5bc8ff" />
-              </View>
-              <BaseText type="title4" color="base">
-                {item?.title}
-              </BaseText>
-            </View>
-            <View className="pt-3 gap-3">
-              <BaseText type="body3" color="secondary">
-                {item.description}
-              </BaseText>
-              {item.gift && (
-                <View className="flex-row items-center justify-start gap-2">
-                  <GiftIcon width={24} height={24} />
-                  <BaseText type="caption" color="secondaryPurple">
-                    {item.gift?.title}{' '}
-                    <BaseText
-                      type="caption"
-                      color="secondaryPurple"
-                      className="!font-semibold">
-                      هدیه
-                    </BaseText>
-                  </BaseText>
-                </View>
-              )}
-              <View className="flex-row items-center justify-between">
-                <BaseText type="caption" color="secondary">
-                  {t('startDate')} {''} : {''}
-                  {moment(item.start)
-                    .local(
-                      // @ts-ignore
-                      'fa',
-                    )
-                    .format('jYYYY/jMM/jDD')}
-                </BaseText>
-                <BaseText type="caption" color="secondary">
-                  {t('endDate')} {''} : {''}
-                  {moment(item.end)
-                    .local(
-                      // @ts-ignore
-                      'fa',
-                    )
-                    .format('jYYYY/jMM/jDD')}
-                </BaseText>
-              </View>
-            </View>
-          </View>
-        </View>
-      </TouchableOpacity>
+      <SurveyListCard survey={item} onPress={handleNavigateToDetail} />
     ),
-    [handleNavigateToDetail, t],
+    [handleNavigateToDetail],
   );
 
   if (isLoading && !isRefetching && surveys.length === 0) {

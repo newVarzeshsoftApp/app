@@ -24,6 +24,7 @@ const HomeScreen: React.FC = () => {
 
   const hasSurvey = !isUnansweredSurveyLoading && surveys.length > 0;
   const previewSurvey = hasSurvey ? surveys[0] : undefined;
+  const isSingleSurvey = hasSurvey && surveys.length === 1;
 
   const renderHeader = () => (
     <>
@@ -47,7 +48,10 @@ const HomeScreen: React.FC = () => {
       ListHeaderComponent={renderHeader}
       ListFooterComponent={
         <View className="flex-1 Container pb-[125px]">
-          <MainShop survey={hasSurvey ? previewSurvey : undefined} />
+          <MainShop
+            survey={hasSurvey ? previewSurvey : undefined}
+            isSingleSurvey={isSingleSurvey}
+          />
         </View>
       }
       showsVerticalScrollIndicator={false}
