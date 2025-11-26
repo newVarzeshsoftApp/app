@@ -61,7 +61,7 @@ const Checkbox: React.FC<ICheckboxProps & PressableProps> = ({
   }));
 
   return (
-    <View className="flex-row items-center space-x-2 gap-2">
+    <View className="flex-row items-center  gap-2">
       <Pressable {...props} onPress={handlePress} className="relative">
         {/* Background circle */}
         {Platform.OS === 'web' ? (
@@ -84,7 +84,7 @@ const Checkbox: React.FC<ICheckboxProps & PressableProps> = ({
                 ? `bg-primary-500 ${
                     isScaled ? 'scale-110' : 'scale-100'
                   } transition-transform duration-100`
-                : 'bg-neutral-300 dark:bg-neutral-dark-300 scale-100 transition-transform duration-200'
+                : 'border border-neutral-400 dark:border-neutral-dark-700 scale-100 transition-transform duration-200'
             }`}>
             {checked && (
               <Check
@@ -112,9 +112,11 @@ const Checkbox: React.FC<ICheckboxProps & PressableProps> = ({
           </Animated.View>
         )}
       </Pressable>
-
       {label && (
-        <BaseText onPress={handlePress} type="button2" color="muted">
+        <BaseText
+          type="body2"
+          className=" truncate max-w-[300px]"
+          color={checked ? 'base' : 'secondary'}>
           {label}
         </BaseText>
       )}

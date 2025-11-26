@@ -53,7 +53,7 @@ const SurveyListScreen: React.FC = () => {
                 <TaskSquare size="24" variant="Bold" color="#5bc8ff" />
               </View>
               <BaseText type="title4" color="base">
-                نظرسنجی {item?.title}
+                {item?.title}
               </BaseText>
             </View>
             <View className="pt-3 gap-3">

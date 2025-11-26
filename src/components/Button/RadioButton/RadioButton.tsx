@@ -80,7 +80,7 @@ const RadioButton: React.FC<ICheckboxProps> = ({
         `px-2 py-3 border rounded-full ${
           checked
             ? `border-primary-500`
-            : 'border-neutral-300 dark:border-neutral-dark-300'
+            : 'border-neutral-400 dark:border-neutral-dark-700'
         }`
       }`}>
       <View className="flex-row gap-2">
@@ -107,10 +107,10 @@ const RadioButton: React.FC<ICheckboxProps> = ({
                   ? `border-primary-500 ${
                       isScaled ? 'scale-110' : 'scale-100'
                     } transition-transform duration-100`
-                  : 'border-neutral-300 dark:border-neutral-dark-300 scale-100 transition-transform duration-100'
+                  : 'border-neutral-400 dark:border-neutral-dark-700 scale-100 transition-transform duration-100'
               }`}>
               {checked && (
-                <View className="w-3 h-3 rounded-full bg-primary-400 dark:bg-primary-dark-400" />
+                <View className="w-3.5 h-3.5 rounded-full bg-primary-400 dark:bg-primary-dark-400" />
               )}
             </View>
           ) : (

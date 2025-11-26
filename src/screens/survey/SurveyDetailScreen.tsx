@@ -40,6 +40,7 @@ const SurveyDetailScreen: React.FC = () => {
     route.params.id,
   );
   const submitMutation = useSubmitSurveyAnswers();
+  const queryClient = useQueryClient();
   const questions = useMemo<SurveyQuestion[]>(
     () => data?.surveyQuestions || data?.questions || [],
     [data],
@@ -137,7 +138,6 @@ const SurveyDetailScreen: React.FC = () => {
       Alert.alert(t('errorTitle'), t('emptyAnswers'));
       return;
     }
-    const queryClient = useQueryClient();
     submitMutation.mutate(
       {surveySheetId, answers: payloadAnswers},
       {
@@ -305,7 +305,7 @@ const SurveyDetailScreen: React.FC = () => {
               />
             }>
             <View className="gap-1">
-              {data && <SurveyListCard survey={data as Survey} />}
+              {data && <SurveyListCard inpage survey={data as Survey} />}
               <View className="BaseServiceCard gap-4 divide-y divide-neutral-200 dark:divide-neutral-dark-200">
                 {questions.length === 0 ? (
                   <BaseText type="body2" color="secondary">

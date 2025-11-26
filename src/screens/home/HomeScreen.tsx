@@ -27,7 +27,7 @@ const HomeScreen: React.FC = () => {
 
   const renderHeader = () => (
     <>
-      <View className="Container py-5 web:pt-[85px] gap-5">
+      <View className="Container pt-5 web:pt-[100px] gap-5">
         <WalletBalance />
         {isLoading ? (
           <View className="w-full h-[160px] rounded-[16px]  dark:bg-white/20 bg-black/20 animate-pulse" />
