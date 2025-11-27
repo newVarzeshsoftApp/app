@@ -10,9 +10,14 @@ import {useTranslation} from 'react-i18next';
 interface SurveyListCardProps {
   survey: Survey;
   onPress?: (survey: Survey) => void;
+  inpage?: boolean;
 }
 
-const SurveyListCard: React.FC<SurveyListCardProps> = ({survey, onPress}) => {
+const SurveyListCard: React.FC<SurveyListCardProps> = ({
+  survey,
+  onPress,
+  inpage,
+}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Survey'});
 
   const handlePress = () => {
@@ -34,7 +39,7 @@ const SurveyListCard: React.FC<SurveyListCardProps> = ({survey, onPress}) => {
     : '---';
 
   return (
-    <TouchableOpacity onPress={handlePress}>
+    <TouchableOpacity onPress={handlePress} disabled={inpage}>
       <View className="BaseServiceCard mb-4">
         <View>
           <View className="flex-row items-center  gap-4 pb-4 border-b border-neutral-200/40 dark:border-neutral-dark-400/50">
@@ -42,7 +47,7 @@ const SurveyListCard: React.FC<SurveyListCardProps> = ({survey, onPress}) => {
               <TaskSquare size="24" variant="Bold" color="#5bc8ff" />
             </View>
             <BaseText type="title4" color="base">
-              {t('surveyTitle', {title: survey.title})}
+              {survey.title}
             </BaseText>
           </View>
           <View className="pt-3 gap-3">
@@ -54,15 +59,17 @@ const SurveyListCard: React.FC<SurveyListCardProps> = ({survey, onPress}) => {
             {survey.gift && (
               <View className="flex-row items-center justify-start gap-2">
                 <GiftIcon width={24} height={24} />
-                <BaseText type="caption" color="secondaryPurple">
-                  {survey.gift?.title}{' '}
+                <View className="flex-row items-center gap-0">
                   <BaseText
                     type="caption"
                     color="secondaryPurple"
                     className="!font-semibold">
                     {t('giftLabel')}
                   </BaseText>
-                </BaseText>
+                  <BaseText type="caption" color="secondaryPurple">
+                    {survey.gift?.title}{' '}
+                  </BaseText>
+                </View>
               </View>
             )}
             <View className="flex-row items-center justify-between">

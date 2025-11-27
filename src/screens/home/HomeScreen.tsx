@@ -24,10 +24,11 @@ const HomeScreen: React.FC = () => {
 
   const hasSurvey = !isUnansweredSurveyLoading && surveys.length > 0;
   const previewSurvey = hasSurvey ? surveys[0] : undefined;
+  const isSingleSurvey = hasSurvey && surveys.length === 1;
 
   const renderHeader = () => (
     <>
-      <View className="Container py-5 web:pt-[85px] gap-5">
+      <View className="Container pt-5 web:pt-[100px] gap-5">
         <WalletBalance />
         {isLoading ? (
           <View className="w-full h-[160px] rounded-[16px]  dark:bg-white/20 bg-black/20 animate-pulse" />
@@ -47,7 +48,10 @@ const HomeScreen: React.FC = () => {
       ListHeaderComponent={renderHeader}
       ListFooterComponent={
         <View className="flex-1 Container pb-[125px]">
-          <MainShop survey={hasSurvey ? previewSurvey : undefined} />
+          <MainShop
+            survey={hasSurvey ? previewSurvey : undefined}
+            isSingleSurvey={isSingleSurvey}
+          />
         </View>
       }
       showsVerticalScrollIndicator={false}

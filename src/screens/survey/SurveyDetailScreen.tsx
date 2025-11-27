@@ -10,6 +10,7 @@ import {
   Platform,
   Image,
 } from 'react-native';
+import {BlurView} from '@react-native-community/blur';
 import BaseText from '../../components/BaseText';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {SurveyStackParamList} from '../../utils/types/NavigationTypes';
@@ -40,10 +41,19 @@ const SurveyDetailScreen: React.FC = () => {
     route.params.id,
   );
   const submitMutation = useSubmitSurveyAnswers();
-  const questions = useMemo<SurveyQuestion[]>(
-    () => data?.surveyQuestions || data?.questions || [],
-    [data],
-  );
+  const queryClient = useQueryClient();
+  const questions = useMemo<SurveyQuestion[]>(() => {
+    const rawQuestions = (data?.surveyQuestions || data?.questions || []) as
+      | SurveyQuestion[]
+      | undefined;
+
+    if (!rawQuestions) {
+      return [];
+    }
+
+    // Sort questions by id ascending
+    return [...rawQuestions].sort((a, b) => (a.id || 0) - (b.id || 0));
+  }, [data]);
   // Store answers as string for text, string for single_choice, string[] for multiple_choice
   const [answers, setAnswers] = useState<Record<number, string | string[]>>({});
   const [showSuccessNotification, setShowSuccessNotification] = useState(false);
@@ -137,13 +147,14 @@ const SurveyDetailScreen: React.FC = () => {
       Alert.alert(t('errorTitle'), t('emptyAnswers'));
       return;
     }
-    const queryClient = useQueryClient();
     submitMutation.mutate(
       {surveySheetId, answers: payloadAnswers},
       {
         onSuccess: () => {
           // Show success notification
           queryClient.invalidateQueries({queryKey: ['survey']});
+          queryClient.invalidateQueries({queryKey: ['surveys']});
+          queryClient.invalidateQueries({queryKey: ['UnansweredSurvey']});
           setShowSuccessNotification(true);
           // Auto navigate to home after 3 seconds
           setTimeout(() => {
@@ -305,7 +316,7 @@ const SurveyDetailScreen: React.FC = () => {
               />
             }>
             <View className="gap-1">
-              {data && <SurveyListCard survey={data as Survey} />}
+              {data && <SurveyListCard inpage survey={data as Survey} />}
               <View className="BaseServiceCard gap-4 divide-y divide-neutral-200 dark:divide-neutral-dark-200">
                 {questions.length === 0 ? (
                   <BaseText type="body2" color="secondary">
@@ -318,34 +329,86 @@ const SurveyDetailScreen: React.FC = () => {
             </View>
           </ScrollView>
 
-          {/* Sticky bottom buttons */}
-          <View className="absolute bottom-0 left-0 right-0 px-4 py-3 gap-2 bg-white dark:bg-neutral-dark-100">
-            <View className="flex-row gap-3">
-              <View className="flex-1">
-                <BaseButton
-                  type="Fill"
-                  color="Black"
-                  size="Large"
-                  rounded
-                  text={t('submit')}
-                  disabled={submitMutation.isPending || !allQuestionsAnswered}
-                  onPress={handleSubmit}
-                  className="!w-full"
-                />
-              </View>
-              <View className="w-full max-w-[130px]">
-                <BaseButton
-                  type="Outline"
-                  color="Primary"
-                  size="Large"
-                  rounded
-                  text={t('cancel')}
-                  onPress={handleCancel}
-                  className="!w-fit"
-                />
+          {/* Sticky bottom buttons - glassmorphism style */}
+          {Platform.OS === 'web' ? (
+            <View
+              className="absolute bottom-0 left-0 right-0 px-4 py-3 gap-2"
+              style={{
+                backgroundColor: 'rgba(255,255,255,0.75)',
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.35)',
+              }}>
+              <View className="flex-row gap-3">
+                <View className="flex-1">
+                  <BaseButton
+                    type="Fill"
+                    color="Black"
+                    size="Large"
+                    rounded
+                    text={t('submit')}
+                    disabled={submitMutation.isPending || !allQuestionsAnswered}
+                    onPress={handleSubmit}
+                    className="!w-full"
+                  />
+                </View>
+                <View className="w-full max-w-[130px]">
+                  <BaseButton
+                    type="Outline"
+                    color="Primary"
+                    size="Large"
+                    rounded
+                    text={t('cancel')}
+                    onPress={handleCancel}
+                    className="!w-fit"
+                  />
+                </View>
               </View>
             </View>
-          </View>
+          ) : (
+            <BlurView
+              style={{
+                position: 'absolute',
+                left: 0,
+                right: 0,
+                bottom: 0,
+                paddingHorizontal: 16,
+                paddingVertical: 12,
+                borderTopLeftRadius: 24,
+                borderTopRightRadius: 24,
+                overflow: 'hidden',
+              }}
+              blurType="light"
+              blurAmount={20}
+              reducedTransparencyFallbackColor="rgba(255,255,255,0.8)">
+              <View className="flex-row gap-3">
+                <View className="flex-1">
+                  <BaseButton
+                    type="Fill"
+                    color="Black"
+                    size="Large"
+                    rounded
+                    text={t('submit')}
+                    disabled={submitMutation.isPending || !allQuestionsAnswered}
+                    onPress={handleSubmit}
+                    className="!w-full"
+                  />
+                </View>
+                <View className="w-full max-w-[130px]">
+                  <BaseButton
+                    type="Outline"
+                    color="Primary"
+                    size="Large"
+                    rounded
+                    text={t('cancel')}
+                    onPress={handleCancel}
+                    className="!w-fit"
+                  />
+                </View>
+              </View>
+            </BlurView>
+          )}
         </View>
       </KeyboardAvoidingView>
     </View>
