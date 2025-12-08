@@ -81,7 +81,7 @@ const BannerSlider: React.FC<BannerSliderProps> = ({data}) => {
       <TouchableOpacity
         activeOpacity={0.9}
         onPress={() => handlePress(item.link)}
-        style={{width: containerWidth || '100%'}}>
+        style={{width: itemWidth || containerWidth || '100%'}}>
         <BannerImage
           name={item.profile?.name}
           imageUrl={item.profile?.dataUrl || undefined}
@@ -93,45 +93,43 @@ const BannerSlider: React.FC<BannerSliderProps> = ({data}) => {
   );
 
   // محاسبه ایندکس بر اساس scroll position
-  const handleMomentumScrollEnd = (
-    event: NativeSyntheticEvent<NativeScrollEvent>,
-  ) => {
-    if (containerWidth === 0) return;
-    const offsetX = event.nativeEvent.contentOffset.x;
-    // با pagingEnabled، هر صفحه دقیقاً برابر containerWidth است
-    const index = Math.round(offsetX / containerWidth);
-    const clampedIndex = Math.max(0, Math.min(data.length - 1, index));
-    console.log('🔄 Scroll End:', {
-      offsetX,
-      containerWidth,
-      index,
-      clampedIndex,
-    });
-    setCurrentIndex(clampedIndex);
-  };
+  const handleMomentumScrollEnd = React.useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (itemWidth === 0) return;
+      const offsetX = event.nativeEvent.contentOffset.x;
+      // با pagingEnabled، هر صفحه دقیقاً برابر itemWidth است
+      const index = Math.round(offsetX / itemWidth);
+      const clampedIndex = Math.max(0, Math.min(data.length - 1, index));
+      setCurrentIndex(clampedIndex);
+    },
+    [itemWidth, data.length],
+  );
 
   // برای smooth update حین اسکرول - استفاده از Math.round برای دقت
-  const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-    if (containerWidth === 0) return;
-    const offsetX = event.nativeEvent.contentOffset.x;
-    // محاسبه ایندکس بر اساس موقعیت اسکرول
-    const index = Math.round(offsetX / containerWidth);
-    const clampedIndex = Math.max(0, Math.min(data.length - 1, index));
+  const handleScroll = React.useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      if (itemWidth === 0) return;
+      const offsetX = event.nativeEvent.contentOffset.x;
+      // محاسبه ایندکس بر اساس موقعیت اسکرول
+      const index = Math.round(offsetX / itemWidth);
+      const clampedIndex = Math.max(0, Math.min(data.length - 1, index));
 
-    // فقط اگر ایندکس واقعاً تغییر کرده باشد
-    if (clampedIndex !== currentIndex) {
-      setCurrentIndex(clampedIndex);
-    }
-  };
+      // فقط اگر ایندکس واقعاً تغییر کرده باشد
+      if (clampedIndex !== currentIndex) {
+        setCurrentIndex(clampedIndex);
+      }
+    },
+    [itemWidth, data.length, currentIndex],
+  );
 
   // تعریف getItemLayout برای بهبود performance و accuracy
   const getItemLayout = React.useCallback(
     (_: any, index: number) => ({
-      length: containerWidth,
-      offset: containerWidth * index,
+      length: itemWidth,
+      offset: itemWidth * index,
       index,
     }),
-    [containerWidth],
+    [itemWidth],
   );
 
   if (!data || data.length === 0) {
@@ -156,6 +154,8 @@ const BannerSlider: React.FC<BannerSliderProps> = ({data}) => {
             data={data}
             horizontal
             pagingEnabled
+            snapToInterval={itemWidth}
+            snapToAlignment="start"
             decelerationRate="fast"
             className="!rounded-2xl"
             showsHorizontalScrollIndicator={false}
@@ -164,8 +164,8 @@ const BannerSlider: React.FC<BannerSliderProps> = ({data}) => {
             getItemLayout={getItemLayout}
             onScroll={handleScroll}
             onMomentumScrollEnd={handleMomentumScrollEnd}
-            scrollEventThrottle={1}
-            extraData={containerWidth}
+            scrollEventThrottle={16}
+            extraData={`${itemWidth}-${currentIndex}`}
           />
           {/* Indicator Dots */}
           {data.length > 1 && (
