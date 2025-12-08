@@ -7,6 +7,7 @@ import {navigate} from '../../../navigation/navigationRef';
 import {useTheme} from '../../../utils/ThemeContext';
 import LinearGradient from 'react-native-linear-gradient';
 import BaseButton from '../../../components/Button/BaseButton';
+import {IColorButton} from '../../../models/stylingTypes';
 
 interface MainPageSurveyCardProps {
   survey?: Survey;
@@ -20,7 +21,7 @@ const MainPageSurveyCard: React.FC<MainPageSurveyCardProps> = ({
   const {t} = useTranslation('translation', {keyPrefix: 'Survey'});
   const hasSurvey = !!survey;
   const {theme} = useTheme();
-
+  const isDarkMode = theme === 'dark';
   const colors =
     theme === 'dark'
       ? ['#5454A9', '#2A2D33', '#5454A9']
@@ -82,10 +83,12 @@ const MainPageSurveyCard: React.FC<MainPageSurveyCardProps> = ({
         <View className=" flex-1 w-full items-center px-7 py-4 gap-2  overflow-hidden h-full dark:bg-neutral-dark-300/80 bg-neutral-0/80 rounded-3xl">
           {/* First Shade  */}
           <View className="flex  justify-between items-center w-full flex-row gap-4">
-            <View className="w-[100px] h-[100px]">
+            <View className="w-[61px] h-[61px]">
               <Image
                 className="w-full h-full"
-                source={require('../../../assets/images/Survey.png')}
+                source={require(!isDarkMode
+                  ? '../../../assets/images/SurveyLight.png'
+                  : '../../../assets/images/SurveyDark.png')}
                 resizeMode="contain"
               />
             </View>
@@ -96,21 +99,21 @@ const MainPageSurveyCard: React.FC<MainPageSurveyCardProps> = ({
 
               <BaseText
                 type="body3"
-                color="secondaryPurple"
+                color="Primary600"
                 className="w-fit  !font-light ">
                 یه{' '}
                 <BaseText
                   type="body3"
-                  color="secondaryPurple"
+                  color="Primary600"
                   className="!font-semibold">
                   هـدیه
                 </BaseText>{' '}
-                کوچـیکم منتظرت هست. فـقط 30 ثانـیه وقــتـت رو میــگیـره!
+                باحال هم منتظرت هست!
               </BaseText>
             </View>
           </View>
 
-          <View className="w-[200px] h-[200px] z-[1] bottom-[-85px] web:-left-[15%]  left-[64%] absolute rotate-180 opacity-35 ">
+          <View className="w-[200px] h-[200px] z-[1] bottom-[-85px]   web:-left-[15%]  left-[64%] absolute rotate-180 opacity-35 ">
             <Image
               source={require('../../../assets/images/shade/shape/SecondaryShade.png')}
               resizeMode="contain"
@@ -126,8 +129,8 @@ const MainPageSurveyCard: React.FC<MainPageSurveyCardProps> = ({
               type="Fill"
               rounded
               size="Large"
-              color="Primary"
-              className="!w-full"
+              color={'Primary !bg-error-600' as IColorButton}
+              className="!w-full !z-50"
               onPress={handleNavigateToSurveys}
             />
           </View>

@@ -49,7 +49,7 @@ function WalletBalance({
           params: {screen: 'wallet', params: {screen: 'wallet'}},
         })
       }
-      className="w-full h-[110px] relative ">
+      className="w-full h-[95px] relative ">
       <LinearGradient
         colors={NoCredit ? Redcolors : inWallet ? Walletcolors : colors}
         start={Platform.OS === 'web' ? {x: 1, y: 1} : {x: 1, y: -1}}
@@ -60,7 +60,7 @@ function WalletBalance({
           justifyContent: 'center',
           alignItems: 'center',
         }}>
-        <View className="flex-1 p-[2px] w-full h-full relative z-10 overflow-hidden ">
+        <View className="flex-1 p-[1px] w-full h-full relative z-10 overflow-hidden ">
           <View className=" flex-1 w-full justify-between items-center web:pr-8 ios:pl-8 android:pl-8 flex-row overflow-hidden h-full dark:bg-neutral-dark-300/80 bg-neutral-0/80 rounded-3xl">
             {/* First Shade  */}
             {inWallet ? null : (
@@ -87,7 +87,7 @@ function WalletBalance({
                 </View>
               </>
             )}
-            <View className="gap-3">
+            <View className="gap-2">
               <BaseText type="subtitle3" color="secondary">
                 {t('WalletBalance')}
               </BaseText>
@@ -100,7 +100,7 @@ function WalletBalance({
                 </BaseText>
               </View>
             </View>
-            <View className="w-[100px] h-[100px]">
+            <View className="w-[100px] h-[80px]">
               <Image
                 className="w-full h-full"
                 source={require('../../../assets/images/wallet.png')}

@@ -19,8 +19,6 @@ import ShopCreditService from '../../../../components/cards/shopCard/ShopCreditS
 import ShopPackageService from '../../../../components/cards/shopCard/ShopPackageService';
 import ShopServiceCard from '../../../../components/cards/shopCard/ShopServiceCard';
 import {useTheme} from '../../../../utils/ThemeContext';
-import MainPageSurveyCard from '../../components/MainPageSurveyCard';
-import {Survey} from '../../../../services/models/response/SurveyResService';
 
 const cardComponentMapping: Record<number, React.FC<{data: any}>> = {
   [ProductType.Service]: ShopServiceCard,
@@ -37,16 +35,9 @@ type ProductSection = {
   data: ReturnType<typeof UseGetProduct>;
 };
 
-type ListItem =
-  | {kind: 'section'; section: ProductSection}
-  | {kind: 'survey-card'};
+type ListItem = {kind: 'section'; section: ProductSection};
 
-interface MainShopProps {
-  survey?: Survey;
-  isSingleSurvey?: boolean;
-}
-
-function MainShop({survey, isSingleSurvey}: MainShopProps) {
+function MainShop() {
   const {t} = useTranslation('translation', {keyPrefix: 'Drawer'});
   const [offset, setOffset] = useState(0);
   const {theme} = useTheme();
@@ -146,25 +137,11 @@ function MainShop({survey, isSingleSurvey}: MainShopProps) {
   );
 
   const listData = useMemo<ListItem[]>(() => {
-    const sectionItems: ListItem[] = filteredSections.map(section => ({
+    return filteredSections.map(section => ({
       kind: 'section' as const,
       section,
     }));
-
-    if (!survey) {
-      return sectionItems;
-    }
-
-    if (sectionItems.length === 0) {
-      return [{kind: 'survey-card' as const}];
-    }
-
-    const withSurvey = [...sectionItems];
-    withSurvey.splice(Math.min(1, withSurvey.length), 0, {
-      kind: 'survey-card' as const,
-    });
-    return withSurvey;
-  }, [filteredSections, survey]);
+  }, [filteredSections]);
 
   return (
     <>
@@ -175,26 +152,8 @@ function MainShop({survey, isSingleSurvey}: MainShopProps) {
       ) : (
         <FlatList
           data={listData}
-          keyExtractor={item =>
-            item.kind === 'survey-card'
-              ? 'survey-card'
-              : `section-${item.section.type}`
-          }
+          keyExtractor={item => `section-${item.section.type}`}
           renderItem={({item}) => {
-            if (item.kind === 'survey-card') {
-              if (!survey) {
-                return null;
-              }
-              return (
-                <View className="mb-6">
-                  <MainPageSurveyCard
-                    survey={survey}
-                    isSingleSurvey={isSingleSurvey}
-                  />
-                </View>
-              );
-            }
-
             const {title, type, data, navigateToCategory, icon} = item.section;
             const {data: items, isLoading} = data;
 

@@ -148,7 +148,7 @@ const BannerSlider: React.FC<BannerSliderProps> = ({data}) => {
   return (
     <View
       onLayout={handleLayout}
-      className="w-full Container mx-auto  mb-5 overflow-hidden">
+      className="w-full Container mx-auto   overflow-hidden">
       {containerWidth > 0 ? (
         <>
           <FlatList
@@ -175,8 +175,8 @@ const BannerSlider: React.FC<BannerSliderProps> = ({data}) => {
                   key={`dot-${index}`}
                   className={`rounded-full h-2 ${
                     index === currentIndex
-                      ? 'w-8 bg-[#1B1D21]'
-                      : 'w-2 bg-[#6E7787]'
+                      ? 'w-8 bg-[#1B1D21] dark:bg-neutral-dark-900'
+                      : 'w-2 bg-[#6E7787] data:bg-neutral-dark-400'
                   }`}
                 />
               ))}

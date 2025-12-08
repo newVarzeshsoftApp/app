@@ -359,10 +359,12 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
                         : Gesture.Simultaneous(scrollViewGesture, panScroll)
                     }>
                     <Animated.ScrollView
+                      className={'relative'}
                       scrollEnabled={enableScroll}
                       showsHorizontalScrollIndicator={false}
                       showsVerticalScrollIndicator={false}
                       scrollEventThrottle={16}
+                      style={{flex: 1, paddingBottom: 40}}
                       onScroll={onScroll}>
                       {children}
                     </Animated.ScrollView>

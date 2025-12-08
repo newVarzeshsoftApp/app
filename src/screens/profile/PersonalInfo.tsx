@@ -17,6 +17,7 @@ import {useMutation, useQueryClient} from '@tanstack/react-query';
 import UserService from '../../services/UserService';
 import {getGender} from '../../utils/helpers/helpers';
 import {useAuth} from '../../utils/hooks/useAuth';
+import {showToast} from '../../components/Toast/Toast';
 
 const PersonalInfoScreen: React.FC = () => {
   const {profile} = useAuth();
@@ -60,10 +61,15 @@ const PersonalInfoScreen: React.FC = () => {
     formState: {errors, isValid},
   } = methods;
   const queryClient = useQueryClient();
+
   const UpdateProfile = useMutation({
     mutationFn: UserService.UpdateProfile,
     onSuccess(data, variables, context) {
       queryClient.invalidateQueries({queryKey: ['Profile']});
+      showToast({
+        type: 'success',
+        text1: Profile('ProfileUpdated'),
+      });
     },
   });
   const onSubmit: SubmitHandler<UpdateProfileSchemaType> = async data => {

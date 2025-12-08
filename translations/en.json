@@ -25,6 +25,15 @@
     "all": "All",
     "noServicesFound": "No services found"
   },
+  "Profile": {
+    "Personal Info": "Personal Info",
+    "This section is for updating your personal information": "This section is for updating your personal information",
+    "Security": "Security",
+    "Change Password": "Change Password",
+    "PasswordChanged": "Password changed successfully",
+    "ProfileUpdated": "Profile updated successfully",
+    "You can change your password here": "You can change your password here"
+  },
   "Survey": {
     "title": "Survey",
     "detailTitle": "Survey details",
@@ -120,6 +129,17 @@
     }
   },
 
+  "Shop": {
+    "Service": {
+      "unlimited": "Unlimited",
+      "session": "session",
+      "Number of sessions": "Number of sessions",
+      "select sessions": "Select sessions",
+      "Price per session": "Price per session",
+      "Contractor selection": "Contractor selection",
+      "Confirm": "Confirm"
+    }
+  },
   "Validation": {
     "passwordOneUppercase": "The Password must contain at least one uppercase character",
     "passwordOneLowercase": "The Password must contain at least one lowercase character",
