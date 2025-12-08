@@ -7,6 +7,7 @@ import BannerSlider from '../../components/AdsSlider';
 import {useGetUnansweredSurvey} from '../../utils/hooks/Survey/useGetUnansweredSurvey';
 import {Survey} from '../../services/models/response/SurveyResService';
 import {BannerContent} from '../../services/models/response/AdsResService';
+import MainPageSurveyCard from './components/MainPageSurveyCard';
 
 // داده‌های تستی بنر - برای تست و اپدیت استفاده کنید
 const TEST_BANNER_DATA: BannerContent[] = [
@@ -106,7 +107,7 @@ const HomeScreen: React.FC = () => {
   }, [Ads?.content]);
 
   const renderHeader = () => (
-    <View className="gap-5">
+    <View className="gap-5 mb-5 ">
       <View className="Container pt-5 web:pt-[100px]">
         <WalletBalance />
       </View>
@@ -114,6 +115,14 @@ const HomeScreen: React.FC = () => {
         <View className="w-full h-[160px] rounded-[16px] mx-5 dark:bg-white/20 bg-black/20 animate-pulse" />
       ) : (
         bannerData.length > 0 && <BannerSlider data={bannerData} />
+      )}
+      {hasSurvey && (
+        <View className="Container px-4">
+          <MainPageSurveyCard
+            survey={previewSurvey}
+            isSingleSurvey={isSingleSurvey}
+          />
+        </View>
       )}
     </View>
   );
@@ -127,10 +136,7 @@ const HomeScreen: React.FC = () => {
       ListHeaderComponent={renderHeader}
       ListFooterComponent={
         <View className="flex-1 Container pb-[125px]">
-          <MainShop
-            survey={hasSurvey ? previewSurvey : undefined}
-            isSingleSurvey={isSingleSurvey}
-          />
+          <MainShop />
         </View>
       }
       showsVerticalScrollIndicator={false}

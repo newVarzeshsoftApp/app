@@ -4,8 +4,9 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import BaseText from '../../BaseText';
 import {TickCircle, Gift} from 'iconsax-react-native';
 import {useTranslation} from 'react-i18next';
-import {ClipboardTickIcon} from '../../../assets/icons';
+import {ClipboardTickDarkIcon, ClipboardTickIcon} from '../../../assets/icons';
 import {navigate} from '../../../navigation/navigationRef';
+import {useTheme} from '../../../utils/ThemeContext';
 
 interface SurveySuccessNotificationProps {
   hasGift: boolean;
@@ -24,11 +25,11 @@ const SurveySuccessNotification: React.FC<SurveySuccessNotificationProps> = ({
   const insets = useSafeAreaInsets();
   const slideAnim = useRef(new Animated.Value(-200)).current;
   const opacityAnim = useRef(new Animated.Value(0)).current;
-
+  const {theme} = useTheme();
   // Calculate top position considering header (approximately 80-100px)
   const headerHeight =
     Platform.OS === 'ios' ? 100 : Platform.OS === 'android' ? 80 : 20;
-  const topOffset = insets.top + headerHeight;
+  const topOffset = insets.top + headerHeight + 200;
 
   const handleClose = useCallback(() => {
     Animated.parallel([
@@ -92,7 +93,7 @@ const SurveySuccessNotification: React.FC<SurveySuccessNotificationProps> = ({
         zIndex: 9999,
         paddingHorizontal: 16,
       }}>
-      <View className="bg-bg-secondary rounded-2xl border border-white shadow-2xl">
+      <View className="bg-bg-secondary dark:bg-bg-secondary-dark rounded-2xl border border-white dark:border-neutral-700 shadow-2xl">
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={handleClose}
@@ -103,6 +104,8 @@ const SurveySuccessNotification: React.FC<SurveySuccessNotificationProps> = ({
                 <View className="w-10 h-10  flex items-center justify-center rounded-full bg-[#52C41A]">
                   <Gift size="28" color="#ffffff" variant="Bold" />
                 </View>
+              ) : theme === 'dark' ? (
+                <ClipboardTickDarkIcon size="28" />
               ) : (
                 <ClipboardTickIcon size="28" />
               )}

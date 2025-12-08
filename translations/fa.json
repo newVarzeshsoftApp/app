@@ -86,6 +86,7 @@
     "Security": "امنیت ",
     "Change Password": "تغییر رمز عبور",
     "PasswordChanged": "رمز عبور با موفقیت تغییر کرد",
+    "ProfileUpdated": "پروفایل با موفقیت به‌روزرسانی شد",
     "You can change your password here": "در این بخش میتوانید رمز عبور خود را تغییر دهید"
   },
   "Home": {
@@ -166,6 +167,7 @@
       "SingleservicePrice": "قیمت هر جلسه",
       "unlimitedServicePrice": "قیمت",
       "unlimited": "نامحدود",
+      "session": "جلسه",
       "addToCart": "افزودن به سبد خرید",
       "Number of sessions": "تعداد جلسات",
       "select sessions": "انتخاب  جلسه",
@@ -182,6 +184,7 @@
       "Total Price": "قیمت قابل پرداخت",
       "Price": "قیمت",
       "tax": "مالیات",
+      "Confirm": "تایید",
       "IncludesCount": "شامل {{count}} مورد"
     },
     "Package": {

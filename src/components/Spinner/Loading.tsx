@@ -1,5 +1,4 @@
 import React, {useEffect} from 'react';
-import {Platform} from 'react-native';
 import Svg, {Circle} from 'react-native-svg';
 import Animated, {
   useSharedValue,
@@ -17,35 +16,6 @@ interface ISpinnerProps {
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 function Loading({size = 60, circleClassName = 'white'}: ISpinnerProps) {
-  if (Platform.OS === 'web') {
-    return (
-      <Svg width={size} height={size} viewBox="0 0 200 200">
-        <Circle
-          cx="40"
-          cy="100"
-          r="15"
-          strokeWidth="15"
-          fill={circleClassName}
-        />
-        <Circle
-          cx="100"
-          cy="100"
-          r="15"
-          strokeWidth="15"
-          fill={circleClassName}
-        />
-        <Circle
-          cx="160"
-          cy="100"
-          r="15"
-          strokeWidth="15"
-          fill={circleClassName}
-        />
-      </Svg>
-    );
-  }
-
-  // Continue with animation setup if not Web
   const opacity1 = useSharedValue(1);
   const opacity2 = useSharedValue(1);
   const opacity3 = useSharedValue(1);

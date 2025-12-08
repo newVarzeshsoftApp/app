@@ -204,7 +204,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                   label={
                     data?.unlimited
                       ? `${t('unlimited')} ${formatNumber(item?.price ?? 0)} ﷼ `
-                      : `${item?.min ?? 0} جلسه  ${formatNumber(
+                      : `${item?.min ?? 0} ${t('session')} ${formatNumber(
                           item?.price ?? 0,
                         )} ﷼ `
                   }
@@ -218,6 +218,16 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
               </>
             );
           })}
+          <View className="pt-4 pb-2 fixed bottom-0 left-0 right-0 ">
+            <BaseButton
+              text={t('Confirm')}
+              onPress={() => BottomSheetPriceListRef.current?.close()}
+              type="Fill"
+              color="Black"
+              size="Large"
+              rounded
+            />
+          </View>
         </View>
       </BottomSheet>
       <BottomSheet

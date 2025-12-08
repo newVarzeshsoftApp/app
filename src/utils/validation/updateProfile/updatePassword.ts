@@ -10,7 +10,7 @@ export const UpdatePasswordSchema = z
   .object({
     currentPassword: validatePassword,
     newPassword: validateNewPassword,
-    confirmNewPassword: validateConfirmPassword,
+    confirmNewPassword: validateNewPassword,
   })
   .refine(data => data.newPassword === data.confirmNewPassword, {
     message: i18n.t('Validation.passwordsDoNotMatch'),
