@@ -99,3 +99,25 @@ export interface GatewayLogQuery {
   offset?: string;
   limit?: string;
 }
+
+export interface ReservationQuery {
+  tagId: number;
+  patternId?: number;
+  gender?: 'Female' | 'Male' | 'Both';
+  saleUnit?: number;
+  startTime?: string; // "10:00"
+  endTime?: string; // "11:00"
+  start: string; // "2025/12/01"
+  end?: string; // "2025/12/01"
+  days?: string; // "1,2" (comma-separated day numbers)
+}
+
+export interface PreReserveQuery {
+  product: number;
+  day: string;
+  fromTime: string;
+  toTime: string;
+  gender: string;
+  specificDate: string;
+  isLocked: boolean;
+}
