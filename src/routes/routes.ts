@@ -4,7 +4,9 @@ import {
   CategoryQuery,
   GatewayLogQuery,
   IntroductionMethodQuery,
+  PreReserveQuery,
   ProductQuery,
+  ReservationQuery,
   UserPaymentQuey,
   UserSaleItemQuey,
   UserTransactionQuery,
@@ -128,5 +130,17 @@ export const routes = {
   config: {
     getConfigs: () => 'config',
     createConfig: () => 'config',
+  },
+  reservation: {
+    getTags: () => 'reservation/tags',
+    getPatterns: () => 'reservation/patterns',
+    getReservation: (query: ReservationQuery) => {
+      const {tagId, ...restQuery} = query;
+      return `reservation/${tagId}` + prepareQuery(restQuery);
+    },
+    preReserve: (query: PreReserveQuery) =>
+      'reservation/pre-reserve' + prepareQuery(query),
+    submit: () => 'reservation/submit',
+    cancel: () => 'reservation/cancel',
   },
 };

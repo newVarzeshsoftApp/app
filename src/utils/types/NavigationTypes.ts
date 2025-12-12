@@ -58,7 +58,18 @@ export type WalletStackParamList = {
 export type HomeStackParamList = {
   Home: undefined;
   saleItem: undefined;
-  ticket: undefined;
+  reserve: undefined;
+  reserveDetail: {
+    tagId: number;
+    patternId?: number;
+    gender?: 'Female' | 'Male' | 'Both';
+    saleUnit?: number;
+    startTime?: string;
+    endTime?: string;
+    start: string;
+    end?: string;
+    days?: string;
+  };
   cart: undefined;
   wallet: NavigatorScreenParams<WalletStackParamList> | undefined;
   myServices: undefined;

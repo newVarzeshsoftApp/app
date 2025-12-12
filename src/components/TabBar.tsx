@@ -2,6 +2,7 @@ import React from 'react';
 import {TouchableOpacity, Text, View, StyleProp, ViewStyle} from 'react-native';
 import {BottomTabBarProps} from '@react-navigation/bottom-tabs';
 import {
+  CalendarAdd,
   Home2,
   Message,
   Profile,
@@ -31,7 +32,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
   const {theme} = useTheme();
   const tabIcons: Record<string, React.ReactElement> = {
     Home: <Home2 size="24" />,
-    ticket: <Message size="24" />,
+    reserve: <CalendarAdd size="24" />,
     cart: <ShoppingBag size="24" />,
     wallet: <Wallet2 size="24" />,
     myServices: <Profile size="24" />,
@@ -116,11 +117,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
         const iconElement = tabIcons[route.name] || <Home2 size="24" />;
 
         return (
-          <TouchableOpacity
-            onPress={route.name === 'ticket' ? undefined : onPress}
-            disabled={route.name === 'ticket'}
-            style={{opacity: route.name === 'ticket' ? 0.4 : 1}}
-            key={index}>
+          <TouchableOpacity onPress={onPress} key={index}>
             <Animated.View
               style={[
                 {
