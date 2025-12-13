@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {RouteProp, useRoute} from '@react-navigation/native';
@@ -23,6 +24,8 @@ import BottomSheet, {
   BottomSheetMethods,
 } from '../../components/BottomSheet/BottomSheet';
 import {navigationRef} from '../../navigation/navigationRef';
+import {usePreReserve} from '../../utils/hooks/Reservation/usePreReserve';
+import {PreReserveQuery} from '../../services/models/requestQueries';
 
 const VISIBLE_DAYS_COUNT = 3; // تعداد روزهایی که همزمان نشون میده
 const TIME_COLUMN_WIDTH = 45; // عرض ستون ساعت
@@ -107,6 +110,45 @@ const ReserveDetailScreen: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
   const helpBottomSheetRef = useRef<BottomSheetMethods>(null);
+
+  // Pre-reserve mutation
+  const preReserveMutation = usePreReserve();
+
+  // Handle service item click
+  const handleServiceItemClick = useCallback(
+    (item: ServiceEntryDto, dayData: DayEntryDto, timeSlot: string) => {
+      const [fromTime, toTime] = timeSlot.split('_');
+
+      const query: PreReserveQuery = {
+        product: item.id,
+        day: dayData.name,
+        fromTime: fromTime,
+        toTime: toTime,
+        gender: params.gender || 'Both',
+        specificDate: dayData.date,
+        isLocked: false,
+      };
+
+      console.log('PreReserve Query:', JSON.stringify(query, null, 2));
+
+      preReserveMutation.mutate(query, {
+        onSuccess: response => {
+          console.log(
+            'PreReserve Response:',
+            JSON.stringify(response, null, 2),
+          );
+          Alert.alert('Response', JSON.stringify(response, null, 2), [
+            {text: 'OK'},
+          ]);
+        },
+        onError: error => {
+          console.error('PreReserve Error:', error);
+          Alert.alert('خطا', error.message || 'خطا در ارسال درخواست');
+        },
+      });
+    },
+    [params.gender, preReserveMutation],
+  );
 
   // Build query for API
   const query = useMemo(
@@ -235,18 +277,27 @@ const ReserveDetailScreen: React.FC = () => {
 
   // Render service item card
   const renderServiceItem = useCallback(
-    (item: ServiceEntryDto, index: number) => {
+    (
+      item: ServiceEntryDto,
+      index: number,
+      dayData: DayEntryDto,
+      timeSlot: string,
+    ) => {
       const colors = getServiceColor(item, index);
       const isDisabled = item.isReserve;
       const isPreReserved = item.isPreReserved;
       const isMyReservation = item.isPreReserved && item.selfReserved;
       const displayPrice =
         item.reservePrice > 0 ? item.reservePrice : item.price || 0;
+      const isLoading =
+        preReserveMutation.isPending &&
+        preReserveMutation.variables?.product === item.id;
 
       return (
         <TouchableOpacity
           key={item.id}
-          disabled={isDisabled}
+          disabled={isDisabled || isLoading}
+          onPress={() => handleServiceItemClick(item, dayData, timeSlot)}
           className="rounded-lg border p-2"
           style={{
             borderColor: colors.border,
@@ -260,52 +311,63 @@ const ReserveDetailScreen: React.FC = () => {
               : '#FFFFFF',
             borderWidth: 1,
             minHeight: 60,
+            opacity: isLoading ? 0.5 : 1,
           }}>
-          <BaseText
-            type="badge"
-            style={{
-              color: isMyReservation
-                ? colors.text
-                : isDisabled
-                ? '#9E9E9E'
-                : !isPreReserved
-                ? '#000000'
-                : colors.border,
-            }}
-            className="text-center">
-            {item.title}
-          </BaseText>
-          {displayPrice > 0 && (
-            <BaseText
-              type="caption"
-              style={{
-                color: isMyReservation
-                  ? colors.text
-                  : isDisabled
-                  ? '#9E9E9E'
-                  : !isPreReserved
-                  ? '#000000'
-                  : colors.border,
-              }}
-              className="mt-1 text-center">
-              قیمت {formatNumber(displayPrice)}
-            </BaseText>
+          {isLoading ? (
+            <ActivityIndicator size="small" color={colors.border} />
+          ) : (
+            <>
+              <BaseText
+                type="badge"
+                style={{
+                  color: isMyReservation
+                    ? colors.text
+                    : isDisabled
+                    ? '#9E9E9E'
+                    : !isPreReserved
+                    ? '#000000'
+                    : colors.border,
+                }}
+                className="text-center">
+                {item.title}
+              </BaseText>
+              {displayPrice > 0 && (
+                <BaseText
+                  type="caption"
+                  style={{
+                    color: isMyReservation
+                      ? colors.text
+                      : isDisabled
+                      ? '#9E9E9E'
+                      : !isPreReserved
+                      ? '#000000'
+                      : colors.border,
+                  }}
+                  className="mt-1 text-center">
+                  قیمت {formatNumber(displayPrice)}
+                </BaseText>
+              )}
+            </>
           )}
         </TouchableOpacity>
       );
     },
-    [],
+    [
+      handleServiceItemClick,
+      preReserveMutation.isPending,
+      preReserveMutation.variables?.product,
+    ],
   );
 
   // Render items in a vertical list
   const renderItemsList = useCallback(
-    (items: ServiceEntryDto[]) => {
+    (items: ServiceEntryDto[], dayData: DayEntryDto, timeSlot: string) => {
       if (items.length === 0) return null;
       return (
         <View style={{gap: 4}}>
           {items.map((item, index) => (
             <View key={item.id} style={{marginBottom: 4}}>
-              {renderServiceItem(item, index)}
+              {renderServiceItem(item, index, dayData, timeSlot)}
             </View>
           ))}
         </View>
@@ -375,7 +437,7 @@ const ReserveDetailScreen: React.FC = () => {
                       </BaseText>
                     </View>
                     {/* Items List */}
-                    {renderItemsList(dayData.items)}
+                    {renderItemsList(dayData.items, dayData, slot.timeSlot)}
                   </View>
                 );
               })}
