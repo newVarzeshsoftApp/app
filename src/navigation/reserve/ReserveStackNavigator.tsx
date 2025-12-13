@@ -11,7 +11,6 @@ const ReserveStackNavigator: React.FC = () => {
     <Stack.Navigator
       screenOptions={{
         headerShown: false,
-        unmountOnBlur: true,
       }}>
       <Stack.Screen name="reserve" component={ReserveScreen} />
       <Stack.Screen name="reserveDetail" component={ReserveDetailScreen} />
@@ -20,5 +19,3 @@ const ReserveStackNavigator: React.FC = () => {
 };
 
 export default ReserveStackNavigator;
-
-

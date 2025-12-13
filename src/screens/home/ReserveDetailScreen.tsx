@@ -26,6 +26,9 @@ import BottomSheet, {
 import {navigationRef} from '../../navigation/navigationRef';
 import {usePreReserve} from '../../utils/hooks/Reservation/usePreReserve';
 import {PreReserveQuery} from '../../services/models/requestQueries';
+import PreReserveBottomSheet, {
+  PreReserveBottomSheetRef,
+} from '../../components/Reservation/PreReserveBottomSheet';
 
 const VISIBLE_DAYS_COUNT = 3; // تعداد روزهایی که همزمان نشون میده
 const TIME_COLUMN_WIDTH = 45; // عرض ستون ساعت
@@ -57,11 +60,19 @@ const getServiceColor = (
   service: ServiceEntryDto,
   index: number,
 ): {border: string; bg: string; text: string} => {
-  if (service.metadata?.reserveColor && service.metadata?.textColor) {
+  // Check if metadata has colors with value property
+  const reserveColor =
+    (service.metadata?.reserveColor as any)?.value ||
+    (service.metadata?.reserveColor as string);
+  const textColor =
+    (service.metadata?.textColor as any)?.value ||
+    (service.metadata?.textColor as string);
+
+  if (reserveColor && textColor) {
     return {
-      border: service.metadata.reserveColor,
-      bg: service.metadata.reserveColor,
-      text: service.metadata.textColor,
+      border: reserveColor,
+      bg: reserveColor,
+      text: textColor,
     };
   }
   // Use hash of title for consistent color per service
@@ -110,9 +121,33 @@ const ReserveDetailScreen: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const scrollViewRef = useRef<ScrollView>(null);
   const helpBottomSheetRef = useRef<BottomSheetMethods>(null);
+  const preReserveBottomSheetRef = useRef<PreReserveBottomSheetRef>(null);
 
   // Pre-reserve mutation
   const preReserveMutation = usePreReserve();
+
+  // Refetch reservation data
+  const {refetch} = useGetReservation(
+    {
+      tagId: params.tagId,
+      patternId: params.patternId,
+      gender: params.gender,
+      saleUnit: params.saleUnit,
+      startTime: params.startTime,
+      endTime: params.endTime,
+      start: params.start,
+      end: params.end,
+      days: params.days,
+    },
+    true,
+  );
+
+  // State for selected item data (for bottom sheet)
+  const [selectedItemData, setSelectedItemData] = useState<{
+    item: ServiceEntryDto;
+    dayData: DayEntryDto;
+    timeSlot: string;
+  } | null>(null);
 
   // Handle service item click
   const handleServiceItemClick = useCallback(
@@ -137,9 +172,27 @@ const ReserveDetailScreen: React.FC = () => {
             'PreReserve Response:',
             JSON.stringify(response, null, 2),
           );
-          Alert.alert('Response', JSON.stringify(response, null, 2), [
-            {text: 'OK'},
-          ]);
+
+          // Store selected item data
+          setSelectedItemData({item, dayData, timeSlot});
+
+          // Open bottom sheet with item data - use setTimeout to ensure ref is ready
+          setTimeout(() => {
+            if (preReserveBottomSheetRef.current) {
+              preReserveBottomSheetRef.current.open({
+                item,
+                date: dayData.date,
+                fromTime,
+                toTime,
+                dayName: dayData.name,
+              });
+            } else {
+              console.warn('PreReserveBottomSheet ref is not available');
+            }
+          }, 0);
+
+          // Refetch to update UI
+          refetch();
         },
         onError: error => {
           console.error('PreReserve Error:', error);
@@ -147,8 +200,52 @@ const ReserveDetailScreen: React.FC = () => {
         },
       });
     },
-    [params.gender, preReserveMutation],
+    [params.gender, preReserveMutation, refetch],
   );
+
+  // Handle delete reservation (toggle pre-reserve)
+  const handleDeleteReservation = useCallback(() => {
+    if (!selectedItemData) return;
+
+    const {item, dayData, timeSlot} = selectedItemData;
+    const [fromTime, toTime] = timeSlot.split('_');
+
+    const query: PreReserveQuery = {
+      product: item.id,
+      day: dayData.name,
+      fromTime: fromTime,
+      toTime: toTime,
+      gender: params.gender || 'Both',
+      specificDate: dayData.date,
+      isLocked: false,
+    };
+
+    preReserveMutation.mutate(query, {
+      onSuccess: () => {
+        preReserveBottomSheetRef.current?.close();
+        setSelectedItemData(null);
+        refetch();
+      },
+      onError: error => {
+        Alert.alert('خطا', error.message || 'خطا در لغو رزرو');
+      },
+    });
+  }, [selectedItemData, params.gender, preReserveMutation, refetch]);
+
+  // Handle add new reservation
+  const handleAddNewReservation = useCallback(() => {
+    preReserveBottomSheetRef.current?.close();
+    // User can continue selecting more items
+  }, []);
+
+  // Handle complete payment
+  const handleCompletePayment = useCallback(() => {
+    // Navigate to cart
+    navigationRef.navigate('Root', {
+      screen: 'HomeNavigator',
+      params: {screen: 'cart'},
+    });
+  }, []);
 
   // Build query for API
   const query = useMemo(
@@ -289,16 +386,21 @@ const ReserveDetailScreen: React.FC = () => {
       const isMyReservation = item.isPreReserved && item.selfReserved;
       const displayPrice =
         item.reservePrice > 0 ? item.reservePrice : item.price || 0;
+      // Check if this specific item is loading (match product, date, and time)
+      const [slotFromTime, slotToTime] = timeSlot.split('_');
       const isLoading =
         preReserveMutation.isPending &&
-        preReserveMutation.variables?.product === item.id;
+        preReserveMutation.variables?.product === item.id &&
+        preReserveMutation.variables?.specificDate === dayData.date &&
+        preReserveMutation.variables?.fromTime === slotFromTime &&
+        preReserveMutation.variables?.toTime === slotToTime;
 
       return (
         <TouchableOpacity
           key={item.id}
           disabled={isDisabled || isLoading}
           onPress={() => handleServiceItemClick(item, dayData, timeSlot)}
-          className="rounded-lg border p-2"
+          className="rounded-lg border p-2 items-center justify-center gap-1"
           style={{
             borderColor: colors.border,
             borderStyle: isPreReserved && !isMyReservation ? 'dashed' : 'solid',
@@ -318,7 +420,7 @@ const ReserveDetailScreen: React.FC = () => {
           ) : (
             <>
               <BaseText
-                type="badge"
+                type="subtitle3"
                 style={{
                   color: isMyReservation
                     ? colors.text
@@ -333,7 +435,7 @@ const ReserveDetailScreen: React.FC = () => {
               </BaseText>
               {displayPrice > 0 && (
                 <BaseText
-                  type="caption"
+                  type="badge"
                   style={{
                     color: isMyReservation
                       ? colors.text
@@ -574,19 +676,15 @@ const ReserveDetailScreen: React.FC = () => {
           {/* Legend Item - Pre Reserved (Dashed) */}
           <View className="flex-row items-center gap-3">
             <View
-              className="w-16 h-12 rounded-lg items-center justify-center"
+              className="w-8 h-8 rounded-lg items-center justify-center"
               style={{
                 borderWidth: 2,
                 borderStyle: 'dashed',
                 borderColor: '#5BC8FF',
                 backgroundColor: 'transparent',
-              }}>
-              <BaseText type="caption" style={{color: '#5BC8FF'}}>
-                نمونه
-              </BaseText>
-            </View>
+              }}></View>
             <View className="flex-1">
-              <BaseText type="body3" color="base">
+              <BaseText type="body2" color="base">
                 در حال رزرو
               </BaseText>
               <BaseText type="caption" color="secondary">
@@ -598,19 +696,15 @@ const ReserveDetailScreen: React.FC = () => {
           {/* Legend Item - Reserved by others (Disabled) */}
           <View className="flex-row items-center gap-3">
             <View
-              className="w-16 h-12 rounded-lg items-center justify-center"
+              className="w-8 h-8 rounded-lg items-center justify-center"
               style={{
                 borderWidth: 2,
                 borderStyle: 'solid',
                 borderColor: '#E0E0E0',
                 backgroundColor: '#F5F5F5',
-              }}>
-              <BaseText type="caption" style={{color: '#9E9E9E'}}>
-                نمونه
-              </BaseText>
-            </View>
+              }}></View>
             <View className="flex-1">
-              <BaseText type="body3" color="base">
+              <BaseText type="body2" color="base">
                 رزرو شده
               </BaseText>
               <BaseText type="caption" color="secondary">
@@ -622,19 +716,15 @@ const ReserveDetailScreen: React.FC = () => {
           {/* Legend Item - My Reservation (Filled) */}
           <View className="flex-row items-center gap-3">
             <View
-              className="w-16 h-12 rounded-lg items-center justify-center"
+              className="w-8 h-8 rounded-lg items-center justify-center"
               style={{
                 borderWidth: 2,
                 borderStyle: 'solid',
                 borderColor: '#4CAF50',
                 backgroundColor: '#4CAF50',
-              }}>
-              <BaseText type="caption" style={{color: '#FFFFFF'}}>
-                نمونه
-              </BaseText>
-            </View>
+              }}></View>
             <View className="flex-1">
-              <BaseText type="body3" color="base">
+              <BaseText type="body2" color="base">
                 رزرو شده توسط من
               </BaseText>
               <BaseText type="caption" color="secondary">
@@ -646,19 +736,15 @@ const ReserveDetailScreen: React.FC = () => {
           {/* Legend Item - Available */}
           <View className="flex-row items-center gap-3">
             <View
-              className="w-16 h-12 rounded-lg items-center justify-center"
+              className="w-8 h-8 rounded-lg items-center justify-center"
               style={{
                 borderWidth: 2,
                 borderStyle: 'solid',
                 borderColor: '#5BC8FF',
                 backgroundColor: '#FFFFFF',
-              }}>
-              <BaseText type="caption" style={{color: '#000000'}}>
-                نمونه
-              </BaseText>
-            </View>
+              }}></View>
             <View className="flex-1">
-              <BaseText type="body3" color="base">
+              <BaseText type="body2" color="base">
                 قابل رزرو
               </BaseText>
               <BaseText type="caption" color="secondary">
@@ -668,6 +754,14 @@ const ReserveDetailScreen: React.FC = () => {
           </View>
         </View>
       </BottomSheet>
+
+      {/* Pre-Reserve Bottom Sheet */}
+      <PreReserveBottomSheet
+        ref={preReserveBottomSheetRef}
+        onAddNewReservation={handleAddNewReservation}
+        onCompletePayment={handleCompletePayment}
+        onDeleteReservation={handleDeleteReservation}
+      />
     </View>
   );
 };
