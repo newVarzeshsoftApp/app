@@ -17,16 +17,38 @@ import {formatNumber} from '../../utils/helpers/helpers';
 import {useTheme} from '../../utils/ThemeContext';
 import {routes} from '../../routes/routes';
 
-// Props for additional service item
-interface AdditionalService {
+// SubProduct interface from API
+interface SubProduct {
   id: number;
-  title: string;
-  price: number;
   quantity: number;
+  discount: number;
+  amount: number;
+  tax: number;
+  price: number | null;
+  product: {
+    id: number;
+    title: string;
+    sku: string;
+    price: number;
+    discount: number;
+    hasSubProduct: boolean;
+    [key: string]: any;
+  };
+  subProducts?: SubProduct[]; // Nested subProducts
+  [key: string]: any; // For other properties
 }
 
-// Penalty item
-interface PenaltyItem {
+// Penalty item from API
+interface ReservationPenaltyDto {
+  quantity: number;
+  unit: 'DAY' | 'HOUR';
+  percent: number;
+  description: string;
+  hourAmount: number;
+}
+
+// Formatted penalty item for display
+interface PenaltyDisplayItem {
   timeLabel: string;
   percentage: number;
 }
@@ -77,16 +99,41 @@ const formatPersianDateWithMonthName = (dateStr: string): string => {
   }
 };
 
-// Default penalty items based on design
-const DEFAULT_PENALTIES: PenaltyItem[] = [
-  {timeLabel: 'تا ۱ ساعت مانده', percentage: 100},
-  {timeLabel: 'تا ۳ ساعت مانده', percentage: 90},
-  {timeLabel: 'تا ۸ ساعت مانده', percentage: 70},
-  {timeLabel: '۱ روز قبل', percentage: 50},
-  {timeLabel: '۴ روز قبل', percentage: 30},
-  {timeLabel: '۱ هفته قبل', percentage: 20},
-  {timeLabel: '۱ ماه قبل', percentage: 5},
-];
+// Helper function to format penalty data from API
+const formatPenaltyItems = (
+  penalties: ReservationPenaltyDto[],
+): PenaltyDisplayItem[] => {
+  if (!penalties || penalties.length === 0) return [];
+
+  // Sort by hourAmount descending (furthest time first)
+  const sorted = [...penalties].sort((a, b) => b.hourAmount - a.hourAmount);
+
+  return sorted.map(penalty => {
+    let timeLabel = '';
+    if (penalty.unit === 'DAY') {
+      if (penalty.quantity === 1) {
+        timeLabel = '۱ روز قبل';
+      } else if (penalty.quantity === 7) {
+        timeLabel = '۱ هفته قبل';
+      } else if (penalty.quantity === 30) {
+        timeLabel = '۱ ماه قبل';
+      } else {
+        timeLabel = `${penalty.quantity} روز قبل`;
+      }
+    } else if (penalty.unit === 'HOUR') {
+      if (penalty.quantity === 1) {
+        timeLabel = 'تا ۱ ساعت مانده';
+      } else {
+        timeLabel = `تا ${penalty.quantity} ساعت مانده`;
+      }
+    }
+
+    return {
+      timeLabel,
+      percentage: penalty.percent,
+    };
+  });
+};
 
 const PreReserveBottomSheet = forwardRef<
   PreReserveBottomSheetRef,
@@ -103,14 +150,14 @@ const PreReserveBottomSheet = forwardRef<
   const [toTime, setToTime] = useState('');
   const [dayName, setDayName] = useState('');
 
-  // State for additional services quantities
-  const [additionalServices, setAdditionalServices] = useState<
-    AdditionalService[]
-  >([
-    {id: 1, title: 'راکت تنیس', price: 500000, quantity: 2},
-    {id: 2, title: 'توپ', price: 100000, quantity: 1},
-    {id: 3, title: 'کفش تنیس', price: 2000000, quantity: 0},
-  ]);
+  // State for subProducts (stored from item)
+  const [subProducts, setSubProducts] = useState<SubProduct[]>([]);
+
+  // State for modified quantities (key: subProduct.id, value: new quantity)
+  // If not in this map, use the original quantity from subProduct
+  const [modifiedQuantities, setModifiedQuantities] = useState<
+    Record<number, number>
+  >({});
 
   // State for penalty accordion
   const [penaltyExpanded, setPenaltyExpanded] = useState(false);
@@ -123,6 +170,10 @@ const PreReserveBottomSheet = forwardRef<
       setFromTime(data.fromTime);
       setToTime(data.toTime);
       setDayName(data.dayName);
+      // Store subProducts from item
+      setSubProducts((data.item.subProducts as SubProduct[]) || []);
+      // Reset modified quantities when opening with new item
+      setModifiedQuantities({});
       bottomSheetRef.current?.expand();
     },
     close: () => {
@@ -130,27 +181,72 @@ const PreReserveBottomSheet = forwardRef<
     },
   }));
 
-  // Update quantity for additional service
+  // Update quantity for subProduct
   const updateQuantity = (id: number, delta: number) => {
-    setAdditionalServices(prev =>
-      prev.map(service =>
-        service.id === id
-          ? {...service, quantity: Math.max(0, service.quantity + delta)}
-          : service,
-      ),
-    );
+    setModifiedQuantities(prev => {
+      // Find the subProduct to get its original quantity
+      const findSubProduct = (
+        products: SubProduct[],
+      ): SubProduct | undefined => {
+        for (const product of products) {
+          if (product.id === id) return product;
+          if (product.subProducts) {
+            const found = findSubProduct(product.subProducts);
+            if (found) return found;
+          }
+        }
+        return undefined;
+      };
+
+      const subProduct = findSubProduct(subProducts);
+      const originalQuantity = subProduct?.quantity || 0;
+      const currentQuantity = prev[id] ?? originalQuantity;
+      const newQuantity = Math.max(0, currentQuantity + delta);
+
+      // If new quantity equals original, remove from modified
+      if (newQuantity === originalQuantity) {
+        const {[id]: _, ...rest} = prev;
+        return rest;
+      }
+
+      return {...prev, [id]: newQuantity};
+    });
+  };
+
+  // Get quantity for a subProduct (uses modified or original)
+  const getQuantity = (id: number, originalQuantity: number): number => {
+    return modifiedQuantities[id] ?? originalQuantity;
+  };
+
+  // Get price for a subProduct
+  const getPrice = (subProduct: SubProduct): number => {
+    // Use product.price if available, otherwise use amount
+    return subProduct.product?.price || subProduct.amount || 0;
+  };
+
+  // Helper function to calculate total from subProducts (including nested)
+  const calculateSubProductsTotal = (
+    products: SubProduct[] | undefined,
+  ): number => {
+    if (!products || products.length === 0) return 0;
+
+    return products.reduce((total, subProduct) => {
+      const quantity = getQuantity(subProduct.id, subProduct.quantity);
+      const price = getPrice(subProduct);
+      const subProductTotal = price * quantity;
+      // Recursively calculate nested subProducts
+      const nestedTotal = calculateSubProductsTotal(subProduct.subProducts);
+      return total + subProductTotal + nestedTotal;
+    }, 0);
   };
 
   // Calculate totals
-  const reservePrice = item?.reservePrice || item?.price || 1000000;
-  const discount = 200000;
-  const gift = 15000000;
-  const vat = 400000;
-  const additionalTotal = additionalServices.reduce(
-    (sum, s) => sum + s.price * s.quantity,
-    0,
-  );
-  const totalPrice = reservePrice - discount + vat + additionalTotal;
+  const reservePrice = item?.reservePrice || item?.price || 0;
+  const discount = item?.discount || 0;
+  const gift = 0; // TODO: Get from API response
+  const vat = item?.tax || 0;
+  const additionalTotal = calculateSubProductsTotal(subProducts);
+  const totalPrice = reservePrice - discount + gift + vat + additionalTotal;
 
   // Get duration from reservationPattern
   const getDuration = (): string => {
@@ -181,11 +277,11 @@ const PreReserveBottomSheet = forwardRef<
   return (
     <BottomSheet
       ref={bottomSheetRef}
-      snapPoints={[85]}
+      snapPoints={[90, 95]}
       Title="جزئیات سفارش"
       scrollView>
       <View className="">
-        <View className="gap-4 pb-6">
+        <View className="gap-4 pb-2">
           {/* Service Info Card */}
           <View className="BaseServiceCard gap-3">
             <View className="bg-neutral-200 dark:bg-neutral-dark-200 rounded-3xl p-4 gap-2">
@@ -248,60 +344,141 @@ const PreReserveBottomSheet = forwardRef<
             )}
           </View>
 
-          {/* Additional Services Section */}
-          <View>
-            <BaseText type="body1" color="base" className="mb-4">
-              خدمات اضافی
-            </BaseText>
+          {/* Additional Services Section - Only show if subProducts exist */}
+          {subProducts && subProducts.length > 0 && (
+            <View>
+              <BaseText type="body1" color="base" className="mb-4">
+                خدمات اضافی
+              </BaseText>
 
-            <View className="BaseServiceCard gap-3">
-              {additionalServices.map(service => (
-                <View key={service.id} className="gap-1">
-                  <View className="flex-row items-center justify-between ">
-                    {/* Service Info */}
-                    <View className="flex-1">
-                      <BaseText type="subtitle2" color="secondary">
-                        {service.title}:
-                      </BaseText>
-                    </View>
-                    {/* Quantity Controls */}
-                    <View className="gap-1">
-                      <View className="flex-row items-end justify-end gap-2">
-                        <TouchableOpacity
-                          onPress={() => updateQuantity(service.id, -1)}
-                          disabled={service.quantity === 0}
-                          className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center"
-                          style={{opacity: service.quantity === 0 ? 0.3 : 1}}>
-                          <BaseText type="body2" color="base">
-                            -
+              <View className="BaseServiceCard gap-3">
+                {subProducts.map(subProduct => {
+                  const quantity = getQuantity(
+                    subProduct.id,
+                    subProduct.quantity,
+                  );
+                  const price = getPrice(subProduct);
+                  const hasNested =
+                    subProduct.subProducts && subProduct.subProducts.length > 0;
+
+                  return (
+                    <View key={subProduct.id} className="gap-1">
+                      <View className="flex-row items-center justify-between">
+                        {/* Service Info */}
+                        <View className="flex-1">
+                          <BaseText type="subtitle2" color="secondary">
+                            {subProduct.product?.title || 'بدون عنوان'}
+                            {hasNested ? '?' : ':'}
                           </BaseText>
-                        </TouchableOpacity>
-                        <BaseText
-                          type="body2"
-                          color="base"
-                          className="w-6 text-center">
-                          {service.quantity}
-                        </BaseText>
-                        <TouchableOpacity
-                          onPress={() => updateQuantity(service.id, 1)}
-                          className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center">
-                          <BaseText type="body2" color="base">
-                            +
-                          </BaseText>
-                        </TouchableOpacity>
+                        </View>
+                        {/* Quantity Controls */}
+                        <View className="gap-1">
+                          <View className="flex-row items-end justify-end gap-2">
+                            <TouchableOpacity
+                              onPress={() => updateQuantity(subProduct.id, -1)}
+                              disabled={quantity === 0}
+                              className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center"
+                              style={{opacity: quantity === 0 ? 0.3 : 1}}>
+                              <BaseText type="body2" color="base">
+                                -
+                              </BaseText>
+                            </TouchableOpacity>
+                            <BaseText
+                              type="body2"
+                              color="base"
+                              className="w-6 text-center">
+                              {quantity}
+                            </BaseText>
+                            <TouchableOpacity
+                              onPress={() => updateQuantity(subProduct.id, 1)}
+                              className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center">
+                              <BaseText type="body2" color="base">
+                                +
+                              </BaseText>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
                       </View>
+                      {price > 0 && (
+                        <BaseText
+                          type="badge"
+                          color="secondary"
+                          className="text-end">
+                          قیمت هر واحد {formatNumber(price)} تومان میباشد.
+                        </BaseText>
+                      )}
+                      {/* Render nested subProducts if exist */}
+                      {hasNested && (
+                        <View className="mr-4 mt-2 gap-2">
+                          {subProduct.subProducts!.map(nested => {
+                            const nestedQuantity = getQuantity(
+                              nested.id,
+                              nested.quantity,
+                            );
+                            const nestedPrice = getPrice(nested);
+                            return (
+                              <View key={nested.id} className="gap-1">
+                                <View className="flex-row items-center justify-between">
+                                  <View className="flex-1">
+                                    <BaseText type="badge" color="secondary">
+                                      {nested.product?.title || 'بدون عنوان'}
+                                      {nested.subProducts &&
+                                      nested.subProducts.length > 0
+                                        ? '?'
+                                        : ':'}
+                                    </BaseText>
+                                  </View>
+                                  <View className="flex-row items-end justify-end gap-2">
+                                    <TouchableOpacity
+                                      onPress={() =>
+                                        updateQuantity(nested.id, -1)
+                                      }
+                                      disabled={nestedQuantity === 0}
+                                      className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center"
+                                      style={{
+                                        opacity: nestedQuantity === 0 ? 0.3 : 1,
+                                      }}>
+                                      <BaseText type="body2" color="base">
+                                        -
+                                      </BaseText>
+                                    </TouchableOpacity>
+                                    <BaseText
+                                      type="body2"
+                                      color="base"
+                                      className="w-6 text-center">
+                                      {nestedQuantity}
+                                    </BaseText>
+                                    <TouchableOpacity
+                                      onPress={() =>
+                                        updateQuantity(nested.id, 1)
+                                      }
+                                      className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center">
+                                      <BaseText type="body2" color="base">
+                                        +
+                                      </BaseText>
+                                    </TouchableOpacity>
+                                  </View>
+                                </View>
+                                {nestedPrice > 0 && (
+                                  <BaseText
+                                    type="caption"
+                                    color="secondary"
+                                    className="text-end">
+                                    قیمت هر واحد {formatNumber(nestedPrice)}{' '}
+                                    تومان میباشد.
+                                  </BaseText>
+                                )}
+                              </View>
+                            );
+                          })}
+                        </View>
+                      )}
                     </View>
-                  </View>
-                  <BaseText
-                    type="badge"
-                    color="secondary"
-                    className="text-end ">
-                    قیمت هر واحد {formatNumber(service.price)} تومان میباشد.
-                  </BaseText>
-                </View>
-              ))}
+                  );
+                })}
+              </View>
             </View>
-          </View>
+          )}
 
           {/* Total Section */}
           <View>
@@ -310,59 +487,69 @@ const PreReserveBottomSheet = forwardRef<
             </BaseText>
 
             <View className="BaseServiceCard gap-4">
-              {/* Reserve Price */}
-              <View className="flex-row justify-between">
-                <BaseText type="subtitle2" color="secondary">
-                  قیمت رزرو
-                </BaseText>
-                <BaseText type="subtitle2" color="base">
-                  {formatNumber(reservePrice)} ریال
-                </BaseText>
-              </View>
+              {/* Reserve Price - Always show */}
+              {reservePrice > 0 && (
+                <View className="flex-row justify-between">
+                  <BaseText type="subtitle2" color="secondary">
+                    قیمت رزرو
+                  </BaseText>
+                  <BaseText type="subtitle2" color="base">
+                    {formatNumber(reservePrice)} ریال
+                  </BaseText>
+                </View>
+              )}
 
-              {/* Discount */}
-              <View className="flex-row justify-between">
-                <BaseText type="subtitle2" color="secondary">
-                  تخفیف
-                </BaseText>
-                <BaseText type="subtitle2" style={{color: '#E53935'}}>
-                  {formatNumber(discount)} ریال
-                </BaseText>
-              </View>
+              {/* Discount - Only show if > 0 */}
+              {discount > 0 && (
+                <View className="flex-row justify-between">
+                  <BaseText type="subtitle2" color="secondary">
+                    تخفیف
+                  </BaseText>
+                  <BaseText type="subtitle2" style={{color: '#E53935'}}>
+                    {formatNumber(discount)} ریال
+                  </BaseText>
+                </View>
+              )}
 
-              {/* Gift */}
-              <View className="flex-row justify-between">
-                <BaseText
-                  type="subtitle2"
-                  color="supportive2"
-                  className="text-end">
-                  هدیه خرید
-                </BaseText>
-                <BaseText
-                  type="subtitle2"
-                  color="supportive2"
-                  className="text-end">
-                  {formatNumber(gift)} ریال
-                </BaseText>
-              </View>
+              {/* Gift - Only show if > 0 */}
+              {gift > 0 && (
+                <View className="flex-row justify-between">
+                  <BaseText
+                    type="subtitle2"
+                    color="supportive2"
+                    className="text-end">
+                    هدیه خرید
+                  </BaseText>
+                  <BaseText
+                    type="subtitle2"
+                    color="supportive2"
+                    className="text-end">
+                    {formatNumber(gift)} ریال
+                  </BaseText>
+                </View>
+              )}
 
-              {/* VAT */}
-              <View className="flex-row justify-between">
-                <BaseText type="subtitle2" style={{color: '#4CAF50'}}>
-                  ارزش افزوده
-                </BaseText>
-                <BaseText type="subtitle2" style={{color: '#4CAF50'}}>
-                  {formatNumber(vat)} ریال
-                </BaseText>
-              </View>
+              {/* VAT - Only show if > 0 */}
+              {vat > 0 && (
+                <View className="flex-row justify-between">
+                  <BaseText type="subtitle2" style={{color: '#4CAF50'}}>
+                    ارزش افزوده
+                  </BaseText>
+                  <BaseText type="subtitle2" style={{color: '#4CAF50'}}>
+                    {formatNumber(vat)} ریال
+                  </BaseText>
+                </View>
+              )}
 
-              {/* Divider */}
-              <View
-                className="border-t border-dashed my-2"
-                style={{borderColor: isDark ? '#3A3D42' : '#D4D5D6'}}
-              />
+              {/* Divider - Only show if there are items above total */}
+              {(reservePrice > 0 || discount > 0 || gift > 0 || vat > 0) && (
+                <View
+                  className="border-t border-dashed my-2"
+                  style={{borderColor: isDark ? '#3A3D42' : '#D4D5D6'}}
+                />
+              )}
 
-              {/* Total */}
+              {/* Total - Always show */}
               <View className="flex-row justify-between">
                 <BaseText type="subtitle2" color="secondary">
                   مبلغ کل
@@ -374,48 +561,56 @@ const PreReserveBottomSheet = forwardRef<
             </View>
           </View>
 
-          {/* Cancellation Penalty Accordion */}
-          <TouchableOpacity
-            onPress={() => setPenaltyExpanded(!penaltyExpanded)}
-            className="rounded-2xl overflow-hidden">
-            {/* Header */}
-            <View className="flex-row items-center justify-between p-4 bg-warning-100 rounded-full">
-              <View className="flex-row items-center gap-2">
-                <Warning2 size={20} color="#E8842F" variant="Bold" />
-                <BaseText type="body3">جریمه لغو رزرو</BaseText>
+          {/* Cancellation Penalty Accordion - Only show if there are penalties */}
+          {item?.reservationPenalty && item.reservationPenalty.length > 0 && (
+            <TouchableOpacity
+              onPress={() => setPenaltyExpanded(!penaltyExpanded)}
+              className="rounded-2xl overflow-hidden">
+              {/* Header */}
+              <View className="flex-row items-center justify-between p-4 bg-warning-100 rounded-full">
+                <View className="flex-row items-center gap-2">
+                  <Warning2 size={20} color="#E8842F" variant="Bold" />
+                  <BaseText type="body3">جریمه لغو رزرو</BaseText>
+                </View>
+                <View className="flex-row items-center gap-2">
+                  {penaltyExpanded ? (
+                    <ArrowUp2 size={20} color="#1B1D21" />
+                  ) : (
+                    <ArrowDown2 size={20} color="#1B1D21" />
+                  )}
+                </View>
               </View>
-              <View className="flex-row items-center gap-2">
-                {penaltyExpanded ? (
-                  <ArrowUp2 size={20} color="#1B1D21" />
-                ) : (
-                  <ArrowDown2 size={20} color="#1B1D21" />
-                )}
-              </View>
-            </View>
 
-            {/* Content */}
-            {penaltyExpanded && (
-              <View className="BaseServiceCard gap-3 mt-4">
-                {DEFAULT_PENALTIES.map((penalty, index) => (
-                  <View
-                    key={index}
-                    className="flex-row justify-between py-2 border-b"
-                    style={{
-                      borderColor: isDark ? '#3A3D42' : '#E8E8E8',
-                      borderBottomWidth:
-                        index === DEFAULT_PENALTIES.length - 1 ? 0 : 1,
-                    }}>
-                    <BaseText type="body3" color="base">
-                      %{penalty.percentage}
-                    </BaseText>
-                    <BaseText type="body3" color="secondary">
-                      {penalty.timeLabel}
-                    </BaseText>
-                  </View>
-                ))}
-              </View>
-            )}
-          </TouchableOpacity>
+              {/* Content */}
+              {penaltyExpanded && (
+                <View className="BaseServiceCard gap-3 mt-4">
+                  {formatPenaltyItems(item.reservationPenalty).map(
+                    (penalty, index) => (
+                      <View
+                        key={index}
+                        className="flex-row justify-between py-2 border-b"
+                        style={{
+                          borderColor: isDark ? '#3A3D42' : '#E8E8E8',
+                          borderBottomWidth:
+                            index ===
+                            formatPenaltyItems(item.reservationPenalty).length -
+                              1
+                              ? 0
+                              : 1,
+                        }}>
+                        <BaseText type="body3" color="base">
+                          %{penalty.percentage}
+                        </BaseText>
+                        <BaseText type="body3" color="secondary">
+                          {penalty.timeLabel}
+                        </BaseText>
+                      </View>
+                    ),
+                  )}
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
 
           {/* Action Buttons */}
           <View className="gap-3 mt-2">

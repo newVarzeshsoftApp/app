@@ -60,11 +60,19 @@ const getServiceColor = (
   service: ServiceEntryDto,
   index: number,
 ): {border: string; bg: string; text: string} => {
-  if (service.metadata?.reserveColor && service.metadata?.textColor) {
+  // Check if metadata has colors with value property
+  const reserveColor =
+    (service.metadata?.reserveColor as any)?.value ||
+    (service.metadata?.reserveColor as string);
+  const textColor =
+    (service.metadata?.textColor as any)?.value ||
+    (service.metadata?.textColor as string);
+
+  if (reserveColor && textColor) {
     return {
-      border: service.metadata.reserveColor,
-      bg: service.metadata.reserveColor,
-      text: service.metadata.textColor,
+      border: reserveColor,
+      bg: reserveColor,
+      text: textColor,
     };
   }
   // Use hash of title for consistent color per service
@@ -168,14 +176,20 @@ const ReserveDetailScreen: React.FC = () => {
           // Store selected item data
           setSelectedItemData({item, dayData, timeSlot});
 
-          // Open bottom sheet with item data
-          preReserveBottomSheetRef.current?.open({
-            item,
-            date: dayData.date,
-            fromTime,
-            toTime,
-            dayName: dayData.name,
-          });
+          // Open bottom sheet with item data - use setTimeout to ensure ref is ready
+          setTimeout(() => {
+            if (preReserveBottomSheetRef.current) {
+              preReserveBottomSheetRef.current.open({
+                item,
+                date: dayData.date,
+                fromTime,
+                toTime,
+                dayName: dayData.name,
+              });
+            } else {
+              console.warn('PreReserveBottomSheet ref is not available');
+            }
+          }, 0);
 
           // Refetch to update UI
           refetch();
@@ -662,19 +676,15 @@ const ReserveDetailScreen: React.FC = () => {
           {/* Legend Item - Pre Reserved (Dashed) */}
           <View className="flex-row items-center gap-3">
             <View
-              className="w-16 h-12 rounded-lg items-center justify-center"
+              className="w-8 h-8 rounded-lg items-center justify-center"
               style={{
                 borderWidth: 2,
                 borderStyle: 'dashed',
                 borderColor: '#5BC8FF',
                 backgroundColor: 'transparent',
-              }}>
-              <BaseText type="caption" style={{color: '#5BC8FF'}}>
-                نمونه
-              </BaseText>
-            </View>
+              }}></View>
             <View className="flex-1">
-              <BaseText type="body3" color="base">
+              <BaseText type="body2" color="base">
                 در حال رزرو
               </BaseText>
               <BaseText type="caption" color="secondary">
@@ -686,19 +696,15 @@ const ReserveDetailScreen: React.FC = () => {
           {/* Legend Item - Reserved by others (Disabled) */}
           <View className="flex-row items-center gap-3">
             <View
-              className="w-16 h-12 rounded-lg items-center justify-center"
+              className="w-8 h-8 rounded-lg items-center justify-center"
               style={{
                 borderWidth: 2,
                 borderStyle: 'solid',
                 borderColor: '#E0E0E0',
                 backgroundColor: '#F5F5F5',
-              }}>
-              <BaseText type="caption" style={{color: '#9E9E9E'}}>
-                نمونه
-              </BaseText>
-            </View>
+              }}></View>
             <View className="flex-1">
-              <BaseText type="body3" color="base">
+              <BaseText type="body2" color="base">
                 رزرو شده
               </BaseText>
               <BaseText type="caption" color="secondary">
@@ -710,19 +716,15 @@ const ReserveDetailScreen: React.FC = () => {
           {/* Legend Item - My Reservation (Filled) */}
           <View className="flex-row items-center gap-3">
             <View
-              className="w-16 h-12 rounded-lg items-center justify-center"
+              className="w-8 h-8 rounded-lg items-center justify-center"
               style={{
                 borderWidth: 2,
                 borderStyle: 'solid',
                 borderColor: '#4CAF50',
                 backgroundColor: '#4CAF50',
-              }}>
-              <BaseText type="caption" style={{color: '#FFFFFF'}}>
-                نمونه
-              </BaseText>
-            </View>
+              }}></View>
             <View className="flex-1">
-              <BaseText type="body3" color="base">
+              <BaseText type="body2" color="base">
                 رزرو شده توسط من
               </BaseText>
               <BaseText type="caption" color="secondary">
@@ -734,19 +736,15 @@ const ReserveDetailScreen: React.FC = () => {
           {/* Legend Item - Available */}
           <View className="flex-row items-center gap-3">
             <View
-              className="w-16 h-12 rounded-lg items-center justify-center"
+              className="w-8 h-8 rounded-lg items-center justify-center"
               style={{
                 borderWidth: 2,
                 borderStyle: 'solid',
                 borderColor: '#5BC8FF',
                 backgroundColor: '#FFFFFF',
-              }}>
-              <BaseText type="caption" style={{color: '#000000'}}>
-                نمونه
-              </BaseText>
-            </View>
+              }}></View>
             <View className="flex-1">
-              <BaseText type="body3" color="base">
+              <BaseText type="body2" color="base">
                 قابل رزرو
               </BaseText>
               <BaseText type="caption" color="secondary">
