@@ -117,6 +117,9 @@ function BaseButton({
     }
   };
   const GetPressedDesign = () => {
+    if (redbutton) {
+      return '!border-error-100 border';
+    }
     if (isPressed) {
       switch (type) {
         case 'Fill':
