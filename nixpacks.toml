@@ -1,3 +1,5 @@
+providers = ["node"]
+
 # nixpacks.toml
 [phases.install]
 cmds = ["npm i -f"]        # or pnpm i / yarn install
