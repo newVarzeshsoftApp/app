@@ -8,7 +8,7 @@ cmds = ["npm i -f"]        # or pnpm i / yarn install
 cmds = ["npm run build"] # adjust if using next build
 
 [start]
-cmd = "npm run start"    # or "next start" / "npm run dev" for preview
+cmd = "npm run web"    # or "next start" / "npm run dev" for preview
 
 [variables]
 NIXPACKS_NODE_VERSION = "20"   # pick your Node version
