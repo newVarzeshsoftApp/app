@@ -1,4 +1,4 @@
-import React, {useState, useMemo, useCallback, useRef} from 'react';
+import React, {useState, useMemo, useCallback, useRef, useEffect} from 'react';
 import {
   View,
   Image,
@@ -6,8 +6,12 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Animated,
+  Easing,
+  Dimensions,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import moment from 'jalali-moment';
 import {RouteProp, useRoute} from '@react-navigation/native';
 import {HomeStackParamList} from '../../utils/types/NavigationTypes';
 import BaseText from '../../components/BaseText';
@@ -91,24 +95,68 @@ const formatTimeSlot = (timeSlot: string): string => {
   return `ساعت ${from} تا ${to}`;
 };
 
-// Helper function to format date
+// Helper function to format date (convert Gregorian to Jalali if needed)
 const formatDate = (dateStr: string): string => {
-  const [year, month, day] = dateStr.split('/');
-  const monthNames = [
-    'فروردین',
-    'اردیبهشت',
-    'خرداد',
-    'تیر',
-    'مرداد',
-    'شهریور',
-    'مهر',
-    'آبان',
-    'آذر',
-    'دی',
-    'بهمن',
-    'اسفند',
-  ];
-  return `${day} ${monthNames[parseInt(month, 10) - 1]}`;
+  try {
+    // Check if date is in format YYYY/MM/DD or YYYY-MM-DD
+    let gregorianDate: moment.Moment;
+
+    if (dateStr.includes('/')) {
+      // Format: YYYY/MM/DD
+      const [year, month, day] = dateStr.split('/');
+      gregorianDate = moment(`${year}-${month}-${day}`, 'YYYY-MM-DD');
+    } else if (dateStr.includes('-')) {
+      // Format: YYYY-MM-DD
+      gregorianDate = moment(dateStr, 'YYYY-MM-DD');
+    } else {
+      // If format is not recognized, return as is
+      return dateStr;
+    }
+
+    // Convert to Jalali and format
+    const jalaliMoment = gregorianDate.locale('fa');
+    const monthNames = [
+      'فروردین',
+      'اردیبهشت',
+      'خرداد',
+      'تیر',
+      'مرداد',
+      'شهریور',
+      'مهر',
+      'آبان',
+      'آذر',
+      'دی',
+      'بهمن',
+      'اسفند',
+    ];
+
+    const jalaliDay = jalaliMoment.format('jD');
+    const jalaliMonth = parseInt(jalaliMoment.format('jM'), 10);
+
+    return `${jalaliDay} ${monthNames[jalaliMonth - 1]}`;
+  } catch (error) {
+    // If conversion fails, try to parse as Jalali directly
+    const [year, month, day] = dateStr.split('/');
+    const monthNames = [
+      'فروردین',
+      'اردیبهشت',
+      'خرداد',
+      'تیر',
+      'مرداد',
+      'شهریور',
+      'مهر',
+      'آبان',
+      'آذر',
+      'دی',
+      'بهمن',
+      'اسفند',
+    ];
+    // Check if it's already Jalali (year > 1400)
+    if (parseInt(year, 10) > 1400) {
+      return `${day} ${monthNames[parseInt(month, 10) - 1]}`;
+    }
+    return dateStr;
+  }
 };
 
 const ReserveDetailScreen: React.FC = () => {
@@ -122,6 +170,13 @@ const ReserveDetailScreen: React.FC = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const helpBottomSheetRef = useRef<BottomSheetMethods>(null);
   const preReserveBottomSheetRef = useRef<PreReserveBottomSheetRef>(null);
+
+  // Animation for page transition (only for days section)
+  const slideAnim = useRef(new Animated.Value(0)).current;
+  const opacityAnim = useRef(new Animated.Value(1)).current;
+  const [slideDirection, setSlideDirection] = useState<'left' | 'right'>(
+    'right',
+  );
 
   // Pre-reserve mutation
   const preReserveMutation = usePreReserve();
@@ -356,16 +411,66 @@ const ReserveDetailScreen: React.FC = () => {
     return Math.ceil(maxDaysInSlot / VISIBLE_DAYS_COUNT);
   }, [maxDaysInSlot]);
 
-  // Navigate between pages of days
+  // Navigate between pages of days with smooth continuous animation
   const navigatePage = useCallback(
     (direction: 'prev' | 'next') => {
-      if (direction === 'prev' && currentPage > 0) {
-        setCurrentPage(prev => prev - 1);
-      } else if (direction === 'next' && currentPage < totalPagesForSlots - 1) {
-        setCurrentPage(prev => prev + 1);
-      }
+      const newDirection = direction === 'next' ? 'left' : 'right';
+      setSlideDirection(newDirection);
+
+      // Calculate screen width for smooth slide
+      const screenWidth = Dimensions.get('window').width;
+      const slideDistance =
+        (screenWidth - TIME_COLUMN_WIDTH) / VISIBLE_DAYS_COUNT;
+
+      // Start continuous smooth animation - slide out completely (longer duration for shift feeling)
+      Animated.parallel([
+        Animated.timing(slideAnim, {
+          toValue: newDirection === 'left' ? -slideDistance : slideDistance,
+          duration: 700,
+          easing: Easing.bezier(0.4, 0.0, 0.2, 1), // Material Design easing
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 0.2,
+          duration: 700,
+          easing: Easing.bezier(0.4, 0.0, 0.2, 1),
+          useNativeDriver: true,
+        }),
+      ]).start(() => {
+        // Update page in the middle of animation
+        if (direction === 'prev' && currentPage > 0) {
+          setCurrentPage(prev => prev - 1);
+        } else if (
+          direction === 'next' &&
+          currentPage < totalPagesForSlots - 1
+        ) {
+          setCurrentPage(prev => prev + 1);
+        }
+
+        // Reset position to opposite side
+        slideAnim.setValue(
+          newDirection === 'left' ? slideDistance : -slideDistance,
+        );
+        opacityAnim.setValue(0.2);
+
+        // Slide in smoothly from opposite side (longer duration for shift feeling)
+        Animated.parallel([
+          Animated.timing(slideAnim, {
+            toValue: 0,
+            duration: 800,
+            easing: Easing.bezier(0.0, 0.0, 0.2, 1), // Material Design easing
+            useNativeDriver: true,
+          }),
+          Animated.timing(opacityAnim, {
+            toValue: 1,
+            duration: 800,
+            easing: Easing.bezier(0.0, 0.0, 0.2, 1),
+            useNativeDriver: true,
+          }),
+        ]).start();
+      });
     },
-    [currentPage, totalPagesForSlots],
+    [currentPage, totalPagesForSlots, slideAnim, opacityAnim],
   );
 
   // Check if navigation is possible (use max days in any slot)
@@ -499,10 +604,14 @@ const ReserveDetailScreen: React.FC = () => {
 
       return (
         <View key={slot.timeSlot} className="mb-4">
-          <View className="flex-row">
-            {/* Time Label - Right Side (Fixed Width) */}
+          <View className="flex-row" style={{flexDirection: 'row'}}>
+            {/* Time Label - Right Side (Fixed Width) - Higher z-index */}
             <View
-              style={{width: TIME_COLUMN_WIDTH}}
+              style={{
+                width: TIME_COLUMN_WIDTH,
+                zIndex: 10,
+                elevation: 10, // For Android
+              }}
               className="items-center justify-center rounded-lg px-2 bg-secondary-600  py-3 ">
               <BaseText
                 type="caption"
@@ -513,7 +622,15 @@ const ReserveDetailScreen: React.FC = () => {
             </View>
 
             {/* Days columns with headers - each slot shows its own days */}
-            <View className="flex-row flex-1">
+            <Animated.View
+              style={{
+                flexDirection: 'row',
+                flex: 1,
+                transform: [{translateX: slideAnim}],
+                opacity: opacityAnim,
+                zIndex: 1,
+                elevation: 1, // For Android
+              }}>
               {visibleDays.map(dayData => {
                 const dayInfo = WEEK_DAYS_MAP[dayData.name];
                 if (!dayInfo) return null;
@@ -550,7 +667,7 @@ const ReserveDetailScreen: React.FC = () => {
                 }).map((_, idx) => (
                   <View key={`empty_${idx}`} className="flex-1 px-1" />
                 ))}
-            </View>
+            </Animated.View>
           </View>
         </View>
       );
@@ -577,7 +694,7 @@ const ReserveDetailScreen: React.FC = () => {
 
       {/* Header */}
       <SafeAreaView edges={['top']}>
-        <View className="flex-row items-center justify-between px-5 pt-2 pb-2">
+        <View className="flex-row items-center justify-between px-5 pt-4 pb-2 relative">
           {/* Back Button - Right Side */}
           <BaseButton
             onPress={() => {
@@ -591,7 +708,7 @@ const ReserveDetailScreen: React.FC = () => {
           />
 
           {/* Title - Center */}
-          <View className="flex-1 items-center">
+          <View className="flex-1 items-center absolute left-0 right-0">
             <BaseText type="body2" color="base">
               خدمات
             </BaseText>
