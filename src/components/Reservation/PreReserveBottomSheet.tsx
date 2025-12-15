@@ -7,6 +7,7 @@ import {
   Warning2,
   ArrowDown2,
   ArrowUp2,
+  CloseCircle,
 } from 'iconsax-react-native';
 import moment from 'jalali-moment';
 import BottomSheet, {BottomSheetMethods} from '../BottomSheet/BottomSheet';
@@ -383,12 +384,20 @@ const PreReserveBottomSheet = forwardRef<
                                 -
                               </BaseText>
                             </TouchableOpacity>
-                            <BaseText
-                              type="body2"
-                              color="base"
-                              className="w-6 text-center">
-                              {quantity}
-                            </BaseText>
+                            {quantity < 1 ? (
+                              <CloseCircle
+                                size={20}
+                                variant="Bold"
+                                color="#FF3B30"
+                              />
+                            ) : (
+                              <BaseText
+                                type="body2"
+                                color="base"
+                                className="w-6 text-center">
+                                {quantity}
+                              </BaseText>
+                            )}
                             <TouchableOpacity
                               onPress={() => updateQuantity(subProduct.id, 1)}
                               className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center">
@@ -442,12 +451,20 @@ const PreReserveBottomSheet = forwardRef<
                                         -
                                       </BaseText>
                                     </TouchableOpacity>
-                                    <BaseText
-                                      type="body2"
-                                      color="base"
-                                      className="w-6 text-center">
-                                      {nestedQuantity}
-                                    </BaseText>
+                                    {nestedQuantity < 1 ? (
+                                      <CloseCircle
+                                        size={20}
+                                        variant="Bold"
+                                        color="#FF3B30"
+                                      />
+                                    ) : (
+                                      <BaseText
+                                        type="body2"
+                                        color="base"
+                                        className="w-6 text-center">
+                                        {nestedQuantity}
+                                      </BaseText>
+                                    )}
                                     <TouchableOpacity
                                       onPress={() =>
                                         updateQuantity(nested.id, 1)

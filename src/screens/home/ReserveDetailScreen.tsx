@@ -600,8 +600,8 @@ const ReserveDetailScreen: React.FC = () => {
           {/* Info Button - Left Side */}
           <BaseButton
             onPress={() => helpBottomSheetRef.current?.expand()}
-            noText
-            LeftIcon={InfoCircle}
+            text="راهنما"
+            RightIcon={InfoCircle}
             type="Outline"
             color="Black"
             rounded
@@ -616,21 +616,23 @@ const ReserveDetailScreen: React.FC = () => {
         {/* Date Navigation */}
         <View className="flex-row items-center justify-between  gap-4 px-5 py-2 ">
           <TouchableOpacity
-            onPress={() => navigatePage('next')}
-            disabled={!canGoNext}
-            style={{opacity: canGoNext ? 1 : 0.3}}
-            className="p-2">
-            <ArrowRight2 size={24} color={isDark ? '#FFFFFF' : '#000000'} />
-          </TouchableOpacity>
-          {/* <View className="flex-row items-center gap-1">
-            <BaseText type="body3" color="secondary">
-              صفحه {currentPage + 1} از {totalPagesForSlots || 1}
-            </BaseText>
-          </View> */}
-          <TouchableOpacity
             onPress={() => navigatePage('prev')}
             disabled={!canGoPrev}
             style={{opacity: canGoPrev ? 1 : 0.3}}
+            className="p-2">
+            <ArrowRight2 size={24} color={isDark ? '#FFFFFF' : '#000000'} />
+          </TouchableOpacity>
+          <View className="flex-row items-center gap-1">
+            <BaseText type="body3" color="secondary">
+              {params.start && params.end
+                ? `از ${formatDate(params.start)} تا ${formatDate(params.end)}`
+                : `صفحه ${currentPage + 1} از ${totalPagesForSlots || 1}`}
+            </BaseText>
+          </View>
+          <TouchableOpacity
+            onPress={() => navigatePage('next')}
+            disabled={!canGoNext}
+            style={{opacity: canGoNext ? 1 : 0.3}}
             className="p-2">
             <ArrowLeft2 size={24} color={isDark ? '#FFFFFF' : '#000000'} />
           </TouchableOpacity>
@@ -680,12 +682,12 @@ const ReserveDetailScreen: React.FC = () => {
               style={{
                 borderWidth: 2,
                 borderStyle: 'dashed',
-                borderColor: '#5BC8FF',
-                backgroundColor: 'transparent',
+                borderColor: '#B56725',
+                backgroundColor: 'white',
               }}></View>
             <View className="flex-1">
               <BaseText type="body2" color="base">
-                در حال رزرو
+                در حال رزرو دیگران
               </BaseText>
               <BaseText type="caption" color="secondary">
                 این خدمت توسط شخص دیگری در حال رزرو شدن است
@@ -720,15 +722,15 @@ const ReserveDetailScreen: React.FC = () => {
               style={{
                 borderWidth: 2,
                 borderStyle: 'solid',
-                borderColor: '#4CAF50',
-                backgroundColor: '#4CAF50',
+                borderColor: '#B56725',
+                backgroundColor: '#B56725',
               }}></View>
             <View className="flex-1">
               <BaseText type="body2" color="base">
-                رزرو شده توسط من
+                درحال رزرو توسط من
               </BaseText>
               <BaseText type="caption" color="secondary">
-                این خدمت توسط شما رزرو شده است
+                این خدمت توسط شما درحال رزرو شده است
               </BaseText>
             </View>
           </View>
@@ -740,7 +742,7 @@ const ReserveDetailScreen: React.FC = () => {
               style={{
                 borderWidth: 2,
                 borderStyle: 'solid',
-                borderColor: '#5BC8FF',
+                borderColor: '#B56725',
                 backgroundColor: '#FFFFFF',
               }}></View>
             <View className="flex-1">

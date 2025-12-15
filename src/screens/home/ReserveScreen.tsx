@@ -1,10 +1,12 @@
-import React, {useState, useRef, useMemo, useCallback} from 'react';
+import React, {useState, useRef, useMemo, useCallback, useEffect} from 'react';
 import {
   View,
   Image,
   TouchableOpacity,
   ScrollView,
   Platform,
+  Animated,
+  Alert,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import moment from 'jalali-moment';
@@ -66,6 +68,117 @@ const generateHours = (startTime: string, endTime: string) => {
   }
 
   return hours;
+};
+
+// Helper function to generate time slots based on duration and unit
+const generateTimeSlots = (
+  startTime: string,
+  endTime: string,
+  duration: string,
+  unit: 'MINUTE' | 'HOUR',
+): Array<{value: string; label: string}> => {
+  const start = parseTime(startTime);
+  let end = parseTime(endTime);
+
+  // Handle case where endTime is "00:00" (midnight) - it means 24:00
+  if (end === 0 && endTime === '00:00') {
+    end = 24;
+  }
+
+  const durationNum = parseInt(duration, 10);
+  const durationInHours =
+    unit === 'HOUR' ? durationNum : Math.ceil(durationNum / 60);
+
+  const slots: Array<{value: string; label: string}> = [];
+  let currentHour = start;
+
+  while (currentHour < end) {
+    const nextHour = currentHour + durationInHours;
+    // If nextHour exceeds end, stop
+    if (nextHour > end) {
+      break;
+    }
+
+    const slotValue = currentHour.toString();
+    const slotLabel =
+      nextHour === 24
+        ? `${currentHour.toString().padStart(2, '0')}:00 - 00:00`
+        : `${currentHour.toString().padStart(2, '0')}:00 - ${nextHour
+            .toString()
+            .padStart(2, '0')}:00`;
+
+    slots.push({
+      value: slotValue,
+      label: slotLabel,
+    });
+
+    currentHour = nextHour;
+  }
+
+  return slots;
+};
+
+// Helper function to generate from/to hours based on duration slots
+const generateFromToHours = (
+  startTime: string,
+  endTime: string,
+  duration: string,
+  unit: 'MINUTE' | 'HOUR',
+): {
+  fromHours: Array<{value: string; label: string}>;
+  toHours: Array<{value: string; label: string}>;
+} => {
+  const start = parseTime(startTime);
+  let end = parseTime(endTime);
+
+  // Handle case where endTime is "00:00" (midnight) - it means 24:00
+  if (end === 0 && endTime === '00:00') {
+    end = 24;
+  }
+
+  const durationNum = parseInt(duration, 10);
+  const durationInHours =
+    unit === 'HOUR' ? durationNum : Math.ceil(durationNum / 60);
+
+  const fromHours: Array<{value: string; label: string}> = [];
+  const toHours: Array<{value: string; label: string}> = [];
+  let currentHour = start;
+
+  // Generate all possible time slots
+  // Example: start=7, end=24, duration=1 → slots: 7-8, 8-9, 9-10, ..., 23-24
+  while (currentHour < end) {
+    const nextHour = currentHour + durationInHours;
+
+    // Check if nextHour is valid (should be <= end, or exactly 24)
+    if (nextHour > end && nextHour !== 24) {
+      break;
+    }
+
+    // Add to fromHours (e.g., 07:00, 08:00, 09:00, ...)
+    fromHours.push({
+      value: currentHour.toString(),
+      label: `${currentHour.toString().padStart(2, '0')}:00`,
+    });
+
+    // Add to toHours (e.g., 08:00, 09:00, 10:00, ..., 00:00)
+    toHours.push({
+      value: nextHour === 24 ? '24' : nextHour.toString(),
+      label:
+        nextHour === 24
+          ? '00:00'
+          : `${nextHour.toString().padStart(2, '0')}:00`,
+    });
+
+    // Move to next slot start
+    currentHour = nextHour;
+
+    // Stop if we've reached or exceeded 24
+    if (currentHour >= 24) {
+      break;
+    }
+  }
+
+  return {fromHours, toHours};
 };
 
 // Helper function to format duration
@@ -146,14 +259,20 @@ const ReserveScreen: React.FC = () => {
     }));
   }, [tagsData]);
 
-  // Convert patterns to service options
+  // Convert patterns to service options - add "همه خدمات" option
   const serviceOptions = useMemo(() => {
     if (!patternsData?.content) return [];
-    return patternsData.content.map(pattern => ({
+    const allServicesOption = {
+      value: 'all',
+      label: 'همه خدمات',
+      pattern: null,
+    };
+    const patternOptions = patternsData.content.map(pattern => ({
       value: pattern.id.toString(),
       label: pattern.name,
       pattern: pattern,
     }));
+    return [allServicesOption, ...patternOptions];
   }, [patternsData]);
 
   // Filter state
@@ -161,80 +280,172 @@ const ReserveScreen: React.FC = () => {
     fromDate: defaultFromDate,
     toDate: defaultToDate,
     duration: null,
-    selectedDays: [6], // شنبه دیفالت
+    selectedDays: [], // خالی به صورت دیفالت
     fromHour: '10',
     toHour: '11',
     service: null,
     gender: GENDER_OPTIONS[2], // هر دو دیفالت
   });
 
-  // Generate hours from all tags
+  // Generate hours from selected service pattern or all tags
   const fromHours = useMemo(() => {
-    if (!tagsData?.content || tagsData.content.length === 0) return [];
-
-    // Extract all unique startTimes from all tags
-    const startTimes = tagsData.content
-      .map(tag => tag.startTime)
-      .filter((time, index, self) => self.indexOf(time) === index) // unique
-      .map(time => parseTime(time))
-      .sort((a, b) => a - b) // sort from low to high
-      .map(hour => ({
-        value: hour.toString(),
-        label: `${hour.toString().padStart(2, '0')}:00`,
-      }));
-
-    return startTimes;
-  }, [tagsData]);
-
-  const toHours = useMemo(() => {
-    if (!tagsData?.content || tagsData.content.length === 0) return [];
-
-    // Extract all unique endTimes from all tags
-    const endTimes = tagsData.content
-      .map(tag => tag.endTime)
-      .filter((time, index, self) => self.indexOf(time) === index) // unique
-      .map(time => {
-        // Handle "00:00" as 24
-        if (time === '00:00') return 24;
-        return parseTime(time);
-      })
-      .sort((a, b) => a - b) // sort from low to high
-      .map(hour => ({
-        value: hour === 24 ? '24' : hour.toString(),
-        label: hour === 24 ? '00:00' : `${hour.toString().padStart(2, '0')}:00`,
-      }));
-
-    return endTimes;
-  }, [tagsData]);
-
-  // Set default duration, service and hours when data is loaded
-  React.useEffect(() => {
-    if (durationOptions.length > 0 && !filters.duration) {
-      // Set first duration option as default
-      // Set first available startTime and endTime as default
-      const defaultFromHour = fromHours.length > 0 ? fromHours[0].value : '10';
-      const defaultToHour = toHours.length > 0 ? toHours[0].value : '11';
-
-      setFilters(prev => ({
-        ...prev,
-        duration: durationOptions[0],
-        fromHour: defaultFromHour,
-        toHour: defaultToHour,
-      }));
+    // If a specific service is selected, use its reservationTag with duration
+    if (filters.service?.pattern?.reservationTag) {
+      const tag = filters.service.pattern.reservationTag;
+      const {fromHours: generatedFromHours} = generateFromToHours(
+        tag.startTime,
+        tag.endTime,
+        tag.duration,
+        tag.unit,
+      );
+      return generatedFromHours;
     }
 
+    // Otherwise, merge hours from all tags
+    if (!tagsData?.content || tagsData.content.length === 0) return [];
+
+    // Generate hours from each tag and merge them
+    const allFromHours: Array<{value: string; label: string}> = [];
+    const seenValues = new Set<string>();
+
+    tagsData.content.forEach(tag => {
+      const {fromHours: generatedFromHours} = generateFromToHours(
+        tag.startTime,
+        tag.endTime,
+        tag.duration,
+        tag.unit,
+      );
+
+      generatedFromHours.forEach(hour => {
+        // Avoid duplicates
+        if (!seenValues.has(hour.value)) {
+          seenValues.add(hour.value);
+          allFromHours.push(hour);
+        }
+      });
+    });
+
+    // Sort by hour value
+    return allFromHours.sort((a, b) => {
+      const aNum = parseInt(a.value, 10);
+      const bNum = parseInt(b.value, 10);
+      return aNum - bNum;
+    });
+  }, [tagsData, filters.service]);
+
+  const toHours = useMemo(() => {
+    // If a specific service is selected, use its reservationTag with duration
+    if (filters.service?.pattern?.reservationTag) {
+      const tag = filters.service.pattern.reservationTag;
+      const {toHours: generatedToHours} = generateFromToHours(
+        tag.startTime,
+        tag.endTime,
+        tag.duration,
+        tag.unit,
+      );
+      return generatedToHours;
+    }
+
+    // Otherwise, merge hours from all tags
+    if (!tagsData?.content || tagsData.content.length === 0) return [];
+
+    // Generate hours from each tag and merge them
+    const allToHours: Array<{value: string; label: string}> = [];
+    const seenValues = new Set<string>();
+
+    tagsData.content.forEach(tag => {
+      const {toHours: generatedToHours} = generateFromToHours(
+        tag.startTime,
+        tag.endTime,
+        tag.duration,
+        tag.unit,
+      );
+
+      generatedToHours.forEach(hour => {
+        // Avoid duplicates
+        if (!seenValues.has(hour.value)) {
+          seenValues.add(hour.value);
+          allToHours.push(hour);
+        }
+      });
+    });
+
+    // Sort by hour value (handle 24 specially)
+    return allToHours.sort((a, b) => {
+      const aNum = a.value === '24' ? 24 : parseInt(a.value, 10);
+      const bNum = b.value === '24' ? 24 : parseInt(b.value, 10);
+      return aNum - bNum;
+    });
+  }, [tagsData, filters.service]);
+
+  // Filter toHours based on selected fromHour to prevent invalid selections
+  const toHoursFiltered = useMemo(() => {
+    if (!filters.fromHour) return toHours;
+
+    const fromHourNum = parseInt(filters.fromHour, 10);
+
+    return toHours.filter(toHour => {
+      const toHourNum = toHour.value === '24' ? 24 : parseInt(toHour.value, 10);
+      // For same day: toHour must be greater than fromHour
+      // For next day (24): always allow
+      return toHourNum === 24 || toHourNum > fromHourNum;
+    });
+  }, [toHours, filters.fromHour]);
+
+  // Set default service when data is loaded
+  React.useEffect(() => {
     if (serviceOptions.length > 0 && !filters.service) {
       setFilters(prev => ({
         ...prev,
-        service: serviceOptions[0],
+        service: serviceOptions[0], // "همه خدمات" is first
       }));
     }
-  }, [
-    durationOptions.length,
-    fromHours.length,
-    toHours.length,
-    serviceOptions.length,
-  ]);
+  }, [serviceOptions.length]);
+
+  // Auto-set duration and time range when service is selected
+  React.useEffect(() => {
+    if (filters.service?.pattern?.reservationTag) {
+      const tag = filters.service.pattern.reservationTag;
+
+      // Find matching duration option by tag id
+      const matchingDuration = durationOptions.find(d => d.tag?.id === tag.id);
+
+      if (matchingDuration) {
+        // Generate time slots from tag
+        const {fromHours: generatedFromHours, toHours: generatedToHours} =
+          generateFromToHours(
+            tag.startTime,
+            tag.endTime,
+            tag.duration,
+            tag.unit,
+          );
+
+        // Set first available time slot
+        if (generatedFromHours.length > 0 && generatedToHours.length > 0) {
+          setFilters(prev => ({
+            ...prev,
+            duration: matchingDuration, // Always set duration from tag
+            fromHour: generatedFromHours[0].value,
+            toHour: generatedToHours[0].value,
+          }));
+        }
+      }
+    } else if (filters.service?.value === 'all') {
+      // If "همه خدمات" selected, set default duration and hours from all tags
+      if (durationOptions.length > 0) {
+        const defaultFromHour =
+          fromHours.length > 0 ? fromHours[0].value : '10';
+        const defaultToHour = toHours.length > 0 ? toHours[0].value : '11';
+
+        setFilters(prev => ({
+          ...prev,
+          duration: prev.duration || durationOptions[0], // Keep current or set first
+          fromHour: defaultFromHour,
+          toHour: defaultToHour,
+        }));
+      }
+    }
+  }, [filters.service, durationOptions, fromHours, toHours]);
 
   // Temp states for pickers
   const [tempFromDate, setTempFromDate] = useState<DateSelectorState | null>(
@@ -251,6 +462,56 @@ const ReserveScreen: React.FC = () => {
 
   // تعداد نتایج فیک
   const resultCount = 10;
+
+  // Animation values
+  const filterCardOpacity = useRef(new Animated.Value(1)).current;
+  const filterCardTranslateY = useRef(new Animated.Value(0)).current;
+  const buttonTranslateY = useRef(new Animated.Value(0)).current;
+
+  // Animate when filters change
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(filterCardOpacity, {
+        toValue: 0.5,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(filterCardTranslateY, {
+        toValue: -10,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+      Animated.timing(buttonTranslateY, {
+        toValue: -5,
+        duration: 150,
+        useNativeDriver: true,
+      }),
+    ]).start(() => {
+      Animated.parallel([
+        Animated.timing(filterCardOpacity, {
+          toValue: 1,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(filterCardTranslateY, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+        Animated.timing(buttonTranslateY, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    });
+  }, [
+    filters.service,
+    filters.duration,
+    filters.fromHour,
+    filters.toHour,
+    filters.selectedDays,
+  ]);
 
   // Toggle day selection
   const toggleDay = useCallback((dayId: number) => {
@@ -281,7 +542,7 @@ const ReserveScreen: React.FC = () => {
   }, [durationOptions]);
 
   const clearDays = useCallback(() => {
-    setFilters(prev => ({...prev, selectedDays: [6]})); // شنبه دیفالت
+    setFilters(prev => ({...prev, selectedDays: []})); // خالی به صورت دیفالت
   }, []);
 
   const clearTimeRange = useCallback(() => {
@@ -304,50 +565,88 @@ const ReserveScreen: React.FC = () => {
     setFilters(prev => ({...prev, gender: GENDER_OPTIONS[2]})); // هر دو دیفالت
   }, []);
 
-  // Active filters for chips
+  // Active filters for chips (including all filters, but some are not removable)
   const activeFilters = useMemo(() => {
-    const chips: {key: string; label: string; onClear: () => void}[] = [];
+    const chips: {
+      key: string;
+      label: string;
+      onClear: () => void;
+      removable: boolean;
+    }[] = [];
 
-    if (filters.selectedDays.length > 0) {
-      const dayNames = filters.selectedDays
-        .map(d => WEEK_DAYS.find(w => w.id === d)?.fullName)
-        .filter(Boolean)
-        .join('، ');
-      chips.push({key: 'days', label: dayNames, onClear: clearDays});
-    }
-
+    // Duration - not removable
     if (filters.duration) {
       chips.push({
         key: 'duration',
         label: filters.duration.label,
         onClear: clearDuration,
+        removable: false,
       });
     }
 
-    if (filters.service) {
+    // From Date - not removable
+    if (filters.fromDate) {
       chips.push({
-        key: 'service',
-        label: filters.service.label,
-        onClear: clearService,
+        key: 'fromDate',
+        label: `از ${filters.fromDate.jalaliDate}`,
+        onClear: clearFromDate,
+        removable: false,
       });
     }
 
+    // To Date - not removable
+    if (filters.toDate) {
+      chips.push({
+        key: 'toDate',
+        label: `تا ${filters.toDate.jalaliDate}`,
+        onClear: clearToDate,
+        removable: false,
+      });
+    }
+
+    // Gender - not removable
     if (filters.gender) {
       chips.push({
         key: 'gender',
         label: filters.gender.label,
         onClear: clearGender,
+        removable: false,
       });
     }
 
+    // Days - removable
+    if (filters.selectedDays.length > 0) {
+      const dayNames = filters.selectedDays
+        .map(d => WEEK_DAYS.find(w => w.id === d)?.fullName)
+        .filter(Boolean)
+        .join('، ');
+      chips.push({
+        key: 'days',
+        label: dayNames,
+        onClear: clearDays,
+        removable: true,
+      });
+    }
+
+    // Service - removable (only if not "all")
+    if (filters.service && filters.service.value !== 'all') {
+      chips.push({
+        key: 'service',
+        label: filters.service.label,
+        onClear: clearService,
+        removable: true,
+      });
+    }
+
+    // Time Range - removable
     if (filters.fromHour && filters.toHour) {
       chips.push({
         key: 'time',
-        label: `از ${filters.fromHour.padStart(
-          2,
-          '0',
-        )}:00 تا ${filters.toHour.padStart(2, '0')}:00`,
+        label: `از ${filters.fromHour.padStart(2, '0')}:00 تا ${
+          filters.toHour === '24' ? '00' : filters.toHour.padStart(2, '0')
+        }:00`,
         onClear: clearTimeRange,
+        removable: true,
       });
     }
 
@@ -356,6 +655,8 @@ const ReserveScreen: React.FC = () => {
     filters,
     clearDays,
     clearDuration,
+    clearFromDate,
+    clearToDate,
     clearService,
     clearGender,
     clearTimeRange,
@@ -428,11 +729,34 @@ const ReserveScreen: React.FC = () => {
   };
 
   const saveFromHour = () => {
-    setFilters(prev => ({...prev, fromHour: tempFromHour}));
+    const fromHourNum = parseInt(tempFromHour, 10);
+    const currentToHourNum =
+      filters.toHour === '24' ? 24 : parseInt(filters.toHour || '0', 10);
+
+    // Validate: fromHour should not be greater than or equal to toHour
+    if (currentToHourNum !== 24 && fromHourNum >= currentToHourNum) {
+      // Reset toHour if invalid
+      setFilters(prev => ({
+        ...prev,
+        fromHour: tempFromHour,
+        toHour: '', // Reset toHour to force user to select again
+      }));
+    } else {
+      setFilters(prev => ({...prev, fromHour: tempFromHour}));
+    }
     fromHourSheetRef.current?.close();
   };
 
   const saveToHour = () => {
+    const fromHourNum = parseInt(filters.fromHour || '0', 10);
+    const toHourNum = tempToHour === '24' ? 24 : parseInt(tempToHour, 10);
+
+    // Validate: toHour should be greater than fromHour (unless it's 24)
+    if (toHourNum !== 24 && toHourNum <= fromHourNum) {
+      Alert.alert('خطا', 'ساعت "تا" باید بزرگتر از ساعت "از" باشد');
+      return;
+    }
+
     setFilters(prev => ({...prev, toHour: tempToHour}));
     toHourSheetRef.current?.close();
   };
@@ -518,6 +842,33 @@ const ReserveScreen: React.FC = () => {
               </View>
             </View>
 
+            {/* خدمت */}
+            <View className="gap-3">
+              <BaseText type="title4" color="base">
+                خدمت
+              </BaseText>
+              <TouchableOpacity
+                onPress={() => {
+                  if (serviceOptions.length > 0) {
+                    setTempService(
+                      filters.service?.value || serviceOptions[0].value,
+                    );
+                    serviceSheetRef.current?.expand();
+                  }
+                }}
+                disabled={patternsLoading || serviceOptions.length === 0}
+                className="h-12 py-3 px-4 flex-row items-center justify-between border border-neutral-300 dark:border-neutral-dark-400 rounded-full bg-neutral-0 dark:bg-neutral-dark-200">
+                <BaseText
+                  type="subtitle2"
+                  color={filters.service ? 'base' : 'muted'}>
+                  {patternsLoading
+                    ? 'در حال بارگذاری...'
+                    : filters.service?.label || 'انتخاب خدمت'}
+                </BaseText>
+                <ArrowDown2 size={20} color={iconColor} />
+              </TouchableOpacity>
+            </View>
+
             {/* مدت رزرو */}
             <View className="gap-3">
               <BaseText type="title4" color="base">
@@ -525,23 +876,49 @@ const ReserveScreen: React.FC = () => {
               </BaseText>
               <TouchableOpacity
                 onPress={() => {
-                  if (durationOptions.length > 0) {
+                  if (
+                    durationOptions.length > 0 &&
+                    filters.service?.value === 'all'
+                  ) {
                     setTempDuration(
                       filters.duration?.value || durationOptions[0].value,
                     );
                     durationSheetRef.current?.expand();
                   }
                 }}
-                disabled={tagsLoading || durationOptions.length === 0}
-                className="h-12 py-3 px-4 flex-row items-center justify-between border border-neutral-300 dark:border-neutral-dark-400 rounded-full bg-neutral-0 dark:bg-neutral-dark-200">
+                disabled={
+                  tagsLoading ||
+                  durationOptions.length === 0 ||
+                  filters.service?.value !== 'all'
+                }
+                className="h-12 py-3 px-4 flex-row items-center justify-between border border-neutral-300 dark:border-neutral-dark-400 rounded-full bg-neutral-0 dark:bg-neutral-dark-200"
+                style={{
+                  opacity:
+                    tagsLoading ||
+                    durationOptions.length === 0 ||
+                    filters.service?.value !== 'all'
+                      ? 0.6
+                      : 1,
+                }}>
                 <BaseText
                   type="subtitle2"
-                  color={filters.duration ? 'base' : 'muted'}>
+                  color={
+                    filters.service?.value !== 'all' && filters.duration
+                      ? 'muted'
+                      : filters.duration
+                      ? 'base'
+                      : 'muted'
+                  }>
                   {tagsLoading
                     ? 'در حال بارگذاری...'
                     : filters.duration?.label || 'انتخاب مدت'}
                 </BaseText>
-                <ArrowDown2 size={20} color={iconColor} />
+                <ArrowDown2
+                  size={20}
+                  color={
+                    filters.service?.value === 'all' ? iconColor : '#CCCCCC'
+                  }
+                />
               </TouchableOpacity>
             </View>
 
@@ -603,59 +980,35 @@ const ReserveScreen: React.FC = () => {
                 {/* تا ساعت */}
                 <TouchableOpacity
                   onPress={() => {
-                    if (toHours.length > 0) {
-                      setTempToHour(filters.toHour || toHours[0].value);
+                    if (toHoursFiltered.length > 0) {
+                      setTempToHour(
+                        filters.toHour || toHoursFiltered[0]?.value || '',
+                      );
                       toHourSheetRef.current?.expand();
                     }
                   }}
-                  disabled={toHours.length === 0}
-                  className="flex-1 h-12 py-3 px-4 flex-row items-center justify-between border border-neutral-300 dark:border-neutral-dark-400 rounded-full bg-neutral-0 dark:bg-neutral-dark-200">
+                  disabled={toHoursFiltered.length === 0 || !filters.fromHour}
+                  className="flex-1 h-12 py-3 px-4 flex-row items-center justify-between border border-neutral-300 dark:border-neutral-dark-400 rounded-full bg-neutral-0 dark:bg-neutral-dark-200"
+                  style={{
+                    opacity:
+                      toHoursFiltered.length === 0 || !filters.fromHour
+                        ? 0.5
+                        : 1,
+                  }}>
                   <BaseText type="subtitle2" color="base">
                     تا{' '}
                     {filters.toHour
                       ? filters.toHour === '24'
                         ? '00'
                         : filters.toHour.padStart(2, '0')
-                      : toHours[0]?.value === '24'
+                      : toHoursFiltered[0]?.value === '24'
                       ? '00'
-                      : toHours[0]?.value.padStart(2, '0') || '00'}
+                      : toHoursFiltered[0]?.value?.padStart(2, '0') || '00'}
                     :00
                   </BaseText>
                   <Clock size={20} variant="Bold" color={iconColor} />
                 </TouchableOpacity>
               </View>
-              <View className="flex-row items-center gap-1">
-                <BaseText type="subtitle3" color="muted">
-                  رزرو شما در این محدوده فیلتر خواهد شد.
-                </BaseText>
-              </View>
-            </View>
-
-            {/* خدمت */}
-            <View className="gap-3">
-              <BaseText type="title4" color="base">
-                خدمت
-              </BaseText>
-              <TouchableOpacity
-                onPress={() => {
-                  if (serviceOptions.length > 0) {
-                    setTempService(
-                      filters.service?.value || serviceOptions[0].value,
-                    );
-                    serviceSheetRef.current?.expand();
-                  }
-                }}
-                disabled={patternsLoading || serviceOptions.length === 0}
-                className="h-12 py-3 px-4 flex-row items-center justify-between border border-neutral-300 dark:border-neutral-dark-400 rounded-full bg-neutral-0 dark:bg-neutral-dark-200">
-                <BaseText
-                  type="subtitle2"
-                  color={filters.service ? 'base' : 'muted'}>
-                  {patternsLoading
-                    ? 'در حال بارگذاری...'
-                    : filters.service?.label || 'انتخاب خدمت'}
-                </BaseText>
-                <ArrowDown2 size={20} color={iconColor} />
-              </TouchableOpacity>
             </View>
 
             {/* جنسیت */}
@@ -695,9 +1048,15 @@ const ReserveScreen: React.FC = () => {
                       className="max-w-[250px] truncate">
                       {chip.label}
                     </BaseText>
-                    <TouchableOpacity onPress={chip.onClear}>
-                      <CloseCircle size={18} variant="Bold" color={iconColor} />
-                    </TouchableOpacity>
+                    {chip.removable && (
+                      <TouchableOpacity onPress={chip.onClear}>
+                        <CloseCircle
+                          size={18}
+                          variant="Bold"
+                          color={iconColor}
+                        />
+                      </TouchableOpacity>
+                    )}
                   </View>
                 ))}
               </View>
@@ -707,7 +1066,7 @@ const ReserveScreen: React.FC = () => {
       </ScrollView>
 
       {/* Bottom Button */}
-      <View
+      <Animated.View
         style={{
           position: 'absolute',
           bottom: 0,
@@ -716,6 +1075,7 @@ const ReserveScreen: React.FC = () => {
           paddingHorizontal: 20,
           paddingBottom: 24,
           paddingTop: 8,
+          transform: [{translateY: buttonTranslateY}],
         }}>
         <SafeAreaView edges={['bottom']}>
           <BaseButton
@@ -726,7 +1086,7 @@ const ReserveScreen: React.FC = () => {
             rounded
             disabled={!filters.duration || !filters.service}
             onPress={() => {
-              if (!filters.duration?.tag || !filters.service?.pattern) return;
+              if (!filters.duration?.tag || !filters.service) return;
 
               // Convert days array to comma-separated string
               const daysStr = filters.selectedDays.join(',');
@@ -750,21 +1110,28 @@ const ReserveScreen: React.FC = () => {
                   ? '00:00'
                   : `${filters.toHour.padStart(2, '0')}:00`;
 
-              // Navigate to detail screen
-              navigation.navigate('reserveDetail', {
+              // Navigate params - don't send patternId if "all" is selected
+              const navigateParams: any = {
                 tagId: filters.duration.tag.id,
-                patternId: filters.service.pattern.id,
                 gender: filters.gender?.value as 'Female' | 'Male' | 'Both',
                 startTime,
                 endTime,
                 start: startDate,
                 end: endDate,
                 days: daysStr,
-              });
+              };
+
+              // Only add patternId if a specific service is selected
+              if (filters.service.value !== 'all' && filters.service.pattern) {
+                navigateParams.patternId = filters.service.pattern.id;
+              }
+
+              // Navigate to detail screen
+              navigation.navigate('reserveDetail', navigateParams);
             }}
           />
         </SafeAreaView>
-      </View>
+      </Animated.View>
 
       {/* Bottom Sheets */}
       {/* از تاریخ */}
@@ -854,9 +1221,9 @@ const ReserveScreen: React.FC = () => {
         buttonText="تایید"
         disablePan
         onButtonPress={saveToHour}>
-        {toHours.length > 0 ? (
+        {toHoursFiltered.length > 0 ? (
           <WheelPicker
-            values={toHours}
+            values={toHoursFiltered}
             defaultValue={tempToHour}
             onChange={item => setTempToHour(item.value)}
             position="SINGLE"
@@ -864,7 +1231,9 @@ const ReserveScreen: React.FC = () => {
         ) : (
           <View className="py-10 items-center">
             <BaseText type="body2" color="muted">
-              در حال بارگذاری...
+              {filters.fromHour
+                ? 'لطفاً ابتدا ساعت "از" را انتخاب کنید'
+                : 'در حال بارگذاری...'}
             </BaseText>
           </View>
         )}
