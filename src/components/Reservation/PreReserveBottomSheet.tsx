@@ -13,7 +13,10 @@ import moment from 'jalali-moment';
 import BottomSheet, {BottomSheetMethods} from '../BottomSheet/BottomSheet';
 import BaseText from '../BaseText';
 import BaseButton from '../Button/BaseButton';
-import {ServiceEntryDto} from '../../services/models/response/ReservationResService';
+import {
+  ServiceEntryDto,
+  DayEntryDto,
+} from '../../services/models/response/ReservationResService';
 import {formatNumber} from '../../utils/helpers/helpers';
 import {useTheme} from '../../utils/ThemeContext';
 import {routes} from '../../routes/routes';
@@ -58,7 +61,14 @@ interface PenaltyDisplayItem {
 export interface PreReserveBottomSheetProps {
   onAddNewReservation?: () => void;
   onCompletePayment?: () => void;
-  onDeleteReservation?: () => void;
+  onDeleteReservation?: (data: {
+    item: ServiceEntryDto;
+    date: string;
+    fromTime: string;
+    toTime: string;
+    dayName: string;
+    dayData: DayEntryDto;
+  }) => void;
 }
 
 export interface PreReserveBottomSheetRef {
@@ -68,8 +78,10 @@ export interface PreReserveBottomSheetRef {
     fromTime: string;
     toTime: string;
     dayName: string;
+    dayData: DayEntryDto;
   }) => void;
   close: () => void;
+  clearCurrentReservationState: () => void;
 }
 
 // Format date to Persian (Jalali) calendar
@@ -150,18 +162,35 @@ const PreReserveBottomSheet = forwardRef<
   const [fromTime, setFromTime] = useState('');
   const [toTime, setToTime] = useState('');
   const [dayName, setDayName] = useState('');
+  const [dayData, setDayData] = useState<DayEntryDto | null>(null);
 
   // State for subProducts (stored from item)
   const [subProducts, setSubProducts] = useState<SubProduct[]>([]);
 
-  // State for modified quantities (key: subProduct.id, value: new quantity)
-  // If not in this map, use the original quantity from subProduct
+  // State for modified quantities (key: reservationKey, value: Record<subProduct.id, quantity>)
+  // reservationKey format: `${productId}-${date}-${fromTime}-${toTime}`
   const [modifiedQuantities, setModifiedQuantities] = useState<
-    Record<number, number>
+    Record<string, Record<number, number>>
   >({});
 
   // State for penalty accordion
   const [penaltyExpanded, setPenaltyExpanded] = useState(false);
+
+  // Generate unique key for current reservation
+  const getReservationKey = (
+    productId: number,
+    date: string,
+    fromTime: string,
+    toTime: string,
+  ): string => {
+    return `${productId}-${date}-${fromTime}-${toTime}`;
+  };
+
+  // Get current reservation key
+  const getCurrentReservationKey = (): string | null => {
+    if (!item) return null;
+    return getReservationKey(item.id, date, fromTime, toTime);
+  };
 
   // Expose methods to parent
   useImperativeHandle(ref, () => ({
@@ -171,52 +200,73 @@ const PreReserveBottomSheet = forwardRef<
       setFromTime(data.fromTime);
       setToTime(data.toTime);
       setDayName(data.dayName);
+      setDayData(data.dayData);
       // Store subProducts from item
       setSubProducts((data.item.subProducts as SubProduct[]) || []);
-      // Reset modified quantities when opening with new item
-      setModifiedQuantities({});
+      // Don't reset modified quantities - keep them based on reservation key
+      // The quantities will be retrieved when needed via getQuantity function
       bottomSheetRef.current?.expand();
     },
     close: () => {
       bottomSheetRef.current?.close();
     },
+    clearCurrentReservationState: () => {
+      clearReservationState();
+    },
   }));
 
   // Update quantity for subProduct
   const updateQuantity = (id: number, delta: number) => {
-    setModifiedQuantities(prev => {
-      // Find the subProduct to get its original quantity
-      const findSubProduct = (
-        products: SubProduct[],
-      ): SubProduct | undefined => {
-        for (const product of products) {
-          if (product.id === id) return product;
-          if (product.subProducts) {
-            const found = findSubProduct(product.subProducts);
-            if (found) return found;
-          }
-        }
-        return undefined;
-      };
+    const reservationKey = getCurrentReservationKey();
+    if (!reservationKey) return;
 
-      const subProduct = findSubProduct(subProducts);
-      const originalQuantity = subProduct?.quantity || 0;
-      const currentQuantity = prev[id] ?? originalQuantity;
+    setModifiedQuantities(prev => {
+      // Get current quantities for this reservation
+      const currentReservationQuantities = prev[reservationKey] || {};
+      const currentQuantity = currentReservationQuantities[id] ?? 0;
       const newQuantity = Math.max(0, currentQuantity + delta);
 
-      // If new quantity equals original, remove from modified
-      if (newQuantity === originalQuantity) {
-        const {[id]: _, ...rest} = prev;
+      // Create updated quantities for this reservation
+      let updatedQuantities = {...currentReservationQuantities};
+
+      // If new quantity is 0, remove from modified (back to default 0)
+      if (newQuantity === 0) {
+        const {[id]: _, ...rest} = updatedQuantities;
+        updatedQuantities = rest;
+      } else {
+        updatedQuantities[id] = newQuantity;
+      }
+
+      // If no quantities left for this reservation, remove the key
+      if (Object.keys(updatedQuantities).length === 0) {
+        const {[reservationKey]: _, ...rest} = prev;
         return rest;
       }
 
-      return {...prev, [id]: newQuantity};
+      return {...prev, [reservationKey]: updatedQuantities};
     });
   };
 
-  // Get quantity for a subProduct (uses modified or original)
+  // Get quantity for a subProduct (default is 0, not original quantity)
   const getQuantity = (id: number, originalQuantity: number): number => {
-    return modifiedQuantities[id] ?? originalQuantity;
+    const reservationKey = getCurrentReservationKey();
+    if (!reservationKey) return 0;
+
+    const reservationQuantities = modifiedQuantities[reservationKey];
+    if (!reservationQuantities) return 0;
+
+    return reservationQuantities[id] ?? 0; // Default to 0 instead of originalQuantity
+  };
+
+  // Clear state for current reservation
+  const clearReservationState = () => {
+    const reservationKey = getCurrentReservationKey();
+    if (!reservationKey) return;
+
+    setModifiedQuantities(prev => {
+      const {[reservationKey]: _, ...rest} = prev;
+      return rest;
+    });
   };
 
   // Get price for a subProduct
@@ -374,30 +424,8 @@ const PreReserveBottomSheet = forwardRef<
                         </View>
                         {/* Quantity Controls */}
                         <View className="gap-1">
-                          <View className="flex-row items-end justify-end gap-2">
-                            <TouchableOpacity
-                              onPress={() => updateQuantity(subProduct.id, -1)}
-                              disabled={quantity === 0}
-                              className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center"
-                              style={{opacity: quantity === 0 ? 0.3 : 1}}>
-                              <BaseText type="body2" color="base">
-                                -
-                              </BaseText>
-                            </TouchableOpacity>
-                            {quantity < 1 ? (
-                              <CloseCircle
-                                size={20}
-                                variant="Bold"
-                                color="#FF3B30"
-                              />
-                            ) : (
-                              <BaseText
-                                type="body2"
-                                color="base"
-                                className="w-6 text-center">
-                                {quantity}
-                              </BaseText>
-                            )}
+                          <View className="flex-row items-center justify-center gap-2">
+                            {/* Plus button - Left side */}
                             <TouchableOpacity
                               onPress={() => updateQuantity(subProduct.id, 1)}
                               className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center">
@@ -405,6 +433,43 @@ const PreReserveBottomSheet = forwardRef<
                                 +
                               </BaseText>
                             </TouchableOpacity>
+                            {/* Quantity display - Center */}
+
+                            <BaseText
+                              type="body2"
+                              color="base"
+                              className="w-6 text-center">
+                              {quantity}
+                            </BaseText>
+
+                            {/* Minus/Trash button - Right side */}
+                            {quantity === 1 ? (
+                              // Show Trash icon when quantity is 1
+                              <TouchableOpacity
+                                onPress={() =>
+                                  updateQuantity(subProduct.id, -1)
+                                }
+                                className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center">
+                                <Trash
+                                  size={16}
+                                  variant="Bold"
+                                  color="#FF3B30"
+                                />
+                              </TouchableOpacity>
+                            ) : (
+                              // Show minus button when quantity is not 1
+                              <TouchableOpacity
+                                onPress={() =>
+                                  updateQuantity(subProduct.id, -1)
+                                }
+                                disabled={quantity === 0}
+                                className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center"
+                                style={{opacity: quantity === 0 ? 0.3 : 1}}>
+                                <BaseText type="body2" color="base">
+                                  -
+                                </BaseText>
+                              </TouchableOpacity>
+                            )}
                           </View>
                         </View>
                       </View>
@@ -438,20 +503,18 @@ const PreReserveBottomSheet = forwardRef<
                                     </BaseText>
                                   </View>
                                   <View className="flex-row items-end justify-end gap-2">
+                                    {/* Plus button - Left side */}
                                     <TouchableOpacity
                                       onPress={() =>
-                                        updateQuantity(nested.id, -1)
+                                        updateQuantity(nested.id, 1)
                                       }
-                                      disabled={nestedQuantity === 0}
-                                      className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center"
-                                      style={{
-                                        opacity: nestedQuantity === 0 ? 0.3 : 1,
-                                      }}>
+                                      className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center">
                                       <BaseText type="body2" color="base">
-                                        -
+                                        +
                                       </BaseText>
                                     </TouchableOpacity>
-                                    {nestedQuantity < 1 ? (
+                                    {/* Quantity display - Center */}
+                                    {nestedQuantity === 0 ? (
                                       <CloseCircle
                                         size={20}
                                         variant="Bold"
@@ -465,15 +528,37 @@ const PreReserveBottomSheet = forwardRef<
                                         {nestedQuantity}
                                       </BaseText>
                                     )}
-                                    <TouchableOpacity
-                                      onPress={() =>
-                                        updateQuantity(nested.id, 1)
-                                      }
-                                      className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center">
-                                      <BaseText type="body2" color="base">
-                                        +
-                                      </BaseText>
-                                    </TouchableOpacity>
+                                    {/* Minus/Trash button - Right side */}
+                                    {nestedQuantity === 1 ? (
+                                      // Show Trash icon when quantity is 1
+                                      <TouchableOpacity
+                                        onPress={() =>
+                                          updateQuantity(nested.id, -1)
+                                        }
+                                        className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center">
+                                        <Trash
+                                          size={16}
+                                          variant="Bold"
+                                          color="#FF3B30"
+                                        />
+                                      </TouchableOpacity>
+                                    ) : (
+                                      // Show minus button when quantity is not 1
+                                      <TouchableOpacity
+                                        onPress={() =>
+                                          updateQuantity(nested.id, -1)
+                                        }
+                                        disabled={nestedQuantity === 0}
+                                        className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center"
+                                        style={{
+                                          opacity:
+                                            nestedQuantity === 0 ? 0.3 : 1,
+                                        }}>
+                                        <BaseText type="body2" color="base">
+                                          -
+                                        </BaseText>
+                                      </TouchableOpacity>
+                                    )}
                                   </View>
                                 </View>
                                 {nestedPrice > 0 && (
@@ -662,7 +747,18 @@ const PreReserveBottomSheet = forwardRef<
               rounded
               size="Large"
               redbutton
-              onPress={onDeleteReservation}
+              onPress={() => {
+                if (item && dayData && onDeleteReservation) {
+                  onDeleteReservation({
+                    item,
+                    date,
+                    fromTime,
+                    toTime,
+                    dayName,
+                    dayData,
+                  });
+                }
+              }}
             />
           </View>
         </View>

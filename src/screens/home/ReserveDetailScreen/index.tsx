@@ -1,4 +1,4 @@
-import React, {useRef} from 'react';
+import React, {useRef, useCallback} from 'react';
 import {View, Image, ScrollView, ActivityIndicator} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {RouteProp, useRoute} from '@react-navigation/native';
@@ -21,6 +21,9 @@ import HelpBottomSheet from './components/HelpBottomSheet';
 import {useReservationData} from './hooks/useReservationData';
 import {usePageNavigation} from './hooks/usePageNavigation';
 import {usePreReserveHandlers} from './hooks/usePreReserveHandlers';
+import {useReservationState} from './hooks/useReservationState';
+import {useSSEConnection} from './hooks/useSSEConnection';
+import {useAuth} from '../../../utils/hooks/useAuth';
 
 // Utils
 import {BottomSheetMethods} from '../../../components/BottomSheet/BottomSheet';
@@ -39,6 +42,7 @@ const ReserveDetailScreen: React.FC = () => {
   const preReserveBottomSheetRef = useRef<PreReserveBottomSheetRef>(null);
 
   // Custom Hooks
+  const {profile, SKU} = useAuth();
   const {timeSlots, isLoading, error, refetch, totalPagesForSlots} =
     useReservationData(params);
 
@@ -52,6 +56,74 @@ const ReserveDetailScreen: React.FC = () => {
     canGoPrev,
   } = usePageNavigation({totalPages: totalPagesForSlots});
 
+  // Reservation state management
+  const {
+    getItemState,
+    updateReservation,
+    removeReservation,
+    isPreReservedByMe,
+  } = useReservationState({timeSlots});
+
+  // SSE Connection for real-time updates
+  useSSEConnection({
+    onEvent: useCallback(
+      (event: {
+        product: number;
+        date: string;
+        fromTime: string;
+        toTime: string;
+        user: number;
+        status: 'reserved' | 'pre-reserved' | 'cancelled';
+      }) => {
+        // Find dayName from timeSlots
+        let dayName = '';
+        for (const slot of timeSlots) {
+          const day = slot.days.find(d => d.date === event.date);
+          if (day) {
+            dayName = day.name;
+            break;
+          }
+        }
+
+        // Handle SSE events
+        if (event.status === 'reserved') {
+          updateReservation(
+            event.product,
+            event.date,
+            event.fromTime,
+            event.toTime,
+            dayName,
+            'reserved',
+            event.user,
+          );
+        } else if (event.status === 'pre-reserved') {
+          // Check if it's for current user
+          const isMyReservation = event.user === profile?.id;
+          updateReservation(
+            event.product,
+            event.date,
+            event.fromTime,
+            event.toTime,
+            dayName,
+            isMyReservation ? 'pre-reserved-by-me' : 'pre-reserved-by-others',
+            event.user,
+          );
+        } else if (event.status === 'cancelled') {
+          removeReservation(
+            event.product,
+            event.date,
+            event.fromTime,
+            event.toTime,
+          );
+        }
+        // Refetch to sync with server
+        refetch();
+      },
+      [timeSlots, updateReservation, removeReservation, profile?.id, refetch],
+    ),
+    enabled: !!profile && !!SKU,
+  });
+
   const {
     handleServiceItemClick,
     handleDeleteReservation,
@@ -61,10 +133,16 @@ const ReserveDetailScreen: React.FC = () => {
     gender: params.gender,
     refetch,
     preReserveBottomSheetRef,
+    isPreReservedByMe,
+    getItemState,
+    updateReservation,
+    removeReservation,
   });
 
   // Handle complete payment
   const handleCompletePayment = () => {
+    // Clear reservation state after successful payment completion
+    preReserveBottomSheetRef.current?.clearCurrentReservationState();
     navigationRef.navigate('Root', {
       screen: 'HomeNavigator',
       params: {screen: 'cart'},
@@ -99,10 +177,17 @@ const ReserveDetailScreen: React.FC = () => {
             type="Outline"
             color="Black"
             rounded
+            className="z-10"
           />
 
           {/* Title */}
-          <View className="flex-1 items-center absolute left-0 right-0">
+          <View
+            className="absolute -z-[1] "
+            style={{
+              left: 0,
+              right: 0,
+              alignItems: 'center',
+            }}>
             <BaseText type="body2" color="base">
               خدمات
             </BaseText>
@@ -115,6 +200,7 @@ const ReserveDetailScreen: React.FC = () => {
             RightIcon={InfoCircle}
             type="Outline"
             color="Black"
+            className="z-10"
             rounded
           />
         </View>
@@ -171,6 +257,7 @@ const ReserveDetailScreen: React.FC = () => {
                   opacityAnim={opacityAnim}
                   onServicePress={handleServiceItemClick}
                   isLoadingItems={getLoadingItems()}
+                  getItemState={getItemState}
                 />
               );
             })}

@@ -19,6 +19,15 @@ interface ServiceItemProps {
     timeSlot: string,
   ) => void;
   isLoading?: boolean;
+  getItemState?: (
+    item: ServiceEntryDto,
+    dayData: DayEntryDto,
+    timeSlot: string,
+  ) => {
+    isPreReserved: boolean;
+    selfReserved: boolean;
+    isReserve: boolean;
+  };
 }
 
 const ServiceItem: React.FC<ServiceItemProps> = ({
@@ -28,16 +37,27 @@ const ServiceItem: React.FC<ServiceItemProps> = ({
   timeSlot,
   onPress,
   isLoading = false,
+  getItemState,
 }) => {
   const colors = getServiceColor(item, index);
   const displayPrice =
     item.reservePrice > 0 ? item.reservePrice : item.price || 0;
 
+  // استفاده از state اگر موجود باشد، در غیر این صورت از item اصلی
+  const itemState = getItemState
+    ? getItemState(item, dayData, timeSlot)
+    : {
+        isPreReserved: item.isPreReserved,
+        selfReserved: item.selfReserved,
+        isReserve: item.isReserve,
+      };
+
   // تعیین حالت‌های مختلف رزرو
-  const isReserved = item.isReserve; // رزرو شده توسط دیگران (غیرقابل استفاده)
-  const isPreReservedByOthers = item.isPreReserved && !item.selfReserved; // در حال رزرو دیگران
-  const isPreReservedByMe = item.isPreReserved && item.selfReserved; // در حال رزرو توسط من
-  const isAvailable = !isReserved && !item.isPreReserved; // قابل رزرو
+  const isReserved = itemState.isReserve; // رزرو شده توسط دیگران (غیرقابل استفاده)
+  const isPreReservedByOthers =
+    itemState.isPreReserved && !itemState.selfReserved; // در حال رزرو دیگران
+  const isPreReservedByMe = itemState.isPreReserved && itemState.selfReserved; // در حال رزرو توسط من
+  const isAvailable = !isReserved && !itemState.isPreReserved; // قابل رزرو
 
   // استایل‌ها بر اساس حالت
   let borderColor: string;
@@ -59,7 +79,7 @@ const ServiceItem: React.FC<ServiceItemProps> = ({
     borderStyle = 'dashed';
     backgroundColor = 'white';
     textColor = colors.border;
-    isDisabled = false;
+    isDisabled = true;
   } else if (isPreReservedByMe) {
     // حالت 3: در حال رزرو توسط من
     borderColor = colors.border;

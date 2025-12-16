@@ -22,6 +22,15 @@ interface TimeSlotRowProps {
     fromTime: string;
     toTime: string;
   }>;
+  getItemState?: (
+    item: any,
+    dayData: DayEntryDto,
+    timeSlot: string,
+  ) => {
+    isPreReserved: boolean;
+    selfReserved: boolean;
+    isReserve: boolean;
+  };
 }
 
 const TimeSlotRow: React.FC<TimeSlotRowProps> = ({
@@ -31,6 +40,7 @@ const TimeSlotRow: React.FC<TimeSlotRowProps> = ({
   opacityAnim,
   onServicePress,
   isLoadingItems = [],
+  getItemState,
 }) => {
   return (
     <View key={timeSlot} className="mb-4">
@@ -68,6 +78,7 @@ const TimeSlotRow: React.FC<TimeSlotRowProps> = ({
               timeSlot={timeSlot}
               onServicePress={onServicePress}
               isLoadingItems={isLoadingItems}
+              getItemState={getItemState}
             />
           ))}
 

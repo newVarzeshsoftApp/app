@@ -20,6 +20,15 @@ interface DayColumnProps {
     fromTime: string;
     toTime: string;
   }>;
+  getItemState?: (
+    item: ServiceEntryDto,
+    dayData: DayEntryDto,
+    timeSlot: string,
+  ) => {
+    isPreReserved: boolean;
+    selfReserved: boolean;
+    isReserve: boolean;
+  };
 }
 
 const DayColumn: React.FC<DayColumnProps> = ({
@@ -27,6 +36,7 @@ const DayColumn: React.FC<DayColumnProps> = ({
   timeSlot,
   onServicePress,
   isLoadingItems = [],
+  getItemState,
 }) => {
   const dayInfo = WEEK_DAYS_MAP[dayData.name];
   if (!dayInfo) return null;
@@ -70,6 +80,7 @@ const DayColumn: React.FC<DayColumnProps> = ({
                   timeSlot={timeSlot}
                   onPress={onServicePress}
                   isLoading={isLoading}
+                  getItemState={getItemState}
                 />
               </View>
             );
