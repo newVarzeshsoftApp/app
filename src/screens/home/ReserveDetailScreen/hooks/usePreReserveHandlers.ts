@@ -120,18 +120,7 @@ export const usePreReserveHandlers = ({
           // Set selectedItemData first
           setSelectedItemData({item, dayData, timeSlot});
 
-          // Update state to mark as pre-reserved by me (don't refetch, just update local state)
-          updateReservation(
-            item.id,
-            dayData.date,
-            fromTime,
-            toTime,
-            dayData.name,
-            'pre-reserved-by-me',
-            profile?.id,
-          );
-
-          // Open bottom sheet with proper delay to ensure ref is ready
+          // Open bottom sheet immediately before updating state
           const openBottomSheet = () => {
             if (preReserveBottomSheetRef.current) {
               preReserveBottomSheetRef.current.open({
@@ -142,16 +131,25 @@ export const usePreReserveHandlers = ({
                 dayName: dayData.name,
                 dayData,
               });
-            } else {
-              // Retry if ref is not ready yet
-              setTimeout(openBottomSheet, 50);
             }
           };
 
-          // Use requestAnimationFrame to ensure DOM is ready
-          requestAnimationFrame(() => {
-            setTimeout(openBottomSheet, 100);
-          });
+          // Open bottom sheet immediately
+          openBottomSheet();
+
+          // Update state to mark as pre-reserved by me after opening bottom sheet
+          // Use setTimeout to ensure bottom sheet opens first
+          setTimeout(() => {
+            updateReservation(
+              item.id,
+              dayData.date,
+              fromTime,
+              toTime,
+              dayData.name,
+              'pre-reserved-by-me',
+              profile?.id,
+            );
+          }, 0);
 
           // Don't refetch - only update local state
         },

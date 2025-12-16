@@ -129,6 +129,7 @@ const ReserveDetailScreen: React.FC = () => {
     handleDeleteReservation,
     handleAddNewReservation,
     getLoadingItems,
+    isPending,
   } = usePreReserveHandlers({
     gender: params.gender,
     refetch,
@@ -274,6 +275,7 @@ const ReserveDetailScreen: React.FC = () => {
         onAddNewReservation={handleAddNewReservation}
         onCompletePayment={handleCompletePayment}
         onDeleteReservation={handleDeleteReservation}
+        isDeleting={isPending}
       />
     </View>
   );
