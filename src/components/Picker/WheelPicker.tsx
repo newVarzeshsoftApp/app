@@ -12,6 +12,7 @@ import Animated, {
   runOnJS,
   interpolate,
   Extrapolate,
+  SharedValue,
 } from 'react-native-reanimated';
 import BaseText from '../BaseText';
 
@@ -40,6 +41,9 @@ const WheelPicker: React.FC<WheelPickerProps> = ({
   position,
 }) => {
   const translateY = useSharedValue(0);
+  const selectedIndexShared = useSharedValue<number>(
+    defaultValue ? values.findIndex(item => item.value === defaultValue) : 0,
+  );
   const [selectedIndex, setSelectedIndex] = useState<number>(
     defaultValue ? values.findIndex(item => item.value === defaultValue) : 0,
   );
@@ -50,6 +54,7 @@ const WheelPicker: React.FC<WheelPickerProps> = ({
     if (defaultValue) {
       const index = values.findIndex(item => item.value === defaultValue);
       translateY.value = -(index - centerIndexOffset) * ITEM_HEIGHT;
+      selectedIndexShared.value = index;
       setSelectedIndex(index);
     }
   }, [defaultValue, visibleItemCount]);
@@ -60,6 +65,7 @@ const WheelPicker: React.FC<WheelPickerProps> = ({
       stiffness: 100,
       mass: 1,
     });
+    selectedIndexShared.value = index;
     runOnJS(setSelectedIndex)(index);
     runOnJS(onChange)(values[index]);
   };
@@ -77,7 +83,8 @@ const WheelPicker: React.FC<WheelPickerProps> = ({
       );
       const clampedIndex = Math.max(0, Math.min(values.length - 1, index));
 
-      if (clampedIndex !== selectedIndex) {
+      if (clampedIndex !== selectedIndexShared.value) {
+        selectedIndexShared.value = clampedIndex;
         runOnJS(setSelectedIndex)(clampedIndex);
         runOnJS(onChange)(values[clampedIndex]);
       }
@@ -95,9 +102,16 @@ const WheelPicker: React.FC<WheelPickerProps> = ({
     transform: [{translateY: translateY.value}],
   }));
 
-  const renderItem = (item: WheelPickerItem, index: number) => {
+  // Separate component for each item to avoid hooks in loop
+  const WheelPickerItem: React.FC<{
+    item: WheelPickerItem;
+    index: number;
+    selectedIndexShared: SharedValue<number>;
+    centerIndexOffset: number;
+    onPress: () => void;
+  }> = ({item, index, selectedIndexShared, centerIndexOffset, onPress}) => {
     const animatedItemStyle = useAnimatedStyle(() => {
-      const distanceFromSelected = index - selectedIndex;
+      const distanceFromSelected = index - selectedIndexShared.value;
 
       const opacity = interpolate(
         Math.abs(distanceFromSelected),
@@ -122,19 +136,14 @@ const WheelPicker: React.FC<WheelPickerProps> = ({
       };
     });
 
-    const isSelected = index === selectedIndex;
-    const handlePress = () => {
-      snapToIndex(index);
-    };
     return (
       <Animated.View
-        key={index}
         style={[
           styles.itemContainer,
           {height: ITEM_HEIGHT},
           animatedItemStyle,
         ]}>
-        <TouchableWithoutFeedback onPress={handlePress}>
+        <TouchableWithoutFeedback onPress={onPress}>
           <BaseText type="subtitle1" color="secondary">
             {item.label || ''}
           </BaseText>
@@ -149,7 +158,16 @@ const WheelPicker: React.FC<WheelPickerProps> = ({
       style={[{height: ITEM_HEIGHT * visibleItemCount}, containerStyle]}>
       <PanGestureHandler onGestureEvent={gestureHandler}>
         <Animated.View style={[styles.list, animatedStyle]}>
-          {values.map((item, index) => renderItem(item, index))}
+          {values.map((item, index) => (
+            <WheelPickerItem
+              key={index}
+              item={item}
+              index={index}
+              selectedIndexShared={selectedIndexShared}
+              centerIndexOffset={centerIndexOffset}
+              onPress={() => snapToIndex(index)}
+            />
+          ))}
         </Animated.View>
       </PanGestureHandler>
       <View

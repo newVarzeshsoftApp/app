@@ -1,4 +1,4 @@
-import React, {useRef, useCallback} from 'react';
+import React, {useRef, useCallback, useEffect} from 'react';
 import {View, Image, ScrollView, ActivityIndicator} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {RouteProp, useRoute} from '@react-navigation/native';
@@ -69,27 +69,176 @@ const ReserveDetailScreen: React.FC = () => {
     onEvent: useCallback(
       (event: {
         product: number;
-        date: string;
+        date?: string;
+        specificDate?: string;
         fromTime: string;
         toTime: string;
-        user: number;
-        status: 'reserved' | 'pre-reserved' | 'cancelled';
+        user?: number;
+        status?: 'reserved' | 'pre-reserved' | 'cancelled' | 'locked';
+        isLocked?: string | boolean;
+        day?: string;
       }) => {
-        // Find dayName from timeSlots
-        let dayName = '';
-        for (const slot of timeSlots) {
-          const day = slot.days.find(d => d.date === event.date);
-          if (day) {
-            dayName = day.name;
-            break;
+        console.log('🔔 onEvent callback triggered with event:', {
+          product: event.product,
+          date: event.date,
+          specificDate: event.specificDate,
+          fromTime: event.fromTime,
+          toTime: event.toTime,
+          user: event.user,
+          status: event.status,
+          isLocked: event.isLocked,
+          day: event.day,
+        });
+
+        // Get date from event (prefer specificDate, fallback to date)
+        const eventDate = event.specificDate || event.date;
+        if (!eventDate) {
+          console.warn('⚠️ SSE event missing date, skipping:', event);
+          return;
+        }
+
+        // Find dayName from timeSlots or use event.day
+        let dayName = event.day || '';
+        if (!dayName) {
+          for (const slot of timeSlots) {
+            const day = slot.days.find(d => d.date === eventDate);
+            if (day) {
+              dayName = day.name;
+              break;
+            }
           }
         }
 
-        // Handle SSE events
-        if (event.status === 'reserved') {
+        // Fallback: if dayName is still empty, use a default or skip update
+        // This should not happen in normal flow, but we handle it gracefully
+        if (!dayName) {
+          console.warn(
+            '⚠️ SSE event missing dayName, trying to infer from date:',
+            {
+              eventDate,
+              event,
+            },
+          );
+          // Try to extract day name from date or use a default
+          // For now, we'll still process the event but log a warning
+        }
+
+        // Check if this event is from current user
+        // Only check if user is defined in event and matches current user
+        // If user is undefined, it's not from current user (server event)
+        const isMyAction =
+          event.user !== undefined && event.user === profile?.id;
+
+        console.log('📨 SSE Event received:', {
+          product: event.product,
+          date: eventDate,
+          fromTime: event.fromTime,
+          toTime: event.toTime,
+          user: event.user,
+          status: event.status,
+          isLocked: event.isLocked,
+          isMyAction,
+          currentUserId: profile?.id,
+        });
+
+        // Handle locked/unlocked status
+        // When locked = someone is reserving this slot
+        // Priority: Check status first, then isLocked
+        if (
+          event.status === 'locked' ||
+          event.isLocked === true ||
+          event.isLocked === 'true'
+        ) {
+          // When locked, mark as pre-reserved
+          // If it's from current user, state was already updated in handleServiceItemClick (pre-reserved-by-me)
+          // Only update if it's from another user to show pre-reserved-by-others
+          // IMPORTANT: Process for all users except current user (even if user is undefined in event)
+          if (!isMyAction) {
+            // Use dayName if available, otherwise use empty string (updateReservation will handle it)
+            const finalDayName = dayName || event.day || '';
+
+            console.log(
+              '🔵 [User B] Processing locked event - About to update reservation',
+              {
+                product: event.product,
+                date: eventDate,
+                fromTime: event.fromTime,
+                toTime: event.toTime,
+                user: event.user,
+                currentUserId: profile?.id,
+                dayName: finalDayName,
+                isMyAction,
+                eventStatus: event.status,
+                eventIsLocked: event.isLocked,
+              },
+            );
+
+            try {
+              updateReservation(
+                event.product,
+                eventDate,
+                event.fromTime,
+                event.toTime,
+                finalDayName,
+                'pre-reserved-by-others',
+                event.user,
+              );
+              console.log('✅ [User B] Successfully called updateReservation', {
+                product: event.product,
+                date: eventDate,
+                fromTime: event.fromTime,
+                toTime: event.toTime,
+              });
+            } catch (error) {
+              console.error(
+                '❌ [User B] Error calling updateReservation:',
+                error,
+              );
+            }
+          } else {
+            console.log(
+              '⏭️ [User A] Ignoring locked event from current user (already set to pre-reserved-by-me)',
+              {
+                product: event.product,
+                date: eventDate,
+                user: event.user,
+                currentUserId: profile?.id,
+                isMyAction,
+              },
+            );
+          }
+        } else if (event.isLocked === false || event.isLocked === 'false') {
+          // When unlocked, remove reservation (make it available again)
+          // Only process if it's from another user (user field is defined and not current user)
+          // If user is undefined, ignore it (might be a system event that shouldn't affect current user)
+          // If it's from current user, state was already removed in handleDeleteReservation
+          if (event.user !== undefined && !isMyAction) {
+            console.log(
+              '🔓 [User B] Unlock event - removing reservation (from another user)',
+            );
+            removeReservation(
+              event.product,
+              eventDate,
+              event.fromTime,
+              event.toTime,
+            );
+          } else if (isMyAction) {
+            console.log(
+              '⏭️ [User A] Ignoring unlock event from current user (already removed)',
+            );
+          } else {
+            console.log(
+              '⏭️ Ignoring unlock event without user field (system event)',
+            );
+          }
+        }
+        // Handle SSE events with status
+        else if (event.status === 'reserved') {
+          // Always update reserved status (even for current user, as it's a final state)
+          console.log('✅ Updating reservation to reserved');
           updateReservation(
             event.product,
-            event.date,
+            eventDate,
             event.fromTime,
             event.toTime,
             dayName,
@@ -97,29 +246,95 @@ const ReserveDetailScreen: React.FC = () => {
             event.user,
           );
         } else if (event.status === 'pre-reserved') {
-          // Check if it's for current user
-          const isMyReservation = event.user === profile?.id;
-          updateReservation(
-            event.product,
-            event.date,
-            event.fromTime,
-            event.toTime,
-            dayName,
-            isMyReservation ? 'pre-reserved-by-me' : 'pre-reserved-by-others',
-            event.user,
-          );
+          // When status is pre-reserved, mark as pre-reserved
+          // If it's from current user, state was already updated in handleServiceItemClick (pre-reserved-by-me)
+          // Only update if it's from another user to show pre-reserved-by-others
+          // IMPORTANT: Process for all users except current user (even if user is undefined in event)
+          if (!isMyAction) {
+            // Use dayName if available, otherwise use empty string (updateReservation will handle it)
+            const finalDayName = dayName || event.day || '';
+
+            console.log(
+              '✅ [User B] Updating reservation to pre-reserved-by-others',
+              {
+                product: event.product,
+                date: eventDate,
+                fromTime: event.fromTime,
+                toTime: event.toTime,
+                user: event.user,
+                currentUserId: profile?.id,
+                dayName: finalDayName,
+                isMyAction,
+              },
+            );
+
+            updateReservation(
+              event.product,
+              eventDate,
+              event.fromTime,
+              event.toTime,
+              finalDayName,
+              'pre-reserved-by-others',
+              event.user,
+            );
+          } else {
+            console.log(
+              '⏭️ [User A] Ignoring pre-reserved event from current user (already set to pre-reserved-by-me)',
+              {
+                product: event.product,
+                date: eventDate,
+                user: event.user,
+                currentUserId: profile?.id,
+                isMyAction,
+              },
+            );
+          }
         } else if (event.status === 'cancelled') {
-          removeReservation(
-            event.product,
-            event.date,
-            event.fromTime,
-            event.toTime,
-          );
+          // Process cancellation only if it's from another user (user field is defined and not current user)
+          // If user is undefined, ignore it (might be a system event that shouldn't affect current user)
+          // If it's from current user, state was already removed in handleDeleteReservation
+          // This ensures real-time updates when someone else cancels
+          if (event.user !== undefined && !isMyAction) {
+            console.log(
+              '❌ [User B] Cancelled event - removing reservation (from another user)',
+            );
+            removeReservation(
+              event.product,
+              eventDate,
+              event.fromTime,
+              event.toTime,
+            );
+          } else if (isMyAction) {
+            console.log(
+              '⏭️ [User A] Ignoring cancelled event from current user (already removed)',
+            );
+          } else {
+            console.log(
+              '⏭️ Ignoring cancelled event without user field (system event)',
+            );
+          }
+        } else {
+          // Event doesn't match any known status - log it for debugging
+          console.warn('⚠️ Event received but no matching handler:', {
+            product: event.product,
+            date: eventDate,
+            fromTime: event.fromTime,
+            toTime: event.toTime,
+            user: event.user,
+            status: event.status,
+            isLocked: event.isLocked,
+            isMyAction,
+            currentUserId: profile?.id,
+            fullEvent: event,
+          });
         }
-        // Refetch to sync with server
-        refetch();
+
+        // Don't refetch - use only SSE events and local state for updates
+        // This prevents heavy refetch calls and keeps UI responsive
+        // State is updated immediately from SSE events, no need to refetch
+        // Initial data is loaded once, all updates come from SSE events
       },
-      [timeSlots, updateReservation, removeReservation, profile?.id, refetch],
+      [timeSlots, updateReservation, removeReservation, profile?.id],
     ),
     enabled: !!profile && !!SKU,
   });
@@ -132,7 +347,7 @@ const ReserveDetailScreen: React.FC = () => {
     isPending,
   } = usePreReserveHandlers({
     gender: params.gender,
-    refetch,
+    // refetch removed - using only SSE events for updates
     preReserveBottomSheetRef,
     isPreReservedByMe,
     getItemState,

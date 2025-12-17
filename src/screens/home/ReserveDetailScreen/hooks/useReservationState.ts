@@ -59,6 +59,16 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
       status: ReservationState['status'],
       userId?: number,
     ) => {
+      console.log('🔄 updateReservation called:', {
+        productId,
+        date,
+        fromTime,
+        toTime,
+        dayName,
+        status,
+        userId,
+      });
+      
       setReservations(prev => {
         const existingIndex = prev.findIndex(
           r =>
@@ -80,21 +90,21 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
             status,
             userId,
           };
+          console.log('✅ Updated existing reservation:', updated[existingIndex]);
           return updated;
         } else {
           // Add new
-          return [
-            ...prev,
-            {
-              productId,
-              date,
-              fromTime,
-              toTime,
-              dayName,
-              status,
-              userId,
-            },
-          ];
+          const newReservation = {
+            productId,
+            date,
+            fromTime,
+            toTime,
+            dayName,
+            status,
+            userId,
+          };
+          console.log('➕ Added new reservation:', newReservation);
+          return [...prev, newReservation];
         }
       });
     },

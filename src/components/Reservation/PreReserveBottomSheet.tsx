@@ -215,7 +215,21 @@ const PreReserveBottomSheet = forwardRef<
         setSubProducts((data.item.subProducts as SubProduct[]) || []);
         // Don't reset modified quantities - keep them based on reservation key
         // The quantities will be retrieved when needed via getQuantity function
-        bottomSheetRef.current?.expand();
+        // On first open (especially on web / slow devices), BottomSheet ref may not be ready yet.
+        // Retry expand a few times to avoid "first click doesn't open" bug.
+        const tryExpand = (attempt = 0) => {
+          if (bottomSheetRef.current) {
+            bottomSheetRef.current.expand();
+            return;
+          }
+          if (attempt < 10) {
+            setTimeout(() => tryExpand(attempt + 1), 50);
+          }
+        };
+
+        requestAnimationFrame(() => {
+          setTimeout(() => tryExpand(0), 0);
+        });
       },
       close: () => {
         bottomSheetRef.current?.close();
