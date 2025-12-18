@@ -1,5 +1,11 @@
-import React, {useRef, useCallback, useEffect} from 'react';
-import {View, Image, ScrollView, ActivityIndicator} from 'react-native';
+import React, {useRef, useCallback} from 'react';
+import {
+  View,
+  Image,
+  ScrollView,
+  ActivityIndicator,
+  StyleSheet,
+} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {RouteProp, useRoute} from '@react-navigation/native';
 import {HomeStackParamList} from '../../../utils/types/NavigationTypes';
@@ -43,7 +49,7 @@ const ReserveDetailScreen: React.FC = () => {
 
   // Custom Hooks
   const {profile, SKU} = useAuth();
-  const {timeSlots, isLoading, error, refetch, totalPagesForSlots} =
+  const {timeSlots, isLoading, error, totalPagesForSlots} =
     useReservationData(params);
 
   const {
@@ -189,10 +195,10 @@ const ReserveDetailScreen: React.FC = () => {
                 fromTime: event.fromTime,
                 toTime: event.toTime,
               });
-            } catch (error) {
+            } catch (err) {
               console.error(
                 '❌ [User B] Error calling updateReservation:',
-                error,
+                err,
               );
             }
           } else {
@@ -371,14 +377,14 @@ const ReserveDetailScreen: React.FC = () => {
       <View className="absolute -top-[25%] web:rotate-[10deg] web:-left-[30%] android:-right-[80%] ios:-right-[80%] opacity-45 w-[600px] h-[600px]">
         <Image
           source={require('../../../assets/images/shade/shape/ShadeBlue.png')}
-          style={{width: '100%', height: '100%'}}
+          style={styles.fullSize}
           resizeMode="contain"
         />
       </View>
       <View className="absolute -top-[20%] web:-rotate-[25deg] web:-left-[38%] w-[400px] h-[400px] opacity-90">
         <Image
           source={require('../../../assets/images/shade/shape/ShadeBlue.png')}
-          style={{width: '100%', height: '100%'}}
+          style={styles.fullSize}
         />
       </View>
 
@@ -397,13 +403,7 @@ const ReserveDetailScreen: React.FC = () => {
           />
 
           {/* Title */}
-          <View
-            className="absolute -z-[1] "
-            style={{
-              left: 0,
-              right: 0,
-              alignItems: 'center',
-            }}>
+          <View className="absolute -z-[1] " style={styles.headerTitleWrapper}>
             <BaseText type="body2" color="base">
               خدمات
             </BaseText>
@@ -460,7 +460,7 @@ const ReserveDetailScreen: React.FC = () => {
           ref={scrollViewRef}
           className="flex-1"
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{paddingBottom: 40}}>
+          contentContainerStyle={styles.scrollContent}>
           <View className="Container pt-4 px-3">
             {timeSlots.map(slot => {
               const visibleDays = getVisibleDaysForSlot(slot.days);
@@ -497,3 +497,9 @@ const ReserveDetailScreen: React.FC = () => {
 };
 
 export default ReserveDetailScreen;
+
+const styles = StyleSheet.create({
+  fullSize: {width: '100%', height: '100%'},
+  headerTitleWrapper: {left: 0, right: 0, alignItems: 'center'},
+  scrollContent: {paddingBottom: 40},
+});

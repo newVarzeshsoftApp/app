@@ -112,7 +112,9 @@ const HomeScreen: React.FC = () => {
         <WalletBalance />
       </View>
       {isLoading && !USE_TEST_DATA ? (
-        <View className="w-full h-[160px] rounded-[16px] mx-5 dark:bg-white/20 bg-black/20 animate-pulse" />
+        <View className="Container">
+          <View className="w-full aspect-[13/4] rounded-[16px]  dark:bg-white/20 bg-black/20 animate-pulse" />
+        </View>
       ) : (
         bannerData.length > 0 && <BannerSlider data={bannerData} />
       )}
@@ -132,7 +134,7 @@ const HomeScreen: React.FC = () => {
       data={[]}
       renderItem={null}
       nestedScrollEnabled
-      keyExtractor={(item, index) => `key` + index}
+      keyExtractor={(item, index) => 'key' + index}
       ListHeaderComponent={renderHeader}
       ListFooterComponent={
         <View className="flex-1 Container pb-[125px]">

@@ -125,11 +125,11 @@ const OrganizationServise = {
   UpdateOrganization: async (
     id: number,
     body: UpdateOrganizationBody,
-  ): Promise<any> => {
+  ): Promise<GetAllOrganizationResponse> => {
     try {
       const response = await axiosInstance.put<
         UpdateOrganizationBody,
-        AxiosResponse<any>
+        AxiosResponse<GetAllOrganizationResponse>
       >(baseUrl + updateOrganization(id), body);
       if (response.status === Status.Ok || response.status === Status.Created) {
         return response.data;
