@@ -7,6 +7,7 @@ import {
 } from '../../../../services/models/response/ReservationResService';
 import {formatNumber} from '../../../../utils/helpers/helpers';
 import {getServiceColor} from '../utils/helpers';
+import {useTheme} from '../../../../utils/ThemeContext';
 
 interface ServiceItemProps {
   item: ServiceEntryDto;
@@ -39,6 +40,8 @@ const ServiceItem: React.FC<ServiceItemProps> = ({
   isLoading = false,
   getItemState,
 }) => {
+  const {theme} = useTheme();
+  const isDarkMode = theme === 'dark';
   const colors = getServiceColor(item, index);
   const displayPrice =
     item.reservePrice > 0 ? item.reservePrice : item.price || 0;
@@ -68,10 +71,10 @@ const ServiceItem: React.FC<ServiceItemProps> = ({
 
   if (isReserved) {
     // حالت 1: رزرو شده (غیرقابل استفاده)
-    borderColor = '#E0E0E0';
+    borderColor = isDarkMode ? '#2a2d33' : '#E0E0E0';
     borderStyle = 'solid';
-    backgroundColor = '#F5F5F5';
-    textColor = '#9E9E9E';
+    backgroundColor = isDarkMode ? '#232529' : '#F5F5F5';
+    textColor = isDarkMode ? '#55575c' : '#9E9E9E';
     isDisabled = true;
   } else if (isPreReservedByOthers) {
     // حالت 2: در حال رزرو دیگران
@@ -91,8 +94,8 @@ const ServiceItem: React.FC<ServiceItemProps> = ({
     // حالت 4: قابل رزرو
     borderColor = colors.border;
     borderStyle = 'solid';
-    backgroundColor = '#FFFFFF';
-    textColor = '#000000';
+    backgroundColor = isDarkMode ? '#2a2d33' : '#FFFFFF';
+    textColor = isDarkMode ? '#FFFFFF' : '#16181b';
     isDisabled = false;
   }
 

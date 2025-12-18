@@ -461,7 +461,7 @@ const ReserveDetailScreen: React.FC = () => {
           className="flex-1"
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scrollContent}>
-          <View className="Container pt-4 px-3">
+          <View className=" pt-4 ">
             {timeSlots.map(slot => {
               const visibleDays = getVisibleDaysForSlot(slot.days);
               return (

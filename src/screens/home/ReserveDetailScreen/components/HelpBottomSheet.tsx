@@ -16,12 +16,11 @@ const HelpBottomSheet: React.FC<HelpBottomSheetProps> = ({bottomSheetRef}) => {
         {/* Legend Item - Pre Reserved (Dashed) */}
         <View className="flex-row items-center gap-3">
           <View
-            className="w-10 h-10 rounded-lg items-center justify-center"
+            className="w-10 h-10 rounded-lg items-center justify-center bg-neutral-0 dark:bg-neutral-dark-300/90"
             style={{
               borderWidth: 2,
               borderStyle: 'dashed',
               borderColor: '#B56725',
-              backgroundColor: 'white',
             }}
           />
           <View className="flex-1">
@@ -37,12 +36,11 @@ const HelpBottomSheet: React.FC<HelpBottomSheetProps> = ({bottomSheetRef}) => {
         {/* Legend Item - Reserved by others (Disabled) */}
         <View className="flex-row items-center gap-3">
           <View
-            className="w-10 h-10 rounded-lg items-center justify-center"
+            className="w-10 h-10 rounded-lg items-center justify-center bg-[#F5F5F5] dark:bg-neutral-dark-300/90"
             style={{
               borderWidth: 2,
               borderStyle: 'solid',
               borderColor: '#E0E0E0',
-              backgroundColor: '#F5F5F5',
             }}
           />
           <View className="flex-1">
@@ -79,12 +77,11 @@ const HelpBottomSheet: React.FC<HelpBottomSheetProps> = ({bottomSheetRef}) => {
         {/* Legend Item - Available */}
         <View className="flex-row items-center gap-3">
           <View
-            className="w-10 h-10 rounded-lg items-center justify-center"
+            className="w-10 h-10 rounded-lg items-center justify-center bg-neutral-0 dark:bg-neutral-dark-300/90"
             style={{
               borderWidth: 2,
               borderStyle: 'solid',
               borderColor: '#B56725',
-              backgroundColor: '#FFFFFF',
             }}
           />
           <View className="flex-1">

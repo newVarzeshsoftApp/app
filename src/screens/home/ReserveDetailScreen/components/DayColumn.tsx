@@ -1,7 +1,10 @@
 import React from 'react';
 import {View} from 'react-native';
 import BaseText from '../../../../components/BaseText';
-import {DayEntryDto, ServiceEntryDto} from '../../../../services/models/response/ReservationResService';
+import {
+  DayEntryDto,
+  ServiceEntryDto,
+} from '../../../../services/models/response/ReservationResService';
 import {WEEK_DAYS_MAP} from '../utils/constants';
 import {formatDate} from '../utils/helpers';
 import ServiceItem from './ServiceItem';
@@ -46,7 +49,7 @@ const DayColumn: React.FC<DayColumnProps> = ({
   return (
     <View
       key={`${dayData.name}_${dayData.date}`}
-      className="flex-1 px-1"
+      className="flex-1 px-1 "
       style={{minWidth: 0}}>
       {/* Day Header */}
       <View className="rounded-xl bg-neutral-300 dark:bg-neutral-dark-300 px-2 py-2 mb-2">
@@ -92,4 +95,3 @@ const DayColumn: React.FC<DayColumnProps> = ({
 };
 
 export default DayColumn;
-
