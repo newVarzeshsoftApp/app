@@ -14,6 +14,7 @@ export interface UserSaleItemQuey {
   sortField?: string;
   sortOrder?: -1 | 1;
   isReserve?: boolean;
+  isGift?: boolean;
 }
 //
 export interface UserPaymentQuey {

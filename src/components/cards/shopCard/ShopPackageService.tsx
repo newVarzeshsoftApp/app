@@ -26,7 +26,9 @@ const ShopPackageService: React.FC<ShopServiceProps> = ({data}) => {
     <View className="BaseServiceCard h-full">
       <View className="gap-4 pb-4 border-b border-neutral-0 dark:border-neutral-dark-400/50 ">
         <View className="flex-row items-center  gap-4">
-          <Box1 size="28" color="#5bc8ff" variant="Bold" />
+          <View className="w-[44px] h-[44px] items-center justify-center rounded-full bg-supportive5-500/40">
+            <Box1 size="28" color="#5bc8ff" variant="Bold" />
+          </View>
           <BaseText type="title4" color="supportive5">
             {data.title}
           </BaseText>
