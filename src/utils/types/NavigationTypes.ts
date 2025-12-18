@@ -13,7 +13,7 @@ export type RootStackParamList = {
 };
 export type SaleItemStackParamList = {
   saleItem: undefined;
-  saleItemDetail: {id: number; title: string};
+  saleItemDetail: {id: number; title: string; fromReservation?: boolean};
 };
 export type ProfileTabParamsList = {
   PersonalInfo: undefined;

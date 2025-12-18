@@ -12,7 +12,6 @@ import {
   Calendar,
   Calendar2,
   RepeatCircle,
-  Warning2,
 } from 'iconsax-react-native';
 import {useTheme} from '../../../utils/ThemeContext';
 import BaseButton from '../../Button/BaseButton';
@@ -21,38 +20,8 @@ import {useCancelReservation} from '../../../utils/hooks/Reservation/useCancelRe
 import {useQueryClient} from '@tanstack/react-query';
 import {useGetReservationTags} from '../../../utils/hooks/Reservation/useGetReservationTags';
 import {navigate} from '../../../navigation/navigationRef';
-
-type ReservationPenaltyUnit = 'DAY' | 'HOUR';
-type ReservationPenaltyDto = {
-  unit: ReservationPenaltyUnit;
-  quantity: number;
-  hourAmount: number;
-  percent: number;
-};
-type PenaltyDisplayItem = {timeLabel: string; percentage: number};
-
-const formatPenaltyItems = (
-  penalties: ReservationPenaltyDto[],
-): PenaltyDisplayItem[] => {
-  if (!penalties || penalties.length === 0) return [];
-
-  const sorted = [...penalties].sort((a, b) => b.hourAmount - a.hourAmount);
-
-  return sorted.map(penalty => {
-    let timeLabel = '';
-    if (penalty.unit === 'DAY') {
-      if (penalty.quantity === 1) timeLabel = '۱ روز قبل';
-      else if (penalty.quantity === 7) timeLabel = '۱ هفته قبل';
-      else if (penalty.quantity === 30) timeLabel = '۱ ماه قبل';
-      else timeLabel = `${penalty.quantity} روز قبل`;
-    } else if (penalty.unit === 'HOUR') {
-      if (penalty.quantity === 1) timeLabel = 'تا ۱ ساعت مانده';
-      else timeLabel = `تا ${penalty.quantity} ساعت مانده`;
-    }
-
-    return {timeLabel, percentage: penalty.percent};
-  });
-};
+import StatusDot from '../../StatusDot';
+import CancelReservationConfirmSheet from '../../Reservation/CancelReservationConfirmSheet';
 
 type ShopReservationCardProps = {
   data: Content;
@@ -78,16 +47,6 @@ const ShopReservationCard: React.FC<ShopReservationCardProps> = ({data}) => {
     (data as unknown as {reservationPenalty?: unknown})?.reservationPenalty ??
     (data?.product as unknown as {reservationPenalty?: unknown})
       ?.reservationPenalty;
-
-  const reservationPenalty = useMemo(() => {
-    if (!Array.isArray(reservationPenaltyRaw)) return [];
-    return reservationPenaltyRaw as ReservationPenaltyDto[];
-  }, [reservationPenaltyRaw]);
-
-  const penaltyItems = useMemo(
-    () => formatPenaltyItems(reservationPenalty),
-    [reservationPenalty],
-  );
 
   const openCancelConfirm = useCallback(() => {
     if (!orderId) {
@@ -173,6 +132,8 @@ const ShopReservationCard: React.FC<ShopReservationCardProps> = ({data}) => {
 
     return undefined;
   }, [reservedEndTime, reservedStartTime, tagsData?.content]);
+  const isExpired = moment().isAfter(moment.utc(data?.end));
+  const Useable = !isExpired && data?.usable;
 
   const handleExtendReservation = useCallback(() => {
     if (!derivedTagId) {
@@ -255,88 +216,38 @@ const ShopReservationCard: React.FC<ShopReservationCardProps> = ({data}) => {
 
   return (
     <>
-      <BottomSheet
-        snapPoints={[35, 65]}
-        ref={cancelBottomSheetRef}
-        Title="آیا از لغو این رزرو مطمئن هستید؟">
-        <View className=" gap-4">
-          {penaltyItems.length > 0 && (
-            <View className="gap-3 BaseServiceCard">
-              <View className="flex-row items-center gap-2  border-b border-neutral-100 dark:border-neutral-dark-400/50 pb-2">
-                <View className="w-[44px] h-[44px] bg-warning-100 dark:bg-warning-dark-100 rounded-full justify-center items-center">
-                  <Warning2 size={24} color="#E8842F" variant="Bold" />
-                </View>
-                <BaseText type="body3" color="warning">
-                  جریمه لغو رزرو شما
-                </BaseText>
-              </View>
-              <View className=" gap-2">
-                {penaltyItems?.map((p, idx) => (
-                  <View
-                    key={`${p.timeLabel}-${idx}`}
-                    className="flex-row items-center justify-between py-2 border-b border-neutral-0 dark:border-neutral-dark-400/50">
-                    <BaseText type="body3" color="base">
-                      %{p.percentage}
-                    </BaseText>
-                    <BaseText type="body3" color="secondary">
-                      {p.timeLabel}
-                    </BaseText>
-                  </View>
-                ))}
-              </View>
-            </View>
-          )}
-
-          <View className="flex-row items-center w-full gap-2">
-            <View className="flex-1 ">
-              <BaseButton
-                type="Tonal"
-                color="Black"
-                size="Large"
-                rounded
-                text="انصراف"
-                onPress={closeCancelConfirm}
-                disabled={cancelReservationMutation.isPending}
-              />
-            </View>
-            <View className="flex-1 max-w-[140px]">
-              <BaseButton
-                type="Outline"
-                color="Error"
-                redbutton
-                size="Large"
-                rounded
-                text="تایید لغو"
-                onPress={handleConfirmCancel}
-                isLoading={cancelReservationMutation.isPending}
-                disabled={!orderId}
-              />
-            </View>
-          </View>
-        </View>
-      </BottomSheet>
+      <CancelReservationConfirmSheet
+        bottomSheetRef={cancelBottomSheetRef}
+        reservationPenalty={reservationPenaltyRaw}
+        isLoading={cancelReservationMutation.isPending}
+        confirmDisabled={!orderId}
+        onCancel={closeCancelConfirm}
+        onConfirm={handleConfirmCancel}
+      />
 
       <View className="BaseServiceCard">
         {/* Content */}
         <View className=" gap-3">
           {/* Title */}
-          <View className="flex-row items-center justify-between pb-4 border-b border-neutral-0 dark:border-neutral-dark-400/50 ">
-            <View className="flex-row items-center gap-2">
-              <View className="w-[44px] h-[44px] bg-supportive2-100 dark:bg-supportive2-dark-100 rounded-full justify-center items-center">
-                <Calendar
-                  size={24}
-                  color={isDark ? '#b28bc9' : '#b28bc9'}
-                  variant="Bold"
+          <View className="flex-row items-center justify-between pb-3 border-b border-neutral-0 dark:border-neutral-dark-400/50 ">
+            <View className="flex-1 items-start gap-2">
+              <View className="w-full h-[185px] bg-neutral-0 dark:bg-neutral-dark-0 rounded-3xl overflow-hidden">
+                <Image
+                  style={{width: '100%', height: '100%'}}
+                  source={{
+                    uri: ImageSrc,
+                  }}
                 />
               </View>
-              <BaseText type="title4" color="base">
-                {data.title}
-              </BaseText>
+              <View className="flex-row gap-2 items-center">
+                <StatusDot isActive={!!Useable} />
+                <BaseText type="title4">{data?.title}</BaseText>
+              </View>
             </View>
           </View>
 
           {/* Reservation Details - Two Column Layout */}
-          <View className="gap-3">
+          <View className="gap-3 pt-1 ">
             {/* Row 1: Date (Right) */}
             <View className="flex-row justify-between items-center">
               {reservedDate && (

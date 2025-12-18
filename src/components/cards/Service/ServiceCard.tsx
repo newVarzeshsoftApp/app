@@ -11,6 +11,7 @@ import ContractorInfo from '../../ContractorInfo/ContractorInfo';
 import {ColorRingConfig} from '../../../constants/options';
 import {TypeTextColor} from '../../../models/stylingTypes';
 import {useBase64ImageFromMedia} from '../../../utils/hooks/useBase64Image';
+import StatusDot from '../../StatusDot';
 
 const ServiceCard: React.FC<{data: Content}> = ({data}) => {
   const progress =
@@ -48,11 +49,7 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
       </View>
       <View className="py-3 items-center flex-row justify-between border-b border-neutral-0 dark:border-neutral-dark-400/50">
         <View className="flex-row gap-2 items-center">
-          {Useable ? (
-            <View className="w-2 h-2 rounded-full bg-success-500" />
-          ) : (
-            <View className="w-2 h-2 rounded-full bg-error-500" />
-          )}
+          <StatusDot isActive={!!Useable} />
           <BaseText type="title4">{data?.title}</BaseText>
         </View>
         <View className="flex-row items-center gap-2">

@@ -11,23 +11,14 @@ import {useTranslation} from 'react-i18next';
 import {UseGetProduct} from '../../../../utils/hooks/Product/UseGetProduct';
 import BaseText from '../../../../components/BaseText';
 import {ProductType, limit} from '../../../../constants/options';
-import {
-  ArrowUp,
-  Box,
-  Calendar1,
-  CalendarTick,
-  Card,
-} from 'iconsax-react-native';
+import {ArrowUp, Box, Calendar1, Card} from 'iconsax-react-native';
 import {navigate} from '../../../../navigation/navigationRef';
 
 // Import correct card components
 import ShopCreditService from '../../../../components/cards/shopCard/ShopCreditService';
 import ShopPackageService from '../../../../components/cards/shopCard/ShopPackageService';
 import ShopServiceCard from '../../../../components/cards/shopCard/ShopServiceCard';
-import ShopReservationCard from '../../../../components/cards/shopCard/ShopReservationCard';
 import {useTheme} from '../../../../utils/ThemeContext';
-import {useGetUserSaleItem} from '../../../../utils/hooks/User/useGetUserSaleItem';
-import {Content} from '../../../../services/models/response/UseResrService';
 
 const cardComponentMapping: Record<number, React.FC<{data: any}>> = {
   [ProductType.Service]: ShopServiceCard,
@@ -44,29 +35,13 @@ type ProductSection = {
   data: ReturnType<typeof UseGetProduct>;
 };
 
-type ListItem =
-  | {kind: 'section'; section: ProductSection}
-  | {kind: 'reservation'; data: Content[]; total: number; isLoading: boolean};
+type ListItem = {kind: 'section'; section: ProductSection};
 
 function MainShop() {
   const {t} = useTranslation('translation', {keyPrefix: 'Drawer'});
   const [offset, setOffset] = useState(0);
   const {theme} = useTheme();
 
-  // Fetch reservations data
-  const {data: reservationsData, isLoading: reservationsLoading} =
-    useGetUserSaleItem({
-      isReserve: true,
-      status: 0,
-      limit: limit,
-      offset: 0,
-    });
-
-  // Filter reservations with status 0
-  const filteredReservations = useMemo(() => {
-    if (!reservationsData?.content) return [];
-    return reservationsData.content.filter(item => item.status === 0);
-  }, [reservationsData]);
   // Fetch product data for each category
   const fetchProductData = (type: ProductType) =>
     UseGetProduct({
@@ -158,41 +133,12 @@ function MainShop() {
     [productSections],
   );
 
-  // Render reservation item
-  const renderReservationItem = useCallback(({item}: {item: Content}) => {
-    return (
-      <TouchableOpacity
-        key={item.id}
-        onPress={() => {
-          navigate('Root', {
-            screen: 'SaleItemNavigator',
-            params: {
-              screen: 'saleItemDetail',
-              params: {id: item.id, title: item.title || 'رزرو'},
-            },
-          });
-        }}>
-        <ShopReservationCard data={item} />
-      </TouchableOpacity>
-    );
-  }, []);
-
   const filteredSections = productSections.filter(
     ({data}) => (data?.data?.content?.length ?? 0) > 0,
   );
 
   const listData = useMemo<ListItem[]>(() => {
     const items: ListItem[] = [];
-
-    // Add reservations section if it has items
-    if (filteredReservations.length > 0) {
-      items.push({
-        kind: 'reservation',
-        data: filteredReservations,
-        total: reservationsData?.total || 0,
-        isLoading: reservationsLoading,
-      });
-    }
 
     // Add product sections
     filteredSections.forEach(section => {
@@ -203,12 +149,7 @@ function MainShop() {
     });
 
     return items;
-  }, [
-    filteredSections,
-    filteredReservations,
-    reservationsData?.total,
-    reservationsLoading,
-  ]);
+  }, [filteredSections]);
 
   return (
     <>
@@ -220,72 +161,9 @@ function MainShop() {
         <FlatList
           data={listData}
           keyExtractor={(item, index) => {
-            if (item.kind === 'reservation') {
-              return 'reservation-section';
-            }
             return `section-${item.section.type}`;
           }}
           renderItem={({item}) => {
-            if (item.kind === 'reservation') {
-              // Render reservations section
-              return (
-                <View key="reservations" className="mb-6">
-                  {/* Section Header */}
-                  <View className="flex-row justify-between items-center px-4 mb-4">
-                    <View className="flex-row items-center gap-1">
-                      <CalendarTick
-                        size="28"
-                        color={theme === 'dark' ? '#FFFFFF' : '#7f8185'}
-                        variant="Bold"
-                      />
-                      <BaseText type="body2" color="secondary">
-                        رزروهای من
-                      </BaseText>
-                    </View>
-                    {/* Button to navigate to the full category page - only show if more than 1 item */}
-                    {item.total > 1 && (
-                      <TouchableOpacity
-                        className="flex-row gap-1 items-center"
-                        onPress={() => {
-                          navigate('Root', {
-                            screen: 'SaleItemNavigator',
-                            params: {screen: 'saleItem'},
-                          });
-                        }}>
-                        <BaseText type="body2" color="secondary">
-                          {t('all')}
-                        </BaseText>
-                        <View className="-rotate-45">
-                          <ArrowUp size="16" color="#55575c" />
-                        </View>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-
-                  {/* Section Content */}
-                  <FlatList
-                    data={item.data}
-                    horizontal
-                    renderItem={renderReservationItem}
-                    keyExtractor={(reservationItem, index) =>
-                      `reservation-${reservationItem.id}-${index}`
-                    }
-                    ItemSeparatorComponent={() => <View style={{height: 16}} />}
-                    showsHorizontalScrollIndicator={false}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={{gap: 16}}
-                    ListFooterComponent={
-                      item.isLoading ? (
-                        <View style={{marginTop: 16, alignItems: 'center'}}>
-                          <ActivityIndicator size="large" color="#bcdd64" />
-                        </View>
-                      ) : null
-                    }
-                  />
-                </View>
-              );
-            }
-
             // Render product section
             const {title, type, data, navigateToCategory, icon} = item.section;
             const {data: items, isLoading} = data;

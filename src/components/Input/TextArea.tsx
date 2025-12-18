@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, TextInput, TextInputProps} from 'react-native';
 import BaseText from '../BaseText';
+import {useTranslation} from 'react-i18next';
 
 interface TextAreaProps extends TextInputProps {
   placeholder?: string;
@@ -20,6 +21,9 @@ const TextArea: React.FC<TextAreaProps> = ({
   disabled = false,
   ...props
 }) => {
+  const {i18n} = useTranslation();
+  const inputFontFamily =
+    i18n.language === 'fa' ? 'YekanBakhFaNum-Regular' : 'Poppins-Regular';
   return (
     <View
       className={`flex flex-col gap-1 w-full ${disabled ? 'opacity-50' : ''}`}>
@@ -52,6 +56,7 @@ const TextArea: React.FC<TextAreaProps> = ({
         <TextInput
           {...props}
           className="px-4 py-3 flex-1 min-h-[100px] outline-none rounded-2xl text-base text-text-base dark:text-text-base-dark rtl:text-right ltr:text-left"
+          style={[props.style, {fontFamily: inputFontFamily}]}
           editable={!disabled}
           placeholder=""
           selectionColor="#7676EE"
