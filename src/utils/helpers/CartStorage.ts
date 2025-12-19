@@ -12,6 +12,29 @@ if (Platform.OS !== 'web') {
   EncryptedStorage = require('react-native-encrypted-storage').default;
 }
 
+// Reservation sub-product structure
+export interface ReservationSecondaryService {
+  user: number;
+  product: number;
+  start: string;
+  end: string;
+  discount: number;
+  type: number;
+  tax: number;
+  price: number;
+  quantity?: number; // Quantity of this sub-product
+  subProductId?: number; // Original sub-product ID from PreReserveBottomSheet
+}
+
+// Reservation data structure
+export interface ReservationData {
+  reservedDate: string; // "2025-12-15 00:00"
+  reservedStartTime: string; // "07:00"
+  reservedEndTime: string; // "08:00"
+  secondaryServices?: ReservationSecondaryService[];
+  description?: string | null;
+}
+
 export interface CartItem {
   product: Product;
   quantity: number;
@@ -19,6 +42,9 @@ export interface CartItem {
   SelectedContractor?: Contractors | null;
   CartId?: string;
   submitAt?: string;
+  // Reservation-specific fields
+  isReserve?: boolean;
+  reservationData?: ReservationData;
 }
 
 const CART_KEY = 'shopping_cart';
@@ -136,6 +162,26 @@ export const updateQuantity = async (
   } catch (error) {
     console.error('Error updating quantity:', error);
     throw new Error('Failed to update item quantity');
+  }
+};
+
+export const updateReservationData = async (
+  cartId: string,
+  reservationData: ReservationData,
+): Promise<void> => {
+  try {
+    const cart = await getCart();
+    const itemIndex = cart.findIndex(item => item.CartId === cartId);
+
+    if (itemIndex === -1) {
+      throw new Error('Cart item not found');
+    }
+
+    cart[itemIndex].reservationData = reservationData;
+    await setCartStorage(cart);
+  } catch (error) {
+    console.error('Error updating reservation data:', error);
+    throw new Error('Failed to update reservation data');
   }
 };
 

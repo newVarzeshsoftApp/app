@@ -4,8 +4,10 @@ import {
   addCart,
   removeCart,
   updateQuantity,
+  updateReservationData,
   clearCart,
   CartItem,
+  ReservationData,
 } from '../helpers/CartStorage';
 
 interface CartSummary {
@@ -79,6 +81,25 @@ export const useCart = () => {
     [refreshCart],
   );
 
+  // Update reservation data
+  const updateReservationItemData = useCallback(
+    async ({
+      cartId,
+      reservationData,
+    }: {
+      cartId: string;
+      reservationData: ReservationData;
+    }) => {
+      try {
+        await updateReservationData(cartId, reservationData);
+        await refreshCart();
+      } catch (error) {
+        console.error('Failed to update reservation data:', error);
+      }
+    },
+    [refreshCart],
+  );
+
   // Clear cart
   const emptyCart = useCallback(async () => {
     try {
@@ -102,6 +123,7 @@ export const useCart = () => {
     addToCart,
     removeFromCart,
     updateItemQuantity,
+    updateReservationItemData,
     emptyCart,
     refreshCart,
   };

@@ -25,7 +25,7 @@ const MyserviceScreen: React.FC = () => {
   // Fetch reservations data (same as MainShop)
   const {data: reservationsData, isLoading: reservationsLoading} =
     useGetUserSaleItem({
-      isReserve: true,
+      isReserved: true,
       status: 0,
       limit: limit,
       offset: 0,

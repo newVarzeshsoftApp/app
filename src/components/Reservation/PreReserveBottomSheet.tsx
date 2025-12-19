@@ -61,6 +61,14 @@ interface PenaltyDisplayItem {
 export interface PreReserveBottomSheetProps {
   onAddNewReservation?: () => void;
   onCompletePayment?: () => void;
+  onAddToCart?: (reservationData: {
+    item: ServiceEntryDto;
+    date: string;
+    fromTime: string;
+    toTime: string;
+    subProducts: SubProduct[];
+    modifiedQuantities: Record<number, number>;
+  }) => void;
   onDeleteReservation?: (data: {
     item: ServiceEntryDto;
     date: string;
@@ -157,6 +165,7 @@ const PreReserveBottomSheet = forwardRef<
     {
       onAddNewReservation,
       onCompletePayment,
+      onAddToCart,
       onDeleteReservation,
       isDeleting = false,
     },
@@ -751,7 +760,25 @@ const PreReserveBottomSheet = forwardRef<
                   rounded
                   size="Large"
                   Extraclass="flex-1"
-                  onPress={onCompletePayment}
+                  onPress={() => {
+                    if (onAddToCart && item) {
+                      const reservationKey = getCurrentReservationKey();
+                      const currentQuantities = reservationKey
+                        ? modifiedQuantities[reservationKey] || {}
+                        : {};
+
+                      onAddToCart({
+                        item,
+                        date,
+                        fromTime,
+                        toTime,
+                        subProducts,
+                        modifiedQuantities: currentQuantities,
+                      });
+                    } else if (onCompletePayment) {
+                      onCompletePayment();
+                    }
+                  }}
                 />
                 {/* Add New Reservation */}
                 <BaseButton

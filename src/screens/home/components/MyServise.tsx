@@ -46,7 +46,7 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
     isFetching,
   } = useGetUserSaleItem({
     limit: limit,
-    isReserve: false,
+    isReserved: false,
     offset,
     status: 0,
   });

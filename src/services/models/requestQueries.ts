@@ -13,7 +13,7 @@ export interface UserSaleItemQuey {
   parent?: number;
   sortField?: string;
   sortOrder?: -1 | 1;
-  isReserve?: boolean;
+  isReserved?: boolean;
   isGift?: boolean;
 }
 //

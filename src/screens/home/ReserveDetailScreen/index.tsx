@@ -30,6 +30,11 @@ import {usePreReserveHandlers} from './hooks/usePreReserveHandlers';
 import {useReservationState} from './hooks/useReservationState';
 import {useSSEConnection} from './hooks/useSSEConnection';
 import {useAuth} from '../../../utils/hooks/useAuth';
+import {useCartContext} from '../../../utils/CartContext';
+import {Product} from '../../../services/models/response/ProductResService';
+import {ServiceEntryDto} from '../../../services/models/response/ReservationResService';
+import moment from 'jalali-moment';
+import {ReservationSecondaryService} from '../../../utils/helpers/CartStorage';
 
 // Utils
 import {BottomSheetMethods} from '../../../components/BottomSheet/BottomSheet';
@@ -49,6 +54,7 @@ const ReserveDetailScreen: React.FC = () => {
 
   // Custom Hooks
   const {profile, SKU} = useAuth();
+  const {addToCart} = useCartContext();
   const {timeSlots, isLoading, error, totalPagesForSlots} =
     useReservationData(params);
 
@@ -361,6 +367,175 @@ const ReserveDetailScreen: React.FC = () => {
     removeReservation,
   });
 
+  // Convert ServiceEntryDto to Product (minimal conversion)
+  const convertServiceEntryToProduct = (
+    serviceEntry: ServiceEntryDto,
+  ): Product => {
+    return {
+      id: serviceEntry.id,
+      title: serviceEntry.title,
+      sku: serviceEntry.sku,
+      price: serviceEntry.reservePrice || serviceEntry.price,
+      discount: serviceEntry.discount,
+      status: serviceEntry.status,
+      isLocker: serviceEntry.isLocker,
+      unlimited: serviceEntry.unlimited,
+      checkInsurance: serviceEntry.checkInsurance,
+      related: serviceEntry.related,
+      tax: serviceEntry.tax,
+      capacity: serviceEntry.capacity,
+      reserveCapacity: serviceEntry.reserveCapacity,
+      reservable: serviceEntry.reservable,
+      duration: serviceEntry.duration,
+      archivedPenaltyAmount: serviceEntry.archivedPenaltyAmount,
+      convertToIncomeAfterDays: serviceEntry.convertToIncomeAfterDays,
+      hasContractor: serviceEntry.hasContractor,
+      requiredContractor: serviceEntry.requiredContractor,
+      isOnline: false,
+      isKiosk: null,
+      contractors: serviceEntry.contractors || [],
+      hasPartner: serviceEntry.hasPartner,
+      partners: serviceEntry.partners || null,
+      alarms: serviceEntry.alarms || [],
+      mustSentToTax: serviceEntry.mustSentToTax,
+      includeSms: serviceEntry.includeSms,
+      type: serviceEntry.type,
+      image: serviceEntry.image
+        ? {
+            name: serviceEntry.image.name,
+            width: serviceEntry.image.width,
+            height: serviceEntry.image.height,
+            size: serviceEntry.image.size,
+          }
+        : null,
+      transferableToWallet: serviceEntry.transferableToWallet,
+      needLocker: serviceEntry.needLocker,
+      description: serviceEntry.description,
+      taxSystemDescription: serviceEntry.taxSystemDescription,
+      uniqueTaxCode: serviceEntry.uniqueTaxCode,
+      benefitContractorFromPenalty: serviceEntry.benefitContractorFromPenalty,
+      actionAfterUnfairUsageTime: serviceEntry.actionAfterUnfairUsageTime,
+      manualPrice: serviceEntry.manualPrice,
+      archivedType: serviceEntry.archivedType,
+      metadata: serviceEntry.metadata ? [serviceEntry.metadata] : [],
+      archivedContractorIncomeType: serviceEntry.archivedContractorIncomeType,
+      reservationPenalty: serviceEntry.reservationPenalty || [],
+      allowComment: serviceEntry.allowComment,
+      withGuest: serviceEntry.withGuest,
+      fairUseTime: serviceEntry.fairUseTime,
+      fairUseLimitTime: serviceEntry.fairUseLimitTime,
+      fairUseAmountFormula: serviceEntry.fairUseAmountFormula,
+      unfairUseAmount: serviceEntry.unfairUseAmount,
+      hasPriceList: serviceEntry.hasPriceList,
+      hasSchedules: serviceEntry.hasSchedules,
+      hasSubProduct: serviceEntry.hasSubProduct,
+      subProducts: serviceEntry.subProducts || [],
+      isInsuranceService: serviceEntry.isInsuranceService,
+      isSubscriptionService: serviceEntry.isSubscriptionService,
+      isGift: serviceEntry.isGift,
+      isCashBack: serviceEntry.isCashBack,
+      receptionAutoPrint: serviceEntry.receptionAutoPrint,
+      isGiftGenerator: serviceEntry.isGiftGenerator,
+      transferAmount: serviceEntry.transferAmount,
+      defaultSmsTemplate: serviceEntry.defaultSmsTemplate,
+      unit: serviceEntry.unit || null,
+      category: serviceEntry.category || {id: 0, title: '', slug: ''},
+      priceList: serviceEntry.priceList || [],
+      defaultPrinter: serviceEntry.defaultPrinter,
+      tagProducts: serviceEntry.tagProducts || [],
+      reportTag: serviceEntry.reportTag || null,
+      reservationPattern: serviceEntry.reservationPattern,
+      tagProductParent: serviceEntry.tagProductParent || null,
+      lockerLocation: serviceEntry.lockerLocation,
+      categoryId: serviceEntry.categoryId,
+      updatedAt: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      deletedAt: null,
+    };
+  };
+
+  // Handle add reservation to cart
+  const handleAddReservationToCart = useCallback(
+    async (data: {
+      item: ServiceEntryDto;
+      date: string;
+      fromTime: string;
+      toTime: string;
+      subProducts: any[];
+      modifiedQuantities: Record<number, number>;
+    }) => {
+      try {
+        const {item, date, fromTime, toTime, subProducts, modifiedQuantities} =
+          data;
+
+        // Convert date from Jalali format (YYYY/MM/DD) to Gregorian (YYYY-MM-DD)
+        const [year, month, day] = date.split('/');
+        const gregorianDate = moment(
+          `${year}-${month}-${day}`,
+          'jYYYY-jMM-jDD',
+        ).format('YYYY-MM-DD');
+
+        // Build secondaryServices from subProducts with modified quantities
+        const secondaryServices: ReservationSecondaryService[] = [];
+        if (subProducts && subProducts.length > 0) {
+          subProducts.forEach(subProduct => {
+            const quantity = modifiedQuantities[subProduct.id] || 0;
+            if (quantity > 0 && subProduct.product) {
+              // Calculate end date based on duration (default to 1 day if not available)
+              const duration = subProduct.product.duration || 1;
+              const startDate = gregorianDate;
+              const endDate = moment(startDate)
+                .add(duration, 'days')
+                .format('YYYY-MM-DD');
+
+              secondaryServices.push({
+                user: profile?.id || 0,
+                product: subProduct.product.id,
+                start: startDate,
+                end: endDate,
+                discount: subProduct.discount || 0,
+                type: subProduct.product.type || 1,
+                tax: subProduct.tax || 0,
+                price: subProduct.product.price || subProduct.amount || 0,
+                quantity: quantity,
+                subProductId: subProduct.id,
+              });
+            }
+          });
+        }
+
+        // Convert ServiceEntryDto to Product
+        const product = convertServiceEntryToProduct(item);
+
+        // Add to cart with reservation data
+        await addToCart({
+          product,
+          quantity: 1,
+          isReserve: true,
+          reservationData: {
+            reservedDate: `${gregorianDate} 00:00`,
+            reservedStartTime: fromTime,
+            reservedEndTime: toTime,
+            secondaryServices:
+              secondaryServices.length > 0 ? secondaryServices : undefined,
+            description: null,
+          },
+        });
+
+        // Clear reservation state and navigate to cart
+        preReserveBottomSheetRef.current?.clearCurrentReservationState();
+        preReserveBottomSheetRef.current?.close();
+        navigationRef.navigate('Root', {
+          screen: 'HomeNavigator',
+          params: {screen: 'cart'},
+        });
+      } catch (error) {
+        console.error('Error adding reservation to cart:', error);
+      }
+    },
+    [addToCart, profile?.id],
+  );
+
   // Handle complete payment
   const handleCompletePayment = () => {
     // Clear reservation state after successful payment completion
@@ -489,6 +664,7 @@ const ReserveDetailScreen: React.FC = () => {
         ref={preReserveBottomSheetRef}
         onAddNewReservation={handleAddNewReservation}
         onCompletePayment={handleCompletePayment}
+        onAddToCart={handleAddReservationToCart}
         onDeleteReservation={handleDeleteReservation}
         isDeleting={isPending}
       />
