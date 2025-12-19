@@ -2,6 +2,8 @@ import React, {createContext, useContext} from 'react';
 import {CartItem} from './helpers/CartStorage';
 import {useCart} from './hooks/Carthook';
 
+import {ReservationData} from './helpers/CartStorage';
+
 interface CartContextProps {
   items: CartItem[];
   totalItems: number;
@@ -15,6 +17,13 @@ interface CartContextProps {
   }: {
     cartId: string;
     quantity: number;
+  }) => Promise<void>;
+  updateReservationItemData: ({
+    cartId,
+    reservationData,
+  }: {
+    cartId: string;
+    reservationData: ReservationData;
   }) => Promise<void>;
   emptyCart: () => Promise<void>;
   refreshCart: () => Promise<void>;
@@ -31,6 +40,7 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({
     addToCart,
     removeFromCart,
     updateItemQuantity,
+    updateReservationItemData,
     emptyCart,
     refreshCart,
   } = useCart();
@@ -43,6 +53,7 @@ export const CartProvider: React.FC<{children: React.ReactNode}> = ({
         addToCart,
         removeFromCart,
         updateItemQuantity,
+        updateReservationItemData,
         emptyCart,
         refreshCart,
       }}>

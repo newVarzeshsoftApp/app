@@ -9,3 +9,4 @@ export {default as MedicalBagIcon} from './MedicalBag.svg';
 export {default as BmiIcon} from './BMI.svg';
 export {default as ClipboardTickIcon} from './clipboard-tick.svg';
 export {default as ClipboardTickDarkIcon} from './clipboard-tickDark.svg';
+export {default as SubtractIcon} from './Subtract.svg';

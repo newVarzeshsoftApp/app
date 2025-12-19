@@ -5,17 +5,14 @@ import {DayEntryDto} from '../../../../services/models/response/ReservationResSe
 import {TIME_COLUMN_WIDTH, VISIBLE_DAYS_COUNT} from '../utils/constants';
 import {formatTimeSlot} from '../utils/helpers';
 import DayColumn from './DayColumn';
+import {useTheme} from '../../../../utils/ThemeContext';
 
 interface TimeSlotRowProps {
   timeSlot: string;
   visibleDays: DayEntryDto[];
   slideAnim: Animated.Value;
   opacityAnim: Animated.Value;
-  onServicePress: (
-    item: any,
-    dayData: DayEntryDto,
-    timeSlot: string,
-  ) => void;
+  onServicePress: (item: any, dayData: DayEntryDto, timeSlot: string) => void;
   isLoadingItems?: Array<{
     productId: number;
     date: string;
@@ -42,9 +39,13 @@ const TimeSlotRow: React.FC<TimeSlotRowProps> = ({
   isLoadingItems = [],
   getItemState,
 }) => {
+  const {theme} = useTheme();
+  const isDarkMode = theme === 'dark';
   return (
     <View key={timeSlot} className="mb-4">
-      <View className="flex-row" style={{flexDirection: 'row'}}>
+      <View
+        className="flex-row BaseServiceCard !rounded-none"
+        style={{flexDirection: 'row'}}>
         {/* Time Label - Fixed Width with Higher z-index */}
         <View
           style={{
@@ -55,7 +56,7 @@ const TimeSlotRow: React.FC<TimeSlotRowProps> = ({
           className="items-center justify-center rounded-lg px-2 bg-secondary-600 py-3">
           <BaseText
             type="caption"
-            color="button"
+            color={isDarkMode ? 'base' : 'button'}
             className="text-center leading-tight">
             {formatTimeSlot(timeSlot)}
           </BaseText>
@@ -96,4 +97,3 @@ const TimeSlotRow: React.FC<TimeSlotRowProps> = ({
 };
 
 export default TimeSlotRow;
-

@@ -17,6 +17,7 @@ import {PaymentVerifyRes} from '../../services/models/response/PaymentResService
 import {useAuth} from '../../utils/hooks/useAuth';
 import {navigate} from '../../navigation/navigationRef';
 import {ProductType} from '../../constants/options';
+import {ReservationData} from '../../utils/helpers/CartStorage';
 type PaymentScreenProps = NativeStackScreenProps<
   DrawerStackParamList,
   'Paymentresult'
@@ -76,6 +77,32 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
   });
   const Items = useMemo(() => {
     return normalizedItems.map(item => {
+      // Check if this is a reservation item
+      if (item.isReserve && item.reservationData) {
+        const reservationData: ReservationData = item.reservationData;
+        const amount = item.SelectedPriceList
+          ? item.SelectedPriceList.price
+          : item.product.price;
+
+        const discount = item.SelectedPriceList
+          ? item?.SelectedPriceList?.discountOnlineShopPercentage ?? 0
+          : item?.product?.discount ?? 0;
+
+        return {
+          user: ProfileData?.id || 0,
+          product: item.product.id,
+          price: amount,
+          discount: (amount * discount) / 100,
+          tax: item?.product?.tax || undefined,
+          reservedDate: reservationData.reservedDate,
+          reservedStartTime: reservationData.reservedStartTime,
+          reservedEndTime: reservationData.reservedEndTime,
+          description: reservationData.description || null,
+          secondaryServices: reservationData.secondaryServices || undefined,
+        };
+      }
+
+      // Regular cart item (non-reservation)
       const amount = item.SelectedPriceList
         ? item.SelectedPriceList.price
         : item.product.price;
@@ -119,7 +146,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
           : item.product.duration,
       };
     });
-  }, [normalizedItems]);
+  }, [normalizedItems, ProfileData?.id]);
   useEffect(() => {
     const {Authority, isDeposite, code, refId} = route.params || {};
 

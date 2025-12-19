@@ -1,0 +1,15 @@
+providers = ["node"]
+
+# nixpacks.toml
+[phases.install]
+cmds = ["npm i -f"]        # or pnpm i / yarn install
+
+[phases.build]
+cmds = ["npm run build"] # adjust if using next build
+
+[start]
+cmd = "npm run dev"    # or "next start" / "npm run dev" for preview
+
+[variables]
+NIXPACKS_NODE_VERSION = "20"   # pick your Node version
+NIXPACKS_IGNORE_PATHS = "Gemfile Gemfile.lock"

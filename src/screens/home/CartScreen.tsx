@@ -39,6 +39,7 @@ import {formatNumber} from '../../utils/helpers/helpers';
 import RadioButton from '../../components/Button/RadioButton/RadioButton';
 import {useAuth} from '../../utils/hooks/useAuth';
 import {navigate} from '../../navigation/navigationRef';
+import {ReservationData} from '../../utils/helpers/CartStorage';
 type PaymentMethodType = {
   getway?: number;
   isWallet?: boolean;
@@ -109,8 +110,42 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
   }, [items]);
 
   const SubmitSaleOrder = () => {
-    const submitAt = moment().format('YYYY-MM-DD HH:DD');
-    const Items: SaleOrderItem[] = normalizedItems.map(item => {
+    const submitAt = moment().format('YYYY-MM-DD HH:mm');
+
+    // Separate reservation items from regular items
+    const reservationItems = normalizedItems.filter(
+      item => item.isReserve && item.reservationData,
+    );
+    const regularItems = normalizedItems.filter(
+      item => !item.isReserve || !item.reservationData,
+    );
+
+    // Build reservation items DTO
+    const reservationItemsDTO = reservationItems.map(item => {
+      const reservationData: ReservationData = item.reservationData!;
+      const amount = item.SelectedPriceList
+        ? item.SelectedPriceList.price
+        : item.product.price;
+      const discount = item.SelectedPriceList
+        ? item?.SelectedPriceList?.discountOnlineShopPercentage ?? 0
+        : item?.product?.discount ?? 0;
+
+      return {
+        user: ProfileData?.id || 0,
+        product: item.product.id,
+        price: amount,
+        discount: (amount * discount) / 100,
+        tax: item?.product?.tax || null,
+        reservedDate: reservationData.reservedDate,
+        reservedStartTime: reservationData.reservedStartTime,
+        reservedEndTime: reservationData.reservedEndTime,
+        description: reservationData.description || null,
+        secondaryServices: reservationData.secondaryServices || undefined,
+      };
+    });
+
+    // Build regular items DTO
+    const regularItemsDTO: SaleOrderItem[] = regularItems.map(item => {
       const amount = item.SelectedPriceList
         ? item.SelectedPriceList?.price
         : item.product?.price;
@@ -156,11 +191,27 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
           : item.product.duration,
       };
     });
-    const dto = {
-      submitAt,
-      user: ProfileData?.id,
-      items: Items,
-    };
+
+    // Build orders array
+    const orders: any[] = [];
+
+    // Add reservation order if there are reservation items
+    if (reservationItemsDTO.length > 0) {
+      orders.push({
+        isReserve: true,
+        submitAt,
+        items: reservationItemsDTO,
+      });
+    }
+
+    // Add regular order if there are regular items
+    if (regularItemsDTO.length > 0) {
+      orders.push({
+        submitAt,
+        user: ProfileData?.id,
+        items: regularItemsDTO,
+      });
+    }
 
     if (PaymentMethod?.getway) {
       CreatePayment.mutate({
@@ -168,11 +219,34 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
         gateway: PaymentMethod.getway,
         description: 'Cart',
         isDeposit: false,
-        orders: [dto],
+        orders: orders,
       });
     } else {
+      // For non-gateway payments, combine all items into one order
+      // Convert reservation items to SaleOrderItem format (remove reservation-specific fields)
+      const reservationItemsAsSaleOrder: SaleOrderItem[] =
+        reservationItemsDTO.map(item => ({
+          product: item.product,
+          price: item.price,
+          discount: item.discount,
+          tax: item.tax ?? undefined, // Convert null to undefined
+          user: item.user,
+          quantity: 1,
+          type: 1, // Assuming reservation type is 1
+          isOnline: false,
+          manualPrice: false,
+          amount: item.price,
+        }));
+
+      const combinedItems: SaleOrderItem[] = [
+        ...reservationItemsAsSaleOrder,
+        ...regularItemsDTO,
+      ];
+
       SaleOrder.mutate({
-        ...dto,
+        submitAt,
+        user: ProfileData?.id,
+        items: combinedItems,
         transactions: [
           {
             amount: amountPayable,

@@ -74,7 +74,7 @@ const OrganizationServise = {
       const headers: Record<string, string> = {};
       // 'Referer-key' only in development mode
       // if (process.env.NODE_ENV === 'development') {
-      //   headers['Referer-key'] = 'http://appp.varzeshsoft.com/';
+      //   headers['Referer-key'] = 'https://test1.varzeshsoft.com/';
       // }
       const response = await axiosInstance.get<GetAllOrganizationResponse>(
         baseUrl + getOrganizationBySKU(),
@@ -125,11 +125,11 @@ const OrganizationServise = {
   UpdateOrganization: async (
     id: number,
     body: UpdateOrganizationBody,
-  ): Promise<any> => {
+  ): Promise<GetAllOrganizationResponse> => {
     try {
       const response = await axiosInstance.put<
         UpdateOrganizationBody,
-        AxiosResponse<any>
+        AxiosResponse<GetAllOrganizationResponse>
       >(baseUrl + updateOrganization(id), body);
       if (response.status === Status.Ok || response.status === Status.Created) {
         return response.data;

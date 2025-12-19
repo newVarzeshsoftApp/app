@@ -13,6 +13,8 @@ export interface UserSaleItemQuey {
   parent?: number;
   sortField?: string;
   sortOrder?: -1 | 1;
+  isReserved?: boolean;
+  isGift?: boolean;
 }
 //
 export interface UserPaymentQuey {

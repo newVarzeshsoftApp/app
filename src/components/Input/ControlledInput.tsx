@@ -28,7 +28,9 @@ const ControlledInput = <T extends FieldValues>({
   const [showPassword, setShowPassword] = useState(false);
   const [localError, setLocalError] = useState<string | undefined>();
 
-  const {t} = useTranslation('translation', {keyPrefix: 'Input'});
+  const {t, i18n} = useTranslation('translation', {keyPrefix: 'Input'});
+  const inputFontFamily =
+    i18n.language === 'fa' ? 'YekanBakhFaNum-Regular' : 'Poppins-Regular';
 
   const togglePasswordVisibility = () => {
     setShowPassword(prev => !prev);
@@ -96,6 +98,7 @@ const ControlledInput = <T extends FieldValues>({
               className={`${
                 centerText ? '!text-center' : 'rtl:text-right ltr:text-left'
               } px-4 flex-1 h-full outline-none rounded-lg duration-200 text-text-base dark:text-text-base-dark`}
+              style={[props.style, {fontFamily: inputFontFamily}]}
               editable={!disabled}
               placeholder=""
               selectionColor="#7676EE"

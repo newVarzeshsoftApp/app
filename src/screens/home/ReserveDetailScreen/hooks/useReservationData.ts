@@ -1,6 +1,7 @@
 import {useMemo} from 'react';
 import {useGetReservation} from '../../../../utils/hooks/Reservation/useGetReservation';
 import {DayEntryDto} from '../../../../services/models/response/ReservationResService';
+import {ReservationQuery} from '../../../../services/models/requestQueries';
 import {TimeSlot} from '../utils/types';
 import {formatDate} from '../utils/helpers';
 import {VISIBLE_DAYS_COUNT} from '../utils/constants';
@@ -18,20 +19,26 @@ interface UseReservationDataParams {
 }
 
 export const useReservationData = (params: UseReservationDataParams) => {
-  const query = useMemo(
-    () => ({
-      tagId: params.tagId,
-      patternId: params.patternId,
-      gender: params.gender,
-      saleUnit: params.saleUnit,
-      startTime: params.startTime,
-      endTime: params.endTime,
-      start: params.start,
-      end: params.end,
-      days: params.days,
-    }),
-    [params],
-  );
+  const query = useMemo(() => {
+    const baseQuery: Partial<ReservationQuery> = {};
+
+    if (params.tagId !== undefined) baseQuery.tagId = params.tagId;
+    if (params.patternId !== undefined) baseQuery.patternId = params.patternId;
+    if (params.gender !== undefined)
+      baseQuery.gender = params.gender as 'Female' | 'Male' | 'Both';
+    if (params.saleUnit !== undefined) baseQuery.saleUnit = params.saleUnit;
+    if (params.startTime !== undefined) baseQuery.startTime = params.startTime;
+    if (params.endTime !== undefined) baseQuery.endTime = params.endTime;
+    if (params.start !== undefined) baseQuery.start = params.start;
+    if (params.end !== undefined) baseQuery.end = params.end;
+    if (params.days !== undefined) {
+      baseQuery.days = Array.isArray(params.days)
+        ? params.days.join(',')
+        : params.days;
+    }
+
+    return baseQuery as ReservationQuery;
+  }, [params]);
 
   const {
     data: reservationData,
@@ -134,4 +141,3 @@ export const useReservationData = (params: UseReservationDataParams) => {
     refetch,
   };
 };
-

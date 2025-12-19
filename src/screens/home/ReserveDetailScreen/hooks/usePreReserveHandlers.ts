@@ -12,7 +12,7 @@ import {useAuth} from '../../../../utils/hooks/useAuth';
 
 interface UsePreReserveHandlersProps {
   gender?: string;
-  refetch: () => void;
+  refetch?: () => void; // Optional - not used anymore, updates come from SSE events
   preReserveBottomSheetRef: React.RefObject<PreReserveBottomSheetRef>;
   isPreReservedByMe: (
     item: ServiceEntryDto,
@@ -120,10 +120,25 @@ export const usePreReserveHandlers = ({
           // Set selectedItemData first
           setSelectedItemData({item, dayData, timeSlot});
 
-          // Open bottom sheet immediately before updating state
-          const openBottomSheet = () => {
-            if (preReserveBottomSheetRef.current) {
-              preReserveBottomSheetRef.current.open({
+          // Update state immediately before opening bottom sheet
+          // This ensures state is set before any SSE events arrive
+          updateReservation(
+            item.id,
+            dayData.date,
+            fromTime,
+            toTime,
+            dayData.name,
+            'pre-reserved-by-me',
+            profile?.id,
+          );
+
+          // Open bottom sheet after state is updated.
+          // IMPORTANT: On first interaction, the ref may not be ready yet (especially on web/slow devices),
+          // so we retry a few times to avoid the "state changes but sheet doesn't open" bug.
+          const openBottomSheet = (attempt = 0) => {
+            const ref = preReserveBottomSheetRef.current;
+            if (ref) {
+              ref.open({
                 item,
                 date: dayData.date,
                 fromTime,
@@ -131,25 +146,18 @@ export const usePreReserveHandlers = ({
                 dayName: dayData.name,
                 dayData,
               });
+              return;
+            }
+
+            if (attempt < 10) {
+              setTimeout(() => openBottomSheet(attempt + 1), 50);
             }
           };
 
-          // Open bottom sheet immediately
-          openBottomSheet();
-
-          // Update state to mark as pre-reserved by me after opening bottom sheet
-          // Use setTimeout to ensure bottom sheet opens first
-          setTimeout(() => {
-            updateReservation(
-              item.id,
-              dayData.date,
-              fromTime,
-              toTime,
-              dayData.name,
-              'pre-reserved-by-me',
-              profile?.id,
-            );
-          }, 0);
+          // Use requestAnimationFrame to ensure the component tree/refs have committed before opening.
+          requestAnimationFrame(() => {
+            setTimeout(() => openBottomSheet(0), 0);
+          });
 
           // Don't refetch - only update local state
         },

@@ -356,7 +356,8 @@ const SurveyDetailScreen: React.FC = () => {
                 <View className="w-full max-w-[130px]">
                   <BaseButton
                     type="Outline"
-                    color="Primary"
+                    color="Error"
+                    redbutton
                     size="Large"
                     rounded
                     text={t('cancel')}
@@ -398,7 +399,8 @@ const SurveyDetailScreen: React.FC = () => {
                 <View className="w-full max-w-[130px]">
                   <BaseButton
                     type="Outline"
-                    color="Primary"
+                    color="Error"
+                    redbutton
                     size="Large"
                     rounded
                     text={t('cancel')}

@@ -41,6 +41,7 @@ function MainShop() {
   const {t} = useTranslation('translation', {keyPrefix: 'Drawer'});
   const [offset, setOffset] = useState(0);
   const {theme} = useTheme();
+
   // Fetch product data for each category
   const fetchProductData = (type: ProductType) =>
     UseGetProduct({
@@ -137,10 +138,17 @@ function MainShop() {
   );
 
   const listData = useMemo<ListItem[]>(() => {
-    return filteredSections.map(section => ({
-      kind: 'section' as const,
-      section,
-    }));
+    const items: ListItem[] = [];
+
+    // Add product sections
+    filteredSections.forEach(section => {
+      items.push({
+        kind: 'section',
+        section,
+      });
+    });
+
+    return items;
   }, [filteredSections]);
 
   return (
@@ -152,8 +160,11 @@ function MainShop() {
       ) : (
         <FlatList
           data={listData}
-          keyExtractor={item => `section-${item.section.type}`}
+          keyExtractor={(item, index) => {
+            return `section-${item.section.type}`;
+          }}
           renderItem={({item}) => {
+            // Render product section
             const {title, type, data, navigateToCategory, icon} = item.section;
             const {data: items, isLoading} = data;
 

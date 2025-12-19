@@ -10,7 +10,8 @@
     "build": "rm -rf dist/ && webpack --mode=production --config webpack.config.js ",
     "web": "webpack serve --mode=development --config webpack.config.js --port 3000",
     "clean": "rm -rf node_modules && rm -f package-lock.json && npm cache clean --force",
-    "test": "jest"
+    "test": "jest",
+    "dev":"npx serve -s dist -l tcp://0.0.0.0:3000"
   },
   "dependencies": {
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
@@ -72,6 +73,7 @@
     "react-query-native-devtools": "^4.0.0",
     "react-scripts": "^5.0.1",
     "recyclerlistview": "^4.2.1",
+    "socket.io-client": "^4.8.1",
     "tailwindcss": "^3.4.14",
     "uuid": "^11.0.5",
     "zod": "^3.23.8",

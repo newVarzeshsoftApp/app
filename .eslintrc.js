@@ -5,7 +5,7 @@ module.exports = {
     {
       files: ['*.ts', '*.tsx'],
       parser: '@typescript-eslint/parser', // Use TypeScript parser
-      plugins: ['@typescript-eslint'],
+      plugins: ['@typescript-eslint', 'import'],
       extends: [
         '@react-native',
         'plugin:@typescript-eslint/recommended', // Adds TypeScript-specific linting rules

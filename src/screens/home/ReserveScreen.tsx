@@ -301,7 +301,20 @@ const ReserveScreen: React.FC = () => {
       return generatedFromHours;
     }
 
-    // Otherwise, merge hours from all tags
+    // If "all services" is selected AND duration is selected,
+    // generate hours ONLY from the selected duration tag (not all tags merged).
+    if (filters.service?.value === 'all' && filters.duration?.tag) {
+      const tag = filters.duration.tag;
+      const {fromHours: generatedFromHours} = generateFromToHours(
+        tag.startTime,
+        tag.endTime,
+        tag.duration,
+        tag.unit,
+      );
+      return generatedFromHours;
+    }
+
+    // Otherwise, merge hours from all tags (fallback)
     if (!tagsData?.content || tagsData.content.length === 0) return [];
 
     // Generate hours from each tag and merge them
@@ -331,7 +344,7 @@ const ReserveScreen: React.FC = () => {
       const bNum = parseInt(b.value, 10);
       return aNum - bNum;
     });
-  }, [tagsData, filters.service]);
+  }, [tagsData, filters.service, filters.duration]);
 
   const toHours = useMemo(() => {
     // If a specific service is selected, use its reservationTag with duration
@@ -346,7 +359,20 @@ const ReserveScreen: React.FC = () => {
       return generatedToHours;
     }
 
-    // Otherwise, merge hours from all tags
+    // If "all services" is selected AND duration is selected,
+    // generate hours ONLY from the selected duration tag (not all tags merged).
+    if (filters.service?.value === 'all' && filters.duration?.tag) {
+      const tag = filters.duration.tag;
+      const {toHours: generatedToHours} = generateFromToHours(
+        tag.startTime,
+        tag.endTime,
+        tag.duration,
+        tag.unit,
+      );
+      return generatedToHours;
+    }
+
+    // Otherwise, merge hours from all tags (fallback)
     if (!tagsData?.content || tagsData.content.length === 0) return [];
 
     // Generate hours from each tag and merge them
@@ -376,7 +402,7 @@ const ReserveScreen: React.FC = () => {
       const bNum = b.value === '24' ? 24 : parseInt(b.value, 10);
       return aNum - bNum;
     });
-  }, [tagsData, filters.service]);
+  }, [tagsData, filters.service, filters.duration]);
 
   // Filter toHours based on selected fromHour to prevent invalid selections
   const toHoursFiltered = useMemo(() => {
