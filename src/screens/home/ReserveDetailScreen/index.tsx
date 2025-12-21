@@ -1,4 +1,4 @@
-import React, {useRef, useCallback} from 'react';
+import React, {useRef, useCallback, useState} from 'react';
 import {
   View,
   Image,
@@ -32,7 +32,10 @@ import {useSSEConnection} from './hooks/useSSEConnection';
 import {useAuth} from '../../../utils/hooks/useAuth';
 import {useCartContext} from '../../../utils/CartContext';
 import {Product} from '../../../services/models/response/ProductResService';
-import {ServiceEntryDto} from '../../../services/models/response/ReservationResService';
+import {
+  ServiceEntryDto,
+  DayEntryDto,
+} from '../../../services/models/response/ReservationResService';
 import moment from 'jalali-moment';
 import {ReservationSecondaryService} from '../../../utils/helpers/CartStorage';
 
@@ -51,6 +54,21 @@ const ReserveDetailScreen: React.FC = () => {
   const scrollViewRef = useRef<ScrollView>(null);
   const helpBottomSheetRef = useRef<BottomSheetMethods>(null);
   const preReserveBottomSheetRef = useRef<PreReserveBottomSheetRef>(null);
+
+  // State for pre-reserved items list
+  interface PreReservedItem {
+    item: ServiceEntryDto;
+    date: string;
+    fromTime: string;
+    toTime: string;
+    dayName: string;
+    dayData: DayEntryDto;
+    subProducts: any[];
+    modifiedQuantities: Record<number, number>;
+  }
+  const [preReservedItems, setPreReservedItems] = useState<PreReservedItem[]>(
+    [],
+  );
 
   // Custom Hooks
   const {profile, SKU} = useAuth();
@@ -351,10 +369,57 @@ const ReserveDetailScreen: React.FC = () => {
     enabled: !!profile && !!SKU,
   });
 
+  // Add item to pre-reserved list
+  const addToPreReservedList = useCallback(
+    (data: {
+      item: ServiceEntryDto;
+      date: string;
+      fromTime: string;
+      toTime: string;
+      dayName: string;
+      dayData: DayEntryDto;
+      subProducts: any[];
+      modifiedQuantities: Record<number, number>;
+    }) => {
+      const reservationKey = `${data.item.id}-${data.date}-${data.fromTime}-${data.toTime}`;
+
+      // Check if already exists
+      const exists = preReservedItems.some(
+        item =>
+          `${item.item.id}-${item.date}-${item.fromTime}-${item.toTime}` ===
+          reservationKey,
+      );
+
+      if (!exists) {
+        setPreReservedItems(prev => [...prev, data]);
+        console.log('✅ Added to pre-reserved list:', data.item.title);
+      }
+    },
+    [preReservedItems],
+  );
+
+  // Remove item from pre-reserved list
+  const removeFromPreReservedList = useCallback(
+    (itemId: number, date: string, fromTime: string, toTime: string) => {
+      setPreReservedItems(prev =>
+        prev.filter(
+          item =>
+            !(
+              item.item.id === itemId &&
+              item.date === date &&
+              item.fromTime === fromTime &&
+              item.toTime === toTime
+            ),
+        ),
+      );
+    },
+    [],
+  );
+
   const {
     handleServiceItemClick,
     handleDeleteReservation,
-    handleAddNewReservation,
+    handleAddNewReservation: handleAddNewReservationFromHook,
     getLoadingItems,
     isPending,
   } = usePreReserveHandlers({
@@ -365,7 +430,31 @@ const ReserveDetailScreen: React.FC = () => {
     getItemState,
     updateReservation,
     removeReservation,
+    onPreReserveSuccess: addToPreReservedList, // Callback when pre-reserve succeeds
   });
+
+  // Wrapper for handleDeleteReservation to also remove from pre-reserved list
+  const handleDeleteReservationWrapper = useCallback(
+    (data: {
+      item: ServiceEntryDto;
+      date: string;
+      fromTime: string;
+      toTime: string;
+      dayName: string;
+      dayData: DayEntryDto;
+    }) => {
+      // Remove from pre-reserved list first
+      removeFromPreReservedList(
+        data.item.id,
+        data.date,
+        data.fromTime,
+        data.toTime,
+      );
+      // Then call original handler to delete from backend and update state
+      handleDeleteReservation(data);
+    },
+    [removeFromPreReservedList, handleDeleteReservation],
+  );
 
   // Convert ServiceEntryDto to Product (minimal conversion)
   const convertServiceEntryToProduct = (
@@ -454,7 +543,70 @@ const ReserveDetailScreen: React.FC = () => {
     };
   };
 
-  // Handle add reservation to cart
+  // Helper function to add a single reservation to cart
+  const addSingleReservationToCart = useCallback(
+    async (data: PreReservedItem) => {
+      const {item, date, fromTime, toTime, subProducts, modifiedQuantities} =
+        data;
+
+      // Convert date from Jalali format (YYYY/MM/DD) to Gregorian (YYYY-MM-DD)
+      const [year, month, day] = date.split('/');
+      const gregorianDate = moment(
+        `${year}-${month}-${day}`,
+        'jYYYY-jMM-jDD',
+      ).format('YYYY-MM-DD');
+
+      // Build secondaryServices from subProducts with modified quantities
+      const secondaryServices: ReservationSecondaryService[] = [];
+      if (subProducts && subProducts.length > 0) {
+        subProducts.forEach(subProduct => {
+          const quantity = modifiedQuantities[subProduct.id] || 0;
+          if (quantity > 0 && subProduct.product) {
+            // Calculate end date based on duration (default to 1 day if not available)
+            const duration = subProduct.product.duration || 1;
+            const startDate = gregorianDate;
+            const endDate = moment(startDate)
+              .add(duration, 'days')
+              .format('YYYY-MM-DD');
+
+            secondaryServices.push({
+              user: profile?.id || 0,
+              product: subProduct.product.id,
+              start: startDate,
+              end: endDate,
+              discount: subProduct.discount || 0,
+              type: subProduct.product.type || 1,
+              tax: subProduct.tax || 0,
+              price: subProduct.product.price || subProduct.amount || 0,
+              quantity: quantity,
+              subProductId: subProduct.id,
+            });
+          }
+        });
+      }
+
+      // Convert ServiceEntryDto to Product
+      const product = convertServiceEntryToProduct(item);
+
+      // Add to cart with reservation data
+      await addToCart({
+        product,
+        quantity: 1,
+        isReserve: true,
+        reservationData: {
+          reservedDate: `${gregorianDate} 00:00`,
+          reservedStartTime: fromTime,
+          reservedEndTime: toTime,
+          secondaryServices:
+            secondaryServices.length > 0 ? secondaryServices : undefined,
+          description: null,
+        },
+      });
+    },
+    [addToCart, profile?.id],
+  );
+
+  // Handle add reservation to cart (single item - when clicking "تکمیل رزرو پرداخت" on current item)
   const handleAddReservationToCart = useCallback(
     async (data: {
       item: ServiceEntryDto;
@@ -465,64 +617,45 @@ const ReserveDetailScreen: React.FC = () => {
       modifiedQuantities: Record<number, number>;
     }) => {
       try {
-        const {item, date, fromTime, toTime, subProducts, modifiedQuantities} =
-          data;
+        // Get current data from bottom sheet to get dayName and dayData
+        const currentData =
+          preReserveBottomSheetRef.current?.getCurrentData?.();
 
-        // Convert date from Jalali format (YYYY/MM/DD) to Gregorian (YYYY-MM-DD)
-        const [year, month, day] = date.split('/');
-        const gregorianDate = moment(
-          `${year}-${month}-${day}`,
-          'jYYYY-jMM-jDD',
-        ).format('YYYY-MM-DD');
+        // Add current item to pre-reserved list first
+        const currentItemData: PreReservedItem = {
+          item: data.item,
+          date: data.date,
+          fromTime: data.fromTime,
+          toTime: data.toTime,
+          dayName: currentData?.dayName || '',
+          dayData: currentData?.dayData || ({} as DayEntryDto),
+          subProducts: data.subProducts,
+          modifiedQuantities: data.modifiedQuantities,
+        };
 
-        // Build secondaryServices from subProducts with modified quantities
-        const secondaryServices: ReservationSecondaryService[] = [];
-        if (subProducts && subProducts.length > 0) {
-          subProducts.forEach(subProduct => {
-            const quantity = modifiedQuantities[subProduct.id] || 0;
-            if (quantity > 0 && subProduct.product) {
-              // Calculate end date based on duration (default to 1 day if not available)
-              const duration = subProduct.product.duration || 1;
-              const startDate = gregorianDate;
-              const endDate = moment(startDate)
-                .add(duration, 'days')
-                .format('YYYY-MM-DD');
+        // Check if current item already exists in list
+        const reservationKey = `${data.item.id}-${data.date}-${data.fromTime}-${data.toTime}`;
+        const exists = preReservedItems.some(
+          item =>
+            `${item.item.id}-${item.date}-${item.fromTime}-${item.toTime}` ===
+            reservationKey,
+        );
 
-              secondaryServices.push({
-                user: profile?.id || 0,
-                product: subProduct.product.id,
-                start: startDate,
-                end: endDate,
-                discount: subProduct.discount || 0,
-                type: subProduct.product.type || 1,
-                tax: subProduct.tax || 0,
-                price: subProduct.product.price || subProduct.amount || 0,
-                quantity: quantity,
-                subProductId: subProduct.id,
-              });
-            }
-          });
+        // Add to list if not exists
+        if (!exists) {
+          addToPreReservedList(currentItemData);
         }
 
-        // Convert ServiceEntryDto to Product
-        const product = convertServiceEntryToProduct(item);
+        // Add all pre-reserved items (including current one) to cart
+        const allItems = exists
+          ? preReservedItems
+          : [...preReservedItems, currentItemData];
+        for (const item of allItems) {
+          await addSingleReservationToCart(item);
+        }
 
-        // Add to cart with reservation data
-        await addToCart({
-          product,
-          quantity: 1,
-          isReserve: true,
-          reservationData: {
-            reservedDate: `${gregorianDate} 00:00`,
-            reservedStartTime: fromTime,
-            reservedEndTime: toTime,
-            secondaryServices:
-              secondaryServices.length > 0 ? secondaryServices : undefined,
-            description: null,
-          },
-        });
-
-        // Clear reservation state and navigate to cart
+        // Clear all pre-reserved items and reservation state
+        setPreReservedItems([]);
         preReserveBottomSheetRef.current?.clearCurrentReservationState();
         preReserveBottomSheetRef.current?.close();
         navigationRef.navigate('Root', {
@@ -533,18 +666,49 @@ const ReserveDetailScreen: React.FC = () => {
         console.error('Error adding reservation to cart:', error);
       }
     },
-    [addToCart, profile?.id],
+    [addToPreReservedList, preReservedItems, addSingleReservationToCart],
   );
 
-  // Handle complete payment
-  const handleCompletePayment = () => {
-    // Clear reservation state after successful payment completion
-    preReserveBottomSheetRef.current?.clearCurrentReservationState();
-    navigationRef.navigate('Root', {
-      screen: 'HomeNavigator',
-      params: {screen: 'cart'},
-    });
-  };
+  // Handle add new reservation (when clicking "اضافه کردن رزرو جدید")
+  const handleAddNewReservation = useCallback(() => {
+    // Get current reservation data from bottom sheet
+    const currentData = preReserveBottomSheetRef.current?.getCurrentData?.();
+    if (currentData && currentData.item && currentData.dayData) {
+      addToPreReservedList({
+        item: currentData.item,
+        date: currentData.date,
+        fromTime: currentData.fromTime,
+        toTime: currentData.toTime,
+        dayName: currentData.dayName,
+        dayData: currentData.dayData,
+        subProducts: currentData.subProducts || [],
+        modifiedQuantities: currentData.modifiedQuantities || {},
+      });
+    }
+    // Close bottom sheet to allow selecting new reservation
+    preReserveBottomSheetRef.current?.close();
+  }, [addToPreReservedList]);
+
+  // Handle complete payment (when clicking "تکمیل رزرو پرداخت")
+  const handleCompletePayment = useCallback(async () => {
+    try {
+      // Add all pre-reserved items to cart
+      for (const item of preReservedItems) {
+        await addSingleReservationToCart(item);
+      }
+
+      // Clear all pre-reserved items and reservation state
+      setPreReservedItems([]);
+      preReserveBottomSheetRef.current?.clearCurrentReservationState();
+      preReserveBottomSheetRef.current?.close();
+      navigationRef.navigate('Root', {
+        screen: 'HomeNavigator',
+        params: {screen: 'cart'},
+      });
+    } catch (error) {
+      console.error('Error adding reservations to cart:', error);
+    }
+  }, [preReservedItems, addSingleReservationToCart]);
 
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-neutral-dark-100 relative">
@@ -665,7 +829,7 @@ const ReserveDetailScreen: React.FC = () => {
         onAddNewReservation={handleAddNewReservation}
         onCompletePayment={handleCompletePayment}
         onAddToCart={handleAddReservationToCart}
-        onDeleteReservation={handleDeleteReservation}
+        onDeleteReservation={handleDeleteReservationWrapper}
         isDeleting={isPending}
       />
     </View>

@@ -34,11 +34,31 @@ export const ThemeProvider = ({children}: ThemeProviderProps) => {
   }, []);
 
   useEffect(() => {
-    // Save theme to localStorage on change
+    // Save theme to localStorage on change and update meta tags
     if (Platform.OS === 'web' && colorScheme) {
       localStorage.setItem('theme', colorScheme);
       document?.documentElement?.classList?.remove('light', 'dark');
       document?.documentElement?.classList?.add(colorScheme);
+
+      // Update theme-color meta tag
+      const themeColorMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeColorMeta) {
+        themeColorMeta.setAttribute(
+          'content',
+          colorScheme === 'dark' ? '#16181b' : '#F4F4F5',
+        );
+      }
+
+      // Update apple-mobile-web-app-status-bar-style
+      const appleStatusBarMeta = document.querySelector(
+        'meta[name="apple-mobile-web-app-status-bar-style"]',
+      );
+      if (appleStatusBarMeta) {
+        appleStatusBarMeta.setAttribute(
+          'content',
+          colorScheme === 'dark' ? 'black-translucent' : 'default',
+        );
+      }
     }
   }, [colorScheme]);
   return (

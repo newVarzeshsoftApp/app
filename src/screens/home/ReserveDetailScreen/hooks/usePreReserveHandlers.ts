@@ -43,6 +43,16 @@ interface UsePreReserveHandlersProps {
     fromTime: string,
     toTime: string,
   ) => void;
+  onPreReserveSuccess?: (data: {
+    item: ServiceEntryDto;
+    date: string;
+    fromTime: string;
+    toTime: string;
+    dayName: string;
+    dayData: DayEntryDto;
+    subProducts: any[];
+    modifiedQuantities: Record<number, number>;
+  }) => void;
 }
 
 export const usePreReserveHandlers = ({
@@ -53,6 +63,7 @@ export const usePreReserveHandlers = ({
   getItemState,
   updateReservation,
   removeReservation,
+  onPreReserveSuccess,
 }: UsePreReserveHandlersProps) => {
   const preReserveMutation = usePreReserve();
   const {profile} = useAuth();
@@ -132,6 +143,23 @@ export const usePreReserveHandlers = ({
             profile?.id,
           );
 
+          // Call onPreReserveSuccess callback if provided
+          // This will add the item to the pre-reserved list
+          if (onPreReserveSuccess) {
+            // Get subProducts from item
+            const subProducts = (item.subProducts as any[]) || [];
+            onPreReserveSuccess({
+              item,
+              date: dayData.date,
+              fromTime,
+              toTime,
+              dayName: dayData.name,
+              dayData,
+              subProducts,
+              modifiedQuantities: {}, // Initial quantities are 0
+            });
+          }
+
           // Open bottom sheet after state is updated.
           // IMPORTANT: On first interaction, the ref may not be ready yet (especially on web/slow devices),
           // so we retry a few times to avoid the "state changes but sheet doesn't open" bug.
@@ -174,6 +202,7 @@ export const usePreReserveHandlers = ({
       getItemState,
       updateReservation,
       profile?.id,
+      onPreReserveSuccess,
     ],
   );
 

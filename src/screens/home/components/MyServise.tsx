@@ -95,7 +95,7 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
   return (
     <View className="flex-1 gap-4">
       {!inMoreScreen && (
-        <View className="w-full items-center flex-row justify-between">
+        <View className="w-full items-center flex-row justify-between Container">
           <BaseText type="title3" color="secondary">
             {t('myService')}
           </BaseText>
@@ -118,38 +118,40 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
           )}
         </View>
       )}
-      <FlatList
-        data={data}
-        renderItem={renderItem}
-        ItemSeparatorComponent={() => <View style={{height: 16}} />}
-        onEndReached={loadMore}
-        // onEndReachedThreshold={0.2}
-        keyExtractor={(item, index) => `key` + index}
-        showsVerticalScrollIndicator={false}
-        showsHorizontalScrollIndicator={false}
-        ListFooterComponent={
-          isLoading ? (
-            <View style={{marginTop: 16, alignItems: 'center'}}>
-              <ActivityIndicator size="large" color="#bcdd64" />
-            </View>
-          ) : null
-        }
-        ListEmptyComponent={
-          !isLoading && !isError ? (
-            <View className="flex-1 items-center justify-center flex-row py-10">
-              <BaseText type="subtitle1" color="secondary">
-                {t('noServicesFound')}
-              </BaseText>
-            </View>
-          ) : null
-        }
-        ListFooterComponentStyle={{
-          paddingBottom: Platform.OS === 'web' ? 60 : 20,
-        }}
-        contentContainerStyle={{
-          paddingBottom: isLoading ? 40 : Platform.OS === 'web' ? 100 : 20,
-        }}
-      />
+      <View className="Container flex-1">
+        <FlatList
+          data={data}
+          renderItem={renderItem}
+          ItemSeparatorComponent={() => <View style={{height: 16}} />}
+          onEndReached={loadMore}
+          // onEndReachedThreshold={0.2}
+          keyExtractor={(item, index) => `key` + index}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          ListFooterComponent={
+            isLoading ? (
+              <View style={{marginTop: 16, alignItems: 'center'}}>
+                <ActivityIndicator size="large" color="#bcdd64" />
+              </View>
+            ) : null
+          }
+          ListEmptyComponent={
+            !isLoading && !isError ? (
+              <View className="flex-1 items-center justify-center flex-row py-10">
+                <BaseText type="subtitle1" color="secondary">
+                  {t('noServicesFound')}
+                </BaseText>
+              </View>
+            ) : null
+          }
+          ListFooterComponentStyle={{
+            paddingBottom: Platform.OS === 'web' ? 60 : 20,
+          }}
+          contentContainerStyle={{
+            paddingBottom: isLoading ? 40 : Platform.OS === 'web' ? 100 : 20,
+          }}
+        />
+      </View>
     </View>
   );
 }

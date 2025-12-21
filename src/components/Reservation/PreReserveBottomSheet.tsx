@@ -91,6 +91,16 @@ export interface PreReserveBottomSheetRef {
   }) => void;
   close: () => void;
   clearCurrentReservationState: () => void;
+  getCurrentData: () => {
+    item: ServiceEntryDto | null;
+    date: string;
+    fromTime: string;
+    toTime: string;
+    dayName: string;
+    dayData: DayEntryDto | null;
+    subProducts: SubProduct[];
+    modifiedQuantities: Record<number, number>;
+  } | null;
 }
 
 // Format date to Persian (Jalali) calendar
@@ -245,6 +255,23 @@ const PreReserveBottomSheet = forwardRef<
       },
       clearCurrentReservationState: () => {
         clearReservationState();
+      },
+      getCurrentData: () => {
+        if (!item || !dayData) return null;
+        const reservationKey = getCurrentReservationKey();
+        const currentQuantities = reservationKey
+          ? modifiedQuantities[reservationKey] || {}
+          : {};
+        return {
+          item,
+          date,
+          fromTime,
+          toTime,
+          dayName,
+          dayData,
+          subProducts,
+          modifiedQuantities: currentQuantities,
+        };
       },
     }));
 

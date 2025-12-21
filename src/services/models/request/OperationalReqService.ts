@@ -39,6 +39,7 @@ export type SaleOrderBody = {
   lockers?: string[];
   lockerQuantity?: number;
   items?: SaleOrderItem[];
+  orders?: any[]; // For orders array with reservation and regular items
   location?: string;
   transferType?: string;
 };

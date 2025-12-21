@@ -18,7 +18,10 @@ const CreditCard: React.FC<{data: Content}> = ({data}) => {
             <FlashCircle size="24" color="#fed376" variant="Bold" />
           </View>
           <View>
-            <BaseText type="title4" color="base">
+            <BaseText
+              type="title4"
+              color="base"
+              className="max-w-[234px] line-clamp-1">
               {data.title}
             </BaseText>
             <View className="flex-row gap-1 items-center">

@@ -79,7 +79,7 @@ const MainPageSurveyCard: React.FC<MainPageSurveyCardProps> = ({
         justifyContent: 'center',
         alignItems: 'center',
       }}>
-      <View className="flex-1 p-[1px] w-full h-full relative z-10 overflow-hidden ">
+      <View className="flex-1  p-[1px] w-full  relative z-10 overflow-hidden ">
         <View className=" flex-1 w-full items-center px-7 py-4 gap-2  overflow-hidden h-full dark:bg-neutral-dark-300/80 bg-neutral-0/80 rounded-3xl">
           {/* First Shade  */}
           <View className="flex  justify-between items-center w-full flex-row gap-4">

@@ -62,7 +62,7 @@ const MyserviceScreen: React.FC = () => {
     filteredReservations.length > 0 ? (
       <View key="reservations" className="mb-6">
         {/* Section Header */}
-        <View className="flex-row justify-between items-center px-4 mb-4">
+        <View className="flex-row justify-between items-center px-5 Container mb-4">
           <View className="flex-row items-center gap-1">
             <CalendarTick
               size="28"
@@ -104,7 +104,7 @@ const MyserviceScreen: React.FC = () => {
           ItemSeparatorComponent={() => <View style={{height: 16}} />}
           showsHorizontalScrollIndicator={false}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={{gap: 16}}
+          contentContainerStyle={{gap: 16, paddingHorizontal: 16}}
           ListFooterComponent={
             reservationsLoading ? (
               <View style={{marginTop: 16, alignItems: 'center'}}>
@@ -143,11 +143,11 @@ const MyserviceScreen: React.FC = () => {
       ListHeaderComponent={
         <>
           {renderHeader()}
-          <View className="Container">{reservationsSection}</View>
+          <View className="">{reservationsSection}</View>
         </>
       }
       ListFooterComponent={
-        <View className="flex-1 Container pb-[125px]">
+        <View className="flex-1 pb-[125px]">
           <MyServise />
         </View>
       }

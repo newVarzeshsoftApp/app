@@ -13,11 +13,24 @@ const CartItemsList: React.FC<CartItemsListProps> = ({
 }) => {
   const renderItem = useCallback(
     ({item}: {item: CartItem}) => {
-      const CardComponent = cardComponentMapping[item.product.type!];
+      // Check if product exists and has type
+      if (!item.product || item.product.type === undefined) {
+        return (
+          <Text key={item.CartId}>
+            Invalid item: {item.product?.id || 'Unknown'}
+          </Text>
+        );
+      }
+
+      const CardComponent = cardComponentMapping[item.product.type];
       if (CardComponent) {
         return <CardComponent key={item.CartId} data={item} />;
       }
-      return <Text>Unknown type: {item.product.id}</Text>;
+      return (
+        <Text key={item.CartId}>
+          Unknown type: {item.product.type} (Product ID: {item.product.id})
+        </Text>
+      );
     },
     [cardComponentMapping],
   );

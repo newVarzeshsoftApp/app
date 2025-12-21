@@ -110,17 +110,24 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
   }, [items]);
 
   const SubmitSaleOrder = () => {
-    const submitAt = moment().format('YYYY-MM-DD HH:mm');
+    const submitAt = moment(new Date()).format('YYYY-MM-DD HH:mm');
 
     // Separate reservation items from regular items
     const reservationItems = normalizedItems.filter(
-      item => item.isReserve && item.reservationData,
+      item =>
+        item.isReserve &&
+        item.reservationData &&
+        item.product &&
+        item.product.type !== undefined,
     );
     const regularItems = normalizedItems.filter(
-      item => !item.isReserve || !item.reservationData,
+      item =>
+        (!item.isReserve || !item.reservationData) &&
+        item.product &&
+        item.product.type !== undefined,
     );
 
-    // Build reservation items DTO
+    // Build reservation items DTO with isReserve: true
     const reservationItemsDTO = reservationItems.map(item => {
       const reservationData: ReservationData = item.reservationData!;
       const amount = item.SelectedPriceList
@@ -130,67 +137,141 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
         ? item?.SelectedPriceList?.discountOnlineShopPercentage ?? 0
         : item?.product?.discount ?? 0;
 
+      // Convert reservedDate from Gregorian to Jalali format
+      // reservedDate is in format "2025-12-23 00:00" (Gregorian)
+      // Convert to Jalali format "2647-03-12"
+      const reservedDateGregorian = reservationData.reservedDate.split(' ')[0]; // "2025-12-23"
+      const reservedDateJalali = moment(reservedDateGregorian, 'YYYY-MM-DD')
+        .locale('fa')
+        .format('jYYYY-jMM-jDD'); // "2647-03-12"
+
+      // Calculate end date (1 day after start date) in Jalali
+      const endDateJalali = moment(reservedDateGregorian, 'YYYY-MM-DD')
+        .add(1, 'day')
+        .locale('fa')
+        .format('jYYYY-jMM-jDD');
+
+      // Build secondaryServices with quantity (one item per subService with quantity field)
+      const secondaryServices = reservationData.secondaryServices?.map(
+        subService => {
+          // Convert start and end dates from Gregorian to Jalali
+          const startJalali = moment(subService.start, 'YYYY-MM-DD')
+            .locale('fa')
+            .format('jYYYY-jMM-jDD');
+          const endJalali = moment(subService.end, 'YYYY-MM-DD')
+            .locale('fa')
+            .format('jYYYY-jMM-jDD');
+
+          return {
+            user: subService.user,
+            product: subService.product,
+            start: startJalali,
+            end: endJalali,
+            discount: subService.discount,
+            type: subService.type,
+            tax: subService.tax ?? 0, // Must be 0 if null
+            price: subService.price,
+            quantity: subService.quantity || 1, // Add quantity field
+          };
+        },
+      );
+
       return {
+        isReserve: true,
         user: ProfileData?.id || 0,
         product: item.product.id,
         price: amount,
         discount: (amount * discount) / 100,
-        tax: item?.product?.tax || null,
-        reservedDate: reservationData.reservedDate,
+        tax: item?.product?.tax ?? 0, // Must be 0 if null
+        reservedDate: reservationData.reservedDate, // Keep Gregorian format (YYYY-MM-DD HH:mm)
         reservedStartTime: reservationData.reservedStartTime,
         reservedEndTime: reservationData.reservedEndTime,
+        start: reservedDateJalali, // Jalali format (jYYYY-jMM-jDD)
+        end: endDateJalali, // Jalali format (jYYYY-jMM-jDD)
         description: reservationData.description || null,
-        secondaryServices: reservationData.secondaryServices || undefined,
+        secondaryServices: secondaryServices || undefined,
       };
     });
 
+    // Calculate reservation order total amount
+    // Amount = price - discount + tax (tax is always 0 or a number, never null)
+    // For secondaryServices, we need to consider quantity (already handled in flatMap above)
+    const reservationOrderAmount = reservationItemsDTO.reduce((sum, item) => {
+      const itemTax = item.tax || 0;
+      const itemTotal = item.price - item.discount + itemTax;
+      // Add secondary services total (consider quantity for each service)
+      const secondaryTotal =
+        item.secondaryServices?.reduce((subSum, sub) => {
+          const quantity = sub.quantity || 1;
+          const serviceTotal =
+            (sub.price - sub.discount + (sub.tax ?? 0)) * quantity;
+          return subSum + serviceTotal;
+        }, 0) || 0;
+      return sum + itemTotal + secondaryTotal;
+    }, 0);
+
     // Build regular items DTO
-    const regularItemsDTO: SaleOrderItem[] = regularItems.map(item => {
-      const amount = item.SelectedPriceList
-        ? item.SelectedPriceList?.price
-        : item.product?.price;
-      const discount =
-        item.product.type === ProductType.Package
-          ? item.product.subProducts?.reduce(
-              (sum, subProduct) => sum + (subProduct.discount || 0),
-              0,
-            ) || 0
-          : item.SelectedPriceList
-          ? item?.SelectedPriceList?.discountOnlineShopPercentage ?? 0
-          : item?.product?.discount ?? 0;
-      return {
-        quantity: 1,
-        product: item.product.id,
-        tax: PaymentMethod?.getway
-          ? item?.product?.tax
-          : (amount * (item?.product?.tax ?? 0)) / 100,
-        manualPrice: false,
-        type:
-          item.product?.type === ProductType.Package ? 4 : item.product?.type,
-        contractor: item?.SelectedContractor?.contractorId ?? null,
-        contractorId: item?.SelectedContractor?.contractorId ?? null,
-        start: moment().format('YYYY-MM-DD'),
-        end: moment()
+    const regularItemsDTO: SaleOrderItem[] = regularItems
+      .filter(item => item.product && item.product.type !== undefined)
+      .map(item => {
+        const amount = item.SelectedPriceList
+          ? item.SelectedPriceList?.price
+          : item.product?.price;
+        const discount =
+          item.product?.type === ProductType.Package
+            ? item.product.subProducts?.reduce(
+                (sum, subProduct) => sum + (subProduct.discount || 0),
+                0,
+              ) || 0
+            : item.SelectedPriceList
+            ? item?.SelectedPriceList?.discountOnlineShopPercentage ?? 0
+            : item?.product?.discount ?? 0;
+        // Convert dates to Jalali format
+        const startDateJalali = moment().locale('fa').format('jYYYY-jMM-jDD');
+        const endDateJalali = moment()
           .add(
             item.SelectedPriceList?.duration ?? item.product.duration,
             'days',
           )
-          .format('YYYY-MM-DD'),
+          .locale('fa')
+          .format('jYYYY-jMM-jDD');
 
-        isOnline: true,
-        user: ProfileData?.id,
-        amount: amount,
-        discount:
-          item.product?.type === ProductType.Package
-            ? discount
-            : (amount * discount) / 100,
-        priceId: item.SelectedPriceList?.id ?? null,
-        price: amount,
-        duration: item.SelectedPriceList
-          ? item.SelectedPriceList.duration
-          : item.product.duration,
-      };
-    });
+        return {
+          quantity: 1,
+          product: item.product.id,
+          tax: PaymentMethod?.getway
+            ? item?.product?.tax ?? 0
+            : (amount * (item?.product?.tax ?? 0)) / 100,
+          manualPrice: false,
+          type:
+            item.product?.type === ProductType.Package
+              ? 4
+              : item.product?.type ?? 1,
+          contractor: item?.SelectedContractor?.contractorId ?? null,
+          contractorId: item?.SelectedContractor?.contractorId ?? null,
+          start: startDateJalali, // Jalali format
+          end: endDateJalali, // Jalali format
+          isOnline: true,
+          user: ProfileData?.id,
+          amount: amount,
+          discount:
+            item.product?.type === ProductType.Package
+              ? discount
+              : (amount * discount) / 100,
+          priceId: item.SelectedPriceList?.id ?? null,
+          price: amount,
+          duration: item.SelectedPriceList
+            ? item.SelectedPriceList.duration
+            : item.product.duration,
+        };
+      });
+
+    // Calculate regular order total amount
+    // Amount = price - discount + tax (tax is always 0 or a number, never null)
+    const regularOrderAmount = regularItemsDTO.reduce((sum, item) => {
+      const itemTax = item.tax || 0;
+      return sum + (item.amount || 0) - (item.discount || 0) + itemTax;
+    }, 0);
 
     // Build orders array
     const orders: any[] = [];
@@ -198,58 +279,39 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     // Add reservation order if there are reservation items
     if (reservationItemsDTO.length > 0) {
       orders.push({
-        isReserve: true,
         submitAt,
+        isReserve: true,
+        user: ProfileData?.id,
         items: reservationItemsDTO,
+        transactions: [
+          {
+            type: PaymentMethod?.isWallet
+              ? TransactionSourceType.UserCredit
+              : PaymentMethod?.source
+              ? 1
+              : TransactionSourceType.ChargingService,
+            source: PaymentMethod?.isWallet ? undefined : PaymentMethod?.source,
+            amount: reservationOrderAmount,
+            submitAt: submitAt,
+            fromGuest: false,
+            usedByOther: false,
+            user: ProfileData?.id,
+          },
+        ],
       });
     }
 
     // Add regular order if there are regular items
+    // Group regular items by contractor and priceId (or other grouping logic)
+    // For now, we'll put all items in one group
     if (regularItemsDTO.length > 0) {
       orders.push({
         submitAt,
         user: ProfileData?.id,
-        items: regularItemsDTO,
-      });
-    }
-
-    if (PaymentMethod?.getway) {
-      CreatePayment.mutate({
-        amount: amountPayable,
-        gateway: PaymentMethod.getway,
-        description: 'Cart',
-        isDeposit: false,
-        orders: orders,
-      });
-    } else {
-      // For non-gateway payments, combine all items into one order
-      // Convert reservation items to SaleOrderItem format (remove reservation-specific fields)
-      const reservationItemsAsSaleOrder: SaleOrderItem[] =
-        reservationItemsDTO.map(item => ({
-          product: item.product,
-          price: item.price,
-          discount: item.discount,
-          tax: item.tax ?? undefined, // Convert null to undefined
-          user: item.user,
-          quantity: 1,
-          type: 1, // Assuming reservation type is 1
-          isOnline: false,
-          manualPrice: false,
-          amount: item.price,
-        }));
-
-      const combinedItems: SaleOrderItem[] = [
-        ...reservationItemsAsSaleOrder,
-        ...regularItemsDTO,
-      ];
-
-      SaleOrder.mutate({
-        submitAt,
-        user: ProfileData?.id,
-        items: combinedItems,
+        items: [regularItemsDTO], // Nested array: array of arrays as per data.json
         transactions: [
           {
-            amount: amountPayable,
+            amount: regularOrderAmount,
             user: ProfileData?.id,
             submitAt: submitAt,
             fromGuest: false,
@@ -260,6 +322,46 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
           },
         ],
       });
+    }
+
+    // Build final DTO
+    const finalDTO = {
+      orders: orders,
+    };
+
+    // Log the DTO for debugging
+    console.log('=== SaleOrder DTO ===');
+    console.log(JSON.stringify(finalDTO, null, 2));
+    console.log('===========================================');
+
+    // Send to backend
+    if (PaymentMethod?.getway) {
+      // Gateway payment - send to CreatePayment
+      console.log('=== Sending to CreatePayment (Gateway) ===');
+      console.log(
+        JSON.stringify(
+          {orders, amount: amountPayable, gateway: PaymentMethod.getway},
+          null,
+          2,
+        ),
+      );
+      CreatePayment.mutate({
+        amount: amountPayable,
+        gateway: PaymentMethod.getway,
+        description: 'Cart',
+        isDeposit: false,
+        orders: orders,
+      });
+    } else {
+      // Non-gateway payment (wallet or credit service) - send orders array to SaleOrder
+      const saleOrderBody = {
+        submitAt,
+        user: ProfileData?.id,
+        orders: orders, // Send orders array with both reservation and regular items
+      };
+      console.log('=== Sending to SaleOrder (Non-Gateway) ===');
+      console.log(JSON.stringify(saleOrderBody, null, 2));
+      SaleOrder.mutate(saleOrderBody);
     }
   };
   return (
@@ -290,7 +392,9 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                     </BaseText>
                   </View>
                   <CartItemsList
-                    items={items}
+                    items={items.filter(
+                      item => item.product && item.product.type !== undefined,
+                    )}
                     cardComponentMapping={cardComponentMapping}
                   />
                   <OrderSummary

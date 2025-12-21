@@ -8,6 +8,7 @@ import {useGetUnansweredSurvey} from '../../utils/hooks/Survey/useGetUnansweredS
 import {Survey} from '../../services/models/response/SurveyResService';
 import {BannerContent} from '../../services/models/response/AdsResService';
 import MainPageSurveyCard from './components/MainPageSurveyCard';
+import moment from 'jalali-moment';
 
 // داده‌های تستی بنر - برای تست و اپدیت استفاده کنید
 const TEST_BANNER_DATA: BannerContent[] = [
@@ -118,14 +119,14 @@ const HomeScreen: React.FC = () => {
       ) : (
         bannerData.length > 0 && <BannerSlider data={bannerData} />
       )}
-      {hasSurvey && (
+      {hasSurvey ? (
         <View className="Container px-4">
           <MainPageSurveyCard
             survey={previewSurvey}
             isSingleSurvey={isSingleSurvey}
           />
         </View>
-      )}
+      ) : null}
     </View>
   );
 
@@ -137,7 +138,7 @@ const HomeScreen: React.FC = () => {
       keyExtractor={(item, index) => 'key' + index}
       ListHeaderComponent={renderHeader}
       ListFooterComponent={
-        <View className="flex-1 Container pb-[125px]">
+        <View className="flex-1 pb-[125px]">
           <MainShop />
         </View>
       }

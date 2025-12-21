@@ -171,7 +171,7 @@ function MainShop() {
             return (
               <View key={type} className="mb-6">
                 {/* Section Header */}
-                <View className="flex-row justify-between items-center px-4 mb-4">
+                <View className="flex-row justify-between items-center px-5 Container mb-4">
                   <View className="flex-row items-center gap-1">
                     {icon}
                     <BaseText type="body2" color="secondary">
@@ -200,7 +200,7 @@ function MainShop() {
                   ItemSeparatorComponent={() => <View style={{height: 16}} />}
                   showsHorizontalScrollIndicator={false}
                   showsVerticalScrollIndicator={false}
-                  contentContainerStyle={{gap: 16}}
+                  contentContainerStyle={{gap: 16, paddingHorizontal: 16}}
                   ListFooterComponent={
                     isLoading ? (
                       <View style={{marginTop: 16, alignItems: 'center'}}>

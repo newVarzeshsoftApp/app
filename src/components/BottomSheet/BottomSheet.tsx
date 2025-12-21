@@ -11,6 +11,7 @@ import {
   View,
   Dimensions,
   TouchableWithoutFeedback,
+  Platform,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -79,15 +80,23 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
   ) => {
     const [visible, setVisible] = useState(false);
     const insets = useSafeAreaInsets();
-    const {height} = Dimensions.get('screen');
+    const screenDimensions = Dimensions.get('screen');
+    const windowDimensions = Dimensions.get('window');
+    // Use window height instead of screen height to exclude status bar and navigation bar
+    // Subtract top inset (status bar) to get the actual usable height
+    // For snap points calculation, we use window height minus top inset
+    const usableHeight = windowDimensions.height - insets.top;
     const {theme} = useTheme();
 
     /**
      * 1) Convert each user snapPoint % => top offset
      *    preserve array order so [30,80,20] => [0.7*h, 0.2*h, 0.8*h]
      *    - `snapOffsetsInOrder[0]` => the offset for the "first" snap point.
+     *    We use usableHeight and add top inset to position correctly
      */
-    const snapOffsetsInOrder = snapPoints.map(p => height * (1 - p / 100));
+    const snapOffsetsInOrder = snapPoints.map(
+      p => insets.top + usableHeight * (1 - p / 100),
+    );
 
     /**
      * 2) For "nearest" snapping after drag, we want a sorted array
@@ -104,7 +113,9 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     // The smallest offset => largest coverage => sortedSnapOffsets[0]
 
     // Reanimated shared values
-    const topAnimation = useSharedValue(height); // fully hidden by default
+    // Start from full screen height (including safe areas)
+    const maxHeight = screenDimensions.height;
+    const topAnimation = useSharedValue(maxHeight); // fully hidden by default
     const context = useSharedValue(0);
 
     // For scrollable content
@@ -165,7 +176,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
 
     const close = useCallback(() => {
       topAnimation.value = withSpring(
-        height,
+        maxHeight,
         {
           damping: 100,
           stiffness: 400,
@@ -176,7 +187,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
           }
         },
       );
-    }, [height]);
+    }, [maxHeight]);
 
     useImperativeHandle(ref, () => ({expand, close}), [expand, close]);
 
@@ -188,7 +199,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     const backDropAnimation = useAnimatedStyle(() => {
       const opacity = interpolate(
         topAnimation.value,
-        [height, initialSnapOffset],
+        [maxHeight, initialSnapOffset],
         [0, 0.5],
       );
       return {
@@ -227,7 +238,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
         let newOffset = context.value + event.translationY;
 
         // Keep it in range
-        newOffset = clamp(newOffset, minOffset, height);
+        newOffset = clamp(newOffset, minOffset, maxHeight);
         topAnimation.value = newOffset;
       })
       .onEnd(() => {
@@ -235,7 +246,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
 
         if (topAnimation.value > lastSnapOffset + 50) {
           topAnimation.value = withSpring(
-            height,
+            maxHeight,
             {
               damping: 100,
               stiffness: 400,
@@ -271,7 +282,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       })
       .onUpdate(event => {
         const minOffset = sortedSnapOffsets[0];
-        const maxOffset = height;
+        const maxOffset = maxHeight;
         let newOffset = context.value + event.translationY - scrollBegin.value;
 
         newOffset = clamp(newOffset, minOffset, maxOffset);
@@ -286,7 +297,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
 
         if (topAnimation.value > lastSnapOffset + 50) {
           // close
-          topAnimation.value = withSpring(height, {
+          topAnimation.value = withSpring(maxHeight, {
             damping: 100,
             stiffness: 400,
           });
@@ -333,7 +344,11 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
               )}
 
               <View
-                className={`Container gap-4 mx-auto flex-1 android:pb-4 web:pb-4 ${
+                style={{
+                  flex: 1,
+                  paddingBottom: Math.max(insets.bottom, 16), // Ensure buttons are above safe area
+                }}
+                className={`Container gap-4 mx-auto ${
                   disablePan ? 'pt-4' : ''
                 }`}>
                 {Title && (
@@ -364,7 +379,10 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
                       showsHorizontalScrollIndicator={false}
                       showsVerticalScrollIndicator={false}
                       scrollEventThrottle={16}
-                      style={{flex: 1, paddingBottom: 40}}
+                      style={{
+                        flex: 1,
+                        paddingBottom: Math.max(insets.bottom, 40),
+                      }}
                       onScroll={onScroll}>
                       {children}
                     </Animated.ScrollView>

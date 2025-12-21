@@ -15,6 +15,9 @@ export interface UserSaleItemQuey {
   sortOrder?: -1 | 1;
   isReserved?: boolean;
   isGift?: boolean;
+  PageNumber?: number;
+  PageSize?: number;
+  searchQuery?: string;
 }
 //
 export interface UserPaymentQuey {
