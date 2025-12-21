@@ -16,6 +16,7 @@ import ServiceCard from '../../../components/cards/Service/ServiceCard';
 import CreditCard from '../../../components/cards/Service/CreditCard';
 import ReceptionCard from '../../../components/cards/Service/ReceptionCard';
 import PackageCard from '../../../components/cards/Service/PackageCard';
+import ShopReservationCard from '../../../components/cards/shopCard/ShopReservationCard';
 import {useGetUserSaleItem} from '../../../utils/hooks/User/useGetUserSaleItem';
 import {useNavigation} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -26,7 +27,13 @@ type NavigationProp = NativeStackNavigationProp<
   DrawerStackParamList,
   'HomeNavigator'
 >;
-function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
+function MyServise({
+  inMoreScreen = false,
+  isReserved = false,
+}: {
+  inMoreScreen?: boolean;
+  isReserved?: boolean;
+}) {
   const cardComponentMapping: Record<number, React.FC<{data: Content}>> = {
     0: ProductCard,
     1: ServiceCard,
@@ -46,7 +53,7 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
     isFetching,
   } = useGetUserSaleItem({
     limit: limit,
-    isReserved: false,
+    isReserved: isReserved,
     offset,
     status: 0,
   });
@@ -69,6 +76,30 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
 
   const renderItem = useCallback(
     ({item}: {item: Content}) => {
+      // If isReserved is true, use ShopReservationCard
+      if (isReserved) {
+        return (
+          <TouchableOpacity
+            key={item?.id}
+            onPress={() => {
+              navigate('Root', {
+                screen: 'SaleItemNavigator',
+                params: {
+                  screen: 'saleItemDetail',
+                  params: {
+                    id: item?.id,
+                    title: item?.title || 'undefined',
+                    fromReservation: true,
+                  },
+                },
+              });
+            }}>
+            <ShopReservationCard data={item} />
+          </TouchableOpacity>
+        );
+      }
+
+      // Otherwise, use regular cards
       const CardComponent = cardComponentMapping[item?.type!];
       if (CardComponent) {
         return (
@@ -89,7 +120,7 @@ function MyServise({inMoreScreen = false}: {inMoreScreen?: boolean}) {
       }
       return <Text>Unknown type: {item?.type}</Text>;
     },
-    [cardComponentMapping],
+    [cardComponentMapping, isReserved],
   );
 
   return (

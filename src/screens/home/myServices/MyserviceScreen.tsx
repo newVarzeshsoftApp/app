@@ -80,7 +80,10 @@ const MyserviceScreen: React.FC = () => {
               onPress={() => {
                 navigate('Root', {
                   screen: 'SaleItemNavigator',
-                  params: {screen: 'saleItem'},
+                  params: {
+                    screen: 'saleItem',
+                    params: {fromReservations: true},
+                  },
                 });
               }}>
               <BaseText type="body2" color="secondary">

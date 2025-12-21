@@ -12,7 +12,7 @@ export type RootStackParamList = {
     | undefined;
 };
 export type SaleItemStackParamList = {
-  saleItem: undefined;
+  saleItem: {fromReservations?: boolean} | undefined;
   saleItemDetail: {id: number; title: string; fromReservation?: boolean};
 };
 export type ProfileTabParamsList = {

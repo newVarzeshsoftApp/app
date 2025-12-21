@@ -24,18 +24,21 @@ const SaleItemNavigator: React.FC = ({navigation}: any) => {
       <Stack.Screen
         name="saleItem"
         component={SaleItemScreen}
-        options={({navigation}) => ({
-          headerShown: true,
-          unmountOnBlur: true,
-          headerTransparent: false,
-          header: () => (
-            <NavigationHeader
-              CenterText
-              navigation={navigation}
-              title={t('saleItem')}
-            />
-          ),
-        })}
+        options={({route, navigation}) => {
+          const fromReservations = route.params?.fromReservations || false;
+          return {
+            headerShown: true,
+            unmountOnBlur: true,
+            headerTransparent: false,
+            header: () => (
+              <NavigationHeader
+                CenterText
+                navigation={navigation}
+                title={fromReservations ? 'رزروهای من' : t('saleItem')}
+              />
+            ),
+          };
+        }}
       />
       <Stack.Screen name="saleItemDetail" component={SaleItemDetailScreen} />
     </Stack.Navigator>

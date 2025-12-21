@@ -225,10 +225,10 @@ const ShopReservationCard: React.FC<ShopReservationCardProps> = ({data}) => {
         onConfirm={handleConfirmCancel}
       />
 
-    <View className="BaseServiceCard">
-      {/* Content */}
-      <View className=" gap-3">
-        {/* Title */}
+      <View className="BaseServiceCard">
+        {/* Content */}
+        <View className=" gap-3">
+          {/* Title */}
           <View className="flex-row items-center justify-between pb-3 border-b border-neutral-0 dark:border-neutral-dark-400/50 ">
             <View className="flex-1 items-start gap-2">
               <View className="w-full h-[185px] bg-neutral-0 dark:bg-neutral-dark-0 rounded-3xl overflow-hidden">
@@ -237,107 +237,110 @@ const ShopReservationCard: React.FC<ShopReservationCardProps> = ({data}) => {
                   source={{
                     uri: ImageSrc,
                   }}
-              />
-            </View>
+                />
+              </View>
               <View className="flex-row gap-2 items-center">
                 <StatusDot isActive={!!Useable} />
                 <BaseText type="title4">{data?.title}</BaseText>
               </View>
+            </View>
           </View>
-        </View>
 
-        {/* Reservation Details - Two Column Layout */}
+          {/* Reservation Details - Two Column Layout */}
           <View className="gap-3 pt-1 ">
-          {/* Row 1: Date (Right) */}
-          <View className="flex-row justify-between items-center">
-            {reservedDate && (
-              <View className="flex-row  items-center gap-2">
-                <Calendar2
+            {/* Row 1: Date (Right) */}
+            <View className="flex-row justify-between items-center">
+              {reservedDate && (
+                <View className="flex-row  items-center gap-2">
+                  <Calendar2
+                    size={20}
+                    color={isDark ? '#FFFFFF' : '#AAABAD'}
+                    variant="Bold"
+                  />
+                  <BaseText type="body3" color="secondary">
+                    {reservedDate}
+                  </BaseText>
+                </View>
+              )}
+              {duration && (
+                <BaseText type="body3" color="secondary">
+                  {duration} ساعت
+                </BaseText>
+              )}
+            </View>
+
+            {/* Row 2: Start Time (Right) and Duration (Left) */}
+            <View className="flex-row justify-between items-center">
+              {/* Duration - Left */}
+
+              {/* Start Time - Right */}
+              {reservedStartTime && (
+                <View className="flex-row items-center gap-2">
+                  <Clock
+                    size={20}
+                    color={isDark ? '#FFFFFF' : '#AAABAD'}
+                    variant="Bold"
+                  />
+                  <BaseText type="body3" color="secondary">
+                    شروع: {reservedStartTime}
+                  </BaseText>
+                </View>
+              )}
+              {/* Row 3: End Time (Left) */}
+              {reservedEndTime && (
+                <View className="flex-row items-center gap-2">
+                  <BaseText type="body3" color="secondary">
+                    پایان: {reservedEndTime}
+                  </BaseText>
+                </View>
+              )}
+            </View>
+
+            {/* Row 4: SubProducts (Right) */}
+            {subProductsText && (
+              <View className="flex-row justify-end items-center gap-2">
+                <AddSquare
                   size={20}
                   color={isDark ? '#FFFFFF' : '#AAABAD'}
                   variant="Bold"
                 />
                 <BaseText type="body3" color="secondary">
-                  {reservedDate}
+                  {subProductsText}
                 </BaseText>
               </View>
             )}
-            {duration && (
-              <BaseText type="body3" color="secondary">
-                {duration} ساعت
-              </BaseText>
-            )}
-          </View>
 
-          {/* Row 2: Start Time (Right) and Duration (Left) */}
-          <View className="flex-row justify-between items-center">
-            {/* Duration - Left */}
-
-            {/* Start Time - Right */}
-            {reservedStartTime && (
-              <View className="flex-row items-center gap-2">
-                <Clock
-                  size={20}
-                  color={isDark ? '#FFFFFF' : '#AAABAD'}
-                  variant="Bold"
-                />
-                <BaseText type="body3" color="secondary">
-                  شروع: {reservedStartTime}
-                </BaseText>
+            {/* Only show buttons if reservation is active and usable */}
+            {Useable && (
+              <View className="flex-row items-center w-full gap-2 mt-2">
+                <View className="flex-1">
+                  <BaseButton
+                    type="Fill"
+                    color="Black"
+                    size="Large"
+                    text="تمدید رزرو"
+                    rounded
+                    LeftIcon={RepeatCircle}
+                    LeftIconVariant="Bold"
+                    onPress={handleExtendReservation}
+                    disabled={tagsLoading || !derivedTagId}
+                    isLoading={tagsLoading}
+                  />
+                </View>
+                <View className="flex-1">
+                  <BaseButton
+                    type="Outline"
+                    color="Error"
+                    redbutton
+                    size="Large"
+                    rounded
+                    text="لغو رزرو"
+                    onPress={openCancelConfirm}
+                    disabled={!orderId}
+                  />
+                </View>
               </View>
             )}
-            {/* Row 3: End Time (Left) */}
-            {reservedEndTime && (
-              <View className="flex-row items-center gap-2">
-                <BaseText type="body3" color="secondary">
-                  پایان: {reservedEndTime}
-                </BaseText>
-              </View>
-            )}
-          </View>
-
-          {/* Row 4: SubProducts (Right) */}
-          {subProductsText && (
-            <View className="flex-row justify-end items-center gap-2">
-              <AddSquare
-                size={20}
-                color={isDark ? '#FFFFFF' : '#AAABAD'}
-                variant="Bold"
-              />
-              <BaseText type="body3" color="secondary">
-                {subProductsText}
-              </BaseText>
-            </View>
-          )}
-
-          <View className="flex-row items-center w-full gap-2 mt-2">
-            <View className="flex-1">
-              <BaseButton
-                type="Fill"
-                color="Black"
-                size="Large"
-                text="تمدید رزرو"
-                rounded
-                LeftIcon={RepeatCircle}
-                LeftIconVariant="Bold"
-                  onPress={handleExtendReservation}
-                  disabled={tagsLoading || !derivedTagId}
-                  isLoading={tagsLoading}
-              />
-            </View>
-            <View className="flex-1">
-              <BaseButton
-                type="Outline"
-                color="Error"
-                redbutton
-                size="Large"
-                rounded
-                text="لغو رزرو"
-                  onPress={openCancelConfirm}
-                  disabled={!orderId}
-              />
-              </View>
-            </View>
           </View>
         </View>
       </View>
