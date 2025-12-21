@@ -53,6 +53,15 @@ interface UsePreReserveHandlersProps {
     subProducts: any[];
     modifiedQuantities: Record<number, number>;
   }) => void;
+  reservations?: Array<{
+    productId: number;
+    date: string;
+    fromTime: string;
+    toTime: string;
+    dayName: string;
+    status: 'pre-reserved-by-me' | 'pre-reserved-by-others' | 'reserved';
+    userId?: number;
+  }>;
 }
 
 export const usePreReserveHandlers = ({
@@ -64,6 +73,7 @@ export const usePreReserveHandlers = ({
   updateReservation,
   removeReservation,
   onPreReserveSuccess,
+  reservations = [],
 }: UsePreReserveHandlersProps) => {
   const preReserveMutation = usePreReserve();
   const {profile} = useAuth();
@@ -84,8 +94,38 @@ export const usePreReserveHandlers = ({
       }
 
       // اگر قبلاً pre-reserved شده توسط من، فقط bottom sheet را باز کن
+      // این شامل مواردی است که از API با preReservedUserId می‌آیند
       if (isMyReservation) {
         const [fromTime, toTime] = timeSlot.split('_');
+        
+        // اگر preReservedUserId از API آمده و در state نیست، به state اضافه کن
+        // این باعث می‌شود که حذف درست کار کند
+        const hasPreReservedUserId =
+          item.preReservedUserId !== undefined &&
+          item.preReservedUserId === profile?.id;
+        const reservationExists = reservations.find(
+          r =>
+            r.productId === item.id &&
+            r.date === dayData.date &&
+            r.fromTime === fromTime &&
+            r.toTime === toTime,
+        );
+        
+        // اگر preReservedUserId هست ولی در state نیست، اضافه کن
+        // این باعث می‌شود که حذف درست کار کند
+        if (hasPreReservedUserId && !reservationExists) {
+          console.log('➕ Adding preReservedUserId to state before opening bottom sheet');
+          updateReservation(
+            item.id,
+            dayData.date,
+            fromTime,
+            toTime,
+            dayData.name,
+            'pre-reserved-by-me',
+            profile?.id,
+          );
+        }
+        
         // Set selectedItemData before opening bottom sheet
         setSelectedItemData({item, dayData, timeSlot});
 
@@ -203,6 +243,7 @@ export const usePreReserveHandlers = ({
       updateReservation,
       profile?.id,
       onPreReserveSuccess,
+      reservations,
     ],
   );
 
@@ -231,12 +272,15 @@ export const usePreReserveHandlers = ({
       preReserveMutation.mutate(query, {
         onSuccess: () => {
           // Remove from state (don't refetch, just update local state)
+          // IMPORTANT: Always remove from state, even if it came from API (preReservedUserId)
+          // This ensures UI updates correctly
           removeReservation(item.id, dayData.date, fromTime, toTime);
           // Clear reservation state after successful deletion
           preReserveBottomSheetRef.current?.clearCurrentReservationState();
           preReserveBottomSheetRef.current?.close();
           setSelectedItemData(null);
           // Don't refetch - only update local state
+          // SSE event will handle the update for other users
         },
         onError: error => {
           Alert.alert('خطا', error.message || 'خطا در لغو رزرو');

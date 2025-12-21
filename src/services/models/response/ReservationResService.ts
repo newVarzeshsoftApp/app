@@ -138,6 +138,7 @@ export interface ServiceEntryDto {
   selfReserved: boolean;
   registeredId: number | null;
   reservePrice: number;
+  preReservedUserId?: number;
 }
 
 export interface DayEntryDto {

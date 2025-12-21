@@ -80,7 +80,7 @@ const ServiceItem: React.FC<ServiceItemProps> = ({
     // حالت 2: در حال رزرو دیگران
     borderColor = colors.border;
     borderStyle = 'dashed';
-    backgroundColor = 'white';
+    backgroundColor = isDarkMode ? '#2a2d33' : '#FFFFFF';
     textColor = colors.border;
     isDisabled = true;
   } else if (isPreReservedByMe) {

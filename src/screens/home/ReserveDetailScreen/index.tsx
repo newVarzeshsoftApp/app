@@ -88,6 +88,7 @@ const ReserveDetailScreen: React.FC = () => {
 
   // Reservation state management
   const {
+    reservations,
     getItemState,
     updateReservation,
     removeReservation,
@@ -104,7 +105,12 @@ const ReserveDetailScreen: React.FC = () => {
         fromTime: string;
         toTime: string;
         user?: number;
-        status?: 'reserved' | 'pre-reserved' | 'cancelled' | 'locked';
+        status?:
+          | 'reserved'
+          | 'pre-reserved'
+          | 'cancelled'
+          | 'locked'
+          | 'released';
         isLocked?: string | boolean;
         day?: string;
       }) => {
@@ -162,6 +168,7 @@ const ReserveDetailScreen: React.FC = () => {
         console.log('📨 SSE Event received:', {
           product: event.product,
           date: eventDate,
+          specificDate: event.specificDate,
           fromTime: event.fromTime,
           toTime: event.toTime,
           user: event.user,
@@ -169,12 +176,34 @@ const ReserveDetailScreen: React.FC = () => {
           isLocked: event.isLocked,
           isMyAction,
           currentUserId: profile?.id,
+          day: event.day,
+          fullEvent: event,
         });
 
         // Handle locked/unlocked status
         // When locked = someone is reserving this slot
         // Priority: Check status first, then isLocked
-        if (
+        // IMPORTANT: Check for cancellation/release/unlock FIRST before checking for locked
+        if (event.status === 'cancelled' || event.status === 'released') {
+          // Process cancellation/release for ALL users (including current user)
+          // This ensures that when user cancels, the state is updated even if it came from API
+          console.log(`❌ ${event.status} event - removing reservation`, {
+            product: event.product,
+            date: eventDate,
+            fromTime: event.fromTime,
+            toTime: event.toTime,
+            user: event.user,
+            currentUserId: profile?.id,
+            isMyAction,
+            status: event.status,
+          });
+          removeReservation(
+            event.product,
+            eventDate,
+            event.fromTime,
+            event.toTime,
+          );
+        } else if (
           event.status === 'locked' ||
           event.isLocked === true ||
           event.isLocked === 'true'
@@ -239,12 +268,20 @@ const ReserveDetailScreen: React.FC = () => {
           }
         } else if (event.isLocked === false || event.isLocked === 'false') {
           // When unlocked, remove reservation (make it available again)
-          // Only process if it's from another user (user field is defined and not current user)
-          // If user is undefined, ignore it (might be a system event that shouldn't affect current user)
+          // Process for all users except current user
           // If it's from current user, state was already removed in handleDeleteReservation
-          if (event.user !== undefined && !isMyAction) {
+          if (!isMyAction) {
             console.log(
-              '🔓 [User B] Unlock event - removing reservation (from another user)',
+              '🔓 [User B] Unlock event - removing reservation (from another user or system)',
+              {
+                product: event.product,
+                date: eventDate,
+                fromTime: event.fromTime,
+                toTime: event.toTime,
+                user: event.user,
+                currentUserId: profile?.id,
+                isMyAction,
+              },
             );
             removeReservation(
               event.product,
@@ -252,13 +289,9 @@ const ReserveDetailScreen: React.FC = () => {
               event.fromTime,
               event.toTime,
             );
-          } else if (isMyAction) {
-            console.log(
-              '⏭️ [User A] Ignoring unlock event from current user (already removed)',
-            );
           } else {
             console.log(
-              '⏭️ Ignoring unlock event without user field (system event)',
+              '⏭️ [User A] Ignoring unlock event from current user (already removed)',
             );
           }
         }
@@ -317,30 +350,6 @@ const ReserveDetailScreen: React.FC = () => {
                 currentUserId: profile?.id,
                 isMyAction,
               },
-            );
-          }
-        } else if (event.status === 'cancelled') {
-          // Process cancellation only if it's from another user (user field is defined and not current user)
-          // If user is undefined, ignore it (might be a system event that shouldn't affect current user)
-          // If it's from current user, state was already removed in handleDeleteReservation
-          // This ensures real-time updates when someone else cancels
-          if (event.user !== undefined && !isMyAction) {
-            console.log(
-              '❌ [User B] Cancelled event - removing reservation (from another user)',
-            );
-            removeReservation(
-              event.product,
-              eventDate,
-              event.fromTime,
-              event.toTime,
-            );
-          } else if (isMyAction) {
-            console.log(
-              '⏭️ [User A] Ignoring cancelled event from current user (already removed)',
-            );
-          } else {
-            console.log(
-              '⏭️ Ignoring cancelled event without user field (system event)',
             );
           }
         } else {
@@ -431,6 +440,7 @@ const ReserveDetailScreen: React.FC = () => {
     updateReservation,
     removeReservation,
     onPreReserveSuccess: addToPreReservedList, // Callback when pre-reserve succeeds
+    reservations, // Pass reservations to handler
   });
 
   // Wrapper for handleDeleteReservation to also remove from pre-reserved list
