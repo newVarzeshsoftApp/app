@@ -5,6 +5,12 @@ import {
   PriceList,
   Product,
 } from '../../services/models/response/ProductResService';
+import {
+  convertCartItemToReservationStoreItem,
+  getReservationKey,
+} from './ReservationStorage';
+import {useReservationStore} from '../../store/reservationStore';
+import moment from 'jalali-moment';
 
 let EncryptedStorage: typeof EncryptedStorageType;
 
@@ -113,20 +119,74 @@ export const addCart = async (
 
       if (duplicateReservation) {
         // همان خدمت با همان تاریخ و ساعت قبلاً اضافه شده است
-        console.warn(
-          '⚠️ [addCart] Duplicate reservation detected - same service, date, and time already exists',
+        // به‌جای خطا، ایتم موجود را به‌روز می‌کنیم (مخصوصاً secondaryServices)
+        console.log(
+          '🔄 [addCart] Duplicate reservation detected - updating existing item',
           {
             productId: item.product?.id,
             date: newReservation.reservedDate,
             startTime: newReservation.reservedStartTime,
             endTime: newReservation.reservedEndTime,
+            cartId: duplicateReservation.CartId,
           },
         );
-        // برای رزروها، نمی‌توانیم quantity را افزایش دهیم
-        // فقط از اضافه شدن جلوگیری می‌کنیم (یا می‌توانیم خطا بدهیم)
-        throw new Error(
-          'این رزرو قبلاً به سبد خرید اضافه شده است. نمی‌توانید همان خدمت را در همان تاریخ و ساعت دوباره رزرو کنید.',
+
+        // Update existing reservation with new data (especially secondaryServices)
+        const existingIndex = cart.findIndex(
+          cartItem => cartItem.CartId === duplicateReservation.CartId,
         );
+
+        if (existingIndex !== -1) {
+          // Update reservation data, especially secondaryServices
+          cart[existingIndex] = {
+            ...cart[existingIndex],
+            reservationData: {
+              ...cart[existingIndex].reservationData!,
+              secondaryServices: newReservation.secondaryServices,
+            },
+          };
+
+          await setCartStorage(cart);
+
+          // Sync with ReservationStore
+          try {
+            const storeItem = convertCartItemToReservationStoreItem(cart[existingIndex]);
+            if (storeItem) {
+              // Calculate dayName from date
+              const date = cart[existingIndex].reservationData!.reservedDate.split(' ')[0];
+              const dateMoment = moment(date, 'YYYY-MM-DD');
+              const dayOfWeek = dateMoment.day();
+              const dayMap: Record<number, string> = {
+                1: 'day1',
+                2: 'day2',
+                3: 'day3',
+                4: 'day4',
+                5: 'day5',
+                6: 'day6',
+                0: 'day7',
+              };
+              storeItem.dayName = dayMap[dayOfWeek] || 'day1';
+
+              const key = getReservationKey(storeItem);
+              const {updateReservation} = useReservationStore.getState();
+              await updateReservation(key, {
+                subProducts: storeItem.subProducts,
+                modifiedQuantities: storeItem.modifiedQuantities,
+                updatedAt: new Date().toISOString(),
+              });
+              console.log('✅ [addCart] Updated existing reservation in ReservationStore');
+            }
+          } catch (error) {
+            console.error(
+              '⚠️ [addCart] Error syncing updated reservation with ReservationStore:',
+              error,
+            );
+            // Don't throw - cart operation should succeed even if sync fails
+          }
+
+          console.log('✅ [addCart] Updated existing reservation item');
+          return; // Exit early, don't add new item
+        }
       }
 
       // اگر تکراری نبود، آیتم جدید اضافه می‌شود
@@ -138,6 +198,35 @@ export const addCart = async (
         submitAt: new Date().toISOString(),
       };
       cart.push(newItem);
+
+      // Sync with ReservationStore
+      try {
+        const storeItem = convertCartItemToReservationStoreItem(newItem);
+        if (storeItem) {
+          // Calculate dayName from date
+          const date = newItem.reservationData!.reservedDate.split(' ')[0];
+          const dateMoment = moment(date, 'YYYY-MM-DD');
+          const dayOfWeek = dateMoment.day();
+          const dayMap: Record<number, string> = {
+            1: 'day1',
+            2: 'day2',
+            3: 'day3',
+            4: 'day4',
+            5: 'day5',
+            6: 'day6',
+            0: 'day7',
+          };
+          storeItem.dayName = dayMap[dayOfWeek] || 'day1';
+
+          // Add to ReservationStore
+          const {addReservation} = useReservationStore.getState();
+          await addReservation(storeItem);
+          console.log('✅ [addCart] Synced with ReservationStore');
+        }
+      } catch (error) {
+        console.error('⚠️ [addCart] Error syncing with ReservationStore:', error);
+        // Don't throw - cart operation should succeed even if sync fails
+      }
     } else {
       // برای آیتم‌های غیر رزروی
       const existingItemIndex = cart.findIndex(
@@ -190,8 +279,29 @@ export const addCart = async (
 export const removeCart = async (cartId: string): Promise<void> => {
   try {
     const cart = await getCart();
+    const itemToRemove = cart.find(item => item.CartId === cartId);
+
     const updatedCart = cart.filter(item => item.CartId !== cartId);
     await setCartStorage(updatedCart);
+
+    // Sync with ReservationStore if it was a reservation item
+    if (itemToRemove?.isReserve && itemToRemove.reservationData) {
+      try {
+        const storeItem = convertCartItemToReservationStoreItem(itemToRemove);
+        if (storeItem) {
+          const key = getReservationKey(storeItem);
+          const {removeReservation} = useReservationStore.getState();
+          await removeReservation(key);
+          console.log('✅ [removeCart] Synced with ReservationStore');
+        }
+      } catch (error) {
+        console.error(
+          '⚠️ [removeCart] Error syncing with ReservationStore:',
+          error,
+        );
+        // Don't throw - cart operation should succeed even if sync fails
+      }
+    }
   } catch (error) {
     console.error('Error removing from cart:', error);
     throw new Error('Failed to remove item from cart');
@@ -234,8 +344,51 @@ export const updateReservationData = async (
       throw new Error('Cart item not found');
     }
 
-    cart[itemIndex].reservationData = reservationData;
+    const updatedItem = {
+      ...cart[itemIndex],
+      reservationData,
+    };
+
+    cart[itemIndex] = updatedItem;
     await setCartStorage(cart);
+
+    // Sync with ReservationStore
+    if (updatedItem.isReserve && updatedItem.reservationData) {
+      try {
+        const storeItem = convertCartItemToReservationStoreItem(updatedItem);
+        if (storeItem) {
+          // Calculate dayName from date
+          const date = updatedItem.reservationData.reservedDate.split(' ')[0];
+          const dateMoment = moment(date, 'YYYY-MM-DD');
+          const dayOfWeek = dateMoment.day();
+          const dayMap: Record<number, string> = {
+            1: 'day1',
+            2: 'day2',
+            3: 'day3',
+            4: 'day4',
+            5: 'day5',
+            6: 'day6',
+            0: 'day7',
+          };
+          storeItem.dayName = dayMap[dayOfWeek] || 'day1';
+
+          const key = getReservationKey(storeItem);
+          const {updateReservation} = useReservationStore.getState();
+          await updateReservation(key, {
+            subProducts: storeItem.subProducts,
+            modifiedQuantities: storeItem.modifiedQuantities,
+            updatedAt: new Date().toISOString(),
+          });
+          console.log('✅ [updateReservationData] Synced with ReservationStore');
+        }
+      } catch (error) {
+        console.error(
+          '⚠️ [updateReservationData] Error syncing with ReservationStore:',
+          error,
+        );
+        // Don't throw - cart operation should succeed even if sync fails
+      }
+    }
   } catch (error) {
     console.error('Error updating reservation data:', error);
     throw new Error('Failed to update reservation data');
@@ -252,6 +405,24 @@ export const clearCart = async (): Promise<void> => {
       localStorage.removeItem(CART_KEY);
     } else {
       await EncryptedStorage?.removeItem(CART_KEY);
+    }
+
+    // Sync with ReservationStore - remove all cart-linked reservations
+    try {
+      const {reservations, removeReservation} = useReservationStore.getState();
+      for (const reservation of reservations) {
+        if (reservation.cartId) {
+          const key = getReservationKey(reservation);
+          await removeReservation(key);
+        }
+      }
+      console.log('✅ [clearCart] Synced with ReservationStore');
+    } catch (error) {
+      console.error(
+        '⚠️ [clearCart] Error syncing with ReservationStore:',
+        error,
+      );
+      // Don't throw - cart operation should succeed even if sync fails
     }
   } catch (error) {
     console.error('Error clearing cart:', error);

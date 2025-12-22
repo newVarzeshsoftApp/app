@@ -223,7 +223,7 @@ const PreReserveBottomSheet = forwardRef<
 
     // Expose methods to parent
     useImperativeHandle(ref, () => ({
-      open: data => {
+      open: async data => {
         setItem(data.item);
         setDate(data.date);
         setFromTime(data.fromTime);
@@ -232,8 +232,69 @@ const PreReserveBottomSheet = forwardRef<
         setDayData(data.dayData);
         // Store subProducts from item
         setSubProducts((data.item.subProducts as SubProduct[]) || []);
-        // Don't reset modified quantities - keep them based on reservation key
-        // The quantities will be retrieved when needed via getQuantity function
+
+        // Load modifiedQuantities from ReservationStore if exists
+        try {
+          const {
+            findReservationByKey,
+            getReservationKey: getStoreReservationKey,
+          } =
+            require('../../store/reservationStore').useReservationStore.getState();
+
+          // Convert date from Jalali to Gregorian if needed (for store lookup)
+          let gregorianDate = data.date;
+          if (data.date.includes('/')) {
+            const [year, month, day] = data.date.split('/');
+            gregorianDate = moment(
+              `${year}-${month}-${day}`,
+              'jYYYY-jMM-jDD',
+            ).format('YYYY-MM-DD');
+          }
+
+          // Use Gregorian date for store lookup (as stored in ReservationStore)
+          const storeReservationKey = getStoreReservationKey({
+            productId: data.item.id,
+            date: gregorianDate,
+            fromTime: data.fromTime,
+            toTime: data.toTime,
+          });
+
+          const storeReservation = findReservationByKey(storeReservationKey);
+
+          if (storeReservation && storeReservation.modifiedQuantities) {
+            // Update modifiedQuantities state with data from store
+            // Use original date format (Jalali) for local state key
+            const localStateKey = getReservationKey(
+              data.item.id,
+              data.date,
+              data.fromTime,
+              data.toTime,
+            );
+            setModifiedQuantities(prev => ({
+              ...prev,
+              [localStateKey]: storeReservation.modifiedQuantities,
+            }));
+            console.log(
+              '✅ [PreReserveBottomSheet] Loaded modifiedQuantities from ReservationStore:',
+              {
+                storeKey: storeReservationKey,
+                localKey: localStateKey,
+                quantities: storeReservation.modifiedQuantities,
+              },
+            );
+          } else {
+            console.log(
+              'ℹ️ [PreReserveBottomSheet] No reservation found in store for key:',
+              storeReservationKey,
+            );
+          }
+        } catch (error) {
+          console.error(
+            '⚠️ [PreReserveBottomSheet] Error loading from ReservationStore:',
+            error,
+          );
+        }
+
         // On first open (especially on web / slow devices), BottomSheet ref may not be ready yet.
         // Retry expand a few times to avoid "first click doesn't open" bug.
         const tryExpand = (attempt = 0) => {
@@ -303,7 +364,54 @@ const PreReserveBottomSheet = forwardRef<
           return rest;
         }
 
-        return {...prev, [reservationKey]: updatedQuantities};
+        const newState = {...prev, [reservationKey]: updatedQuantities};
+
+        // Sync with ReservationStore if reservation exists (async operation)
+        // Use current state values (item, date, fromTime, toTime)
+        if (item && date && fromTime && toTime) {
+          // Run async operation without blocking state update
+          (async () => {
+            try {
+              const {updateReservation, getReservationKey} =
+                require('../../store/reservationStore').useReservationStore.getState();
+
+              // Convert date from Jalali to Gregorian if needed
+              let gregorianDate = date;
+              if (date.includes('/')) {
+                const [year, month, day] = date.split('/');
+                gregorianDate = moment(
+                  `${year}-${month}-${day}`,
+                  'jYYYY-jMM-jDD',
+                ).format('YYYY-MM-DD');
+              }
+
+              const key = getReservationKey({
+                productId: item.id,
+                date: gregorianDate,
+                fromTime: fromTime,
+                toTime: toTime,
+              });
+
+              // Update ReservationStore
+              // The cart will be automatically updated by the listener in useCart hook
+              await updateReservation(key, {
+                modifiedQuantities: updatedQuantities,
+                updatedAt: new Date().toISOString(),
+              });
+
+              console.log(
+                '✅ [PreReserveBottomSheet] Updated ReservationStore, cart will sync automatically',
+              );
+            } catch (error: any) {
+              console.error(
+                '⚠️ [PreReserveBottomSheet] Error syncing with ReservationStore:',
+                error,
+              );
+            }
+          })();
+        }
+
+        return newState;
       });
     };
 

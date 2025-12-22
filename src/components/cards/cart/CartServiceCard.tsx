@@ -487,34 +487,30 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                 </BaseText>
                 <BaseText type="subtitle3" color="base">
                   {(() => {
-                    // reservedDate is now in Gregorian format (e.g., "2025-12-23 00:00")
+                    // reservedDate is in Gregorian format (e.g., "2025-12-23 00:00" or "2025/12/23")
                     // Convert to Jalali for display
-                    const dateStr = reservationData.reservedDate.split(' ')[0]; // "2025-12-23"
+                    let dateStr = reservationData.reservedDate.split(' ')[0]; // Get date part only
 
-                    console.log('📅 [CartServiceCard] Date conversion debug:', {
-                      originalDate: reservationData.reservedDate,
-                      dateStr,
-                    });
+                    // Normalize date format: convert "2025/12/23" to "2025-12-23"
+                    if (dateStr.includes('/')) {
+                      dateStr = dateStr.replace(/\//g, '-');
+                    }
 
                     try {
                       // Parse as Gregorian date and convert to Jalali for display
                       const gregorianMoment = moment(dateStr, 'YYYY-MM-DD');
+
+                      if (!gregorianMoment.isValid()) {
+                        console.error(
+                          '❌ [CartServiceCard] Invalid date:',
+                          dateStr,
+                        );
+                        return dateStr; // Return as-is if invalid
+                      }
+
+                      // Convert to Jalali
                       const jalaliMoment = gregorianMoment.locale('fa');
-
-                      console.log('📅 [CartServiceCard] Date conversion:', {
-                        isValid: gregorianMoment.isValid(),
-                        gregorianFormat: gregorianMoment.format('YYYY-MM-DD'),
-                        jalaliFormat: jalaliMoment.format('jYYYY/jMM/jDD'),
-                        jYear: jalaliMoment.jYear(),
-                        jMonth: jalaliMoment.jMonth(),
-                        jDate: jalaliMoment.jDate(),
-                      });
-
                       const formatted = jalaliMoment.format('jYYYY/jMM/jDD');
-                      console.log(
-                        '📅 [CartServiceCard] Final formatted:',
-                        formatted,
-                      );
 
                       return formatted;
                     } catch (error) {
@@ -522,9 +518,8 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                         '❌ [CartServiceCard] Date conversion error:',
                         error,
                       );
-                      // Fallback: if parsing fails, try to format directly
-                      const [year, month, day] = dateStr.split('-');
-                      return `${year}/${month}/${day}`;
+                      // Fallback: return original date
+                      return dateStr;
                     }
                   })()}
                 </BaseText>

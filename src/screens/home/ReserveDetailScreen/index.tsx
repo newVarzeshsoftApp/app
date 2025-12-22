@@ -1,4 +1,4 @@
-import React, {useRef, useCallback, useState} from 'react';
+import React, {useRef, useCallback, useState, useEffect} from 'react';
 import {
   View,
   Image,
@@ -42,6 +42,9 @@ import {ReservationSecondaryService} from '../../../utils/helpers/CartStorage';
 // Utils
 import {BottomSheetMethods} from '../../../components/BottomSheet/BottomSheet';
 import {showToast} from '../../../components/Toast/Toast';
+import {useReservationStore} from '../../../store/reservationStore';
+import {getCart} from '../../../utils/helpers/CartStorage';
+import {getReservationStore} from '../../../utils/helpers/ReservationStorage';
 
 type ReserveDetailRouteProp = RouteProp<HomeStackParamList, 'reserveDetail'>;
 
@@ -73,9 +76,15 @@ const ReserveDetailScreen: React.FC = () => {
 
   // Custom Hooks
   const {profile, SKU} = useAuth();
-  const {addToCart} = useCartContext();
+  const {addToCart, items: cartItems, refreshCart} = useCartContext();
   const {timeSlots, isLoading, error, totalPagesForSlots} =
     useReservationData(params);
+  const {
+    loadReservations,
+    syncWithCart,
+    syncWithPreReserve,
+    reservations: storeReservations,
+  } = useReservationStore();
 
   const {
     currentPage,
@@ -95,6 +104,232 @@ const ReserveDetailScreen: React.FC = () => {
     removeReservation,
     isPreReservedByMe,
   } = useReservationState({timeSlots});
+
+  // Sync ReservationStore with Cart and PreReserve on mount and when cart changes
+  useEffect(() => {
+    const syncReservations = async () => {
+      try {
+        // 1. Load reservations from store
+        await loadReservations();
+
+        // 2. Sync with cart items
+        if (cartItems.length > 0) {
+          await syncWithCart(cartItems);
+          console.log(
+            '✅ [ReserveDetailScreen] Synced ReservationStore with Cart',
+          );
+        }
+
+        // 3. Extract pre-reserved items from timeSlots (API data)
+        // Check timeSlots for items with preReservedUserId matching current user
+        const preReservedFromAPI: any[] = [];
+        if (timeSlots.length > 0 && profile?.id) {
+          timeSlots.forEach(slot => {
+            slot.days.forEach(day => {
+              day.items.forEach(item => {
+                if (
+                  item.preReservedUserId === profile.id &&
+                  item.preReservedUserId !== undefined
+                ) {
+                  // This item is pre-reserved by current user
+                  const [fromTime, toTime] = slot.timeSlot.split('_');
+                  preReservedFromAPI.push({
+                    item: item,
+                    date: day.date,
+                    fromTime: fromTime,
+                    toTime: toTime,
+                    dayName: day.name,
+                    subProducts: item.subProducts || [],
+                    modifiedQuantities: {}, // Will be updated from store if exists
+                  });
+                }
+              });
+            });
+          });
+        }
+
+        // 4. Sync with preReservedItems (local state) and API data
+        const allPreReservedItems = [
+          ...preReservedItems,
+          ...preReservedFromAPI,
+        ];
+        if (allPreReservedItems.length > 0) {
+          await syncWithPreReserve(allPreReservedItems);
+          console.log(
+            '✅ [ReserveDetailScreen] Synced ReservationStore with PreReservedItems and API',
+          );
+        }
+
+        // 5. Load updated reservations from store and sync with preReservedItems
+        const storeReservations = await getReservationStore();
+
+        // Update preReservedItems from ReservationStore
+        // This ensures that changes made in CartServiceCard or PreReserveBottomSheet
+        // are reflected in preReservedItems
+        if (storeReservations.length > 0) {
+          const updatedPreReservedItems = preReservedItems.map(item => {
+            const reservationKey = `${item.item.id}-${item.date}-${item.fromTime}-${item.toTime}`;
+
+            // Find matching reservation in store
+            const storeReservation = storeReservations.find(r => {
+              // Convert store date to match format
+              let storeDate = r.date;
+              if (!storeDate.includes('/')) {
+                // Gregorian date, convert to Jalali for comparison
+                const [year, month, day] = item.date.split('/');
+                const gregorianDate = moment(
+                  `${year}-${month}-${day}`,
+                  'jYYYY-jMM-jDD',
+                ).format('YYYY-MM-DD');
+                storeDate = gregorianDate;
+              }
+
+              return (
+                r.productId === item.item.id &&
+                storeDate === item.date &&
+                r.fromTime === item.fromTime &&
+                r.toTime === item.toTime
+              );
+            });
+
+            if (storeReservation) {
+              // Update modifiedQuantities from store
+              return {
+                ...item,
+                modifiedQuantities: storeReservation.modifiedQuantities || {},
+              };
+            }
+            return item;
+          });
+
+          // Only update if there are actual changes
+          const hasChanges = updatedPreReservedItems.some((updated, index) => {
+            const original = preReservedItems[index];
+            return (
+              JSON.stringify(updated.modifiedQuantities) !==
+              JSON.stringify(original?.modifiedQuantities)
+            );
+          });
+
+          if (hasChanges) {
+            setPreReservedItems(updatedPreReservedItems);
+            console.log(
+              '✅ [ReserveDetailScreen] Updated preReservedItems from ReservationStore',
+            );
+          }
+        }
+
+        // 6. Cleanup: Remove reservations from store that are:
+        // - Not in cart
+        // - Not in preReservedItems (local)
+        // - Not in API (timeSlots with preReservedUserId)
+        // This is handled by syncWithPreReserve
+      } catch (error) {
+        console.error(
+          '❌ [ReserveDetailScreen] Error syncing reservations:',
+          error,
+        );
+      }
+    };
+
+    if (!isLoading && timeSlots.length > 0) {
+      syncReservations();
+    }
+  }, [
+    isLoading,
+    cartItems,
+    preReservedItems,
+    timeSlots,
+    profile?.id,
+    loadReservations,
+    syncWithCart,
+    syncWithPreReserve,
+  ]);
+
+  // Additional effect to sync preReservedItems when ReservationStore changes
+  // This handles updates from CartServiceCard or PreReserveBottomSheet
+  useEffect(() => {
+    const syncFromStore = async () => {
+      try {
+        const storeReservations = await getReservationStore();
+
+        if (storeReservations.length === 0 || preReservedItems.length === 0) {
+          return;
+        }
+
+        // Update preReservedItems from ReservationStore
+        const updatedPreReservedItems = preReservedItems.map(item => {
+          // Convert date from Jalali to Gregorian for comparison
+          const [year, month, day] = item.date.split('/');
+          const gregorianDate = moment(
+            `${year}-${month}-${day}`,
+            'jYYYY-jMM-jDD',
+          ).format('YYYY-MM-DD');
+
+          // Find matching reservation in store
+          const storeReservation = storeReservations.find(
+            r =>
+              r.productId === item.item.id &&
+              r.date === gregorianDate &&
+              r.fromTime === item.fromTime &&
+              r.toTime === item.toTime,
+          );
+
+          if (storeReservation) {
+            // Update modifiedQuantities from store
+            const currentQuantities = item.modifiedQuantities || {};
+            const storeQuantities = storeReservation.modifiedQuantities || {};
+
+            // Check if quantities have changed
+            if (
+              JSON.stringify(currentQuantities) !==
+              JSON.stringify(storeQuantities)
+            ) {
+              return {
+                ...item,
+                modifiedQuantities: storeQuantities,
+              };
+            }
+          }
+          return item;
+        });
+
+        // Check if any item was updated
+        const hasChanges = updatedPreReservedItems.some((updated, index) => {
+          const original = preReservedItems[index];
+          return (
+            JSON.stringify(updated.modifiedQuantities) !==
+            JSON.stringify(original?.modifiedQuantities)
+          );
+        });
+
+        if (hasChanges) {
+          setPreReservedItems(updatedPreReservedItems);
+          console.log(
+            '✅ [ReserveDetailScreen] Synced preReservedItems from ReservationStore',
+          );
+        }
+      } catch (error) {
+        console.error(
+          '❌ [ReserveDetailScreen] Error syncing preReservedItems from store:',
+          error,
+        );
+      }
+    };
+
+    // Subscribe to ReservationStore changes
+    const unsubscribe = useReservationStore.subscribe(state => {
+      // When reservations change, sync preReservedItems
+      syncFromStore();
+    });
+
+    // Initial sync
+    syncFromStore();
+
+    return () => {
+      unsubscribe();
+    };
+  }, [preReservedItems]);
 
   // SSE Connection for real-time updates
   useSSEConnection({
@@ -381,7 +616,7 @@ const ReserveDetailScreen: React.FC = () => {
 
   // Add item to pre-reserved list
   const addToPreReservedList = useCallback(
-    (data: {
+    async (data: {
       item: ServiceEntryDto;
       date: string;
       fromTime: string;
@@ -422,6 +657,39 @@ const ReserveDetailScreen: React.FC = () => {
             }),
           ),
         });
+
+        // Sync with ReservationStore
+        try {
+          // Convert date from Jalali to Gregorian for storage
+          const [year, month, day] = data.date.split('/');
+          const gregorianDate = moment(
+            `${year}-${month}-${day}`,
+            'jYYYY-jMM-jDD',
+          ).format('YYYY-MM-DD');
+
+          const storeItem = {
+            productId: data.item.id,
+            productTitle: data.item.title,
+            date: gregorianDate,
+            fromTime: data.fromTime,
+            toTime: data.toTime,
+            dayName: data.dayName,
+            cartId: undefined, // Not in cart yet
+            subProducts: data.subProducts,
+            modifiedQuantities: data.modifiedQuantities,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+
+          const {addReservation} = useReservationStore.getState();
+          await addReservation(storeItem);
+          console.log('✅ [addToPreReservedList] Synced with ReservationStore');
+        } catch (error) {
+          console.error(
+            '⚠️ [addToPreReservedList] Error syncing with ReservationStore:',
+            error,
+          );
+        }
       }
     },
     [preReservedItems],
@@ -429,7 +697,7 @@ const ReserveDetailScreen: React.FC = () => {
 
   // Remove item from pre-reserved list
   const removeFromPreReservedList = useCallback(
-    (itemId: number, date: string, fromTime: string, toTime: string) => {
+    async (itemId: number, date: string, fromTime: string, toTime: string) => {
       setPreReservedItems(prev =>
         prev.filter(
           item =>
@@ -441,6 +709,28 @@ const ReserveDetailScreen: React.FC = () => {
             ),
         ),
       );
+
+      // Sync with ReservationStore
+      try {
+        // Convert date from Jalali to Gregorian for key matching
+        const [year, month, day] = date.split('/');
+        const gregorianDate = moment(
+          `${year}-${month}-${day}`,
+          'jYYYY-jMM-jDD',
+        ).format('YYYY-MM-DD');
+
+        const key = `${itemId}-${gregorianDate}-${fromTime}-${toTime}`;
+        const {removeReservation} = useReservationStore.getState();
+        await removeReservation(key);
+        console.log(
+          '✅ [removeFromPreReservedList] Synced with ReservationStore',
+        );
+      } catch (error) {
+        console.error(
+          '⚠️ [removeFromPreReservedList] Error syncing with ReservationStore:',
+          error,
+        );
+      }
     },
     [],
   );
@@ -868,6 +1158,9 @@ const ReserveDetailScreen: React.FC = () => {
         for (const item of allItems) {
           await addSingleReservationToCart(item);
         }
+
+        // Refresh cart to ensure UI is updated (especially if items were updated instead of added)
+        await refreshCart();
 
         // Clear all pre-reserved items and reservation state
         setPreReservedItems([]);
