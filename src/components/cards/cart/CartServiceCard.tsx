@@ -145,10 +145,34 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
           // Create default service with quantity 0
           // We need to get dates from reservationData
           const reservedDate = reservationData?.reservedDate || '';
-          const startDate = reservedDate.split(' ')[0] || '';
+          let startDate = reservedDate.split(' ')[0] || '';
+
+          // Convert to Gregorian if needed
+          const startYear = parseInt(startDate.split('-')[0]);
+          if ((startYear >= 1300 && startYear <= 1500) || startYear > 2000) {
+            try {
+              const [jYear, jMonth, jDay] = startDate.split('-');
+              const converted = moment
+                .from(`${jYear}-${jMonth}-${jDay}`, 'fa', 'jYYYY-jMM-jDD')
+                .format('YYYY-MM-DD');
+              const convertedYear = parseInt(converted.split('-')[0]);
+              if (convertedYear >= 1900 && convertedYear <= 2100) {
+                startDate = converted;
+              }
+            } catch (error) {
+              console.error(
+                '❌ [CartServiceCard] Error converting startDate in subProductDetails:',
+                startDate,
+                error,
+              );
+            }
+          }
+
           const duration = subProduct.product?.duration || 1;
           const endDate = startDate
-            ? moment(startDate).add(duration, 'days').format('YYYY-MM-DD')
+            ? moment(startDate, 'YYYY-MM-DD')
+                .add(duration, 'days')
+                .format('YYYY-MM-DD')
             : '';
 
           return {
@@ -193,10 +217,34 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
 
       // Create new service entry
       const reservedDate = reservationData.reservedDate || '';
-      const startDate = reservedDate.split(' ')[0] || '';
+      let startDate = reservedDate.split(' ')[0] || '';
+
+      // Convert to Gregorian if needed (check if year > 2000 indicates Jalali)
+      const startYear = parseInt(startDate.split('-')[0]);
+      if ((startYear >= 1300 && startYear <= 1500) || startYear > 2000) {
+        try {
+          const [jYear, jMonth, jDay] = startDate.split('-');
+          const converted = moment
+            .from(`${jYear}-${jMonth}-${jDay}`, 'fa', 'jYYYY-jMM-jDD')
+            .format('YYYY-MM-DD');
+          const convertedYear = parseInt(converted.split('-')[0]);
+          if (convertedYear >= 1900 && convertedYear <= 2100) {
+            startDate = converted;
+          }
+        } catch (error) {
+          console.error(
+            '❌ [CartServiceCard] Error converting startDate:',
+            startDate,
+            error,
+          );
+        }
+      }
+
       const duration = subProduct.product?.duration || 1;
       const endDate = startDate
-        ? moment(startDate).add(duration, 'days').format('YYYY-MM-DD')
+        ? moment(startDate, 'YYYY-MM-DD')
+            .add(duration, 'days')
+            .format('YYYY-MM-DD')
         : '';
 
       const newQuantity = Math.max(0, 0 + delta); // Start from 0 if not in list

@@ -36,7 +36,7 @@ const PaymentButtons: React.FC<PaymentButtonsProps> = ({
       {Steps === 2 && (
         <BaseButton
           onPress={BackStep}
-          type="Tonal"
+          type="Outline"
           redbutton
           color="Black"
           size="Large"

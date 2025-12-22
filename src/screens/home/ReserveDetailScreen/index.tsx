@@ -886,15 +886,23 @@ const ReserveDetailScreen: React.FC = () => {
         ),
       });
 
-      // Convert date from Jalali format (YYYY/MM/DD) to Gregorian (YYYY-MM-DD)
-      const [year, month, day] = date.split('/');
-      // Parse as Jalali date and convert to Gregorian
-      const gregorianDate = moment
-        .from(`${year}-${month}-${day}`, 'fa', 'YYYY-MM-DD')
-        .format('YYYY-MM-DD');
+      // Date is already in Gregorian format (YYYY-MM-DD)
+      // No conversion needed - just ensure it's in the correct format
+      let gregorianDate: string;
 
-      console.log('📅 [addSingleReservationToCart] Date conversion:', {
-        originalJalaliDate: date,
+      if (date.includes('/')) {
+        // Date is in format YYYY/MM/DD, convert to YYYY-MM-DD
+        gregorianDate = date.replace(/\//g, '-');
+      } else if (date.includes('-')) {
+        // Date is already in format YYYY-MM-DD
+        gregorianDate = date;
+      } else {
+        // Fallback: use as is
+        gregorianDate = date;
+      }
+
+      console.log('📅 [addSingleReservationToCart] Date (no conversion):', {
+        originalDate: date,
         gregorianDate,
       });
 

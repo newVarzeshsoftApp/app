@@ -137,36 +137,175 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
         ? item?.SelectedPriceList?.discountOnlineShopPercentage ?? 0
         : item?.product?.discount ?? 0;
 
-      // Convert reservedDate from Gregorian to Jalali format
-      // reservedDate is in format "2025-12-23 00:00" (Gregorian)
-      // Convert to Jalali format "2647-03-12"
-      const reservedDateGregorian = reservationData.reservedDate.split(' ')[0]; // "2025-12-23"
-      const reservedDateJalali = moment(reservedDateGregorian, 'YYYY-MM-DD')
-        .locale('fa')
-        .format('jYYYY-jMM-jDD'); // "2647-03-12"
+      // Convert dates to Gregorian format if needed
+      // Check if reservedDate is in Jalali format
+      let reservedDateGregorian = reservationData.reservedDate.split(' ')[0]; // Get date part
+      const reservedYear = parseInt(reservedDateGregorian.split('-')[0]);
 
-      // Calculate end date (1 day after start date) in Jalali
-      const endDateJalali = moment(reservedDateGregorian, 'YYYY-MM-DD')
+      console.log('📅 [CartScreen] Processing reservedDate:', {
+        original: reservationData.reservedDate,
+        datePart: reservedDateGregorian,
+        year: reservedYear,
+      });
+
+      // If year is between 1300-1500, it's Jalali (normal Jalali years)
+      // Normal Gregorian years are between 1900-2100
+      if (reservedYear >= 1300 && reservedYear <= 1500) {
+        try {
+          // This is Jalali date, convert to Gregorian
+          const [jYear, jMonth, jDay] = reservedDateGregorian.split('-');
+          const converted = moment
+            .from(`${jYear}-${jMonth}-${jDay}`, 'fa', 'jYYYY-jMM-jDD')
+            .format('YYYY-MM-DD');
+
+          // Validate conversion (check if year is reasonable for Gregorian)
+          const convertedYear = parseInt(converted.split('-')[0]);
+          if (convertedYear >= 1900 && convertedYear <= 2100) {
+            reservedDateGregorian = converted;
+            console.log('✅ [CartScreen] Converted Jalali to Gregorian:', {
+              from: reservedDateGregorian,
+              to: converted,
+            });
+          } else {
+            console.warn(
+              '⚠️ [CartScreen] Invalid date conversion result:',
+              reservedDateGregorian,
+              '->',
+              converted,
+            );
+            // Keep original if conversion seems wrong
+          }
+        } catch (error) {
+          console.error(
+            '❌ [CartScreen] Error converting date:',
+            reservedDateGregorian,
+            error,
+          );
+          // Keep original if conversion fails
+        }
+      } else if (reservedYear > 2000) {
+        // This is likely a corrupted date (like 3268), try to fix it
+        // The date might have been incorrectly stored as Jalali when it should be Gregorian
+        // Or it might be a double conversion issue
+        console.warn(
+          '⚠️ [CartScreen] Suspicious date year detected:',
+          reservedYear,
+          '- Attempting to fix corrupted date',
+        );
+
+        // Try different approaches to fix the date
+        try {
+          const [jYear, jMonth, jDay] = reservedDateGregorian.split('-');
+          const yearNum = parseInt(jYear);
+
+          // Approach 1: If year is around 2600-3300, it might be a double conversion
+          // Try subtracting ~1800 to get a reasonable Jalali year (1400-1500)
+          if (yearNum > 2500) {
+            const adjustedYear = yearNum - 1800;
+            if (adjustedYear >= 1300 && adjustedYear <= 1500) {
+              const converted = moment
+                .from(
+                  `${adjustedYear}-${jMonth}-${jDay}`,
+                  'fa',
+                  'jYYYY-jMM-jDD',
+                )
+                .format('YYYY-MM-DD');
+              const convertedYear = parseInt(converted.split('-')[0]);
+              if (convertedYear >= 1900 && convertedYear <= 2100) {
+                reservedDateGregorian = converted;
+                console.log(
+                  '✅ [CartScreen] Fixed corrupted date (method 1):',
+                  {
+                    from: reservationData.reservedDate,
+                    to: converted,
+                  },
+                );
+              }
+            }
+          }
+
+          // If still not fixed, try treating it as if it's already Gregorian but with wrong year
+          // This shouldn't happen, but as a last resort
+          if (reservedYear > 3000) {
+            console.error(
+              '❌ [CartScreen] Cannot fix corrupted date - year too large:',
+              reservedYear,
+            );
+            // Keep original - will likely cause API error, but better than crashing
+          }
+        } catch (error) {
+          console.error(
+            '❌ [CartScreen] Could not fix corrupted date:',
+            reservedDateGregorian,
+            error,
+          );
+        }
+      }
+
+      // Calculate end date (1 day after start date) in Gregorian
+      const endDateGregorian = moment(reservedDateGregorian, 'YYYY-MM-DD')
         .add(1, 'day')
-        .locale('fa')
-        .format('jYYYY-jMM-jDD');
+        .format('YYYY-MM-DD');
 
       // Build secondaryServices with quantity (one item per subService with quantity field)
+      // Convert dates from Jalali to Gregorian if needed
       const secondaryServices = reservationData.secondaryServices?.map(
         subService => {
-          // Convert start and end dates from Gregorian to Jalali
-          const startJalali = moment(subService.start, 'YYYY-MM-DD')
-            .locale('fa')
-            .format('jYYYY-jMM-jDD');
-          const endJalali = moment(subService.end, 'YYYY-MM-DD')
-            .locale('fa')
-            .format('jYYYY-jMM-jDD');
+          // Convert start date if needed
+          let startGregorian = subService.start;
+          const startYear = parseInt(startGregorian.split('-')[0]);
+          if ((startYear >= 1300 && startYear <= 1500) || startYear > 2000) {
+            try {
+              // This is Jalali date, convert to Gregorian
+              const [jYear, jMonth, jDay] = startGregorian.split('-');
+              const converted = moment
+                .from(`${jYear}-${jMonth}-${jDay}`, 'fa', 'jYYYY-jMM-jDD')
+                .format('YYYY-MM-DD');
+
+              // Validate conversion
+              const convertedYear = parseInt(converted.split('-')[0]);
+              if (convertedYear >= 1900 && convertedYear <= 2100) {
+                startGregorian = converted;
+              }
+            } catch (error) {
+              console.error(
+                '❌ [CartScreen] Error converting start date:',
+                startGregorian,
+                error,
+              );
+            }
+          }
+
+          // Convert end date if needed
+          let endGregorian = subService.end;
+          const endYear = parseInt(endGregorian.split('-')[0]);
+          if ((endYear >= 1300 && endYear <= 1500) || endYear > 2000) {
+            try {
+              // This is Jalali date, convert to Gregorian
+              const [jYear, jMonth, jDay] = endGregorian.split('-');
+              const converted = moment
+                .from(`${jYear}-${jMonth}-${jDay}`, 'fa', 'jYYYY-jMM-jDD')
+                .format('YYYY-MM-DD');
+
+              // Validate conversion
+              const convertedYear = parseInt(converted.split('-')[0]);
+              if (convertedYear >= 1900 && convertedYear <= 2100) {
+                endGregorian = converted;
+              }
+            } catch (error) {
+              console.error(
+                '❌ [CartScreen] Error converting end date:',
+                endGregorian,
+                error,
+              );
+            }
+          }
 
           return {
             user: subService.user,
             product: subService.product,
-            start: startJalali,
-            end: endJalali,
+            start: startGregorian, // Gregorian format (YYYY-MM-DD)
+            end: endGregorian, // Gregorian format (YYYY-MM-DD)
             discount: subService.discount,
             type: subService.type,
             tax: subService.tax ?? 0, // Must be 0 if null
@@ -176,6 +315,44 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
         },
       );
 
+      // Convert reservedDate to Gregorian if needed
+      let reservedDateFormatted = reservationData.reservedDate;
+      const reservedDateOnly = reservationData.reservedDate.split(' ')[0];
+      const reservedYearOnly = parseInt(reservedDateOnly.split('-')[0]);
+      if (
+        (reservedYearOnly >= 1300 && reservedYearOnly <= 1500) ||
+        reservedYearOnly > 2000
+      ) {
+        try {
+          // This is Jalali date, convert to Gregorian
+          const [jYear, jMonth, jDay] = reservedDateOnly.split('-');
+          const timePart =
+            reservationData.reservedDate.split(' ')[1] || '00:00';
+          const gregorianDateOnly = moment
+            .from(`${jYear}-${jMonth}-${jDay}`, 'fa', 'jYYYY-jMM-jDD')
+            .format('YYYY-MM-DD');
+
+          // Validate conversion
+          const convertedYear = parseInt(gregorianDateOnly.split('-')[0]);
+          if (convertedYear >= 1900 && convertedYear <= 2100) {
+            reservedDateFormatted = `${gregorianDateOnly} ${timePart}`;
+          } else {
+            console.warn(
+              '⚠️ [CartScreen] Invalid reservedDate conversion:',
+              reservedDateOnly,
+              '->',
+              gregorianDateOnly,
+            );
+          }
+        } catch (error) {
+          console.error(
+            '❌ [CartScreen] Error converting reservedDate:',
+            reservedDateOnly,
+            error,
+          );
+        }
+      }
+
       return {
         isReserve: true,
         user: ProfileData?.id || 0,
@@ -183,11 +360,11 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
         price: amount,
         discount: (amount * discount) / 100,
         tax: item?.product?.tax ?? 0, // Must be 0 if null
-        reservedDate: reservationData.reservedDate, // Keep Gregorian format (YYYY-MM-DD HH:mm)
+        reservedDate: reservedDateFormatted, // Gregorian format (YYYY-MM-DD HH:mm)
         reservedStartTime: reservationData.reservedStartTime,
         reservedEndTime: reservationData.reservedEndTime,
-        start: reservedDateJalali, // Jalali format (jYYYY-jMM-jDD)
-        end: endDateJalali, // Jalali format (jYYYY-jMM-jDD)
+        start: reservedDateGregorian, // Gregorian format (YYYY-MM-DD)
+        end: endDateGregorian, // Gregorian format (YYYY-MM-DD)
         description: reservationData.description || null,
         secondaryServices: secondaryServices || undefined,
       };
