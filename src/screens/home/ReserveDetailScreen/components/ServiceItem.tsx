@@ -121,7 +121,7 @@ const ServiceItem: React.FC<ServiceItemProps> = ({
         backgroundColor,
         borderWidth: 1,
         minHeight: 60,
-        opacity: isLoading ? 0.5 : 1,
+        opacity: isLoading || isDisabled ? 0.5 : 1,
       }}>
       {isLoading ? (
         <ActivityIndicator size="small" color={colors.border} />

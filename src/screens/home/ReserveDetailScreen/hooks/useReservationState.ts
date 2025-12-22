@@ -1,5 +1,8 @@
 import {useState, useCallback, useMemo} from 'react';
-import {ServiceEntryDto, DayEntryDto} from '../../../../services/models/response/ReservationResService';
+import {
+  ServiceEntryDto,
+  DayEntryDto,
+} from '../../../../services/models/response/ReservationResService';
 import {useAuth} from '../../../../utils/hooks/useAuth';
 import moment from 'jalali-moment';
 
@@ -27,36 +30,54 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
   const isPastDateTime = useCallback(
     (date: string, fromTime: string): boolean => {
       try {
-        // Parse date (format: YYYY/MM/DD - Jalali)
-        const [year, month, day] = date.split('/');
-        const jalaliDate = moment(`${year}-${month}-${day}`, 'jYYYY-jMM-jDD');
-        
-        // Get today's date in Jalali (start of day)
-        const today = moment().local('fa').startOf('day');
-        const itemDate = jalaliDate.startOf('day');
-        
+        // Parse date (format: YYYY/MM/DD - could be Gregorian or Jalali)
+        // API returns dates in Gregorian format (e.g., "2025/12/22")
+        const [year, month, day] = date.split('/').map(Number);
+
+        // Get current moment
+        const now = moment();
+
+        // Parse item date - try Gregorian first (API format)
+        // If year > 2000, it's likely Gregorian, otherwise might be Jalali
+        let itemDate: moment.Moment;
+        if (year > 2000) {
+          // Gregorian date (API format)
+          itemDate = moment(`${year}-${month}-${day}`, 'YYYY-MM-DD');
+        } else {
+          // Jalali date (fallback)
+          itemDate = moment(`${year}-${month}-${day}`, 'jYYYY-jMM-jDD').locale(
+            'fa',
+          );
+        }
+
+        // Get today's date (start of day)
+        const today = now.clone().startOf('day');
+        const itemDateStart = itemDate.clone().startOf('day');
+
         // Compare dates
-        const dateDiff = itemDate.diff(today, 'days');
-        
+        const dateDiff = itemDateStart.diff(today, 'days');
+
         // If date is in the past, return true
         if (dateDiff < 0) {
           return true;
         }
-        
+
         // If date is today, check time
         if (dateDiff === 0) {
           const [hour, minute] = fromTime.split(':').map(Number);
-          const now = moment();
-          const itemTime = moment()
+
+          // Create item datetime by combining item date with item time
+          const itemDateTime = itemDate
+            .clone()
             .hour(hour)
             .minute(minute || 0)
             .second(0)
             .millisecond(0);
-          
+
           // If current time is after or equal to item time, it's past
-          return now.isSameOrAfter(itemTime);
+          return now.isSameOrAfter(itemDateTime);
         }
-        
+
         // Future date, not past
         return false;
       } catch (error) {
@@ -72,13 +93,13 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
     (item: ServiceEntryDto, dayData: DayEntryDto, timeSlot: string) => {
       const [fromTime, toTime] = timeSlot.split('_');
       const itemKey = `${item.id}_${dayData.date}_${fromTime}_${toTime}`;
-      
+
       // Check if date/time is in the past
       const isPast = isPastDateTime(dayData.date, fromTime);
-      
+
       // Check if this item was cancelled
       const isCancelled = cancelledItems.has(itemKey);
-      
+
       const reservation = reservations.find(
         r =>
           r.productId === item.id &&
@@ -115,8 +136,7 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
       // Return state based on item data and preReservedUserId
       return {
         isPreReserved: item.isPreReserved || isPreReservedByMeFromData,
-        selfReserved:
-          item.selfReserved || isPreReservedByMeFromData,
+        selfReserved: item.selfReserved || isPreReservedByMeFromData,
         isReserve: item.isReserve,
         isPast,
       };
@@ -144,7 +164,7 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
         status,
         userId,
       });
-      
+
       setReservations(prev => {
         const existingIndex = prev.findIndex(
           r =>
@@ -166,7 +186,10 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
             status,
             userId,
           };
-          console.log('✅ Updated existing reservation:', updated[existingIndex]);
+          console.log(
+            '✅ Updated existing reservation:',
+            updated[existingIndex],
+          );
           return updated;
         } else {
           // Add new
@@ -196,11 +219,11 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
         fromTime,
         toTime,
       });
-      
+
       // Add to cancelled items set to ignore preReservedUserId from API
       const itemKey = `${productId}_${date}_${fromTime}_${toTime}`;
       setCancelledItems(prev => new Set(prev).add(itemKey));
-      
+
       setReservations(prev => {
         const filtered = prev.filter(
           r =>
@@ -228,12 +251,12 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
     (item: ServiceEntryDto, dayData: DayEntryDto, timeSlot: string) => {
       const [fromTime, toTime] = timeSlot.split('_');
       const itemKey = `${item.id}_${dayData.date}_${fromTime}_${toTime}`;
-      
+
       // If item was cancelled, it's not pre-reserved by me
       if (cancelledItems.has(itemKey)) {
         return false;
       }
-      
+
       const reservation = reservations.find(
         r =>
           r.productId === item.id &&
@@ -242,12 +265,12 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
           r.toTime === toTime &&
           r.status === 'pre-reserved-by-me',
       );
-      
+
       // Also check if preReservedUserId matches current user
       const isPreReservedByMeFromData =
         item.preReservedUserId !== undefined &&
         item.preReservedUserId === profile?.id;
-      
+
       return !!reservation || isPreReservedByMeFromData;
     },
     [reservations, profile?.id, cancelledItems],
@@ -282,4 +305,3 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
     clearCancelledItem,
   };
 };
-

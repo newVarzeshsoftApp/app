@@ -200,7 +200,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
       const opacity = interpolate(
         topAnimation.value,
         [maxHeight, initialSnapOffset],
-        [0, 0.5],
+        [0, 0.7],
       );
       return {
         opacity,

@@ -153,8 +153,11 @@ const ShopReservationCard: React.FC<ShopReservationCardProps> = ({data}) => {
         )
       : moment().format('YYYY/MM/DD');
 
+    // Calculate endDate: add 7 days to current end date (or startDate if endDate doesn't exist)
     const endDate = data?.end
-      ? moment(data.end).format('YYYY/MM/DD')
+      ? moment(data.end).add(7, 'days').format('YYYY/MM/DD')
+      : startDate
+      ? moment(startDate, 'YYYY/MM/DD').add(7, 'days').format('YYYY/MM/DD')
       : undefined;
 
     const startTime = reservedStartTime || undefined;

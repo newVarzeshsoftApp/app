@@ -12,5 +12,9 @@ export const useGetReservation = (
     queryFn: () => ReservationService.GetReservation(query),
     enabled: enabled !== false && !!query.tagId && !!query.start,
     retry: false,
+    staleTime: 0, // Data is always considered stale, will refetch every time
+    gcTime: 0, // Don't cache data (gcTime replaces cacheTime in v5)
+    refetchOnMount: true, // Always refetch on mount
+    refetchOnWindowFocus: true, // Refetch when window regains focus
   });
 };
