@@ -402,6 +402,25 @@ const ReserveDetailScreen: React.FC = () => {
       if (!exists) {
         setPreReservedItems(prev => [...prev, data]);
         console.log('✅ Added to pre-reserved list:', data.item.title);
+        console.log('📦 [addToPreReservedList] SubProducts State:', {
+          subProducts: data.subProducts,
+          subProductsLength: data.subProducts?.length || 0,
+          subProductsDetails: data.subProducts?.map(sp => ({
+            id: sp.id,
+            productId: sp.product?.id,
+            productTitle: sp.product?.title,
+            amount: sp.amount,
+          })),
+        });
+        console.log('🔢 [addToPreReservedList] Modified Quantities State:', {
+          modifiedQuantities: data.modifiedQuantities,
+          quantitiesDetails: Object.entries(data.modifiedQuantities || {}).map(
+            ([id, qty]) => ({
+              subProductId: id,
+              quantity: qty,
+            }),
+          ),
+        });
       }
     },
     [preReservedItems],
@@ -559,6 +578,23 @@ const ReserveDetailScreen: React.FC = () => {
       const {item, date, fromTime, toTime, subProducts, modifiedQuantities} =
         data;
 
+      console.log('🛒 [addSingleReservationToCart] Starting - Current State:', {
+        itemId: item.id,
+        itemTitle: item.title,
+        date,
+        fromTime,
+        toTime,
+        subProducts: subProducts,
+        subProductsLength: subProducts?.length || 0,
+        modifiedQuantities: modifiedQuantities,
+        modifiedQuantitiesDetails: Object.entries(modifiedQuantities || {}).map(
+          ([id, qty]) => ({
+            subProductId: id,
+            quantity: qty,
+          }),
+        ),
+      });
+
       // Convert date from Jalali format (YYYY/MM/DD) to Gregorian (YYYY-MM-DD)
       const [year, month, day] = date.split('/');
       const gregorianDate = moment(
@@ -569,8 +605,23 @@ const ReserveDetailScreen: React.FC = () => {
       // Build secondaryServices from subProducts with modified quantities
       const secondaryServices: ReservationSecondaryService[] = [];
       if (subProducts && subProducts.length > 0) {
+        console.log(
+          '📦 [addSingleReservationToCart] Processing subProducts:',
+          subProducts.length,
+        );
         subProducts.forEach(subProduct => {
           const quantity = modifiedQuantities[subProduct.id] || 0;
+          console.log(
+            `🔍 [addSingleReservationToCart] SubProduct ${subProduct.id}:`,
+            {
+              subProductId: subProduct.id,
+              productId: subProduct.product?.id,
+              productTitle: subProduct.product?.title,
+              quantityFromState: quantity,
+              hasProduct: !!subProduct.product,
+              willAdd: quantity > 0 && !!subProduct.product,
+            },
+          );
           if (quantity > 0 && subProduct.product) {
             // Calculate end date based on duration (default to 1 day if not available)
             const duration = subProduct.product.duration || 1;
@@ -579,7 +630,7 @@ const ReserveDetailScreen: React.FC = () => {
               .add(duration, 'days')
               .format('YYYY-MM-DD');
 
-            secondaryServices.push({
+            const secondaryService = {
               user: profile?.id || 0,
               product: subProduct.product.id,
               start: startDate,
@@ -590,16 +641,33 @@ const ReserveDetailScreen: React.FC = () => {
               price: subProduct.product.price || subProduct.amount || 0,
               quantity: quantity,
               subProductId: subProduct.id,
-            });
+            };
+
+            secondaryServices.push(secondaryService);
+            console.log(
+              `✅ [addSingleReservationToCart] Added secondaryService:`,
+              secondaryService,
+            );
           }
         });
+      } else {
+        console.log(
+          '⚠️ [addSingleReservationToCart] No subProducts found or empty array',
+        );
       }
+
+      console.log(
+        '📋 [addSingleReservationToCart] Final secondaryServices array:',
+        {
+          count: secondaryServices.length,
+          services: secondaryServices,
+        },
+      );
 
       // Convert ServiceEntryDto to Product
       const product = convertServiceEntryToProduct(item);
 
-      // Add to cart with reservation data
-      await addToCart({
+      const cartData = {
         product,
         quantity: 1,
         isReserve: true,
@@ -611,7 +679,28 @@ const ReserveDetailScreen: React.FC = () => {
             secondaryServices.length > 0 ? secondaryServices : undefined,
           description: null,
         },
+      };
+
+      console.log('🚀 [addSingleReservationToCart] Sending to addToCart:', {
+        productId: product.id,
+        productTitle: product.title,
+        quantity: cartData.quantity,
+        isReserve: cartData.isReserve,
+        reservationData: {
+          reservedDate: cartData.reservationData.reservedDate,
+          reservedStartTime: cartData.reservationData.reservedStartTime,
+          reservedEndTime: cartData.reservationData.reservedEndTime,
+          secondaryServices: cartData.reservationData.secondaryServices,
+          secondaryServicesCount:
+            cartData.reservationData.secondaryServices?.length || 0,
+        },
+        fullCartData: cartData,
       });
+
+      // Add to cart with reservation data
+      await addToCart(cartData);
+
+      console.log('✅ [addSingleReservationToCart] Successfully added to cart');
     },
     [addToCart, profile?.id],
   );
@@ -627,9 +716,39 @@ const ReserveDetailScreen: React.FC = () => {
       modifiedQuantities: Record<number, number>;
     }) => {
       try {
+        console.log(
+          '🎯 [handleAddReservationToCart] Called with data from bottom sheet:',
+          {
+            itemId: data.item.id,
+            itemTitle: data.item.title,
+            date: data.date,
+            fromTime: data.fromTime,
+            toTime: data.toTime,
+            subProducts: data.subProducts,
+            subProductsLength: data.subProducts?.length || 0,
+            modifiedQuantities: data.modifiedQuantities,
+            modifiedQuantitiesDetails: Object.entries(
+              data.modifiedQuantities || {},
+            ).map(([id, qty]) => ({
+              subProductId: id,
+              quantity: qty,
+            })),
+          },
+        );
+
         // Get current data from bottom sheet to get dayName and dayData
         const currentData =
           preReserveBottomSheetRef.current?.getCurrentData?.();
+
+        console.log(
+          '📋 [handleAddReservationToCart] Current data from bottom sheet:',
+          {
+            dayName: currentData?.dayName,
+            hasDayData: !!currentData?.dayData,
+            currentDataSubProducts: currentData?.subProducts,
+            currentDataModifiedQuantities: currentData?.modifiedQuantities,
+          },
+        );
 
         // Add current item to pre-reserved list first
         const currentItemData: PreReservedItem = {
@@ -643,6 +762,16 @@ const ReserveDetailScreen: React.FC = () => {
           modifiedQuantities: data.modifiedQuantities,
         };
 
+        console.log(
+          '📦 [handleAddReservationToCart] Created currentItemData:',
+          {
+            itemId: currentItemData.item.id,
+            subProducts: currentItemData.subProducts,
+            subProductsLength: currentItemData.subProducts?.length || 0,
+            modifiedQuantities: currentItemData.modifiedQuantities,
+          },
+        );
+
         // Check if current item already exists in list
         const reservationKey = `${data.item.id}-${data.date}-${data.fromTime}-${data.toTime}`;
         const exists = preReservedItems.some(
@@ -651,15 +780,61 @@ const ReserveDetailScreen: React.FC = () => {
             reservationKey,
         );
 
-        // Add to list if not exists
-        if (!exists) {
+        console.log(
+          '🔍 [handleAddReservationToCart] Checking existing items:',
+          {
+            reservationKey,
+            exists,
+            preReservedItemsCount: preReservedItems.length,
+            existingItems: preReservedItems.map(item => ({
+              itemId: item.item.id,
+              date: item.date,
+              subProductsLength: item.subProducts?.length || 0,
+              modifiedQuantities: item.modifiedQuantities,
+            })),
+          },
+        );
+
+        // Update or add to list
+        let allItems: PreReservedItem[];
+        if (exists) {
+          // If item exists, update it with new data (especially modifiedQuantities)
+          allItems = preReservedItems.map(item => {
+            const itemKey = `${item.item.id}-${item.date}-${item.fromTime}-${item.toTime}`;
+            if (itemKey === reservationKey) {
+              // Update existing item with new data
+              console.log(
+                '🔄 [handleAddReservationToCart] Updating existing item with new data:',
+                {
+                  oldModifiedQuantities: item.modifiedQuantities,
+                  newModifiedQuantities: currentItemData.modifiedQuantities,
+                },
+              );
+              return currentItemData;
+            }
+            return item;
+          });
+          // Also update the state
+          setPreReservedItems(allItems);
+        } else {
+          // If item doesn't exist, add it to list
           addToPreReservedList(currentItemData);
+          allItems = [...preReservedItems, currentItemData];
         }
 
-        // Add all pre-reserved items (including current one) to cart
-        const allItems = exists
-          ? preReservedItems
-          : [...preReservedItems, currentItemData];
+        console.log(
+          '🛒 [handleAddReservationToCart] Adding all items to cart:',
+          {
+            totalItems: allItems.length,
+            items: allItems.map(item => ({
+              itemId: item.item.id,
+              itemTitle: item.item.title,
+              subProductsLength: item.subProducts?.length || 0,
+              modifiedQuantities: item.modifiedQuantities,
+            })),
+          },
+        );
+
         for (const item of allItems) {
           await addSingleReservationToCart(item);
         }
@@ -673,7 +848,7 @@ const ReserveDetailScreen: React.FC = () => {
           params: {screen: 'cart'},
         });
       } catch (error) {
-        console.error('Error adding reservation to cart:', error);
+        console.error('❌ [handleAddReservationToCart] Error:', error);
       }
     },
     [addToPreReservedList, preReservedItems, addSingleReservationToCart],
@@ -683,6 +858,23 @@ const ReserveDetailScreen: React.FC = () => {
   const handleAddNewReservation = useCallback(() => {
     // Get current reservation data from bottom sheet
     const currentData = preReserveBottomSheetRef.current?.getCurrentData?.();
+    console.log(
+      '➕ [handleAddNewReservation] Current data from bottom sheet:',
+      {
+        hasItem: !!currentData?.item,
+        hasDayData: !!currentData?.dayData,
+        itemId: currentData?.item?.id,
+        subProducts: currentData?.subProducts,
+        subProductsLength: currentData?.subProducts?.length || 0,
+        modifiedQuantities: currentData?.modifiedQuantities,
+        modifiedQuantitiesDetails: Object.entries(
+          currentData?.modifiedQuantities || {},
+        ).map(([id, qty]) => ({
+          subProductId: id,
+          quantity: qty,
+        })),
+      },
+    );
     if (currentData && currentData.item && currentData.dayData) {
       addToPreReservedList({
         item: currentData.item,
@@ -702,6 +894,27 @@ const ReserveDetailScreen: React.FC = () => {
   // Handle complete payment (when clicking "تکمیل رزرو پرداخت")
   const handleCompletePayment = useCallback(async () => {
     try {
+      console.log(
+        '💳 [handleCompletePayment] Starting - All pre-reserved items:',
+        {
+          totalItems: preReservedItems.length,
+          items: preReservedItems.map(item => ({
+            itemId: item.item.id,
+            itemTitle: item.item.title,
+            date: item.date,
+            subProducts: item.subProducts,
+            subProductsLength: item.subProducts?.length || 0,
+            modifiedQuantities: item.modifiedQuantities,
+            modifiedQuantitiesDetails: Object.entries(
+              item.modifiedQuantities || {},
+            ).map(([id, qty]) => ({
+              subProductId: id,
+              quantity: qty,
+            })),
+          })),
+        },
+      );
+
       // Add all pre-reserved items to cart
       for (const item of preReservedItems) {
         await addSingleReservationToCart(item);
@@ -716,7 +929,7 @@ const ReserveDetailScreen: React.FC = () => {
         params: {screen: 'cart'},
       });
     } catch (error) {
-      console.error('Error adding reservations to cart:', error);
+      console.error('❌ [handleCompletePayment] Error:', error);
     }
   }, [preReservedItems, addSingleReservationToCart]);
 

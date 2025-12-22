@@ -103,16 +103,67 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
   };
 
   // Get sub-product details for reservation items
+  // Show all sub-products from product.subProducts, even if they're not in secondaryServices (with quantity 0)
   const subProductDetails = useMemo(() => {
-    if (!isReservationItem || !reservationData?.secondaryServices) {
+    if (!isReservationItem) {
       return [];
     }
 
-    return reservationData.secondaryServices.map(service => ({
-      ...service,
-      // We'll fetch product details if needed, but for now use the data we have
-    }));
-  }, [isReservationItem, reservationData]);
+    // If product has no subProducts, don't show anything
+    if (!product?.subProducts || product.subProducts.length === 0) {
+      return [];
+    }
+
+    const secondaryServices = reservationData?.secondaryServices || [];
+
+    // Create a map of existing secondary services by product ID
+    const existingServicesMap = new Map<number, ReservationSecondaryService>();
+    secondaryServices.forEach(service => {
+      existingServicesMap.set(service.product, service);
+    });
+
+    // Build the list: include all sub-products from product.subProducts
+    // If a sub-product exists in secondaryServices, use that data
+    // Otherwise, create a default entry with quantity 0
+    return product.subProducts
+      .map(subProduct => {
+        const productId = subProduct.productId || subProduct.product?.id;
+
+        if (!productId) {
+          return null;
+        }
+
+        const existingService = existingServicesMap.get(productId);
+
+        if (existingService) {
+          // Use existing service data
+          return existingService;
+        } else {
+          // Create default service with quantity 0
+          // We need to get dates from reservationData
+          const reservedDate = reservationData?.reservedDate || '';
+          const startDate = reservedDate.split(' ')[0] || '';
+          const duration = subProduct.product?.duration || 1;
+          const endDate = startDate
+            ? moment(startDate).add(duration, 'days').format('YYYY-MM-DD')
+            : '';
+
+          return {
+            user: 0, // Will be set when adding to cart
+            product: productId,
+            start: startDate,
+            end: endDate,
+            discount: subProduct.discount || 0,
+            type: subProduct.product?.type || 1,
+            tax: subProduct.tax || 0,
+            price: subProduct.product?.price || subProduct.amount || 0,
+            quantity: 0, // Default to 0 for sub-products not in secondaryServices
+            subProductId: subProduct.id,
+          } as ReservationSecondaryService;
+        }
+      })
+      .filter(Boolean) as ReservationSecondaryService[];
+  }, [isReservationItem, reservationData, product?.subProducts]);
 
   // Update sub-product quantity in reservation
   const updateSubProductQuantity = (productId: number, delta: number) => {
@@ -126,26 +177,65 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
     let updatedServices: ReservationSecondaryService[];
 
     if (serviceIndex === -1) {
-      // Service not found, can't add new ones from cart
-      return;
-    }
-
-    const currentService = currentServices[serviceIndex];
-    const currentQuantity = currentService.quantity || 1;
-    const newQuantity = Math.max(0, currentQuantity + delta);
-
-    if (newQuantity === 0) {
-      // Remove service if quantity becomes 0
-      updatedServices = currentServices.filter(
-        (_, index) => index !== serviceIndex,
+      // Service not found in secondaryServices, need to add it
+      // Find the sub-product from product.subProducts to get its details
+      const subProduct = product?.subProducts?.find(
+        sp => (sp.productId || sp.product?.id) === productId,
       );
-    } else {
-      // Update quantity
-      updatedServices = [...currentServices];
-      updatedServices[serviceIndex] = {
-        ...currentService,
+
+      if (!subProduct) {
+        // Sub-product not found in product.subProducts, can't add
+        return;
+      }
+
+      // Create new service entry
+      const reservedDate = reservationData.reservedDate || '';
+      const startDate = reservedDate.split(' ')[0] || '';
+      const duration = subProduct.product?.duration || 1;
+      const endDate = startDate
+        ? moment(startDate).add(duration, 'days').format('YYYY-MM-DD')
+        : '';
+
+      const newQuantity = Math.max(0, 0 + delta); // Start from 0 if not in list
+
+      if (newQuantity === 0) {
+        // Don't add if quantity is 0
+        return;
+      }
+
+      const newService: ReservationSecondaryService = {
+        user: 0, // Will be set by backend
+        product: productId,
+        start: startDate,
+        end: endDate,
+        discount: subProduct.discount || 0,
+        type: subProduct.product?.type || 1,
+        tax: subProduct.tax || 0,
+        price: subProduct.product?.price || subProduct.amount || 0,
         quantity: newQuantity,
+        subProductId: subProduct.id,
       };
+
+      updatedServices = [...currentServices, newService];
+    } else {
+      // Service exists, update quantity
+      const currentService = currentServices[serviceIndex];
+      const currentQuantity = currentService.quantity || 0;
+      const newQuantity = Math.max(0, currentQuantity + delta);
+
+      if (newQuantity === 0) {
+        // Remove service if quantity becomes 0
+        updatedServices = currentServices.filter(
+          (_, index) => index !== serviceIndex,
+        );
+      } else {
+        // Update quantity
+        updatedServices = [...currentServices];
+        updatedServices[serviceIndex] = {
+          ...currentService,
+          quantity: newQuantity,
+        };
+      }
     }
 
     updateReservationItemData({
@@ -206,30 +296,40 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
         )}
         <View className="flex-row items-center justify-between gap-2 border-b border-neutral-0 dark:border-neutral-dark-400/50 pb-4">
           <View className="flex-row items-center gap-4 ">
-            <BaseButton
-              onPress={() =>
-                CartId &&
-                updateItemQuantity({cartId: CartId, quantity: quantity + 1})
-              }
-              type="Tonal"
-              color="Black"
-              text="+"
-            />
-            <BaseText type="subtitle2" color="base">
-              {quantity}
-            </BaseText>
-            <BaseButton
-              type="Tonal"
-              color="Black"
-              text="-"
-              onPress={() =>
-                CartId &&
-                updateItemQuantity({
-                  cartId: CartId,
-                  quantity: quantity === 1 ? quantity : quantity - 1,
-                })
-              }
-            />
+            {isReservationItem ? (
+              // For reservation items, show "1 عدد" without controls (fixed at 1)
+              <BaseText type="subtitle2" color="base">
+                ۱ عدد
+              </BaseText>
+            ) : (
+              // For regular items, show quantity controls
+              <>
+                <BaseButton
+                  onPress={() =>
+                    CartId &&
+                    updateItemQuantity({cartId: CartId, quantity: quantity + 1})
+                  }
+                  type="Tonal"
+                  color="Black"
+                  text="+"
+                />
+                <BaseText type="subtitle2" color="base">
+                  {quantity}
+                </BaseText>
+                <BaseButton
+                  type="Tonal"
+                  color="Black"
+                  text="-"
+                  onPress={() =>
+                    CartId &&
+                    updateItemQuantity({
+                      cartId: CartId,
+                      quantity: quantity === 1 ? quantity : quantity - 1,
+                    })
+                  }
+                />
+              </>
+            )}
           </View>
           <BaseText type="subtitle2" color="base">
             {formatNumber(
@@ -361,7 +461,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                               <BaseText type="caption" color="secondary">
                                 {formatNumber(
                                   (service.price || 0) *
-                                    (service.quantity || 1),
+                                    (service.quantity || 0),
                                 )}{' '}
                                 ﷼
                               </BaseText>
@@ -371,8 +471,19 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                                 onPress={() =>
                                   updateSubProductQuantity(service.product, -1)
                                 }
-                                className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center">
-                                <BaseText type="body2" color="base">
+                                disabled={(service.quantity || 0) === 0}
+                                className={`w-8 h-8 rounded-xl items-center justify-center ${
+                                  (service.quantity || 0) === 0
+                                    ? 'bg-neutral-200 dark:bg-neutral-dark-300 opacity-50'
+                                    : 'bg-[#E4E4E8]'
+                                }`}>
+                                <BaseText
+                                  type="body2"
+                                  color={
+                                    (service.quantity || 0) === 0
+                                      ? 'secondary'
+                                      : 'base'
+                                  }>
                                   -
                                 </BaseText>
                               </TouchableOpacity>
@@ -380,7 +491,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                                 type="body2"
                                 color="base"
                                 className="w-6 text-center">
-                                {service.quantity || 1}
+                                {service.quantity || 0}
                               </BaseText>
                               <TouchableOpacity
                                 onPress={() =>
