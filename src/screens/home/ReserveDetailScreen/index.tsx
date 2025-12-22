@@ -41,6 +41,7 @@ import {ReservationSecondaryService} from '../../../utils/helpers/CartStorage';
 
 // Utils
 import {BottomSheetMethods} from '../../../components/BottomSheet/BottomSheet';
+import {showToast} from '../../../components/Toast/Toast';
 
 type ReserveDetailRouteProp = RouteProp<HomeStackParamList, 'reserveDetail'>;
 
@@ -597,10 +598,15 @@ const ReserveDetailScreen: React.FC = () => {
 
       // Convert date from Jalali format (YYYY/MM/DD) to Gregorian (YYYY-MM-DD)
       const [year, month, day] = date.split('/');
-      const gregorianDate = moment(
-        `${year}-${month}-${day}`,
-        'jYYYY-jMM-jDD',
-      ).format('YYYY-MM-DD');
+      // Parse as Jalali date and convert to Gregorian
+      const gregorianDate = moment
+        .from(`${year}-${month}-${day}`, 'fa', 'YYYY-MM-DD')
+        .format('YYYY-MM-DD');
+
+      console.log('📅 [addSingleReservationToCart] Date conversion:', {
+        originalJalaliDate: date,
+        gregorianDate,
+      });
 
       // Build secondaryServices from subProducts with modified quantities
       const secondaryServices: ReservationSecondaryService[] = [];
@@ -698,9 +704,33 @@ const ReserveDetailScreen: React.FC = () => {
       });
 
       // Add to cart with reservation data
-      await addToCart(cartData);
-
-      console.log('✅ [addSingleReservationToCart] Successfully added to cart');
+      try {
+        await addToCart(cartData);
+        console.log(
+          '✅ [addSingleReservationToCart] Successfully added to cart',
+        );
+      } catch (error) {
+        console.error(
+          '❌ [addSingleReservationToCart] Error adding to cart:',
+          error,
+        );
+        // Show error message to user
+        if (error instanceof Error) {
+          showToast({
+            type: 'error',
+            text1: 'خطا',
+            text2: error.message,
+          });
+        } else {
+          showToast({
+            type: 'error',
+            text1: 'خطا',
+            text2: 'خطا در افزودن به سبد خرید',
+          });
+        }
+        // Re-throw error to stop processing other items
+        throw error;
+      }
     },
     [addToCart, profile?.id],
   );

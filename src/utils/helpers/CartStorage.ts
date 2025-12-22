@@ -84,42 +84,99 @@ export const addCart = async (
   try {
     const cart = await getCart();
 
-    // پیدا کردن محصول مشابه در سبد خرید
-    const existingItemIndex = cart.findIndex(
-      cartItem => cartItem.product?.id === item.product?.id,
-    );
+    // برای آیتم‌های رزروی، باید همه آیتم‌های رزروی را چک کنیم
+    const isReservationItem = item.isReserve && item.reservationData;
 
-    if (existingItemIndex !== -1) {
-      // اگر محصول وجود داشت
-      const existingItem = cart[existingItemIndex];
+    if (isReservationItem) {
+      // برای رزروها: چک می‌کنیم که آیا همان خدمت با همان تاریخ و ساعت وجود دارد
+      const newReservation = item.reservationData!;
+      const duplicateReservation = cart.find(cartItem => {
+        if (
+          !cartItem.isReserve ||
+          !cartItem.reservationData ||
+          cartItem.product?.id !== item.product?.id
+        ) {
+          return false;
+        }
 
-      const isSamePriceList =
-        existingItem?.SelectedPriceList?.id === item?.SelectedPriceList?.id;
+        const existingReservation = cartItem.reservationData!;
+        const isSameDate =
+          existingReservation.reservedDate === newReservation.reservedDate;
+        const isSameTime =
+          existingReservation.reservedStartTime ===
+            newReservation.reservedStartTime &&
+          existingReservation.reservedEndTime ===
+            newReservation.reservedEndTime;
 
-      const isSameContractor =
-        existingItem?.SelectedContractor?.id === item?.SelectedContractor?.id;
+        return isSameDate && isSameTime;
+      });
 
-      if (isSamePriceList && isSameContractor) {
-        // اگر همه موارد یکسان بود، quantity را افزایش می‌دهیم
-        existingItem.quantity += item?.quantity ?? 1;
-      } else {
-        // اگر متفاوت بودند، آیتم جدید اضافه میشه
-        const newItem: CartItem = {
-          ...item,
-          quantity: item?.quantity ?? 1,
-          CartId: generateCartId(),
-        };
-        cart.push(newItem);
+      if (duplicateReservation) {
+        // همان خدمت با همان تاریخ و ساعت قبلاً اضافه شده است
+        console.warn(
+          '⚠️ [addCart] Duplicate reservation detected - same service, date, and time already exists',
+          {
+            productId: item.product?.id,
+            date: newReservation.reservedDate,
+            startTime: newReservation.reservedStartTime,
+            endTime: newReservation.reservedEndTime,
+          },
+        );
+        // برای رزروها، نمی‌توانیم quantity را افزایش دهیم
+        // فقط از اضافه شدن جلوگیری می‌کنیم (یا می‌توانیم خطا بدهیم)
+        throw new Error(
+          'این رزرو قبلاً به سبد خرید اضافه شده است. نمی‌توانید همان خدمت را در همان تاریخ و ساعت دوباره رزرو کنید.',
+        );
       }
-    } else {
-      // اگر محصول وجود نداشت، آیتم جدید اضافه میشه
+
+      // اگر تکراری نبود، آیتم جدید اضافه می‌شود
+      console.log('✅ [addCart] Adding new reservation item');
       const newItem: CartItem = {
         ...item,
-        quantity: item.quantity ?? 1,
+        quantity: 1, // برای رزروها همیشه quantity = 1
         CartId: generateCartId(),
         submitAt: new Date().toISOString(),
       };
       cart.push(newItem);
+    } else {
+      // برای آیتم‌های غیر رزروی
+      const existingItemIndex = cart.findIndex(
+        cartItem => cartItem.product?.id === item.product?.id,
+      );
+
+      if (existingItemIndex !== -1) {
+        // اگر محصول وجود داشت
+        const existingItem = cart[existingItemIndex];
+        // برای آیتم‌های غیر رزروی، چک می‌کنیم PriceList و Contractor
+        const isSamePriceList =
+          existingItem?.SelectedPriceList?.id === item?.SelectedPriceList?.id;
+
+        const isSameContractor =
+          existingItem?.SelectedContractor?.id === item?.SelectedContractor?.id;
+
+        if (isSamePriceList && isSameContractor) {
+          // اگر همه موارد یکسان بود، quantity را افزایش می‌دهیم
+          existingItem.quantity += item?.quantity ?? 1;
+        } else {
+          // اگر متفاوت بودند، آیتم جدید اضافه میشه
+          const newItem: CartItem = {
+            ...item,
+            quantity: item?.quantity ?? 1,
+            CartId: generateCartId(),
+            submitAt: new Date().toISOString(),
+          };
+          cart.push(newItem);
+        }
+      } else {
+        // اگر محصول وجود نداشت، آیتم جدید اضافه میشه
+        const newItem: CartItem = {
+          ...item,
+          quantity: item.quantity ?? 1,
+          CartId: generateCartId(),
+          submitAt: new Date().toISOString(),
+        };
+        cart.push(newItem);
+      }
     }
 
     // ذخیره‌سازی سبد خرید

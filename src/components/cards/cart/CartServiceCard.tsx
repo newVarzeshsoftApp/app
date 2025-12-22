@@ -1,5 +1,5 @@
 import React, {useRef, useMemo} from 'react';
-import {View, TouchableOpacity} from 'react-native';
+import {View, TouchableOpacity, Alert} from 'react-native';
 import {
   CartItem,
   ReservationSecondaryService,
@@ -16,6 +16,8 @@ import usePriceCalculations from '../../../utils/hooks/usePriceCalculations';
 import ResponsiveImage from '../../ResponsiveImage';
 import {UseGetProductByID} from '../../../utils/hooks/Product/UseGetProductByID';
 import moment from 'jalali-moment';
+import {usePreReserve} from '../../../utils/hooks/Reservation/usePreReserve';
+import {PreReserveQuery} from '../../../services/models/requestQueries';
 type CartServiceCardProps = {
   data: CartItem;
 };
@@ -33,6 +35,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
   const {updateItemQuantity, removeFromCart, updateReservationItemData} =
     useCartContext();
   const RemoveItemRef = useRef<BottomSheetMethods>(null);
+  const preReserveMutation = usePreReserve();
 
   // For reservation items, calculate price differently
   const isReservationItem = isReserve && reservationData;
@@ -256,8 +259,80 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
         onButtonPress={() => RemoveItemRef.current?.close()}
         deleteButtonText="حذف"
         onDeleteButtonPress={() => {
-          CartId && removeFromCart(CartId);
-          RemoveItemRef.current?.close();
+          if (isReservationItem && reservationData && product) {
+            // Cancel reservation first, then remove from cart
+            const reservedDate = reservationData.reservedDate.split(' ')[0]; // "2025-12-23"
+
+            // Convert Gregorian date to format needed for API (YYYY-MM-DD)
+            const specificDate = reservedDate;
+
+            // Calculate day name from date (day1 = Monday, day2 = Tuesday, etc.)
+            // Get day of week from Gregorian date (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
+            const dateMoment = moment(reservedDate, 'YYYY-MM-DD');
+            const dayOfWeek = dateMoment.day(); // 0 = Sunday, 1 = Monday, etc.
+
+            // Map to day name format used in API (day1 = Monday, day2 = Tuesday, etc.)
+            // API uses: day1 (Monday), day2 (Tuesday), day3 (Wednesday), day4 (Thursday),
+            // day5 (Friday), day6 (Saturday), day7 (Sunday)
+            const dayMap: Record<number, string> = {
+              1: 'day1', // Monday
+              2: 'day2', // Tuesday
+              3: 'day3', // Wednesday
+              4: 'day4', // Thursday
+              5: 'day5', // Friday
+              6: 'day6', // Saturday
+              0: 'day7', // Sunday
+            };
+
+            const dayName = dayMap[dayOfWeek] || 'day1';
+
+            const query: PreReserveQuery = {
+              product: product.id,
+              day: dayName,
+              fromTime: reservationData.reservedStartTime,
+              toTime: reservationData.reservedEndTime,
+              gender: 'Both', // Default gender, API might handle this
+              specificDate: specificDate,
+              isLocked: false, // false means cancel/unlock
+            };
+
+            console.log(
+              '🗑️ [CartServiceCard] Canceling reservation before removing from cart:',
+              query,
+            );
+
+            preReserveMutation.mutate(query, {
+              onSuccess: () => {
+                console.log(
+                  '✅ [CartServiceCard] Reservation canceled successfully, removing from cart',
+                );
+                // Remove from cart after successful cancellation
+                if (CartId) {
+                  removeFromCart(CartId);
+                }
+                RemoveItemRef.current?.close();
+              },
+              onError: error => {
+                console.error(
+                  '❌ [CartServiceCard] Error canceling reservation:',
+                  error,
+                );
+                Alert.alert('خطا', error.message || 'خطا در لغو رزرو');
+                // Still remove from cart even if cancellation fails
+                // (user might want to remove it anyway)
+                if (CartId) {
+                  removeFromCart(CartId);
+                }
+                RemoveItemRef.current?.close();
+              },
+            });
+          } else {
+            // For non-reservation items, just remove from cart
+            if (CartId) {
+              removeFromCart(CartId);
+            }
+            RemoveItemRef.current?.close();
+          }
         }}
       />
       <View className="CardBase gap-3">
@@ -411,9 +486,47 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                   تاریخ رزرو:
                 </BaseText>
                 <BaseText type="subtitle3" color="base">
-                  {moment(reservationData.reservedDate, 'YYYY-MM-DD HH:mm')
-                    .locale('fa')
-                    .format('jYYYY/jMM/jDD')}
+                  {(() => {
+                    // reservedDate is now in Gregorian format (e.g., "2025-12-23 00:00")
+                    // Convert to Jalali for display
+                    const dateStr = reservationData.reservedDate.split(' ')[0]; // "2025-12-23"
+
+                    console.log('📅 [CartServiceCard] Date conversion debug:', {
+                      originalDate: reservationData.reservedDate,
+                      dateStr,
+                    });
+
+                    try {
+                      // Parse as Gregorian date and convert to Jalali for display
+                      const gregorianMoment = moment(dateStr, 'YYYY-MM-DD');
+                      const jalaliMoment = gregorianMoment.locale('fa');
+
+                      console.log('📅 [CartServiceCard] Date conversion:', {
+                        isValid: gregorianMoment.isValid(),
+                        gregorianFormat: gregorianMoment.format('YYYY-MM-DD'),
+                        jalaliFormat: jalaliMoment.format('jYYYY/jMM/jDD'),
+                        jYear: jalaliMoment.jYear(),
+                        jMonth: jalaliMoment.jMonth(),
+                        jDate: jalaliMoment.jDate(),
+                      });
+
+                      const formatted = jalaliMoment.format('jYYYY/jMM/jDD');
+                      console.log(
+                        '📅 [CartServiceCard] Final formatted:',
+                        formatted,
+                      );
+
+                      return formatted;
+                    } catch (error) {
+                      console.error(
+                        '❌ [CartServiceCard] Date conversion error:',
+                        error,
+                      );
+                      // Fallback: if parsing fails, try to format directly
+                      const [year, month, day] = dateStr.split('-');
+                      return `${year}/${month}/${day}`;
+                    }
+                  })()}
                 </BaseText>
               </View>
               <View className="flex-row items-center justify-between">
@@ -458,13 +571,22 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                                 {subProductData?.title ||
                                   `خدمت ${service.product}`}
                               </BaseText>
-                              <BaseText type="caption" color="secondary">
+                              {service.price && service.price > 0 && (
+                                <BaseText
+                                  type="badge"
+                                  color="secondary"
+                                  className="text-start">
+                                  قیمت هر واحد {formatNumber(service.price)}{' '}
+                                  تومان میباشد.
+                                </BaseText>
+                              )}
+                              {/* <BaseText type="caption" color="secondary">
                                 {formatNumber(
                                   (service.price || 0) *
                                     (service.quantity || 0),
                                 )}{' '}
                                 ﷼
-                              </BaseText>
+                              </BaseText> */}
                             </View>
                             <View className="flex-row items-center gap-2">
                               <TouchableOpacity
