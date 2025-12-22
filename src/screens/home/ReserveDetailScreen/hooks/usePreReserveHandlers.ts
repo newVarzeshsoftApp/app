@@ -87,6 +87,12 @@ export const usePreReserveHandlers = ({
       const itemState = getItemState(item, dayData, timeSlot);
       const isMyReservation = isPreReservedByMe(item, dayData, timeSlot);
       const isAvailable = !itemState.isReserve && !itemState.isPreReserved;
+      const isPast = itemState.isPast || false;
+
+      // اگر تاریخ یا ساعت گذشته است، هیچ کاری نکن
+      if (isPast) {
+        return;
+      }
 
       // اگر قابل کلیک نیست، هیچ کاری نکن
       if (!isAvailable && !isMyReservation) {

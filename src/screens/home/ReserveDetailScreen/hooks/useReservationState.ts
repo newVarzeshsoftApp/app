@@ -1,6 +1,7 @@
 import {useState, useCallback, useMemo} from 'react';
 import {ServiceEntryDto, DayEntryDto} from '../../../../services/models/response/ReservationResService';
 import {useAuth} from '../../../../utils/hooks/useAuth';
+import moment from 'jalali-moment';
 
 interface ReservationState {
   productId: number;
@@ -22,11 +23,58 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
   const [cancelledItems, setCancelledItems] = useState<Set<string>>(new Set());
   const {profile} = useAuth();
 
+  // Check if date/time is in the past
+  const isPastDateTime = useCallback(
+    (date: string, fromTime: string): boolean => {
+      try {
+        // Parse date (format: YYYY/MM/DD - Jalali)
+        const [year, month, day] = date.split('/');
+        const jalaliDate = moment(`${year}-${month}-${day}`, 'jYYYY-jMM-jDD');
+        
+        // Get today's date in Jalali (start of day)
+        const today = moment().local('fa').startOf('day');
+        const itemDate = jalaliDate.startOf('day');
+        
+        // Compare dates
+        const dateDiff = itemDate.diff(today, 'days');
+        
+        // If date is in the past, return true
+        if (dateDiff < 0) {
+          return true;
+        }
+        
+        // If date is today, check time
+        if (dateDiff === 0) {
+          const [hour, minute] = fromTime.split(':').map(Number);
+          const now = moment();
+          const itemTime = moment()
+            .hour(hour)
+            .minute(minute || 0)
+            .second(0)
+            .millisecond(0);
+          
+          // If current time is after or equal to item time, it's past
+          return now.isSameOrAfter(itemTime);
+        }
+        
+        // Future date, not past
+        return false;
+      } catch (error) {
+        console.error('Error checking past date/time:', error);
+        return false;
+      }
+    },
+    [],
+  );
+
   // Update item state based on reservations
   const getItemState = useCallback(
     (item: ServiceEntryDto, dayData: DayEntryDto, timeSlot: string) => {
       const [fromTime, toTime] = timeSlot.split('_');
       const itemKey = `${item.id}_${dayData.date}_${fromTime}_${toTime}`;
+      
+      // Check if date/time is in the past
+      const isPast = isPastDateTime(dayData.date, fromTime);
       
       // Check if this item was cancelled
       const isCancelled = cancelledItems.has(itemKey);
@@ -44,6 +92,7 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
           isPreReserved: true,
           selfReserved: reservation.status === 'pre-reserved-by-me',
           isReserve: reservation.status === 'reserved',
+          isPast,
         };
       }
 
@@ -53,6 +102,7 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
           isPreReserved: false,
           selfReserved: false,
           isReserve: item.isReserve,
+          isPast,
         };
       }
 
@@ -68,9 +118,10 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
         selfReserved:
           item.selfReserved || isPreReservedByMeFromData,
         isReserve: item.isReserve,
+        isPast,
       };
     },
-    [reservations, profile?.id, cancelledItems],
+    [reservations, profile?.id, cancelledItems, isPastDateTime],
   );
 
   // Add or update reservation

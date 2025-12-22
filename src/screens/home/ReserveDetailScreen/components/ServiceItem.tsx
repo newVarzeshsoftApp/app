@@ -28,6 +28,7 @@ interface ServiceItemProps {
     isPreReserved: boolean;
     selfReserved: boolean;
     isReserve: boolean;
+    isPast?: boolean;
   };
 }
 
@@ -53,6 +54,7 @@ const ServiceItem: React.FC<ServiceItemProps> = ({
         isPreReserved: item.isPreReserved,
         selfReserved: item.selfReserved,
         isReserve: item.isReserve,
+        isPast: false,
       };
 
   // تعیین حالت‌های مختلف رزرو
@@ -61,6 +63,7 @@ const ServiceItem: React.FC<ServiceItemProps> = ({
     itemState.isPreReserved && !itemState.selfReserved; // در حال رزرو دیگران
   const isPreReservedByMe = itemState.isPreReserved && itemState.selfReserved; // در حال رزرو توسط من
   const isAvailable = !isReserved && !itemState.isPreReserved; // قابل رزرو
+  const isPast = itemState.isPast || false; // تاریخ یا ساعت گذشته
 
   // استایل‌ها بر اساس حالت
   let borderColor: string;
@@ -69,7 +72,14 @@ const ServiceItem: React.FC<ServiceItemProps> = ({
   let textColor: string;
   let isDisabled = false;
 
-  if (isReserved) {
+  if (isPast) {
+    // حالت 0: تاریخ یا ساعت گذشته (غیرقابل استفاده)
+    borderColor = isDarkMode ? '#2a2d33' : '#E0E0E0';
+    borderStyle = 'solid';
+    backgroundColor = isDarkMode ? '#232529' : '#F5F5F5';
+    textColor = isDarkMode ? '#55575c' : '#9E9E9E';
+    isDisabled = true;
+  } else if (isReserved) {
     // حالت 1: رزرو شده (غیرقابل استفاده)
     borderColor = isDarkMode ? '#2a2d33' : '#E0E0E0';
     borderStyle = 'solid';

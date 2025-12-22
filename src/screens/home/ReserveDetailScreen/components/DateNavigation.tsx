@@ -57,4 +57,3 @@ const DateNavigation: React.FC<DateNavigationProps> = ({
 };
 
 export default DateNavigation;
-
