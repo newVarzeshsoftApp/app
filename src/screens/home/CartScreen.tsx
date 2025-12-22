@@ -310,7 +310,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
             type: subService.type,
             tax: subService.tax ?? 0, // Must be 0 if null
             price: subService.price,
-            quantity: subService.quantity || 1, // Add quantity field
+            quantity: subService.quantity || 1, // Keep quantity field
           };
         },
       );
@@ -360,6 +360,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
         price: amount,
         discount: (amount * discount) / 100,
         tax: item?.product?.tax ?? 0, // Must be 0 if null
+        type: item.product.type ?? 1, // Add type field
         reservedDate: reservedDateFormatted, // Gregorian format (YYYY-MM-DD HH:mm)
         reservedStartTime: reservationData.reservedStartTime,
         reservedEndTime: reservationData.reservedEndTime,
@@ -372,7 +373,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
 
     // Calculate reservation order total amount
     // Amount = price - discount + tax (tax is always 0 or a number, never null)
-    // For secondaryServices, we need to consider quantity (already handled in flatMap above)
+    // For secondaryServices, we need to consider quantity
     const reservationOrderAmount = reservationItemsDTO.reduce((sum, item) => {
       const itemTax = item.tax || 0;
       const itemTotal = item.price - item.discount + itemTax;

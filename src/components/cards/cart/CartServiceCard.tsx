@@ -18,6 +18,11 @@ import {UseGetProductByID} from '../../../utils/hooks/Product/UseGetProductByID'
 import moment from 'jalali-moment';
 import {usePreReserve} from '../../../utils/hooks/Reservation/usePreReserve';
 import {PreReserveQuery} from '../../../services/models/requestQueries';
+import {useReservationStore} from '../../../store/reservationStore';
+import {
+  convertCartItemToReservationStoreItem,
+  getReservationKey,
+} from '../../../utils/helpers/ReservationStorage';
 type CartServiceCardProps = {
   data: CartItem;
 };
@@ -309,30 +314,84 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
         onDeleteButtonPress={() => {
           if (isReservationItem && reservationData && product) {
             // Cancel reservation first, then remove from cart
+            // This should work exactly like ReserveDetailScreen's handleDeleteReservation
             const reservedDate = reservationData.reservedDate.split(' ')[0]; // "2025-12-23"
 
-            // Convert Gregorian date to format needed for API (YYYY-MM-DD)
-            const specificDate = reservedDate;
+            // Try to get dayName from ReservationStore first (more accurate)
+            let dayName = 'day1'; // Default fallback
+            try {
+              const storeItem = convertCartItemToReservationStoreItem(data);
+              if (storeItem) {
+                const key = getReservationKey(storeItem);
+                const {findReservationByKey} = useReservationStore.getState();
+                const storeReservation = findReservationByKey(key);
+                
+                if (storeReservation && storeReservation.dayName) {
+                  dayName = storeReservation.dayName;
+                  console.log(
+                    '📅 [CartServiceCard] Using dayName from ReservationStore:',
+                    dayName,
+                  );
+                } else {
+                  // Fallback: Calculate day name from date
+                  const dateMoment = moment(reservedDate, 'YYYY-MM-DD');
+                  const dayOfWeek = dateMoment.day();
+                  const dayMap: Record<number, string> = {
+                    1: 'day1',
+                    2: 'day2',
+                    3: 'day3',
+                    4: 'day4',
+                    5: 'day5',
+                    6: 'day6',
+                    0: 'day7',
+                  };
+                  dayName = dayMap[dayOfWeek] || 'day1';
+                  console.log(
+                    '📅 [CartServiceCard] Calculated dayName from date:',
+                    dayName,
+                  );
+                }
+              } else {
+                // Fallback: Calculate day name from date
+                const dateMoment = moment(reservedDate, 'YYYY-MM-DD');
+                const dayOfWeek = dateMoment.day();
+                const dayMap: Record<number, string> = {
+                  1: 'day1',
+                  2: 'day2',
+                  3: 'day3',
+                  4: 'day4',
+                  5: 'day5',
+                  6: 'day6',
+                  0: 'day7',
+                };
+                dayName = dayMap[dayOfWeek] || 'day1';
+                console.log(
+                  '📅 [CartServiceCard] Calculated dayName from date:',
+                  dayName,
+                );
+              }
+            } catch (error) {
+              console.error(
+                '⚠️ [CartServiceCard] Error getting dayName from store, using fallback:',
+                error,
+              );
+              // Fallback: Calculate day name from date
+              const dateMoment = moment(reservedDate, 'YYYY-MM-DD');
+              const dayOfWeek = dateMoment.day();
+              const dayMap: Record<number, string> = {
+                1: 'day1',
+                2: 'day2',
+                3: 'day3',
+                4: 'day4',
+                5: 'day5',
+                6: 'day6',
+                0: 'day7',
+              };
+              dayName = dayMap[dayOfWeek] || 'day1';
+            }
 
-            // Calculate day name from date (day1 = Monday, day2 = Tuesday, etc.)
-            // Get day of week from Gregorian date (0 = Sunday, 1 = Monday, ..., 6 = Saturday)
-            const dateMoment = moment(reservedDate, 'YYYY-MM-DD');
-            const dayOfWeek = dateMoment.day(); // 0 = Sunday, 1 = Monday, etc.
-
-            // Map to day name format used in API (day1 = Monday, day2 = Tuesday, etc.)
-            // API uses: day1 (Monday), day2 (Tuesday), day3 (Wednesday), day4 (Thursday),
-            // day5 (Friday), day6 (Saturday), day7 (Sunday)
-            const dayMap: Record<number, string> = {
-              1: 'day1', // Monday
-              2: 'day2', // Tuesday
-              3: 'day3', // Wednesday
-              4: 'day4', // Thursday
-              5: 'day5', // Friday
-              6: 'day6', // Saturday
-              0: 'day7', // Sunday
-            };
-
-            const dayName = dayMap[dayOfWeek] || 'day1';
+            // Convert date format from YYYY-MM-DD to YYYY/MM/DD (API format)
+            const specificDate = reservedDate.replace(/-/g, '/');
 
             const query: PreReserveQuery = {
               product: product.id,
@@ -340,21 +399,30 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
               fromTime: reservationData.reservedStartTime,
               toTime: reservationData.reservedEndTime,
               gender: 'Both', // Default gender, API might handle this
-              specificDate: specificDate,
-              isLocked: false, // false means cancel/unlock
+              specificDate: specificDate, // Gregorian format (YYYY/MM/DD) - same as dayData.date
+              isLocked: false, // false means cancel/unlock (same as ReserveDetailScreen)
             };
 
             console.log(
-              '🗑️ [CartServiceCard] Canceling reservation before removing from cart:',
-              query,
+              '🗑️ [CartServiceCard] Canceling reservation (same as ReserveDetailScreen):',
+              {
+                query,
+                reservedDate,
+                specificDate,
+                dayName,
+                productId: product.id,
+                fromTime: reservationData.reservedStartTime,
+                toTime: reservationData.reservedEndTime,
+              },
             );
 
             preReserveMutation.mutate(query, {
               onSuccess: () => {
                 console.log(
-                  '✅ [CartServiceCard] Reservation canceled successfully, removing from cart',
+                  '✅ [CartServiceCard] Reservation canceled successfully (WebSocket event sent), removing from cart',
                 );
                 // Remove from cart after successful cancellation
+                // removeFromCart will also sync with ReservationStore (in CartStorage.removeCart)
                 if (CartId) {
                   removeFromCart(CartId);
                 }
