@@ -82,6 +82,7 @@ export const routes = {
   },
   operational: {
     saleOrder: () => `sale-order`,
+    getPaymentResult: (ids: string) => `user/order/payment/result?id.in=${ids}`,
   },
   manageLocker: {
     openLocker: () => `locker/open-locker`,

@@ -10,7 +10,7 @@ import BaseText from '../../components/BaseText';
 import {formatNumber} from '../../utils/helpers/helpers';
 import moment from 'jalali-moment';
 import BaseButton from '../../components/Button/BaseButton';
-import {useGetUserSaleOrderByID} from '../../utils/hooks/User/useGetUserSaleOrderByID';
+import {useGetPaymentResult} from '../../utils/hooks/Operational/useGetPaymentResult';
 import {TransactionSourceType} from '../../constants/options';
 import Badge from '../../components/Badge/Badge';
 import {navigate} from '../../navigation/navigationRef';
@@ -21,9 +21,10 @@ type PaymentScreenProps = NativeStackScreenProps<
 const PaymentDetail: React.FC<PaymentScreenProps> = ({navigation, route}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'payment'});
 
-  const {data, isLoading, isError} = useGetUserSaleOrderByID(
-    Number(route.params.id),
-  );
+  // Always use new endpoint: order/payment/result?id.in=
+  const idParam = route.params.id;
+
+  const {data, isLoading} = useGetPaymentResult(idParam);
   if (isLoading && !data) {
     return (
       <View className="flex-1 items-center justify-center">
@@ -38,7 +39,7 @@ const PaymentDetail: React.FC<PaymentScreenProps> = ({navigation, route}) => {
           <ScrollView contentContainerStyle={{flexGrow: 1}} style={{flex: 1}}>
             <View className="items-centex justify-between Container pb-6 flex-1">
               <View></View>
-              <View className="h-[400px] CardBase w-full relative pt-11 ">
+              <View className="CardBase w-full relative pt-11 ">
                 <>
                   {/* Status View */}
                   <View
@@ -93,119 +94,131 @@ const PaymentDetail: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                         {t('DateAndTime')}: {''}
                       </BaseText>
                       <BaseText type="body3" color="base">
-                        {moment(data?.createdAt).format('jYYYY/jMM/jDD HH:mm')}
+                        {moment(data?.submitAt).format('jYYYY/jMM/jDD HH:mm')}
                       </BaseText>
                     </View>
 
+                    {/* Map orders */}
+                    {data.orders && data.orders.length > 0 && (
+                      <View className="gap-2">
+                        <BaseText type="body3" color="secondary">
+                          {t('orderNumber')}: {''}
+                        </BaseText>
+                        <View className="flex-row flex-wrap gap-2 items-center justify-end">
+                          {data.orders.map((orderId, index) => (
+                            <BaseButton
+                              key={index}
+                              onPress={() =>
+                                navigate('Root', {
+                                  screen: 'HistoryNavigator',
+                                  params: {
+                                    screen: 'orderDetail',
+                                    params: {id: orderId},
+                                  },
+                                })
+                              }
+                              size="Small"
+                              type="Outline"
+                              color="Supportive5-Blue"
+                              text={orderId.toString()}
+                              LinkButton
+                              rounded
+                            />
+                          ))}
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Map transactions */}
+                    {data.transactions && data.transactions.length > 0 && (
+                      <View className="gap-2 ">
+                        <BaseText type="body3" color="secondary">
+                          {t('Transaction number')}: {''}
+                        </BaseText>
+                        <View className="flex-row flex-wrap gap-2 items-center justify-end">
+                          {data.transactions.map((transactionId, index) => (
+                            <BaseButton
+                              key={index}
+                              onPress={() =>
+                                navigate('Root', {
+                                  screen: 'HistoryNavigator',
+                                  params: {
+                                    screen: 'WithdrawDetail',
+                                    params: {id: transactionId},
+                                  },
+                                })
+                              }
+                              size="Small"
+                              type="Outline"
+                              color="Supportive5-Blue"
+                              text={transactionId.toString()}
+                              LinkButton
+                              rounded
+                            />
+                          ))}
+                        </View>
+                      </View>
+                    )}
+
+                    {/* Source */}
                     <View className="flex-row items-center justify-between ">
                       <BaseText type="body3" color="secondary">
-                        {t('orderNumber')}: {''}
+                        {t('Source')}: {''}
                       </BaseText>
-                      <BaseButton
-                        onPress={() =>
-                          navigate('Root', {
-                            screen: 'HistoryNavigator',
-                            params: {
-                              screen: 'orderDetail',
-                              params: {id: data.id},
-                            },
-                          })
-                        }
-                        size="Small"
-                        type="Outline"
-                        color="Supportive5-Blue"
-                        text={data.id.toString()}
-                        LinkButton
-                        rounded
-                      />
+                      <View className="flex-row gap-1 items-center">
+                        <BaseText type="body3" color="base">
+                          {data?.title ??
+                            t(
+                              `${TransactionSourceType[data?.sourceType ?? 0]}`,
+                            )}
+                        </BaseText>
+                        {[
+                          'OfferedDiscount',
+                          'WalletGift',
+                          'ChargingService',
+                          'Loan',
+                        ].includes(
+                          TransactionSourceType[data?.sourceType ?? 0],
+                        ) ? (
+                          <Badge
+                            color="primary"
+                            textColor="supportive5"
+                            CreditMode={['ChargingService'].includes(
+                              TransactionSourceType[data?.sourceType ?? 0],
+                            )}
+                            defaultMode
+                            value={data?.title ?? ''}
+                          />
+                        ) : null}
+                      </View>
                     </View>
 
-                    {data.transactions?.map((item, index) => (
-                      <>
-                        <View className="flex-row items-center justify-between ">
-                          <BaseText type="body3" color="secondary">
-                            {t('Transaction number')}: {''}
-                          </BaseText>
-                          <BaseButton
-                            onPress={() =>
-                              navigate('Root', {
-                                screen: 'HistoryNavigator',
-                                params: {
-                                  screen: 'WithdrawDetail',
-                                  params: {id: data.id},
-                                },
-                              })
-                            }
-                            size="Small"
-                            type="Outline"
-                            color="Supportive5-Blue"
-                            text={item.id.toString()}
-                            LinkButton
-                            rounded
-                          />
-                        </View>
-                        <View className="flex-row items-center justify-between ">
-                          <BaseText type="body3" color="secondary">
-                            {t('Source')}: {''}
-                          </BaseText>
-                          <View className="flex-row gap-1 items-center">
-                            <BaseText type="body3" color="base">
-                              {item.gateway?.title ??
-                                t(
-                                  `${
-                                    TransactionSourceType[item.sourceType ?? 0]
-                                  }`,
-                                )}
-                            </BaseText>
-                            {[
-                              'OfferedDiscount',
-                              'WalletGift',
-                              'ChargingService',
-                              'Loan',
-                            ].includes(
-                              TransactionSourceType[item.sourceType ?? 0],
-                            ) ? (
-                              <Badge
-                                color="primary"
-                                textColor="supportive5"
-                                CreditMode={['ChargingService'].includes(
-                                  TransactionSourceType[item.sourceType ?? 0],
-                                )}
-                                defaultMode
-                                value={item?.title ?? ''}
-                              />
-                            ) : null}
-                          </View>
-                        </View>
-                        <View className="flex-row items-center justify-between ">
-                          <BaseText type="body3" color="secondary">
-                            {t('Amount')}: {''}
-                          </BaseText>
-                          <View className="flex-row gap-1">
-                            <BaseText type="body3" color="base">
-                              {formatNumber(data?.totalAmount)}
-                            </BaseText>
-                            <BaseText type="body3" color="base">
-                              ﷼
-                            </BaseText>
-                          </View>
-                        </View>
-                        <View className="flex-row items-center justify-between ">
-                          <BaseText type="body3" color="secondary">
-                            {t('Source residue')}: {''}
-                          </BaseText>
-                          <BaseText type="body3" color="base">
-                            {formatNumber(
-                              item?.sourceType ===
-                                TransactionSourceType.UserCredit
-                                ? item?.credit
-                                : item.chargeRemainCredit,
-                            )}{' '}
-                            ریال
-                          </BaseText>
-                        </View>
-                      </>
-                    ))}
+                    {/* Amount */}
+                    <View className="flex-row items-center justify-between ">
+                      <BaseText type="body3" color="secondary">
+                        {t('Amount')}: {''}
+                      </BaseText>
+                      <View className="flex-row gap-1">
+                        <BaseText type="body3" color="base">
+                          {formatNumber(data?.totalAmount || 0)}
+                        </BaseText>
+                        <BaseText type="body3" color="base">
+                          ﷼
+                        </BaseText>
+                      </View>
+                    </View>
+
+                    {/* Source residue */}
+                    {data.remainCredit && (
+                      <View className="flex-row items-center justify-between ">
+                        <BaseText type="body3" color="secondary">
+                          {t('Source residue')}: {''}
+                        </BaseText>
+                        <BaseText type="body3" color="base">
+                          {formatNumber(Number(data.remainCredit))} ریال
+                        </BaseText>
+                      </View>
+                    )}
                   </View>
                 </View>
               </View>

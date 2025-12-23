@@ -506,6 +506,18 @@ export interface SaleOrderByIDRes {
   cashBackParentId?: number | null;
 }
 
+// New payment result response structure
+export interface PaymentResultRes {
+  totalAmount: number;
+  orders: number[]; // Array of order IDs
+  submitAt: string; // ISO date string
+  source: number | null;
+  sourceType?: number; // Transaction source type
+  title: string; // Payment source title (e.g., "UserCredit")
+  transactions: number[]; // Array of transaction IDs
+  remainCredit?: string; // Remaining credit after payment
+}
+
 export interface SaleOrderDto {
   user?: number;
   freeReception?: boolean;
