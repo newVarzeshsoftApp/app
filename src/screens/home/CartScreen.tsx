@@ -112,6 +112,22 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
   const SubmitSaleOrder = () => {
     const submitAt = moment(new Date()).format('YYYY-MM-DD HH:mm');
 
+    // Debug: Check ProfileData
+    const currentUserId = ProfileData?.id;
+    console.log('🔍 [CartScreen] ProfileData check:', {
+      ProfileData,
+      profileId: currentUserId,
+      hasProfile: !!ProfileData,
+      userIdType: typeof currentUserId,
+    });
+
+    if (!currentUserId) {
+      console.error(
+        '❌ [CartScreen] ProfileData.id is missing in SubmitSaleOrder!',
+        {ProfileData},
+      );
+    }
+
     // Separate reservation items from regular items
     const reservationItems = normalizedItems.filter(
       item =>
@@ -247,73 +263,54 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
         .add(1, 'day')
         .format('YYYY-MM-DD');
 
-      // Build secondaryServices with quantity (one item per subService with quantity field)
-      // Convert dates from Jalali to Gregorian if needed
-      const secondaryServices = reservationData.secondaryServices?.map(
-        subService => {
-          // Convert start date if needed
-          let startGregorian = subService.start;
-          const startYear = parseInt(startGregorian.split('-')[0]);
-          if ((startYear >= 1300 && startYear <= 1500) || startYear > 2000) {
-            try {
-              // This is Jalali date, convert to Gregorian
-              const [jYear, jMonth, jDay] = startGregorian.split('-');
-              const converted = moment
-                .from(`${jYear}-${jMonth}-${jDay}`, 'fa', 'jYYYY-jMM-jDD')
-                .format('YYYY-MM-DD');
+      // Build secondaryServices from ALL subProducts (even with quantity 0)
+      // Always send all subProducts, default quantity to 0 if not modified
+      const secondaryServices: any[] = [];
 
-              // Validate conversion
-              const convertedYear = parseInt(converted.split('-')[0]);
-              if (convertedYear >= 1900 && convertedYear <= 2100) {
-                startGregorian = converted;
-              }
-            } catch (error) {
-              console.error(
-                '❌ [CartScreen] Error converting start date:',
-                startGregorian,
-                error,
-              );
-            }
-          }
+      // Get all subProducts from product
+      const allSubProducts = item.product.subProducts || [];
 
-          // Convert end date if needed
-          let endGregorian = subService.end;
-          const endYear = parseInt(endGregorian.split('-')[0]);
-          if ((endYear >= 1300 && endYear <= 1500) || endYear > 2000) {
-            try {
-              // This is Jalali date, convert to Gregorian
-              const [jYear, jMonth, jDay] = endGregorian.split('-');
-              const converted = moment
-                .from(`${jYear}-${jMonth}-${jDay}`, 'fa', 'jYYYY-jMM-jDD')
-                .format('YYYY-MM-DD');
+      // Create a map of existing secondaryServices by product ID for quick lookup
+      const existingServicesMap = new Map<number, any>();
+      reservationData.secondaryServices?.forEach(service => {
+        existingServicesMap.set(service.product, service);
+      });
 
-              // Validate conversion
-              const convertedYear = parseInt(converted.split('-')[0]);
-              if (convertedYear >= 1900 && convertedYear <= 2100) {
-                endGregorian = converted;
-              }
-            } catch (error) {
-              console.error(
-                '❌ [CartScreen] Error converting end date:',
-                endGregorian,
-                error,
-              );
-            }
-          }
+      // Process all subProducts
+      allSubProducts.forEach(subProduct => {
+        const existingService = existingServicesMap.get(
+          subProduct.product?.id || 0,
+        );
+        const quantity = existingService?.quantity || 0; // Default to 0 if not found
 
-          return {
-            user: subService.user,
-            product: subService.product,
-            start: startGregorian, // Gregorian format (YYYY-MM-DD)
-            end: endGregorian, // Gregorian format (YYYY-MM-DD)
-            discount: subService.discount,
-            type: subService.type,
-            tax: subService.tax ?? 0, // Must be 0 if null
-            price: subService.price,
-            quantity: subService.quantity || 1, // Keep quantity field
-          };
-        },
-      );
+        // Calculate dates based on reservedDate
+        const startDate = reservedDateGregorian;
+        const duration = subProduct.product?.duration || 1;
+        const endDate = moment(startDate, 'YYYY-MM-DD')
+          .add(duration, 'days')
+          .format('YYYY-MM-DD');
+
+        // Get userId from ProfileData - use ProfileData.id from component scope
+        // ProfileData is defined at component level (line 63), so it should be available
+        const userId = ProfileData?.id;
+        console.log('🔍 [CartScreen] secondaryServices userId:', {
+          userId,
+          ProfileData,
+          profileId: ProfileData?.id,
+        });
+
+        secondaryServices.push({
+          user: userId || 0, // Use ProfileData.id - fallback to 0 only if undefined
+          product: subProduct.product?.id || 0,
+          start: startDate, // Gregorian format (YYYY-MM-DD)
+          end: endDate, // Gregorian format (YYYY-MM-DD)
+          discount: subProduct.discount || 0,
+          type: subProduct.product?.type || 1,
+          tax: subProduct.tax || 0,
+          price: subProduct.product?.price || subProduct.amount || 0,
+          quantity: quantity, // Can be 0 - always send
+        });
+      });
 
       // Convert reservedDate to Gregorian if needed
       let reservedDateFormatted = reservationData.reservedDate;
@@ -357,8 +354,8 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
         isReserve: true,
         user: ProfileData?.id || 0,
         product: item.product.id,
-        price: amount,
-        discount: (amount * discount) / 100,
+        price: amount || 0, // Always send price, even if 0
+        discount: (amount * discount) / 100 || 0, // Must be 0 if null/undefined
         tax: item?.product?.tax ?? 0, // Must be 0 if null
         type: item.product.type ?? 1, // Add type field
         reservedDate: reservedDateFormatted, // Gregorian format (YYYY-MM-DD HH:mm)
@@ -367,7 +364,8 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
         start: reservedDateGregorian, // Gregorian format (YYYY-MM-DD)
         end: endDateGregorian, // Gregorian format (YYYY-MM-DD)
         description: reservationData.description || null,
-        secondaryServices: secondaryServices || undefined,
+        secondaryServices:
+          secondaryServices.length > 0 ? secondaryServices : undefined, // Always send if exists
       };
     });
 
@@ -404,15 +402,14 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
             : item.SelectedPriceList
             ? item?.SelectedPriceList?.discountOnlineShopPercentage ?? 0
             : item?.product?.discount ?? 0;
-        // Convert dates to Jalali format
-        const startDateJalali = moment().locale('fa').format('jYYYY-jMM-jDD');
-        const endDateJalali = moment()
+        // Convert dates to Gregorian format (YYYY-MM-DD)
+        const startDateGregorian = moment().format('YYYY-MM-DD');
+        const endDateGregorian = moment()
           .add(
             item.SelectedPriceList?.duration ?? item.product.duration,
             'days',
           )
-          .locale('fa')
-          .format('jYYYY-jMM-jDD');
+          .format('YYYY-MM-DD');
 
         return {
           quantity: 1,
@@ -427,8 +424,8 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
               : item.product?.type ?? 1,
           contractor: item?.SelectedContractor?.contractorId ?? null,
           contractorId: item?.SelectedContractor?.contractorId ?? null,
-          start: startDateJalali, // Jalali format
-          end: endDateJalali, // Jalali format
+          start: startDateGregorian, // Gregorian format (YYYY-MM-DD)
+          end: endDateGregorian, // Gregorian format (YYYY-MM-DD)
           isOnline: true,
           user: ProfileData?.id,
           amount: amount,
@@ -486,7 +483,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
       orders.push({
         submitAt,
         user: ProfileData?.id,
-        items: [regularItemsDTO], // Nested array: array of arrays as per data.json
+        items: regularItemsDTO, // Nested array: array of arrays as per data.json
         transactions: [
           {
             amount: regularOrderAmount,
@@ -523,13 +520,13 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
           2,
         ),
       );
-      CreatePayment.mutate({
-        amount: amountPayable,
-        gateway: PaymentMethod.getway,
-        description: 'Cart',
-        isDeposit: false,
-        orders: orders,
-      });
+      // CreatePayment.mutate({
+      //   amount: amountPayable,
+      //   gateway: PaymentMethod.getway,
+      //   description: 'Cart',
+      //   isDeposit: false,
+      //   orders: orders,
+      // });
     } else {
       // Non-gateway payment (wallet or credit service) - send orders array to SaleOrder
       const saleOrderBody = {
