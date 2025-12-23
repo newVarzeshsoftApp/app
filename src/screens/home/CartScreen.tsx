@@ -520,13 +520,13 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
           2,
         ),
       );
-      // CreatePayment.mutate({
-      //   amount: amountPayable,
-      //   gateway: PaymentMethod.getway,
-      //   description: 'Cart',
-      //   isDeposit: false,
-      //   orders: orders,
-      // });
+      CreatePayment.mutate({
+        amount: amountPayable,
+        gateway: PaymentMethod.getway,
+        description: 'Cart',
+        isDeposit: false,
+        orders: orders,
+      });
     } else {
       // Non-gateway payment (wallet or credit service) - send orders array to SaleOrder
       const saleOrderBody = {

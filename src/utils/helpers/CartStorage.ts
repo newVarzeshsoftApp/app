@@ -407,19 +407,14 @@ export const clearCart = async (): Promise<void> => {
       await EncryptedStorage?.removeItem(CART_KEY);
     }
 
-    // Sync with ReservationStore - remove all cart-linked reservations
+    // Clear all reservations from ReservationStore when cart is cleared
     try {
-      const {reservations, removeReservation} = useReservationStore.getState();
-      for (const reservation of reservations) {
-        if (reservation.cartId) {
-          const key = getReservationKey(reservation);
-          await removeReservation(key);
-        }
-      }
-      console.log('✅ [clearCart] Synced with ReservationStore');
+      const {clearReservations} = useReservationStore.getState();
+      await clearReservations();
+      console.log('✅ [clearCart] Cleared ReservationStore');
     } catch (error) {
       console.error(
-        '⚠️ [clearCart] Error syncing with ReservationStore:',
+        '⚠️ [clearCart] Error clearing ReservationStore:',
         error,
       );
       // Don't throw - cart operation should succeed even if sync fails
