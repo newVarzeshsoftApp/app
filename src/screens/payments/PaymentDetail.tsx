@@ -167,10 +167,7 @@ const PaymentDetail: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                       </BaseText>
                       <View className="flex-row gap-1 items-center">
                         <BaseText type="body3" color="base">
-                          {data?.title ??
-                            t(
-                              `${TransactionSourceType[data?.sourceType ?? 0]}`,
-                            )}
+                          {t(`${TransactionSourceType[data?.sourceType ?? 0]}`)}
                         </BaseText>
                         {[
                           'OfferedDiscount',

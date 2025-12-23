@@ -4,7 +4,10 @@ import {routes} from '../routes/routes';
 import axiosInstance from '../utils/AxiosInstans';
 import {handleMutationError} from '../utils/helpers/errorHandler';
 import {SaleOrderBody} from './models/request/OperationalReqService';
-import {SaleOrderByIDRes, PaymentResultRes} from './models/response/UseResrService';
+import {
+  SaleOrderByIDRes,
+  PaymentResultRes,
+} from './models/response/UseResrService';
 
 const {
   operational: {saleOrder, getPaymentResult},

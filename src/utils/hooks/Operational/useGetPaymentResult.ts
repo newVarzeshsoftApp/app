@@ -11,4 +11,3 @@ export const useGetPaymentResult = (
     enabled: !!ids && ids.length > 0,
   });
 };
-
