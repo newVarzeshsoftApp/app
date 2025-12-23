@@ -37,7 +37,10 @@ import {
   DayEntryDto,
 } from '../../../services/models/response/ReservationResService';
 import moment from 'jalali-moment';
-import {ReservationSecondaryService} from '../../../utils/helpers/CartStorage';
+import {
+  ReservationSecondaryService,
+  CartItem,
+} from '../../../utils/helpers/CartStorage';
 
 // Utils
 import {BottomSheetMethods} from '../../../components/BottomSheet/BottomSheet';
@@ -76,7 +79,12 @@ const ReserveDetailScreen: React.FC = () => {
 
   // Custom Hooks
   const {profile, SKU} = useAuth();
-  const {addToCart, items: cartItems, refreshCart} = useCartContext();
+  const {
+    addToCart,
+    items: cartItems,
+    refreshCart,
+    removeFromCart,
+  } = useCartContext();
   const {timeSlots, isLoading, error, totalPagesForSlots} =
     useReservationData(params);
   const {
@@ -318,7 +326,7 @@ const ReserveDetailScreen: React.FC = () => {
     };
 
     // Subscribe to ReservationStore changes
-    const unsubscribe = useReservationStore.subscribe(state => {
+    const unsubscribe = useReservationStore.subscribe((state: any) => {
       // When reservations change, sync preReservedItems
       syncFromStore();
     });
@@ -433,6 +441,72 @@ const ReserveDetailScreen: React.FC = () => {
             isMyAction,
             status: event.status,
           });
+
+          // Remove from cart if it exists
+          (async () => {
+            try {
+              // Convert date from Jalali to Gregorian if needed
+              let gregorianDate = eventDate;
+              if (eventDate.includes('/')) {
+                const [year, month, day] = eventDate.split('/');
+                gregorianDate = moment(
+                  `${year}-${month}-${day}`,
+                  'jYYYY-jMM-jDD',
+                ).format('YYYY-MM-DD');
+              }
+
+              // Find reservation in ReservationStore
+              const {findReservationByKey} = useReservationStore.getState();
+              const key = `${event.product}-${gregorianDate}-${event.fromTime}-${event.toTime}`;
+              const reservation = findReservationByKey(key);
+
+              // If reservation has cartId, remove from cart
+              if (reservation?.cartId) {
+                console.log(
+                  `🛒 [SSE ${event.status}] Removing reservation from cart:`,
+                  {
+                    cartId: reservation.cartId,
+                    productId: event.product,
+                    date: gregorianDate,
+                    fromTime: event.fromTime,
+                    toTime: event.toTime,
+                  },
+                );
+                await removeFromCart(reservation.cartId);
+              } else {
+                // Also try to find by checking cart items directly
+                const cartItems = await getCart();
+                const cartReservation = cartItems.find(
+                  (cartItem: CartItem) =>
+                    cartItem.isReserve &&
+                    cartItem.reservationData &&
+                    cartItem.product?.id === event.product &&
+                    cartItem.reservationData.reservedDate.split(' ')[0] ===
+                      gregorianDate &&
+                    cartItem.reservationData.reservedStartTime ===
+                      event.fromTime &&
+                    cartItem.reservationData.reservedEndTime === event.toTime,
+                );
+                if (cartReservation?.CartId) {
+                  console.log(
+                    `🛒 [SSE ${event.status}] Found reservation in cart, removing:`,
+                    {
+                      cartId: cartReservation.CartId,
+                      productId: event.product,
+                    },
+                  );
+                  await removeFromCart(cartReservation.CartId);
+                }
+              }
+            } catch (error) {
+              console.error(
+                `⚠️ [SSE ${event.status}] Error removing from cart:`,
+                error,
+              );
+              // Continue with removeReservation even if cart removal fails
+            }
+          })();
+
           removeReservation(
             event.product,
             eventDate,

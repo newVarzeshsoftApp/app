@@ -1,11 +1,11 @@
-import React, {useRef, useMemo} from 'react';
+import React, {useRef, useMemo, useState, useEffect} from 'react';
 import {View, TouchableOpacity, Alert} from 'react-native';
 import {
   CartItem,
   ReservationSecondaryService,
 } from '../../../utils/helpers/CartStorage';
 import {useTranslation} from 'react-i18next';
-import {Trash, CloseCircle} from 'iconsax-react-native';
+import {Trash, CloseCircle, Timer1} from 'iconsax-react-native';
 import BaseButton from '../../Button/BaseButton';
 import BaseText from '../../BaseText';
 import {ConvertDuration, formatNumber} from '../../../utils/helpers/helpers';
@@ -23,6 +23,7 @@ import {
   convertCartItemToReservationStoreItem,
   getReservationKey,
 } from '../../../utils/helpers/ReservationStorage';
+import {useGetReservationExpiresTime} from '../../../utils/hooks/Reservation/useGetReservationExpiresTime';
 type CartServiceCardProps = {
   data: CartItem;
 };
@@ -44,6 +45,131 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
 
   // For reservation items, calculate price differently
   const isReservationItem = isReserve && reservationData;
+
+  // Get reservation expiration time
+  const {data: expiresTimeData, isLoading: isLoadingExpiresTime} =
+    useGetReservationExpiresTime(!!isReservationItem);
+
+  console.log('🔍 [CartServiceCard] Expires time data:', {
+    isReservationItem,
+    expiresTimeData,
+    isLoadingExpiresTime,
+    ttlSecond: expiresTimeData?.ttlSecond,
+  });
+
+  // State for countdown timer
+  const [remainingTime, setRemainingTime] = useState<number | null>(null);
+  // Flag to prevent multiple auto-delete calls
+  const hasAutoDeletedRef = useRef(false);
+
+  // Get reservation from ReservationStore to use createdAt (pre-reserve time) instead of addedToCartAt
+  const reservationFromStore = useMemo(() => {
+    if (!isReservationItem || !reservationData || !CartId) return null;
+
+    try {
+      const {findReservationByCartId, findReservationByKey} =
+        useReservationStore.getState();
+
+      // Try to find by cartId first
+      let reservation = findReservationByCartId(CartId);
+
+      // If not found by cartId, try to find by key
+      if (!reservation && reservationData) {
+        const reservedDate = reservationData.reservedDate.split(' ')[0];
+        const key = getReservationKey({
+          productId: product?.id || 0,
+          date: reservedDate,
+          fromTime: reservationData.reservedStartTime,
+          toTime: reservationData.reservedEndTime,
+        });
+        reservation = findReservationByKey(key);
+      }
+
+      return reservation;
+    } catch (error) {
+      console.error(
+        '⚠️ [CartServiceCard] Error getting reservation from store:',
+        error,
+      );
+      return null;
+    }
+  }, [isReservationItem, reservationData, CartId, product?.id]);
+
+  // Calculate remaining time for reservation items
+  useEffect(() => {
+    // Use createdAt from ReservationStore (pre-reserve time) if available, otherwise use addedToCartAt
+    const startTime = reservationFromStore?.createdAt || data.addedToCartAt;
+
+    if (!isReservationItem || !startTime || !expiresTimeData?.ttlSecond) {
+      setRemainingTime(null);
+      hasAutoDeletedRef.current = false; // Reset flag when closed
+      return;
+    }
+
+    // Reset flag when item changes
+    hasAutoDeletedRef.current = false;
+
+    const updateRemainingTime = () => {
+      const now = new Date();
+      const startedAt = new Date(startTime);
+      const elapsedSeconds = (now.getTime() - startedAt.getTime()) / 1000;
+      const expiresTimeSeconds = expiresTimeData.ttlSecond;
+      const remainingSeconds = Math.max(0, expiresTimeSeconds - elapsedSeconds);
+      // Convert to minutes for display
+      const remainingMinutes = remainingSeconds / 60;
+      setRemainingTime(remainingMinutes);
+
+      console.log('⏰ [CartServiceCard] Remaining time update:', {
+        elapsedSeconds: elapsedSeconds.toFixed(2),
+        expiresTimeSeconds,
+        remainingSeconds: remainingSeconds.toFixed(2),
+        remainingMinutes: remainingMinutes.toFixed(2),
+        startTime,
+        usingPreReserveTime: !!reservationFromStore?.createdAt,
+      });
+
+      // If time expired, automatically remove from cart
+      if (remainingSeconds <= 0 && CartId && !hasAutoDeletedRef.current) {
+        hasAutoDeletedRef.current = true; // Set flag to prevent multiple calls
+        console.log(
+          '⏰ [CartServiceCard] Time expired, auto-removing reservation from cart',
+          {
+            cartId: CartId,
+            productId: product?.id,
+          },
+        );
+        // Remove from cart
+        removeFromCart(CartId);
+      }
+    };
+
+    // Update immediately
+    updateRemainingTime();
+
+    // Update every second
+    const interval = setInterval(updateRemainingTime, 1000);
+
+    return () => clearInterval(interval);
+  }, [
+    isReservationItem,
+    reservationFromStore?.createdAt,
+    data.addedToCartAt,
+    expiresTimeData,
+    CartId,
+    removeFromCart,
+    product?.id,
+  ]);
+
+  // Format remaining time for display
+  const formatRemainingTime = (minutes: number): string => {
+    if (minutes <= 0) return 'منقضی شده';
+    const hours = Math.floor(minutes / 60);
+    const mins = Math.floor(minutes % 60);
+    if (hours > 0) {
+      return `${hours} ساعت و ${mins} دقیقه`;
+    }
+    return `${mins} دقیقه`;
+  };
 
   // Calculate totals for reservation vs regular items
   const reservationTotals = useMemo(() => {
@@ -325,7 +451,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                 const key = getReservationKey(storeItem);
                 const {findReservationByKey} = useReservationStore.getState();
                 const storeReservation = findReservationByKey(key);
-                
+
                 if (storeReservation && storeReservation.dayName) {
                   dayName = storeReservation.dayName;
                   console.log(
@@ -469,7 +595,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
           <BaseButton
             noText
             onPress={() => RemoveItemRef.current?.expand()}
-            type="Tonal"
+            type="Outline"
             color="Black"
             LeftIcon={Trash}
             redbutton
@@ -700,7 +826,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                               </BaseText> */}
                             </View>
                             <View className="flex-row items-center gap-2">
-                              <TouchableOpacity
+                              {/* <TouchableOpacity
                                 onPress={() =>
                                   updateSubProductQuantity(service.product, -1)
                                 }
@@ -719,22 +845,42 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                                   }>
                                   -
                                 </BaseText>
-                              </TouchableOpacity>
+                              </TouchableOpacity> */}
+
+                              <BaseButton
+                                type="Outline"
+                                color="Black"
+                                disabled={(service.quantity || 0) === 0}
+                                text="-"
+                                redbutton={service.quantity === 1}
+                                noText={service.quantity === 1}
+                                size="Medium"
+                                LeftIcon={
+                                  service.quantity === 1 ? Trash : undefined
+                                }
+                                onPress={() =>
+                                  updateSubProductQuantity(service.product, -1)
+                                }
+                                style={{width: 36}}
+                              />
+
                               <BaseText
                                 type="body2"
                                 color="base"
                                 className="w-6 text-center">
                                 {service.quantity || 0}
                               </BaseText>
-                              <TouchableOpacity
+
+                              <BaseButton
+                                size="Medium"
                                 onPress={() =>
                                   updateSubProductQuantity(service.product, 1)
                                 }
-                                className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center">
-                                <BaseText type="body2" color="base">
-                                  +
-                                </BaseText>
-                              </TouchableOpacity>
+                                type="Outline"
+                                color="Black"
+                                text="+"
+                                style={{width: 36}}
+                              />
                             </View>
                           </View>
                         </View>
@@ -743,6 +889,44 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
 
                     return <SubProductCard key={index} service={service} />;
                   })}
+                </View>
+              </View>
+            )}
+
+          {/* Expiration Time Info - Below reservation details or sub-products */}
+          {(() => {
+            console.log('🔍 [CartServiceCard] Expiration time check:', {
+              isReservationItem,
+              hasReservationData: !!reservationData,
+              expiresTimeData: expiresTimeData?.ttlSecond,
+              remainingTime,
+              shouldShow:
+                isReservationItem &&
+                reservationData &&
+                expiresTimeData?.ttlSecond &&
+                remainingTime !== null,
+            });
+            return null;
+          })()}
+          {isReservationItem &&
+            reservationData &&
+            expiresTimeData?.ttlSecond &&
+            remainingTime !== null && (
+              <View className="flex-row items-center gap-2 p-3 BaseServiceCard mt-2">
+                <View className="flex-1 gap-2">
+                  <BaseText type="subtitle2">
+                    {remainingTime > 0
+                      ? `زمان باقیمانده برای تکمیل رزرو: ${formatRemainingTime(
+                          remainingTime,
+                        )}`
+                      : 'زمان رزرو منقضی شده است'}
+                  </BaseText>
+                  {remainingTime > 0 && (
+                    <BaseText type="subtitle3" color="secondary">
+                      در صورت عدم تکمیل رزرو در این زمان، رزرو به صورت خودکار
+                      حذف می‌شود
+                    </BaseText>
+                  )}
                 </View>
               </View>
             )}

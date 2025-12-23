@@ -73,10 +73,11 @@ export const addToReservationStore = async (
     );
 
     if (existingIndex !== -1) {
-      // Update existing
+      // Update existing - preserve createdAt if it exists
       reservations[existingIndex] = {
         ...reservations[existingIndex],
         ...item,
+        createdAt: reservations[existingIndex].createdAt || item.createdAt || new Date().toISOString(), // Preserve original createdAt
         updatedAt: new Date().toISOString(),
       };
     } else {

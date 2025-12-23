@@ -51,6 +51,7 @@ export interface CartItem {
   // Reservation-specific fields
   isReserve?: boolean;
   reservationData?: ReservationData;
+  addedToCartAt?: string; // ISO timestamp when item was added to cart (for expiration check)
 }
 
 const CART_KEY = 'shopping_cart';
@@ -138,22 +139,28 @@ export const addCart = async (
 
         if (existingIndex !== -1) {
           // Update reservation data, especially secondaryServices
+          // Keep original addedToCartAt if it exists, otherwise set it now
           cart[existingIndex] = {
             ...cart[existingIndex],
             reservationData: {
               ...cart[existingIndex].reservationData!,
               secondaryServices: newReservation.secondaryServices,
             },
+            addedToCartAt:
+              cart[existingIndex].addedToCartAt || new Date().toISOString(), // Preserve original timestamp
           };
 
           await setCartStorage(cart);
 
           // Sync with ReservationStore
           try {
-            const storeItem = convertCartItemToReservationStoreItem(cart[existingIndex]);
+            const storeItem = convertCartItemToReservationStoreItem(
+              cart[existingIndex],
+            );
             if (storeItem) {
               // Calculate dayName from date
-              const date = cart[existingIndex].reservationData!.reservedDate.split(' ')[0];
+              const date =
+                cart[existingIndex].reservationData!.reservedDate.split(' ')[0];
               const dateMoment = moment(date, 'YYYY-MM-DD');
               const dayOfWeek = dateMoment.day();
               const dayMap: Record<number, string> = {
@@ -168,13 +175,23 @@ export const addCart = async (
               storeItem.dayName = dayMap[dayOfWeek] || 'day1';
 
               const key = getReservationKey(storeItem);
-              const {updateReservation} = useReservationStore.getState();
+              const {updateReservation, findReservationByKey} =
+                useReservationStore.getState();
+              // Find existing reservation to preserve createdAt
+              const existingReservation = findReservationByKey(key);
               await updateReservation(key, {
+                cartId: storeItem.cartId, // Ensure cartId is updated
                 subProducts: storeItem.subProducts,
                 modifiedQuantities: storeItem.modifiedQuantities,
+                createdAt:
+                  existingReservation?.createdAt ||
+                  storeItem.createdAt ||
+                  new Date().toISOString(), // Preserve original createdAt
                 updatedAt: new Date().toISOString(),
               });
-              console.log('✅ [addCart] Updated existing reservation in ReservationStore');
+              console.log(
+                '✅ [addCart] Updated existing reservation in ReservationStore',
+              );
             }
           } catch (error) {
             console.error(
@@ -196,6 +213,7 @@ export const addCart = async (
         quantity: 1, // برای رزروها همیشه quantity = 1
         CartId: generateCartId(),
         submitAt: new Date().toISOString(),
+        addedToCartAt: new Date().toISOString(), // Store when item was added for expiration check
       };
       cart.push(newItem);
 
@@ -224,7 +242,10 @@ export const addCart = async (
           console.log('✅ [addCart] Synced with ReservationStore');
         }
       } catch (error) {
-        console.error('⚠️ [addCart] Error syncing with ReservationStore:', error);
+        console.error(
+          '⚠️ [addCart] Error syncing with ReservationStore:',
+          error,
+        );
         // Don't throw - cart operation should succeed even if sync fails
       }
     } else {
@@ -379,7 +400,9 @@ export const updateReservationData = async (
             modifiedQuantities: storeItem.modifiedQuantities,
             updatedAt: new Date().toISOString(),
           });
-          console.log('✅ [updateReservationData] Synced with ReservationStore');
+          console.log(
+            '✅ [updateReservationData] Synced with ReservationStore',
+          );
         }
       } catch (error) {
         console.error(
@@ -413,10 +436,7 @@ export const clearCart = async (): Promise<void> => {
       await clearReservations();
       console.log('✅ [clearCart] Cleared ReservationStore');
     } catch (error) {
-      console.error(
-        '⚠️ [clearCart] Error clearing ReservationStore:',
-        error,
-      );
+      console.error('⚠️ [clearCart] Error clearing ReservationStore:', error);
       // Don't throw - cart operation should succeed even if sync fails
     }
   } catch (error) {

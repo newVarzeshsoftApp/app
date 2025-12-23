@@ -156,3 +156,8 @@ export interface ResponseReserveViewResponseDto {
 export interface AuthResponseSignUpDto {
   result: boolean;
 }
+
+// Reservation expiration time response (in seconds)
+export interface ReservationExpiresTimeRes {
+  ttlSecond: number; // Time in seconds until reservation expires
+}

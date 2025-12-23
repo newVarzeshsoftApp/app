@@ -5,6 +5,7 @@ import axiosInstance from '../utils/AxiosInstans';
 import {PreReserveQuery, ReservationQuery} from './models/requestQueries';
 import {
   AuthResponseSignUpDto,
+  ReservationExpiresTimeRes,
   ReservationPattern,
   ReservationPatternsResponse,
   ReservationTag,
@@ -26,6 +27,7 @@ const {
     preReserve,
     submit,
     cancel,
+    getExpiresTime,
   },
 } = routes;
 
@@ -163,6 +165,28 @@ const ReservationService = {
       }
     } catch (error) {
       console.error('Error in CancelReservation function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+        throw new Error(
+          error.response?.data?.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+
+  GetExpiresTime: async (): Promise<ReservationExpiresTimeRes> => {
+    try {
+      const response = await axiosInstance.get<ReservationExpiresTimeRes>(
+        baseUrl + getExpiresTime(),
+      );
+      if (response.status === Status.Ok) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error in GetExpiresTime function:', error);
       if (axios.isAxiosError(error) && error.response) {
         handleMutationError(error);
         throw new Error(

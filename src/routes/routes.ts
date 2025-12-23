@@ -143,5 +143,6 @@ export const routes = {
       'reservation/pre-reserve' + prepareQuery(query),
     submit: () => 'reservation/submit',
     cancel: () => 'reservation/cancel',
+    getExpiresTime: () => 'reservation/expires-time',
   },
 };

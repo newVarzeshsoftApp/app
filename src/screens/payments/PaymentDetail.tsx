@@ -206,7 +206,7 @@ const PaymentDetail: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                     </View>
 
                     {/* Source residue */}
-                    {data.remainCredit && (
+                    {data.remainCredit ? (
                       <View className="flex-row items-center justify-between ">
                         <BaseText type="body3" color="secondary">
                           {t('Source residue')}: {''}
@@ -215,7 +215,7 @@ const PaymentDetail: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                           {formatNumber(Number(data.remainCredit))} ریال
                         </BaseText>
                       </View>
-                    )}
+                    ) : null}
                   </View>
                 </View>
               </View>

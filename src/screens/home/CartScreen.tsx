@@ -40,6 +40,7 @@ import RadioButton from '../../components/Button/RadioButton/RadioButton';
 import {useAuth} from '../../utils/hooks/useAuth';
 import {navigate} from '../../navigation/navigationRef';
 import {ReservationData} from '../../utils/helpers/CartStorage';
+import {useGetReservationExpiresTime} from '../../utils/hooks/Reservation/useGetReservationExpiresTime';
 type PaymentMethodType = {
   getway?: number;
   isWallet?: boolean;
@@ -48,7 +49,7 @@ type PaymentMethodType = {
 type CartScreenProps = BottomTabScreenProps<HomeStackParamList, 'cart'>;
 const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Cart'});
-  const {totalItems, items, emptyCart} = useCartContext();
+  const {totalItems, items, emptyCart, removeFromCart} = useCartContext();
   const [steps, setSteps] = useState<1 | 2>(1);
   const {data: Getways, isLoading} = useGetGetway();
   const {data: Credits} = useGetUserSaleItem({
@@ -64,11 +65,99 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
   const {totalAmount, totalTax, totalDiscount, totalShopGift} =
     useCartTotals(items);
   const amountPayable = totalAmount + totalTax - totalDiscount;
+
+  // Get reservation expiration time
+  const hasReservationItems = items.some(
+    item => item.isReserve && item.reservationData,
+  );
+  const {data: expiresTimeData} =
+    useGetReservationExpiresTime(hasReservationItems);
+
   useEffect(() => {
     if ((Getways?.length ?? 0) > 0) {
       setPaymentMethod({getway: Getways?.[0]?.id});
     }
   }, [Getways]);
+
+  // Auto-remove expired reservation items
+  useEffect(() => {
+    if (!expiresTimeData?.ttlSecond || items.length === 0) {
+      return;
+    }
+
+    const expiresTimeSeconds = expiresTimeData.ttlSecond;
+    const now = new Date();
+
+    // Check each reservation item for expiration
+    items.forEach(item => {
+      if (
+        !item.isReserve ||
+        !item.reservationData ||
+        !item.addedToCartAt ||
+        !item.CartId
+      ) {
+        return;
+      }
+
+      const addedAt = new Date(item.addedToCartAt);
+      const elapsedSeconds = (now.getTime() - addedAt.getTime()) / 1000;
+
+      if (elapsedSeconds >= expiresTimeSeconds) {
+        console.log(
+          '⏰ [CartScreen] Reservation item expired, removing from cart:',
+          {
+            cartId: item.CartId,
+            productId: item.product?.id,
+            addedAt: item.addedToCartAt,
+            elapsedSeconds: elapsedSeconds.toFixed(2),
+            expiresTimeSeconds,
+          },
+        );
+        removeFromCart(item.CartId);
+      }
+    });
+  }, [expiresTimeData, items, removeFromCart]);
+
+  // Set up interval to check expiration every second
+  useEffect(() => {
+    if (!expiresTimeData?.ttlSecond || items.length === 0) {
+      return;
+    }
+
+    const interval = setInterval(() => {
+      const now = new Date();
+      const expiresTimeSeconds = expiresTimeData.ttlSecond;
+
+      items.forEach(item => {
+        if (
+          !item.isReserve ||
+          !item.reservationData ||
+          !item.addedToCartAt ||
+          !item.CartId
+        ) {
+          return;
+        }
+
+        const addedAt = new Date(item.addedToCartAt);
+        const elapsedSeconds = (now.getTime() - addedAt.getTime()) / 1000;
+
+        if (elapsedSeconds >= expiresTimeSeconds) {
+          console.log(
+            '⏰ [CartScreen] Reservation item expired (interval check), removing:',
+            {
+              cartId: item.CartId,
+              productId: item.product?.id,
+              elapsedSeconds: elapsedSeconds.toFixed(2),
+              expiresTimeSeconds,
+            },
+          );
+          removeFromCart(item.CartId);
+        }
+      });
+    }, 1000); // Check every second
+
+    return () => clearInterval(interval);
+  }, [expiresTimeData, items, removeFromCart]);
   const cardComponentMapping: Record<number, React.FC<{data: CartItem}>> = {
     0: CartProductCard,
     1: CartServiceCard,
@@ -511,11 +600,23 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
 
     // Send to backend
     if (PaymentMethod?.getway) {
-      // Gateway payment - send to CreatePayment
+      // Gateway payment - send to CreatePayment with same DTO structure as wallet payment
+      // Build the same body structure as SaleOrder
+      const paymentBody = {
+        submitAt,
+        user: ProfileData?.id,
+        orders: orders, // Send orders array with both reservation and regular items (same as wallet payment)
+      };
       console.log('=== Sending to CreatePayment (Gateway) ===');
       console.log(
         JSON.stringify(
-          {orders, amount: amountPayable, gateway: PaymentMethod.getway},
+          {
+            amount: amountPayable,
+            gateway: PaymentMethod.getway,
+            description: 'Cart',
+            isDeposit: false,
+            orders: paymentBody.orders, // Same orders structure as wallet payment
+          },
           null,
           2,
         ),
@@ -525,7 +626,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
         gateway: PaymentMethod.getway,
         description: 'Cart',
         isDeposit: false,
-        orders: orders,
+        orders: paymentBody.orders, // Same orders structure as wallet payment
       });
     } else {
       // Non-gateway payment (wallet or credit service) - send orders array to SaleOrder

@@ -1,4 +1,11 @@
-import React, {forwardRef, useImperativeHandle, useRef, useState} from 'react';
+import React, {
+  forwardRef,
+  useImperativeHandle,
+  useRef,
+  useState,
+  useEffect,
+  useMemo,
+} from 'react';
 import {View, TouchableOpacity, Image} from 'react-native';
 import {
   Calendar,
@@ -8,6 +15,7 @@ import {
   ArrowDown2,
   ArrowUp2,
   CloseCircle,
+  Timer1,
 } from 'iconsax-react-native';
 import moment from 'jalali-moment';
 import BottomSheet, {BottomSheetMethods} from '../BottomSheet/BottomSheet';
@@ -20,6 +28,11 @@ import {
 import {formatNumber} from '../../utils/helpers/helpers';
 import {useTheme} from '../../utils/ThemeContext';
 import {routes} from '../../routes/routes';
+import {useGetReservationExpiresTime} from '../../utils/hooks/Reservation/useGetReservationExpiresTime';
+import {useCartContext} from '../../utils/CartContext';
+import {useReservationStore} from '../../store/reservationStore';
+import {getReservationKey} from '../../utils/helpers/ReservationStorage';
+import {CartItem} from '../../utils/helpers/CartStorage';
 
 // SubProduct interface from API
 interface SubProduct {
@@ -184,6 +197,7 @@ const PreReserveBottomSheet = forwardRef<
     const bottomSheetRef = useRef<BottomSheetMethods>(null);
     const {theme} = useTheme();
     const isDark = theme === 'dark';
+    const {removeFromCart} = useCartContext();
 
     // State for the data
     const [item, setItem] = useState<ServiceEntryDto | null>(null);
@@ -204,6 +218,164 @@ const PreReserveBottomSheet = forwardRef<
 
     // State for penalty accordion
     const [penaltyExpanded, setPenaltyExpanded] = useState(false);
+
+    // Get reservation expiration time
+    const {data: expiresTimeData} = useGetReservationExpiresTime(!!item);
+
+    // State for countdown timer
+    const [remainingTime, setRemainingTime] = useState<number | null>(null);
+    // Flag to prevent multiple auto-delete calls
+    const hasAutoDeletedRef = useRef(false);
+
+    // Get reservation from ReservationStore to use createdAt (pre-reserve time)
+    const reservationFromStore = useMemo(() => {
+      if (!item || !date || !fromTime || !toTime) return null;
+
+      try {
+        // Convert date from Jalali to Gregorian if needed
+        let gregorianDate = date;
+        if (date.includes('/')) {
+          const [year, month, day] = date.split('/');
+          gregorianDate = moment(
+            `${year}-${month}-${day}`,
+            'jYYYY-jMM-jDD',
+          ).format('YYYY-MM-DD');
+        }
+
+        const {findReservationByKey} = useReservationStore.getState();
+        const key = `${item.id}-${gregorianDate}-${fromTime}-${toTime}`;
+        return findReservationByKey(key);
+      } catch (error) {
+        console.error(
+          '⚠️ [PreReserveBottomSheet] Error getting reservation from store:',
+          error,
+        );
+        return null;
+      }
+    }, [item, date, fromTime, toTime]);
+
+    // Calculate remaining time
+    useEffect(() => {
+      // Use createdAt from ReservationStore (pre-reserve time) if available
+      const startTime = reservationFromStore?.createdAt;
+
+      if (!startTime || !expiresTimeData?.ttlSecond) {
+        setRemainingTime(null);
+        hasAutoDeletedRef.current = false; // Reset flag when closed
+        return;
+      }
+
+      // Reset flag when startTime or expiresTimeData changes
+      hasAutoDeletedRef.current = false;
+
+      const updateRemainingTime = () => {
+        const now = new Date();
+        const startedAt = new Date(startTime);
+        const elapsedSeconds = (now.getTime() - startedAt.getTime()) / 1000;
+        const expiresTimeSeconds = expiresTimeData.ttlSecond;
+        const remainingSeconds = Math.max(
+          0,
+          expiresTimeSeconds - elapsedSeconds,
+        );
+        // Convert to minutes for display
+        const remainingMinutes = remainingSeconds / 60;
+        setRemainingTime(remainingMinutes);
+
+        // If time expired, automatically delete reservation and close bottom sheet
+        if (
+          remainingSeconds <= 0 &&
+          item &&
+          dayData &&
+          onDeleteReservation &&
+          !hasAutoDeletedRef.current
+        ) {
+          hasAutoDeletedRef.current = true; // Set flag to prevent multiple calls
+          console.log(
+            '⏰ [PreReserveBottomSheet] Time expired, auto-deleting reservation',
+          );
+
+          // Check if this reservation is in cart and remove it
+          (async () => {
+            try {
+              // Convert date from Jalali to Gregorian if needed
+              let gregorianDate = date;
+              if (date.includes('/')) {
+                const [year, month, day] = date.split('/');
+                gregorianDate = moment(
+                  `${year}-${month}-${day}`,
+                  'jYYYY-jMM-jDD',
+                ).format('YYYY-MM-DD');
+              }
+
+              // Find reservation in ReservationStore
+              const {findReservationByKey} = useReservationStore.getState();
+              // Use the local getReservationKey function (defined later in the component)
+              const key = `${item.id}-${gregorianDate}-${fromTime}-${toTime}`;
+              const reservation = findReservationByKey(key);
+
+              // If reservation has cartId, remove from cart
+              if (reservation?.cartId) {
+                console.log(
+                  '🛒 [PreReserveBottomSheet] Auto-removing expired reservation from cart:',
+                  {
+                    cartId: reservation.cartId,
+                    productId: item.id,
+                  },
+                );
+                await removeFromCart(reservation.cartId);
+              }
+            } catch (error) {
+              console.error(
+                '⚠️ [PreReserveBottomSheet] Error removing from cart (auto-delete):',
+                error,
+              );
+              // Continue with delete reservation even if cart removal fails
+            }
+          })();
+
+          // Close bottom sheet first
+          bottomSheetRef.current?.close();
+          // Then delete reservation
+          onDeleteReservation({
+            item,
+            date,
+            fromTime,
+            toTime,
+            dayName,
+            dayData,
+          });
+        }
+      };
+
+      // Update immediately
+      updateRemainingTime();
+
+      // Update every second
+      const interval = setInterval(updateRemainingTime, 1000);
+
+      return () => clearInterval(interval);
+    }, [
+      reservationFromStore?.createdAt,
+      expiresTimeData,
+      item,
+      dayData,
+      date,
+      fromTime,
+      toTime,
+      dayName,
+      onDeleteReservation,
+    ]);
+
+    // Format remaining time for display
+    const formatRemainingTime = (minutes: number): string => {
+      if (minutes <= 0) return 'منقضی شده';
+      const hours = Math.floor(minutes / 60);
+      const mins = Math.floor(minutes % 60);
+      if (hours > 0) {
+        return `${hours} ساعت و ${mins} دقیقه`;
+      }
+      return `${mins} دقیقه`;
+    };
 
     // Generate unique key for current reservation
     const getReservationKey = (
@@ -230,6 +402,7 @@ const PreReserveBottomSheet = forwardRef<
         setToTime(data.toTime);
         setDayName(data.dayName);
         setDayData(data.dayData);
+        // createdAt is already stored in ReservationStore when pre-reserve happens
         // Store subProducts from item
         setSubProducts((data.item.subProducts as SubProduct[]) || []);
 
@@ -595,50 +768,35 @@ const PreReserveBottomSheet = forwardRef<
                           <View className="gap-1">
                             <View className="flex-row items-center justify-center gap-2">
                               {/* Plus button - Left side */}
-                              <TouchableOpacity
+                              <BaseButton
+                                type="Tonal"
+                                color="Black"
+                                text="+"
+                                size="Medium"
                                 onPress={() => updateQuantity(subProduct.id, 1)}
-                                className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center">
-                                <BaseText type="body2" color="base">
-                                  +
-                                </BaseText>
-                              </TouchableOpacity>
+                                style={{width: 36}}
+                              />
                               {/* Quantity display - Center */}
-
                               <BaseText
                                 type="body2"
                                 color="base"
                                 className="w-6 text-center">
                                 {quantity}
                               </BaseText>
-
-                              {/* Minus/Trash button - Right side */}
-                              {quantity === 1 ? (
-                                // Show Trash icon when quantity is 1
-                                <TouchableOpacity
-                                  onPress={() =>
-                                    updateQuantity(subProduct.id, -1)
-                                  }
-                                  className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center">
-                                  <Trash
-                                    size={16}
-                                    variant="Bold"
-                                    color="#FF3B30"
-                                  />
-                                </TouchableOpacity>
-                              ) : (
-                                // Show minus button when quantity is not 1
-                                <TouchableOpacity
-                                  onPress={() =>
-                                    updateQuantity(subProduct.id, -1)
-                                  }
-                                  disabled={quantity === 0}
-                                  className="w-8 h-8 rounded-xl bg-[#E4E4E8] items-center justify-center"
-                                  style={{opacity: quantity === 0 ? 0.3 : 1}}>
-                                  <BaseText type="body2" color="base">
-                                    -
-                                  </BaseText>
-                                </TouchableOpacity>
-                              )}
+                              <BaseButton
+                                type="Tonal"
+                                color="Black"
+                                text="-"
+                                disabled={quantity === 0}
+                                size="Medium"
+                                redbutton={quantity === 1}
+                                noText={quantity === 1}
+                                LeftIcon={quantity === 1 ? Trash : undefined}
+                                onPress={() =>
+                                  updateQuantity(subProduct.id, -1)
+                                }
+                                style={{width: 36}}
+                              />
                             </View>
                           </View>
                         </View>
@@ -886,6 +1044,27 @@ const PreReserveBottomSheet = forwardRef<
 
             {/* Action Buttons */}
             <View className="gap-3 mt-2">
+              {/* Expiration Time Info - Above action buttons */}
+              {expiresTimeData?.ttlSecond && remainingTime !== null && (
+                <View className="flex-row items-center gap-2 p-3 BaseServiceCard">
+                  <View className="flex-1 gap-2">
+                    <BaseText type="subtitle2">
+                      {remainingTime > 0
+                        ? `زمان باقیمانده برای تکمیل رزرو: ${formatRemainingTime(
+                            remainingTime,
+                          )}`
+                        : 'زمان رزرو منقضی شده است'}
+                    </BaseText>
+                    {remainingTime > 0 && (
+                      <BaseText type="subtitle3" color="secondary">
+                        در صورت عدم تکمیل رزرو در این زمان، رزرو به صورت خودکار
+                        حذف می‌شود
+                      </BaseText>
+                    )}
+                  </View>
+                </View>
+              )}
+
               <View className="flex-row gap-3">
                 {/* Complete Payment */}
                 <BaseButton
@@ -937,8 +1116,94 @@ const PreReserveBottomSheet = forwardRef<
                 redbutton
                 isLoading={isDeleting}
                 disabled={isDeleting}
-                onPress={() => {
+                onPress={async () => {
                   if (item && dayData && onDeleteReservation && !isDeleting) {
+                    // Check if this reservation is in cart and remove it
+                    try {
+                      // Convert date from Jalali to Gregorian if needed
+                      let gregorianDate = date;
+                      if (date.includes('/')) {
+                        const [year, month, day] = date.split('/');
+                        gregorianDate = moment(
+                          `${year}-${month}-${day}`,
+                          'jYYYY-jMM-jDD',
+                        ).format('YYYY-MM-DD');
+                      }
+
+                      // Find reservation in ReservationStore
+                      const {findReservationByKey, findReservationByCartId} =
+                        useReservationStore.getState();
+                      const key = `${item.id}-${gregorianDate}-${fromTime}-${toTime}`;
+                      let reservation = findReservationByKey(key);
+
+                      // Also try to find by checking all reservations in cart
+                      if (!reservation) {
+                        console.log(
+                          '⚠️ [PreReserveBottomSheet] Reservation not found by key, checking cart items',
+                          {
+                            key,
+                            productId: item.id,
+                            gregorianDate,
+                            fromTime,
+                            toTime,
+                          },
+                        );
+                        // Try to find by checking cart items directly
+                        const {
+                          getCart,
+                        } = require('../../utils/helpers/CartStorage');
+                        const cartItems = await getCart();
+                        const cartReservation = cartItems.find(
+                          (cartItem: CartItem) =>
+                            cartItem.isReserve &&
+                            cartItem.reservationData &&
+                            cartItem.product?.id === item.id &&
+                            cartItem.reservationData.reservedDate.split(
+                              ' ',
+                            )[0] === gregorianDate &&
+                            cartItem.reservationData.reservedStartTime ===
+                              fromTime &&
+                            cartItem.reservationData.reservedEndTime === toTime,
+                        );
+                        if (cartReservation?.CartId) {
+                          console.log(
+                            '🛒 [PreReserveBottomSheet] Found reservation in cart, removing:',
+                            {
+                              cartId: cartReservation.CartId,
+                              productId: item.id,
+                            },
+                          );
+                          await removeFromCart(cartReservation.CartId);
+                        }
+                      } else if (reservation?.cartId) {
+                        console.log(
+                          '🛒 [PreReserveBottomSheet] Removing reservation from cart:',
+                          {
+                            cartId: reservation.cartId,
+                            productId: item.id,
+                            key,
+                          },
+                        );
+                        await removeFromCart(reservation.cartId);
+                      } else {
+                        console.log(
+                          '⚠️ [PreReserveBottomSheet] Reservation found but no cartId:',
+                          {
+                            reservation: reservation,
+                            productId: item.id,
+                            key,
+                          },
+                        );
+                      }
+                    } catch (error) {
+                      console.error(
+                        '⚠️ [PreReserveBottomSheet] Error removing from cart:',
+                        error,
+                      );
+                      // Continue with delete reservation even if cart removal fails
+                    }
+
+                    // Delete reservation
                     onDeleteReservation({
                       item,
                       date,
