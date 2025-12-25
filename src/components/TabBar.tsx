@@ -1,6 +1,7 @@
 import React from 'react';
 import {TouchableOpacity, Text, View, StyleProp, ViewStyle} from 'react-native';
 import {BottomTabBarProps} from '@react-navigation/bottom-tabs';
+import {CommonActions} from '@react-navigation/native';
 import {
   CalendarAdd,
   Home2,
@@ -20,6 +21,7 @@ import {useTranslation} from 'react-i18next';
 import {useTheme} from '../utils/ThemeContext';
 import {useCartContext} from '../utils/CartContext';
 import {navigate} from '../navigation/navigationRef';
+import {navigationRef} from '../navigation/navigationRef';
 import {HomeStackParamList} from '../utils/types/NavigationTypes';
 
 const TabBar: React.FC<BottomTabBarProps> = ({
@@ -97,11 +99,39 @@ const TabBar: React.FC<BottomTabBarProps> = ({
             canPreventDefault: true,
           });
 
-          if (!isFocused && !event.defaultPrevented) {
-            navigate('Root', {
-              screen: 'HomeNavigator',
-              params: {screen: route.name as keyof HomeStackParamList},
-            });
+          if (!event.defaultPrevented) {
+            // For reserve tab, always reset to the initial screen (reserve)
+            // even if already focused, to reset the stack to initial route
+            if (route.name === 'reserve') {
+              // First navigate to reserve tab if not focused
+              if (!isFocused) {
+                navigate('Root', {
+                  screen: 'HomeNavigator',
+                  params: {
+                    screen: 'reserve' as keyof HomeStackParamList,
+                  } as any,
+                });
+              }
+
+              // Reset nested stack using navigationRef
+              // Navigate with undefined params to reset to initial route
+              if (navigationRef.isReady()) {
+                setTimeout(() => {
+                  navigationRef.navigate('Root' as any, {
+                    screen: 'HomeNavigator',
+                    params: {
+                      screen: 'reserve',
+                      params: undefined, // This should reset to initial route
+                    },
+                  });
+                }, 50);
+              }
+            } else if (!isFocused) {
+              navigate('Root', {
+                screen: 'HomeNavigator',
+                params: {screen: route.name as keyof HomeStackParamList} as any,
+              });
+            }
           }
         };
 

@@ -97,7 +97,10 @@ const ServiceItem: React.FC<ServiceItemProps> = ({
     // حالت 3: در حال رزرو توسط من
     borderColor = colors.border;
     borderStyle = 'solid';
-    backgroundColor = colors.bg;
+    // برای حالت "در حال رزرو توسط من"، bg باید با border یکسان باشد
+    // اگر colors.bg با colors.border متفاوت است، از colors.border استفاده می‌کنیم
+    // اما اگر colors.bg وجود دارد و مناسب است، از آن استفاده می‌کنیم
+    backgroundColor = colors.border;
     textColor = colors.text;
     isDisabled = false;
   } else {

@@ -28,7 +28,7 @@ const CartPackageCard: React.FC<CartPackageCardProps> = ({data}) => {
       <BottomSheet
         Title={t('Confirm removal')}
         ref={RemoveItemRef}
-        snapPoints={[50, 80]}
+        snapPoints={[30]}
         buttonText="لغو"
         onButtonPress={() => RemoveItemRef.current?.close()}
         deleteButtonText="حذف"

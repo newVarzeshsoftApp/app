@@ -37,6 +37,7 @@ import {
   ReservationStoreItem,
 } from '../../utils/helpers/ReservationStorage';
 import {CartItem, getCart} from '../../utils/helpers/CartStorage';
+import {resetNavigationHistory} from '../../navigation/navigationRef';
 
 // SubProduct interface from API
 interface SubProduct {
@@ -935,10 +936,11 @@ const PreReserveBottomSheet = forwardRef<
     return (
       <BottomSheet
         ref={bottomSheetRef}
-        snapPoints={[90, 95]}
+        snapPoints={[95]}
         Title="جزئیات سفارش"
-        scrollView>
-        <View className="">
+        scrollView
+        disablePan>
+        <View className="flex-1">
           <View className="gap-4 pb-2">
             {/* Service Info Card */}
             <View className="BaseServiceCard gap-3">
@@ -1344,6 +1346,7 @@ const PreReserveBottomSheet = forwardRef<
                     // Item is already in cart (added on pre-reserve), just navigate to cart
                     if (onCompletePayment) {
                       onCompletePayment();
+                      resetNavigationHistory();
                     }
                   }}
                 />
