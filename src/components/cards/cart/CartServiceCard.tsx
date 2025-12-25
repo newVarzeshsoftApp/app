@@ -1,4 +1,4 @@
-import React, {useRef, useMemo, useState, useEffect} from 'react';
+import React, {useRef, useMemo, useState, useEffect, useCallback} from 'react';
 import {View, TouchableOpacity, Alert} from 'react-native';
 import {
   CartItem,
@@ -22,6 +22,7 @@ import {useReservationStore} from '../../../store/reservationStore';
 import {
   convertCartItemToReservationStoreItem,
   getReservationKey,
+  ReservationStoreItem,
 } from '../../../utils/helpers/ReservationStorage';
 import {useGetReservationExpiresTime} from '../../../utils/hooks/Reservation/useGetReservationExpiresTime';
 type CartServiceCardProps = {
@@ -42,6 +43,8 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
     useCartContext();
   const RemoveItemRef = useRef<BottomSheetMethods>(null);
   const preReserveMutation = usePreReserve();
+  // Flag to prevent sync loop when updating from local
+  const isUpdatingFromLocalRef = useRef(false);
 
   // For reservation items, calculate price differently
   const isReservationItem = isReserve && reservationData;
@@ -49,13 +52,6 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
   // Get reservation expiration time
   const {data: expiresTimeData, isLoading: isLoadingExpiresTime} =
     useGetReservationExpiresTime(!!isReservationItem);
-
-  console.log('🔍 [CartServiceCard] Expires time data:', {
-    isReservationItem,
-    expiresTimeData,
-    isLoadingExpiresTime,
-    ttlSecond: expiresTimeData?.ttlSecond,
-  });
 
   // State for countdown timer
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
@@ -119,25 +115,9 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
       const remainingMinutes = remainingSeconds / 60;
       setRemainingTime(remainingMinutes);
 
-      console.log('⏰ [CartServiceCard] Remaining time update:', {
-        elapsedSeconds: elapsedSeconds.toFixed(2),
-        expiresTimeSeconds,
-        remainingSeconds: remainingSeconds.toFixed(2),
-        remainingMinutes: remainingMinutes.toFixed(2),
-        startTime,
-        usingPreReserveTime: !!reservationFromStore?.createdAt,
-      });
-
       // If time expired, automatically remove from cart
       if (remainingSeconds <= 0 && CartId && !hasAutoDeletedRef.current) {
         hasAutoDeletedRef.current = true; // Set flag to prevent multiple calls
-        console.log(
-          '⏰ [CartServiceCard] Time expired, auto-removing reservation from cart',
-          {
-            cartId: CartId,
-            productId: product?.id,
-          },
-        );
         // Remove from cart
         removeFromCart(CartId);
       }
@@ -170,6 +150,102 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
     }
     return `${mins} دقیقه`;
   };
+
+  // Listen to ReservationStore changes to sync with PreReserveBottomSheet updates
+  useEffect(() => {
+    if (!isReservationItem || !reservationData || !CartId || !product?.id) {
+      return;
+    }
+
+    // Get the store key for this reservation
+    const reservedDate = reservationData.reservedDate.split(' ')[0];
+    const storeKey = `${product.id}-${reservedDate}-${reservationData.reservedStartTime}-${reservationData.reservedEndTime}`;
+
+    // Track previous modifiedQuantities to detect changes
+    let prevModifiedQuantities: Record<number, number> | undefined;
+
+    // Subscribe to store changes
+    const unsubscribe = useReservationStore.subscribe(state => {
+      const reservation = state.reservations.find(
+        (r: ReservationStoreItem) =>
+          `${r.productId}-${r.date}-${r.fromTime}-${r.toTime}` === storeKey,
+      );
+      const currentModifiedQuantities = reservation?.modifiedQuantities;
+
+      // Skip if we just updated from local
+      if (isUpdatingFromLocalRef.current) {
+        setTimeout(() => {
+          isUpdatingFromLocalRef.current = false;
+        }, 100);
+        prevModifiedQuantities = currentModifiedQuantities;
+        return;
+      }
+
+      // Only update if actually changed
+      if (
+        currentModifiedQuantities &&
+        JSON.stringify(currentModifiedQuantities) !==
+          JSON.stringify(prevModifiedQuantities)
+      ) {
+        // Build secondaryServices from modifiedQuantities
+        const secondaryServices: ReservationSecondaryService[] = [];
+
+        Object.entries(currentModifiedQuantities).forEach(
+          ([subProductIdStr, quantity]) => {
+            const subProductId = Number(subProductIdStr);
+            if (quantity > 0) {
+              // Find subProduct from product.subProducts
+              const subProduct = product?.subProducts?.find(
+                sp => sp.id === subProductId,
+              );
+              if (subProduct) {
+                const startDate = reservedDate;
+                const duration = subProduct.product?.duration || 1;
+                const endDate = moment(startDate, 'YYYY-MM-DD')
+                  .add(duration, 'days')
+                  .format('YYYY-MM-DD');
+
+                secondaryServices.push({
+                  user: 0,
+                  product: subProduct.product?.id || subProduct.productId || 0,
+                  start: startDate,
+                  end: endDate,
+                  discount: subProduct.discount || 0,
+                  type: subProduct.product?.type || 1,
+                  tax: subProduct.tax || 0,
+                  price: subProduct.product?.price || subProduct.amount || 0,
+                  quantity: quantity as number,
+                  subProductId: subProduct.id,
+                });
+              }
+            }
+          },
+        );
+
+        // Update cart with new secondaryServices
+        updateReservationItemData({
+          cartId: CartId,
+          reservationData: {
+            ...reservationData,
+            secondaryServices,
+          },
+        });
+      }
+
+      prevModifiedQuantities = currentModifiedQuantities;
+    });
+
+    return () => {
+      unsubscribe();
+    };
+  }, [
+    isReservationItem,
+    reservationData,
+    CartId,
+    product?.id,
+    product?.subProducts,
+    updateReservationItemData,
+  ]);
 
   // Calculate totals for reservation vs regular items
   const reservationTotals = useMemo(() => {
@@ -420,6 +496,10 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
       }
     }
 
+    // Set flag to prevent sync loop
+    isUpdatingFromLocalRef.current = true;
+
+    // Update cart
     updateReservationItemData({
       cartId: CartId,
       reservationData: {
@@ -427,6 +507,35 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
         secondaryServices: updatedServices,
       },
     });
+
+    // Also update ReservationStore for sync with PreReserveBottomSheet
+    const reservedDateClean = reservationData.reservedDate.split(' ')[0];
+    const storeKey = `${product?.id}-${reservedDateClean}-${reservationData.reservedStartTime}-${reservationData.reservedEndTime}`;
+
+    // Build modifiedQuantities from updatedServices (using subProductId as key)
+    const modifiedQuantities: Record<number, number> = {};
+    updatedServices.forEach(service => {
+      const quantity = service.quantity ?? 0;
+      if (service.subProductId && quantity > 0) {
+        modifiedQuantities[service.subProductId] = quantity;
+      }
+    });
+
+    // Update ReservationStore
+    (async () => {
+      try {
+        const {updateReservation} = useReservationStore.getState();
+        await updateReservation(storeKey, {
+          modifiedQuantities,
+          updatedAt: new Date().toISOString(),
+        });
+      } catch (error) {
+        console.error(
+          '⚠️ [CartServiceCard] Error updating ReservationStore:',
+          error,
+        );
+      }
+    })();
   };
   return (
     <>
@@ -454,10 +563,6 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
 
                 if (storeReservation && storeReservation.dayName) {
                   dayName = storeReservation.dayName;
-                  console.log(
-                    '📅 [CartServiceCard] Using dayName from ReservationStore:',
-                    dayName,
-                  );
                 } else {
                   // Fallback: Calculate day name from date
                   const dateMoment = moment(reservedDate, 'YYYY-MM-DD');
@@ -472,10 +577,6 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                     0: 'day7',
                   };
                   dayName = dayMap[dayOfWeek] || 'day1';
-                  console.log(
-                    '📅 [CartServiceCard] Calculated dayName from date:',
-                    dayName,
-                  );
                 }
               } else {
                 // Fallback: Calculate day name from date
@@ -491,10 +592,6 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                   0: 'day7',
                 };
                 dayName = dayMap[dayOfWeek] || 'day1';
-                console.log(
-                  '📅 [CartServiceCard] Calculated dayName from date:',
-                  dayName,
-                );
               }
             } catch (error) {
               console.error(
@@ -529,24 +626,8 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
               isLocked: false, // false means cancel/unlock (same as ReserveDetailScreen)
             };
 
-            console.log(
-              '🗑️ [CartServiceCard] Canceling reservation (same as ReserveDetailScreen):',
-              {
-                query,
-                reservedDate,
-                specificDate,
-                dayName,
-                productId: product.id,
-                fromTime: reservationData.reservedStartTime,
-                toTime: reservationData.reservedEndTime,
-              },
-            );
-
             preReserveMutation.mutate(query, {
               onSuccess: () => {
-                console.log(
-                  '✅ [CartServiceCard] Reservation canceled successfully (WebSocket event sent), removing from cart',
-                );
                 // Remove from cart after successful cancellation
                 // removeFromCart will also sync with ReservationStore (in CartStorage.removeCart)
                 if (CartId) {
@@ -894,20 +975,6 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
             )}
 
           {/* Expiration Time Info - Below reservation details or sub-products */}
-          {(() => {
-            console.log('🔍 [CartServiceCard] Expiration time check:', {
-              isReservationItem,
-              hasReservationData: !!reservationData,
-              expiresTimeData: expiresTimeData?.ttlSecond,
-              remainingTime,
-              shouldShow:
-                isReservationItem &&
-                reservationData &&
-                expiresTimeData?.ttlSecond &&
-                remainingTime !== null,
-            });
-            return null;
-          })()}
           {isReservationItem &&
             reservationData &&
             expiresTimeData?.ttlSecond &&

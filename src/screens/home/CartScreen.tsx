@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState, useCallback} from 'react';
 import {
   ActivityIndicator,
   Platform,
@@ -41,6 +41,11 @@ import {useAuth} from '../../utils/hooks/useAuth';
 import {navigate} from '../../navigation/navigationRef';
 import {ReservationData} from '../../utils/helpers/CartStorage';
 import {useGetReservationExpiresTime} from '../../utils/hooks/Reservation/useGetReservationExpiresTime';
+import {useReservationStore} from '../../store/reservationStore';
+import {
+  convertCartItemToReservationStoreItem,
+  getReservationKey,
+} from '../../utils/helpers/ReservationStorage';
 type PaymentMethodType = {
   getway?: number;
   isWallet?: boolean;
@@ -79,7 +84,34 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     }
   }, [Getways]);
 
-  // Auto-remove expired reservation items
+  // Helper to get start time for a reservation item (prefer createdAt from ReservationStore)
+  const getReservationStartTime = useCallback((item: CartItem): Date | null => {
+    if (!item.isReserve || !item.reservationData || !item.product) return null;
+
+    try {
+      const storeItem = convertCartItemToReservationStoreItem(item);
+      if (storeItem) {
+        const key = getReservationKey(storeItem);
+        const {findReservationByKey} = useReservationStore.getState();
+        const storeReservation = findReservationByKey(key);
+
+        if (storeReservation?.createdAt) {
+          return new Date(storeReservation.createdAt);
+        }
+      }
+    } catch (error) {
+      // Fallback to addedToCartAt
+    }
+
+    // Fallback to addedToCartAt
+    if (item.addedToCartAt) {
+      return new Date(item.addedToCartAt);
+    }
+
+    return null;
+  }, []);
+
+  // Auto-remove expired reservation items (no API call needed - server knows it's expired)
   useEffect(() => {
     if (!expiresTimeData?.ttlSecond || items.length === 0) {
       return;
@@ -90,17 +122,14 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
 
     // Check each reservation item for expiration
     items.forEach(item => {
-      if (
-        !item.isReserve ||
-        !item.reservationData ||
-        !item.addedToCartAt ||
-        !item.CartId
-      ) {
+      if (!item.isReserve || !item.reservationData || !item.CartId) {
         return;
       }
 
-      const addedAt = new Date(item.addedToCartAt);
-      const elapsedSeconds = (now.getTime() - addedAt.getTime()) / 1000;
+      const startTime = getReservationStartTime(item);
+      if (!startTime) return;
+
+      const elapsedSeconds = (now.getTime() - startTime.getTime()) / 1000;
 
       if (elapsedSeconds >= expiresTimeSeconds) {
         console.log(
@@ -108,15 +137,16 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
           {
             cartId: item.CartId,
             productId: item.product?.id,
-            addedAt: item.addedToCartAt,
+            startTime: startTime.toISOString(),
             elapsedSeconds: elapsedSeconds.toFixed(2),
             expiresTimeSeconds,
           },
         );
+        // Just remove from cart - server already knows it's expired
         removeFromCart(item.CartId);
       }
     });
-  }, [expiresTimeData, items, removeFromCart]);
+  }, [expiresTimeData, items, removeFromCart, getReservationStartTime]);
 
   // Set up interval to check expiration every second
   useEffect(() => {
@@ -129,17 +159,14 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
       const expiresTimeSeconds = expiresTimeData.ttlSecond;
 
       items.forEach(item => {
-        if (
-          !item.isReserve ||
-          !item.reservationData ||
-          !item.addedToCartAt ||
-          !item.CartId
-        ) {
+        if (!item.isReserve || !item.reservationData || !item.CartId) {
           return;
         }
 
-        const addedAt = new Date(item.addedToCartAt);
-        const elapsedSeconds = (now.getTime() - addedAt.getTime()) / 1000;
+        const startTime = getReservationStartTime(item);
+        if (!startTime) return;
+
+        const elapsedSeconds = (now.getTime() - startTime.getTime()) / 1000;
 
         if (elapsedSeconds >= expiresTimeSeconds) {
           console.log(
@@ -151,13 +178,14 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
               expiresTimeSeconds,
             },
           );
+          // Just remove from cart - server already knows it's expired
           removeFromCart(item.CartId);
         }
       });
     }, 1000); // Check every second
 
     return () => clearInterval(interval);
-  }, [expiresTimeData, items, removeFromCart]);
+  }, [expiresTimeData, items, removeFromCart, getReservationStartTime]);
   const cardComponentMapping: Record<number, React.FC<{data: CartItem}>> = {
     0: CartProductCard,
     1: CartServiceCard,

@@ -9,7 +9,11 @@ export const useGetReservationExpiresTime = (
     queryKey: ['ReservationExpiresTime'],
     queryFn: () => ReservationService.GetExpiresTime(),
     enabled,
-    refetchInterval: 60000, // Refetch every minute to check expiration
+    // Cache for 24 hours - this is a setting that rarely changes
+    staleTime: 24 * 60 * 60 * 1000, // 24 hours
+    gcTime: 24 * 60 * 60 * 1000, // 24 hours (formerly cacheTime)
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
+    refetchOnReconnect: false,
   });
 };
-

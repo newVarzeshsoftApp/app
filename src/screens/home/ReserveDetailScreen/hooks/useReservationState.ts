@@ -155,15 +155,7 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
       status: ReservationState['status'],
       userId?: number,
     ) => {
-      console.log('🔄 updateReservation called:', {
-        productId,
-        date,
-        fromTime,
-        toTime,
-        dayName,
-        status,
-        userId,
-      });
+      
 
       setReservations(prev => {
         const existingIndex = prev.findIndex(
@@ -186,10 +178,7 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
             status,
             userId,
           };
-          console.log(
-            '✅ Updated existing reservation:',
-            updated[existingIndex],
-          );
+
           return updated;
         } else {
           // Add new
@@ -202,7 +191,7 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
             status,
             userId,
           };
-          console.log('➕ Added new reservation:', newReservation);
+
           return [...prev, newReservation];
         }
       });
@@ -213,12 +202,7 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
   // Remove reservation
   const removeReservation = useCallback(
     (productId: number, date: string, fromTime: string, toTime: string) => {
-      console.log('🗑️ removeReservation called:', {
-        productId,
-        date,
-        fromTime,
-        toTime,
-      });
+      
 
       // Add to cancelled items set to ignore preReservedUserId from API
       const itemKey = `${productId}_${date}_${fromTime}_${toTime}`;
@@ -234,12 +218,7 @@ export const useReservationState = ({timeSlots}: UseReservationStateProps) => {
               r.toTime === toTime
             ),
         );
-        console.log('🗑️ removeReservation result:', {
-          before: prev.length,
-          after: filtered.length,
-          removed: prev.length - filtered.length,
-          itemKey,
-        });
+        
         return filtered;
       });
     },

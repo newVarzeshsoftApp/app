@@ -120,7 +120,7 @@ export const usePreReserveHandlers = ({
         // اگر preReservedUserId هست ولی در state نیست، اضافه کن
         // این باعث می‌شود که حذف درست کار کند
         if (hasPreReservedUserId && !reservationExists) {
-          console.log('➕ Adding preReservedUserId to state before opening bottom sheet');
+
           updateReservation(
             item.id,
             dayData.date,

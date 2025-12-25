@@ -272,10 +272,7 @@ export const useReservationStore = create<ReservationStoreState>(set => ({
         if (!validKeys.has(key) && !reservation.cartId) {
           // Not in preReservedItems and not in cart, remove it
           await removeFromReservationStore(key);
-          console.log(
-            '🗑️ [syncWithPreReserve] Removed reservation not in API or cart:',
-            key,
-          );
+
         }
       }
 

@@ -18,6 +18,13 @@ if (Platform.OS !== 'web') {
   EncryptedStorage = require('react-native-encrypted-storage').default;
 }
 
+// Flag to prevent syncing back to ReservationStore from Cart during sync operations
+export let isSyncingCartToStore = false;
+
+export const setSyncingCartToStore = (value: boolean) => {
+  isSyncingCartToStore = value;
+};
+
 // Reservation sub-product structure
 export interface ReservationSecondaryService {
   user: number;
@@ -62,7 +69,7 @@ const generateCartId = (): string => {
 };
 
 // Storage operations
-const setCartStorage = async (cart: CartItem[]): Promise<void> => {
+export const setCartStorage = async (cart: CartItem[]): Promise<void> => {
   const cartString = JSON.stringify(cart);
   if (Platform.OS === 'web') {
     localStorage.setItem(CART_KEY, cartString);
@@ -373,45 +380,8 @@ export const updateReservationData = async (
     cart[itemIndex] = updatedItem;
     await setCartStorage(cart);
 
-    // Sync with ReservationStore
-    if (updatedItem.isReserve && updatedItem.reservationData) {
-      try {
-        const storeItem = convertCartItemToReservationStoreItem(updatedItem);
-        if (storeItem) {
-          // Calculate dayName from date
-          const date = updatedItem.reservationData.reservedDate.split(' ')[0];
-          const dateMoment = moment(date, 'YYYY-MM-DD');
-          const dayOfWeek = dateMoment.day();
-          const dayMap: Record<number, string> = {
-            1: 'day1',
-            2: 'day2',
-            3: 'day3',
-            4: 'day4',
-            5: 'day5',
-            6: 'day6',
-            0: 'day7',
-          };
-          storeItem.dayName = dayMap[dayOfWeek] || 'day1';
-
-          const key = getReservationKey(storeItem);
-          const {updateReservation} = useReservationStore.getState();
-          await updateReservation(key, {
-            subProducts: storeItem.subProducts,
-            modifiedQuantities: storeItem.modifiedQuantities,
-            updatedAt: new Date().toISOString(),
-          });
-          console.log(
-            '✅ [updateReservationData] Synced with ReservationStore',
-          );
-        }
-      } catch (error) {
-        console.error(
-          '⚠️ [updateReservationData] Error syncing with ReservationStore:',
-          error,
-        );
-        // Don't throw - cart operation should succeed even if sync fails
-      }
-    }
+    // NOTE: Do NOT sync to ReservationStore here to avoid circular updates
+    // The CartServiceCard listener will handle syncing when quantities change
   } catch (error) {
     console.error('Error updating reservation data:', error);
     throw new Error('Failed to update reservation data');
