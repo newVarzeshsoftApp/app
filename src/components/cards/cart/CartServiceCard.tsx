@@ -25,11 +25,13 @@ import {
   ReservationStoreItem,
 } from '../../../utils/helpers/ReservationStorage';
 import {useGetReservationExpiresTime} from '../../../utils/hooks/Reservation/useGetReservationExpiresTime';
+import {useAuth} from '../../../utils/hooks/useAuth';
 type CartServiceCardProps = {
   data: CartItem;
 };
 const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Cart'});
+  const {profile} = useAuth();
   const {
     product,
     quantity,
@@ -157,35 +159,27 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
       return;
     }
 
-    // Get the store key for this reservation
+    // Get the store key for this reservation (use getReservationKey for consistency)
+    // Key format: productId-date-fromTime-toTime (unique for each reservation)
+    // This ensures we sync with the correct reservation, even if there are multiple
+    // reservations for the same product with different dates/times
     const reservedDate = reservationData.reservedDate.split(' ')[0];
-    const storeKey = `${product.id}-${reservedDate}-${reservationData.reservedStartTime}-${reservationData.reservedEndTime}`;
+    const storeKey = getReservationKey({
+      productId: product.id,
+      date: reservedDate,
+      fromTime: reservationData.reservedStartTime,
+      toTime: reservationData.reservedEndTime,
+    });
 
-    // Track previous modifiedQuantities to detect changes
-    let prevModifiedQuantities: Record<number, number> | undefined;
-
-    // Subscribe to store changes
-    const unsubscribe = useReservationStore.subscribe(state => {
-      const reservation = state.reservations.find(
-        (r: ReservationStoreItem) =>
-          `${r.productId}-${r.date}-${r.fromTime}-${r.toTime}` === storeKey,
-      );
+    // Initial sync: Load from ReservationStore on mount
+    const initialSync = () => {
+      const {findReservationByKey} = useReservationStore.getState();
+      const reservation = findReservationByKey(storeKey);
       const currentModifiedQuantities = reservation?.modifiedQuantities;
 
-      // Skip if we just updated from local
-      if (isUpdatingFromLocalRef.current) {
-        setTimeout(() => {
-          isUpdatingFromLocalRef.current = false;
-        }, 100);
-        prevModifiedQuantities = currentModifiedQuantities;
-        return;
-      }
-
-      // Only update if actually changed
       if (
         currentModifiedQuantities &&
-        JSON.stringify(currentModifiedQuantities) !==
-          JSON.stringify(prevModifiedQuantities)
+        Object.keys(currentModifiedQuantities).length > 0
       ) {
         // Build secondaryServices from modifiedQuantities
         const secondaryServices: ReservationSecondaryService[] = [];
@@ -193,7 +187,8 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
         Object.entries(currentModifiedQuantities).forEach(
           ([subProductIdStr, quantity]) => {
             const subProductId = Number(subProductIdStr);
-            if (quantity > 0) {
+            const quantityNum = quantity as number;
+            if (quantityNum > 0) {
               // Find subProduct from product.subProducts
               const subProduct = product?.subProducts?.find(
                 sp => sp.id === subProductId,
@@ -206,7 +201,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                   .format('YYYY-MM-DD');
 
                 secondaryServices.push({
-                  user: 0,
+                  user: profile?.id || 0,
                   product: subProduct.product?.id || subProduct.productId || 0,
                   start: startDate,
                   end: endDate,
@@ -214,7 +209,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                   type: subProduct.product?.type || 1,
                   tax: subProduct.tax || 0,
                   price: subProduct.product?.price || subProduct.amount || 0,
-                  quantity: quantity as number,
+                  quantity: quantityNum,
                   subProductId: subProduct.id,
                 });
               }
@@ -222,18 +217,109 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
           },
         );
 
-        // Update cart with new secondaryServices
-        updateReservationItemData({
-          cartId: CartId,
-          reservationData: {
-            ...reservationData,
-            secondaryServices,
-          },
-        });
+        // Only update if secondaryServices is different from current
+        const currentServices = reservationData.secondaryServices || [];
+        if (
+          JSON.stringify(secondaryServices) !== JSON.stringify(currentServices)
+        ) {
+          updateReservationItemData({
+            cartId: CartId,
+            reservationData: {
+              ...reservationData,
+              secondaryServices,
+            },
+          });
+        }
       }
+    };
 
-      prevModifiedQuantities = currentModifiedQuantities;
-    });
+    // Run initial sync
+    initialSync();
+
+    // Track previous modifiedQuantities to detect changes
+    let prevModifiedQuantities: Record<number, number> | undefined;
+
+    // Subscribe to store changes
+    const unsubscribe = useReservationStore.subscribe(
+      (state: {reservations: ReservationStoreItem[]}) => {
+        const reservation = state.reservations.find(
+          (r: ReservationStoreItem) => {
+            const rKey = getReservationKey({
+              productId: r.productId,
+              date: r.date,
+              fromTime: r.fromTime,
+              toTime: r.toTime,
+            });
+            return rKey === storeKey;
+          },
+        );
+        const currentModifiedQuantities = reservation?.modifiedQuantities;
+
+        // Skip if we just updated from local
+        if (isUpdatingFromLocalRef.current) {
+          setTimeout(() => {
+            isUpdatingFromLocalRef.current = false;
+          }, 100);
+          prevModifiedQuantities = currentModifiedQuantities;
+          return;
+        }
+
+        // Only update if actually changed
+        if (
+          currentModifiedQuantities &&
+          JSON.stringify(currentModifiedQuantities) !==
+            JSON.stringify(prevModifiedQuantities)
+        ) {
+          // Build secondaryServices from modifiedQuantities
+          const secondaryServices: ReservationSecondaryService[] = [];
+
+          Object.entries(currentModifiedQuantities).forEach(
+            ([subProductIdStr, quantity]) => {
+              const subProductId = Number(subProductIdStr);
+              const quantityNum = quantity as number;
+              if (quantityNum > 0) {
+                // Find subProduct from product.subProducts
+                const subProduct = product?.subProducts?.find(
+                  sp => sp.id === subProductId,
+                );
+                if (subProduct) {
+                  const startDate = reservedDate;
+                  const duration = subProduct.product?.duration || 1;
+                  const endDate = moment(startDate, 'YYYY-MM-DD')
+                    .add(duration, 'days')
+                    .format('YYYY-MM-DD');
+
+                  secondaryServices.push({
+                    user: profile?.id || 0,
+                    product:
+                      subProduct.product?.id || subProduct.productId || 0,
+                    start: startDate,
+                    end: endDate,
+                    discount: subProduct.discount || 0,
+                    type: subProduct.product?.type || 1,
+                    tax: subProduct.tax || 0,
+                    price: subProduct.product?.price || subProduct.amount || 0,
+                    quantity: quantityNum,
+                    subProductId: subProduct.id,
+                  });
+                }
+              }
+            },
+          );
+
+          // Update cart with new secondaryServices
+          updateReservationItemData({
+            cartId: CartId,
+            reservationData: {
+              ...reservationData,
+              secondaryServices,
+            },
+          });
+        }
+
+        prevModifiedQuantities = currentModifiedQuantities;
+      },
+    );
 
     return () => {
       unsubscribe();
@@ -326,10 +412,13 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
 
     const secondaryServices = reservationData?.secondaryServices || [];
 
-    // Create a map of existing secondary services by product ID
+    // Create a map of existing secondary services by subProductId (not productId)
+    // This is important because we use subProductId as the key in modifiedQuantities
     const existingServicesMap = new Map<number, ReservationSecondaryService>();
     secondaryServices.forEach(service => {
-      existingServicesMap.set(service.product, service);
+      if (service.subProductId) {
+        existingServicesMap.set(service.subProductId, service);
+      }
     });
 
     // Build the list: include all sub-products from product.subProducts
@@ -343,7 +432,8 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
           return null;
         }
 
-        const existingService = existingServicesMap.get(productId);
+        // Use subProduct.id to find in map (not productId)
+        const existingService = existingServicesMap.get(subProduct.id);
 
         if (existingService) {
           // Use existing service data
@@ -383,7 +473,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
             : '';
 
           return {
-            user: 0, // Will be set when adding to cart
+            user: profile?.id || 0,
             product: productId,
             start: startDate,
             end: endDate,
@@ -397,15 +487,16 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
         }
       })
       .filter(Boolean) as ReservationSecondaryService[];
-  }, [isReservationItem, reservationData, product?.subProducts]);
+  }, [isReservationItem, reservationData, product?.subProducts, profile?.id]);
 
   // Update sub-product quantity in reservation
-  const updateSubProductQuantity = (productId: number, delta: number) => {
-    if (!isReservationItem || !reservationData || !CartId) return;
+  const updateSubProductQuantity = (subProductId: number, delta: number) => {
+    if (!isReservationItem || !reservationData || !CartId || !subProductId)
+      return;
 
     const currentServices = reservationData.secondaryServices || [];
     const serviceIndex = currentServices.findIndex(
-      s => s.product === productId,
+      s => s.subProductId === subProductId,
     );
 
     let updatedServices: ReservationSecondaryService[];
@@ -414,7 +505,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
       // Service not found in secondaryServices, need to add it
       // Find the sub-product from product.subProducts to get its details
       const subProduct = product?.subProducts?.find(
-        sp => (sp.productId || sp.product?.id) === productId,
+        sp => sp.id === subProductId,
       );
 
       if (!subProduct) {
@@ -461,8 +552,9 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
         return;
       }
 
+      const productId = subProduct.productId || subProduct.product?.id || 0;
       const newService: ReservationSecondaryService = {
-        user: 0, // Will be set by backend
+        user: profile?.id || 0,
         product: productId,
         start: startDate,
         end: endDate,
@@ -509,10 +601,18 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
     });
 
     // Also update ReservationStore for sync with PreReserveBottomSheet
+    // Key format: productId-date-fromTime-toTime (unique for each reservation)
     const reservedDateClean = reservationData.reservedDate.split(' ')[0];
-    const storeKey = `${product?.id}-${reservedDateClean}-${reservationData.reservedStartTime}-${reservationData.reservedEndTime}`;
+    const storeKey = getReservationKey({
+      productId: product?.id || 0,
+      date: reservedDateClean,
+      fromTime: reservationData.reservedStartTime,
+      toTime: reservationData.reservedEndTime,
+    });
 
-    // Build modifiedQuantities from updatedServices (using subProductId as key)
+    // Build modifiedQuantities from updatedServices
+    // Key: subProductId, Value: quantity
+    // This ensures we update the correct subProduct for this specific reservation
     const modifiedQuantities: Record<number, number> = {};
     updatedServices.forEach(service => {
       const quantity = service.quantity ?? 0;
@@ -521,7 +621,18 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
       }
     });
 
-    // Update ReservationStore
+    console.log('🔄 [CartServiceCard] Updating ReservationStore:', {
+      storeKey,
+      modifiedQuantities,
+      updatedServices: updatedServices.map(s => ({
+        subProductId: s.subProductId,
+        quantity: s.quantity,
+        product: s.product,
+      })),
+    });
+
+    // Update ReservationStore with the specific reservation key
+    // This ensures we only update THIS reservation (product + date + time), not others
     (async () => {
       try {
         const {updateReservation} = useReservationStore.getState();
@@ -529,6 +640,9 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
           modifiedQuantities,
           updatedAt: new Date().toISOString(),
         });
+        console.log(
+          '✅ [CartServiceCard] ReservationStore updated successfully',
+        );
       } catch (error) {
         console.error(
           '⚠️ [CartServiceCard] Error updating ReservationStore:',
@@ -909,7 +1023,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                             <View className="flex-row items-center gap-2">
                               {/* <TouchableOpacity
                                 onPress={() =>
-                                  updateSubProductQuantity(service.product, -1)
+                                  updateSubProductQuantity(service.subProductId || 0, -1)
                                 }
                                 disabled={(service.quantity || 0) === 0}
                                 className={`w-8 h-8 rounded-xl items-center justify-center ${
@@ -940,7 +1054,10 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                                   service.quantity === 1 ? Trash : undefined
                                 }
                                 onPress={() =>
-                                  updateSubProductQuantity(service.product, -1)
+                                  updateSubProductQuantity(
+                                    service.subProductId || 0,
+                                    -1,
+                                  )
                                 }
                                 style={{width: 36}}
                               />
@@ -955,7 +1072,10 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                               <BaseButton
                                 size="Medium"
                                 onPress={() =>
-                                  updateSubProductQuantity(service.product, 1)
+                                  updateSubProductQuantity(
+                                    service.subProductId || 0,
+                                    1,
+                                  )
                                 }
                                 type="Outline"
                                 color="Black"
