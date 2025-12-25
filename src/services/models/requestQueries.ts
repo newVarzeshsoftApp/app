@@ -18,6 +18,7 @@ export interface UserSaleItemQuey {
   PageNumber?: number;
   PageSize?: number;
   searchQuery?: string;
+  isCanceled?: boolean;
 }
 //
 export interface UserPaymentQuey {

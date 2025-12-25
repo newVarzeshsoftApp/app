@@ -352,8 +352,8 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
         .add(1, 'day')
         .format('YYYY-MM-DD');
 
-      // Build secondaryServices from ALL subProducts (even with quantity 0)
-      // Always send all subProducts, default quantity to 0 if not modified
+      // Build secondaryServices from subProducts (only those with quantity > 0)
+      // Only send subProducts that have quantity > 0
       const secondaryServices: any[] = [];
 
       // Get all subProducts from product
@@ -365,12 +365,17 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
         existingServicesMap.set(service.product, service);
       });
 
-      // Process all subProducts
+      // Process all subProducts - only add those with quantity > 0
       allSubProducts.forEach(subProduct => {
         const existingService = existingServicesMap.get(
           subProduct.product?.id || 0,
         );
         const quantity = existingService?.quantity || 0; // Default to 0 if not found
+
+        // Skip subProducts with quantity 0
+        if (quantity === 0) {
+          return;
+        }
 
         // Calculate dates based on reservedDate
         const startDate = reservedDateGregorian;
@@ -397,7 +402,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
           type: subProduct.product?.type || 1,
           tax: subProduct.tax || 0,
           price: subProduct.product?.price || subProduct.amount || 0,
-          quantity: quantity, // Can be 0 - always send
+          quantity: quantity,
         });
       });
 

@@ -29,6 +29,7 @@ const MyserviceScreen: React.FC = () => {
       status: 0,
       limit: limit,
       offset: 0,
+      isCanceled: false,
     });
 
   const filteredReservations = useMemo(() => {

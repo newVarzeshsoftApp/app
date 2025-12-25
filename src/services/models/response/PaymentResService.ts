@@ -133,7 +133,8 @@ export interface PaymentVerify {
   fee: number;
   errors: string | null;
   customer: Customer;
-  transaction: SaleTransaction;
+  transaction?: SaleTransaction;
+  transactions?: Transaction[];
 }
 
 interface VerifyResponse {

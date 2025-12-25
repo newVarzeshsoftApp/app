@@ -16,8 +16,9 @@ import {useCartContext} from '../../utils/CartContext';
 import {PaymentVerifyRes} from '../../services/models/response/PaymentResService';
 import {useAuth} from '../../utils/hooks/useAuth';
 import {navigate} from '../../navigation/navigationRef';
-import {ProductType} from '../../constants/options';
+import {ProductType, TransactionSourceType} from '../../constants/options';
 import {ReservationData} from '../../utils/helpers/CartStorage';
+import {SaleOrderItem} from '../../services/models/request/OperationalReqService';
 type PaymentScreenProps = NativeStackScreenProps<
   DrawerStackParamList,
   'Paymentresult'
@@ -75,77 +76,308 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
     },
     onError: handleMutationError,
   });
-  const Items = useMemo(() => {
-    return normalizedItems.map(item => {
-      // Check if this is a reservation item
-      if (item.isReserve && item.reservationData) {
-        const reservationData: ReservationData = item.reservationData;
-        const amount = item.SelectedPriceList
-          ? item.SelectedPriceList.price
-          : item.product.price;
+  // Build orders array with same DTO structure as CartScreen
+  const orders = useMemo(() => {
+    const submitAt = moment(new Date()).format('YYYY-MM-DD HH:mm');
 
-        const discount = item.SelectedPriceList
-          ? item?.SelectedPriceList?.discountOnlineShopPercentage ?? 0
-          : item?.product?.discount ?? 0;
+    // Separate reservation items from regular items
+    const reservationItems = normalizedItems.filter(
+      item =>
+        item.isReserve &&
+        item.reservationData &&
+        item.product &&
+        item.product.type !== undefined,
+    );
+    const regularItems = normalizedItems.filter(
+      item =>
+        (!item.isReserve || !item.reservationData) &&
+        item.product &&
+        item.product.type !== undefined,
+    );
 
-        return {
-          user: ProfileData?.id || 0,
-          product: item.product.id,
-          price: amount,
-          discount: (amount * discount) / 100,
-          tax: item?.product?.tax || undefined,
-          reservedDate: reservationData.reservedDate,
-          reservedStartTime: reservationData.reservedStartTime,
-          reservedEndTime: reservationData.reservedEndTime,
-          description: reservationData.description || null,
-          secondaryServices: reservationData.secondaryServices || undefined,
-        };
-      }
-
-      // Regular cart item (non-reservation)
+    // Build reservation items DTO with isReserve: true
+    const reservationItemsDTO = reservationItems.map(item => {
+      const reservationData: ReservationData = item.reservationData!;
       const amount = item.SelectedPriceList
         ? item.SelectedPriceList.price
         : item.product.price;
+      const discount = item.SelectedPriceList
+        ? item?.SelectedPriceList?.discountOnlineShopPercentage ?? 0
+        : item?.product?.discount ?? 0;
 
-      const discount =
-        item.product.type === ProductType.Package
-          ? item.product.subProducts?.reduce(
-              (sum, subProduct) => sum + (subProduct.discount || 0),
-              0,
-            ) || 0
-          : item.SelectedPriceList
-          ? item?.SelectedPriceList?.discountOnlineShopPercentage ?? 0
-          : item?.product?.discount ?? 0;
+      // Convert dates to Gregorian format if needed
+      // Check if reservedDate is in Jalali format
+      let reservedDateGregorian = reservationData.reservedDate.split(' ')[0]; // Get date part
+      const reservedYear = parseInt(reservedDateGregorian.split('-')[0]);
+
+      // If year is between 1300-1500, it's Jalali (normal Jalali years)
+      // Normal Gregorian years are between 1900-2100
+      if (reservedYear >= 1300 && reservedYear <= 1500) {
+        try {
+          // This is Jalali date, convert to Gregorian
+          const [jYear, jMonth, jDay] = reservedDateGregorian.split('-');
+          const converted = moment
+            .from(`${jYear}-${jMonth}-${jDay}`, 'fa', 'jYYYY-jMM-jDD')
+            .format('YYYY-MM-DD');
+
+          // Validate conversion (check if year is reasonable for Gregorian)
+          const convertedYear = parseInt(converted.split('-')[0]);
+          if (convertedYear >= 1900 && convertedYear <= 2100) {
+            reservedDateGregorian = converted;
+          }
+        } catch (error) {
+          console.error('❌ [PaymentScreen] Error converting date:', error);
+        }
+      } else if (reservedYear > 2000) {
+        // This is likely a corrupted date, try to fix it
+        try {
+          const [jYear, jMonth, jDay] = reservedDateGregorian.split('-');
+          const yearNum = parseInt(jYear);
+
+          // Approach 1: If year is around 2600-3300, it might be a double conversion
+          if (yearNum > 2500) {
+            const adjustedYear = yearNum - 1800;
+            if (adjustedYear >= 1300 && adjustedYear <= 1500) {
+              const converted = moment
+                .from(
+                  `${adjustedYear}-${jMonth}-${jDay}`,
+                  'fa',
+                  'jYYYY-jMM-jDD',
+                )
+                .format('YYYY-MM-DD');
+              const convertedYear = parseInt(converted.split('-')[0]);
+              if (convertedYear >= 1900 && convertedYear <= 2100) {
+                reservedDateGregorian = converted;
+              }
+            }
+          }
+        } catch (error) {
+          console.error(
+            '❌ [PaymentScreen] Could not fix corrupted date:',
+            error,
+          );
+        }
+      }
+
+      // Calculate end date (1 day after start date) in Gregorian
+      const endDateGregorian = moment(reservedDateGregorian, 'YYYY-MM-DD')
+        .add(1, 'day')
+        .format('YYYY-MM-DD');
+
+      // Build secondaryServices from subProducts (only those with quantity > 0)
+      const secondaryServices: any[] = [];
+
+      // Get all subProducts from product
+      const allSubProducts = item.product.subProducts || [];
+
+      // Create a map of existing secondaryServices by product ID for quick lookup
+      const existingServicesMap = new Map<number, any>();
+      reservationData.secondaryServices?.forEach(service => {
+        existingServicesMap.set(service.product, service);
+      });
+
+      // Process all subProducts - only add those with quantity > 0
+      allSubProducts.forEach(subProduct => {
+        const existingService = existingServicesMap.get(
+          subProduct.product?.id || 0,
+        );
+        const quantity = existingService?.quantity || 0; // Default to 0 if not found
+
+        // Skip subProducts with quantity 0
+        if (quantity === 0) {
+          return;
+        }
+
+        // Calculate dates based on reservedDate
+        const startDate = reservedDateGregorian;
+        const duration = subProduct.product?.duration || 1;
+        const endDate = moment(startDate, 'YYYY-MM-DD')
+          .add(duration, 'days')
+          .format('YYYY-MM-DD');
+
+        const userId = ProfileData?.id;
+
+        secondaryServices.push({
+          user: userId || 0,
+          product: subProduct.product?.id || 0,
+          start: startDate, // Gregorian format (YYYY-MM-DD)
+          end: endDate, // Gregorian format (YYYY-MM-DD)
+          discount: subProduct.discount || 0,
+          type: subProduct.product?.type || 1,
+          tax: subProduct.tax || 0,
+          price: subProduct.product?.price || subProduct.amount || 0,
+          quantity: quantity,
+        });
+      });
+
+      // Convert reservedDate to Gregorian if needed
+      let reservedDateFormatted = reservationData.reservedDate;
+      const reservedDateOnly = reservationData.reservedDate.split(' ')[0];
+      const reservedYearOnly = parseInt(reservedDateOnly.split('-')[0]);
+      if (
+        (reservedYearOnly >= 1300 && reservedYearOnly <= 1500) ||
+        reservedYearOnly > 2000
+      ) {
+        try {
+          // This is Jalali date, convert to Gregorian
+          const [jYear, jMonth, jDay] = reservedDateOnly.split('-');
+          const timePart =
+            reservationData.reservedDate.split(' ')[1] || '00:00';
+          const gregorianDateOnly = moment
+            .from(`${jYear}-${jMonth}-${jDay}`, 'fa', 'jYYYY-jMM-jDD')
+            .format('YYYY-MM-DD');
+
+          // Validate conversion
+          const convertedYear = parseInt(gregorianDateOnly.split('-')[0]);
+          if (convertedYear >= 1900 && convertedYear <= 2100) {
+            reservedDateFormatted = `${gregorianDateOnly} ${timePart}`;
+          }
+        } catch (error) {
+          console.error(
+            '❌ [PaymentScreen] Error converting reservedDate:',
+            error,
+          );
+        }
+      }
 
       return {
-        quantity: 1,
+        isReserve: true,
+        user: ProfileData?.id || 0,
         product: item.product.id,
-        tax: item?.product?.tax,
-        user: ProfileData?.id,
-        manualPrice: false,
-        type: item.product.type === ProductType.Package ? 4 : item.product.type,
-        contractor: item?.SelectedContractor?.contractorId ?? null,
-        contractorId: item?.SelectedContractor?.contractorId ?? null,
-        start: moment().format('YYYY-MM-DD'),
-        end: moment()
+        price: amount || 0,
+        discount: (amount * discount) / 100 || 0,
+        tax: item?.product?.tax ?? 0,
+        type: item.product.type ?? 1,
+        reservedDate: reservedDateFormatted, // Gregorian format (YYYY-MM-DD HH:mm)
+        reservedStartTime: reservationData.reservedStartTime,
+        reservedEndTime: reservationData.reservedEndTime,
+        start: reservedDateGregorian, // Gregorian format (YYYY-MM-DD)
+        end: endDateGregorian, // Gregorian format (YYYY-MM-DD)
+        description: reservationData.description || null,
+        secondaryServices:
+          secondaryServices.length > 0 ? secondaryServices : undefined,
+      };
+    });
+
+    // Build regular items DTO
+    const regularItemsDTO: SaleOrderItem[] = regularItems
+      .filter(item => item.product && item.product.type !== undefined)
+      .map(item => {
+        const amount = item.SelectedPriceList
+          ? item.SelectedPriceList?.price
+          : item.product?.price;
+        const discount =
+          item.product?.type === ProductType.Package
+            ? item.product.subProducts?.reduce(
+                (sum, subProduct) => sum + (subProduct.discount || 0),
+                0,
+              ) || 0
+            : item.SelectedPriceList
+            ? item?.SelectedPriceList?.discountOnlineShopPercentage ?? 0
+            : item?.product?.discount ?? 0;
+        // Convert dates to Gregorian format (YYYY-MM-DD)
+        const startDateGregorian = moment().format('YYYY-MM-DD');
+        const endDateGregorian = moment()
           .add(
             item.SelectedPriceList?.duration ?? item.product.duration,
             'days',
           )
-          .format('YYYY-MM-DD'),
-        isOnline: true,
-        amount: amount,
-        discount:
-          item.product.type === ProductType.Package
-            ? discount
-            : (amount * discount) / 100,
-        priceId: item.SelectedPriceList?.id ?? null,
-        price: amount,
-        duration: item.SelectedPriceList
-          ? item.SelectedPriceList.duration
-          : item.product.duration,
-      };
-    });
+          .format('YYYY-MM-DD');
+
+        return {
+          quantity: 1,
+          product: item.product.id,
+          tax: item?.product?.tax ?? 0,
+          manualPrice: false,
+          type:
+            item.product?.type === ProductType.Package
+              ? 4
+              : item.product?.type ?? 1,
+          contractor: item?.SelectedContractor?.contractorId ?? null,
+          contractorId: item?.SelectedContractor?.contractorId ?? null,
+          start: startDateGregorian, // Gregorian format (YYYY-MM-DD)
+          end: endDateGregorian, // Gregorian format (YYYY-MM-DD)
+          isOnline: true,
+          user: ProfileData?.id,
+          amount: amount,
+          discount:
+            item.product?.type === ProductType.Package
+              ? discount
+              : (amount * discount) / 100,
+          priceId: item.SelectedPriceList?.id ?? null,
+          price: amount,
+          duration: item.SelectedPriceList
+            ? item.SelectedPriceList.duration
+            : item.product.duration,
+        };
+      });
+
+    // Calculate reservation order total amount
+    // Amount = price - discount + tax (tax is always 0 or a number, never null)
+    // For secondaryServices, we need to consider quantity
+    const reservationOrderAmount = reservationItemsDTO.reduce((sum, item) => {
+      const itemTax = item.tax || 0;
+      const itemTotal = item.price - item.discount + itemTax;
+      // Add secondary services total (consider quantity for each service)
+      const secondaryTotal =
+        item.secondaryServices?.reduce((subSum, sub) => {
+          const quantity = sub.quantity || 1;
+          const serviceTotal =
+            (sub.price - sub.discount + (sub.tax ?? 0)) * quantity;
+          return subSum + serviceTotal;
+        }, 0) || 0;
+      return sum + itemTotal + secondaryTotal;
+    }, 0);
+
+    // Calculate regular order total amount
+    // Amount = price - discount + tax (tax is always 0 or a number, never null)
+    const regularOrderAmount = regularItemsDTO.reduce((sum, item) => {
+      const itemTax = item.tax || 0;
+      return sum + (item.amount || 0) - (item.discount || 0) + itemTax;
+    }, 0);
+
+    // Build orders array
+    const ordersArray: any[] = [];
+
+    // Add reservation order if there are reservation items
+    if (reservationItemsDTO.length > 0) {
+      ordersArray.push({
+        submitAt,
+        isReserve: true,
+        user: ProfileData?.id,
+        items: reservationItemsDTO,
+        transactions: [
+          {
+            type: TransactionSourceType.ChargingService, // Gateway payment already done
+            amount: reservationOrderAmount,
+            submitAt: submitAt,
+            fromGuest: false,
+            usedByOther: false,
+            user: ProfileData?.id,
+          },
+        ],
+      });
+    }
+
+    // Add regular order if there are regular items
+    if (regularItemsDTO.length > 0) {
+      ordersArray.push({
+        submitAt,
+        user: ProfileData?.id,
+        items: regularItemsDTO,
+        transactions: [
+          {
+            amount: regularOrderAmount,
+            user: ProfileData?.id,
+            submitAt: submitAt,
+            fromGuest: false,
+            type: TransactionSourceType.ChargingService, // Gateway payment already done
+          },
+        ],
+      });
+    }
+
+    return ordersArray;
   }, [normalizedItems, ProfileData?.id]);
   useEffect(() => {
     const {Authority, isDeposite, code, refId} = route.params || {};
@@ -158,20 +390,13 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
             code,
             refId: refId,
           });
-        } else if (Items.length > 0 && ProfileData) {
+        } else if (orders.length > 0 && ProfileData) {
           CartPayment.mutate({
             authority: Authority,
             code,
             refId: refId,
             isonlineShop: true,
-            orders: [
-              {
-                items: Items,
-                user: ProfileData.id,
-                location: '',
-                submitAt: moment().format('YYYY-MM-DD HH:mm'),
-              },
-            ],
+            orders: orders,
           });
         }
       }, 4000);
@@ -180,7 +405,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
     } else {
       setIsInitialLoading(false);
     }
-  }, [route.params?.Authority, route.params?.isDeposite, Items, ProfileData]);
+  }, [route.params?.Authority, route.params?.isDeposite, orders, ProfileData]);
   const CreateNewPayment = () => {
     if (PaymentData) {
       CreatePayment.mutate({
@@ -306,64 +531,75 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                       </BaseText>
                     </View>
 
-                    <View className="flex-row items-center justify-between ">
-                      <BaseText type="body3" color="secondary">
-                        {t('Transaction number')}: {''}
-                      </BaseText>
-                      <BaseButton
-                        disabled={!isSuccses}
-                        onPress={() =>
-                          navigate('Root', {
-                            screen: 'HistoryNavigator',
-                            params: {
-                              screen: 'DepositDetail',
-                              params: {
-                                id: PaymentData?.payment?.transaction?.id ?? 0,
-                              },
-                            },
-                          })
-                        }
-                        size="Small"
-                        type="Outline"
-                        color="Supportive5-Blue"
-                        text={(
-                          PaymentData?.payment?.transaction?.id ?? 0
-                        ).toString()}
-                        LinkButton
-                        rounded
-                      />
+                    <View className="flex-row items-start justify-between ">
+                      <View>
+                        <BaseText type="body3" color="secondary">
+                          {t('Transaction number')}: {''}
+                        </BaseText>
+                      </View>
+                      <View className="flex-row gap-2 flex-wrap justify-end flex-1">
+                        {PaymentData?.payment?.transactions?.map(
+                          (transaction, index: number) => {
+                            return (
+                              <BaseButton
+                                key={index}
+                                disabled={!isSuccses}
+                                onPress={() =>
+                                  navigate('Root', {
+                                    screen: 'HistoryNavigator',
+                                    params: {
+                                      screen: 'DepositDetail',
+                                      params: {
+                                        id: transaction?.id ?? 0,
+                                      },
+                                    },
+                                  })
+                                }
+                                size="Small"
+                                type="Outline"
+                                color="Supportive5-Blue"
+                                text={(transaction?.id ?? 0).toString()}
+                                LinkButton
+                                rounded
+                              />
+                            );
+                          },
+                        )}
+                      </View>
                     </View>
-                    {PaymentData?.orders?.map((item, index) => {
-                      return (
-                        <View
-                          key={index}
-                          className="flex-row items-center justify-between ">
-                          <BaseText type="body3" color="secondary">
-                            {t('orderNumber')}: {''}
-                          </BaseText>
-                          <BaseButton
-                            disabled={!isSuccses}
-                            onPress={() =>
-                              navigate('Root', {
-                                screen: 'HistoryNavigator',
-                                params: {
-                                  screen: 'orderDetail',
+                    <View className="flex-row items-start justify-between ">
+                      <View>
+                        <BaseText type="body3" color="secondary">
+                          {t('orderNumber')}: {''}
+                        </BaseText>
+                      </View>
+                      <View className="flex-row gap-2 flex-wrap justify-end flex-1">
+                        {PaymentData?.orders.map((item, index) => {
+                          return (
+                            <BaseButton
+                              disabled={!isSuccses}
+                              onPress={() =>
+                                navigate('Root', {
+                                  screen: 'HistoryNavigator',
                                   params: {
-                                    id: Number(item ?? 0),
+                                    screen: 'orderDetail',
+                                    params: {
+                                      id: Number(item ?? 0),
+                                    },
                                   },
-                                },
-                              })
-                            }
-                            size="Small"
-                            type="Outline"
-                            color="Supportive5-Blue"
-                            text={item ?? ''}
-                            LinkButton
-                            rounded
-                          />
-                        </View>
-                      );
-                    })}
+                                })
+                              }
+                              size="Small"
+                              type="Outline"
+                              color="Supportive5-Blue"
+                              text={item ?? ''}
+                              LinkButton
+                              rounded
+                            />
+                          );
+                        })}
+                      </View>
+                    </View>
                     <View className="flex-row items-center justify-between ">
                       <BaseText type="body3" color="secondary">
                         {t('Amount')}: {''}

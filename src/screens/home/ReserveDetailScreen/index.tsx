@@ -113,6 +113,12 @@ const ReserveDetailScreen: React.FC = () => {
     isPreReservedByMe,
   } = useReservationState({timeSlots});
 
+  // Use ref to store latest preReservedItems to avoid infinite loop
+  const preReservedItemsRef = useRef(preReservedItems);
+  useEffect(() => {
+    preReservedItemsRef.current = preReservedItems;
+  }, [preReservedItems]);
+
   // Sync ReservationStore with Cart and PreReserve on mount and when cart changes
   useEffect(() => {
     const syncReservations = async () => {
@@ -157,8 +163,10 @@ const ReserveDetailScreen: React.FC = () => {
         }
 
         // 4. Sync with preReservedItems (local state) and API data
+        // Use ref to get latest value without causing re-render loop
+        const currentPreReservedItems = preReservedItemsRef.current;
         const allPreReservedItems = [
-          ...preReservedItems,
+          ...currentPreReservedItems,
           ...preReservedFromAPI,
         ];
         if (allPreReservedItems.length > 0) {
@@ -174,8 +182,11 @@ const ReserveDetailScreen: React.FC = () => {
         // Update preReservedItems from ReservationStore
         // This ensures that changes made in CartServiceCard or PreReserveBottomSheet
         // are reflected in preReservedItems
-        if (storeReservations.length > 0) {
-          const updatedPreReservedItems = preReservedItems.map(item => {
+        if (
+          storeReservations.length > 0 &&
+          currentPreReservedItems.length > 0
+        ) {
+          const updatedPreReservedItems = currentPreReservedItems.map(item => {
             const reservationKey = `${item.item.id}-${item.date}-${item.fromTime}-${item.toTime}`;
 
             // Find matching reservation in store
@@ -212,7 +223,7 @@ const ReserveDetailScreen: React.FC = () => {
 
           // Only update if there are actual changes
           const hasChanges = updatedPreReservedItems.some((updated, index) => {
-            const original = preReservedItems[index];
+            const original = currentPreReservedItems[index];
             return (
               JSON.stringify(updated.modifiedQuantities) !==
               JSON.stringify(original?.modifiedQuantities)
@@ -246,13 +257,12 @@ const ReserveDetailScreen: React.FC = () => {
   }, [
     isLoading,
     cartItems,
-    preReservedItems,
     timeSlots,
     profile?.id,
     loadReservations,
     syncWithCart,
     syncWithPreReserve,
-  ]);
+  ]); // Removed preReservedItems from dependencies to prevent infinite loop
 
   // Additional effect to sync preReservedItems when ReservationStore changes
   // This handles updates from CartServiceCard or PreReserveBottomSheet
@@ -260,13 +270,17 @@ const ReserveDetailScreen: React.FC = () => {
     const syncFromStore = async () => {
       try {
         const storeReservations = await getReservationStore();
+        const currentPreReservedItems = preReservedItemsRef.current;
 
-        if (storeReservations.length === 0 || preReservedItems.length === 0) {
+        if (
+          storeReservations.length === 0 ||
+          currentPreReservedItems.length === 0
+        ) {
           return;
         }
 
         // Update preReservedItems from ReservationStore
-        const updatedPreReservedItems = preReservedItems.map(item => {
+        const updatedPreReservedItems = currentPreReservedItems.map(item => {
           // Convert date from Jalali to Gregorian for comparison
           const [year, month, day] = item.date.split('/');
           const gregorianDate = moment(
@@ -304,7 +318,7 @@ const ReserveDetailScreen: React.FC = () => {
 
         // Check if any item was updated
         const hasChanges = updatedPreReservedItems.some((updated, index) => {
-          const original = preReservedItems[index];
+          const original = currentPreReservedItems[index];
           return (
             JSON.stringify(updated.modifiedQuantities) !==
             JSON.stringify(original?.modifiedQuantities)
@@ -337,7 +351,7 @@ const ReserveDetailScreen: React.FC = () => {
     return () => {
       unsubscribe();
     };
-  }, [preReservedItems]);
+  }, []); // Empty dependency array - only run on mount/unmount
 
   // SSE Connection for real-time updates
   useSSEConnection({
