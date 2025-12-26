@@ -84,6 +84,13 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     }
   }, [Getways]);
 
+  // Reset step to 1 when cart becomes empty or screen is focused
+  useEffect(() => {
+    if (items.length === 0) {
+      setSteps(1);
+    }
+  }, [items.length]);
+
   // Helper to get start time for a reservation item (prefer createdAt from ReservationStore)
   const getReservationStartTime = useCallback((item: CartItem): Date | null => {
     if (!item.isReserve || !item.reservationData || !item.product) return null;
@@ -201,6 +208,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     mutationFn: PaymentService.CreatePayment,
     onSuccess(data, variables, context) {
       if (data?.url) {
+        setSteps(1); // Reset step to 1 before navigation
         navigate('Root', {
           screen: 'WebViewParamsList',
           params: {url: data.url},
@@ -213,6 +221,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     mutationFn: OperationalService.SaleOrder,
     onSuccess(data, variables, context) {
       emptyCart();
+      setSteps(1); // Reset step to 1 before navigation
       navigate('Root', {screen: 'PaymentDetail', params: {id: data}});
     },
   });

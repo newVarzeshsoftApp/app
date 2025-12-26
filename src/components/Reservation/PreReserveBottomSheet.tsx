@@ -644,11 +644,23 @@ const PreReserveBottomSheet = forwardRef<
         );
 
         // Update cart directly (await to ensure it completes)
+        // IMPORTANT: We use cartItem.CartId to ensure we only update THIS specific item
+        // Even if there are multiple items with the same productId but different dates/times,
+        // each has a unique CartId, so changes won't affect other items
         (async () => {
           try {
             if (cartItem.CartId && cartItem.reservationData) {
-              await updateReservationItemData({
+              console.log('🔄 [PreReserveBottomSheet] Updating cart item:', {
                 cartId: cartItem.CartId,
+                productId: item.id,
+                date,
+                fromTime,
+                toTime,
+                secondaryServicesCount: secondaryServices.length,
+              });
+
+              await updateReservationItemData({
+                cartId: cartItem.CartId, // Use unique CartId to target specific item
                 reservationData: {
                   reservedDate: cartItem.reservationData.reservedDate,
                   reservedStartTime: cartItem.reservationData.reservedStartTime,
@@ -1345,8 +1357,9 @@ const PreReserveBottomSheet = forwardRef<
                   onPress={() => {
                     // Item is already in cart (added on pre-reserve), just navigate to cart
                     if (onCompletePayment) {
-                      onCompletePayment();
+                      // Reset navigation history first to ensure clean state
                       resetNavigationHistory();
+                      onCompletePayment();
                     }
                   }}
                 />

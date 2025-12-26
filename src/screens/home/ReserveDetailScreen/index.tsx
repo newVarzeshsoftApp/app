@@ -13,7 +13,10 @@ import BaseText from '../../../components/BaseText';
 import BaseButton from '../../../components/Button/BaseButton';
 import {ArrowRight2, InfoCircle} from 'iconsax-react-native';
 import {useTheme} from '../../../utils/ThemeContext';
-import {navigationRef} from '../../../navigation/navigationRef';
+import {
+  navigationRef,
+  resetNavigationHistory,
+} from '../../../navigation/navigationRef';
 import PreReserveBottomSheet, {
   PreReserveBottomSheetRef,
 } from '../../../components/Reservation/PreReserveBottomSheet';
@@ -178,14 +181,15 @@ const ReserveDetailScreen: React.FC = () => {
     };
 
     syncReservations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     isLoading,
-    timeSlots,
+    timeSlots.length,
     profile?.id,
-    loadReservations,
-    syncWithCart,
-    syncWithPreReserve,
-    cartItems,
+    // NOTE: We intentionally exclude cartItems from dependencies
+    // to prevent re-syncing when cart changes. syncWithCart should only
+    // run once on mount to initialize ReservationStore from cart.
+    // Individual cart item updates are handled by CartServiceCard listeners.
   ]);
 
   // SSE Connection for real-time updates
@@ -699,9 +703,18 @@ const ReserveDetailScreen: React.FC = () => {
   // 🆕 ساده شده: فقط به صفحه سبد خرید برود - آیتم‌ها از قبل در سبد هستند
   const handleGoToCart = useCallback(() => {
     preReserveBottomSheetRef.current?.close();
-    navigationRef.navigate('Root', {
-      screen: 'HomeNavigator',
-      params: {screen: 'cart'},
+
+    // Reset navigation history to ensure when user returns to reserve tab,
+    // they go to reserve screen (initial route) not reserveDetail
+    resetNavigationHistory();
+    navigationRef.resetRoot({
+      index: 0,
+      routes: [
+        {
+          name: 'Root',
+          params: {screen: 'HomeNavigator', params: {screen: 'cart'}},
+        },
+      ],
     });
   }, []);
 

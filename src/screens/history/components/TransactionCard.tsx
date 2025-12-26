@@ -95,8 +95,10 @@ const TransactionCard: React.FC<TransactionProps> = ({
               </BaseText>
               <View className="flex-row gap-1 items-center">
                 <BaseText type="body3" color="base">
-                  {item.gateway?.title ??
-                    t(`${TransactionSourceType[item.sourceType ?? 0]}`)}
+                  {item.type === 0 && item.sourceType === 10
+                    ? 'عودت رزرو'
+                    : item.gateway?.title ??
+                      t(`${TransactionSourceType[item.sourceType ?? 0]}`)}
                 </BaseText>
                 {[
                   'OfferedDiscount',

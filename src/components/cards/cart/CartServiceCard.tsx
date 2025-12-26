@@ -153,185 +153,10 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
     return `${mins} دقیقه`;
   };
 
-  // Listen to ReservationStore changes to sync with PreReserveBottomSheet updates
-  useEffect(() => {
-    if (!isReservationItem || !reservationData || !CartId || !product?.id) {
-      return;
-    }
-
-    // Get the store key for this reservation (use getReservationKey for consistency)
-    // Key format: productId-date-fromTime-toTime (unique for each reservation)
-    // This ensures we sync with the correct reservation, even if there are multiple
-    // reservations for the same product with different dates/times
-    const reservedDate = reservationData.reservedDate.split(' ')[0];
-    const storeKey = getReservationKey({
-      productId: product.id,
-      date: reservedDate,
-      fromTime: reservationData.reservedStartTime,
-      toTime: reservationData.reservedEndTime,
-    });
-
-    // Initial sync: Load from ReservationStore on mount
-    const initialSync = () => {
-      const {findReservationByKey} = useReservationStore.getState();
-      const reservation = findReservationByKey(storeKey);
-      const currentModifiedQuantities = reservation?.modifiedQuantities;
-
-      if (
-        currentModifiedQuantities &&
-        Object.keys(currentModifiedQuantities).length > 0
-      ) {
-        // Build secondaryServices from modifiedQuantities
-        const secondaryServices: ReservationSecondaryService[] = [];
-
-        Object.entries(currentModifiedQuantities).forEach(
-          ([subProductIdStr, quantity]) => {
-            const subProductId = Number(subProductIdStr);
-            const quantityNum = quantity as number;
-            if (quantityNum > 0) {
-              // Find subProduct from product.subProducts
-              const subProduct = product?.subProducts?.find(
-                sp => sp.id === subProductId,
-              );
-              if (subProduct) {
-                const startDate = reservedDate;
-                const duration = subProduct.product?.duration || 1;
-                const endDate = moment(startDate, 'YYYY-MM-DD')
-                  .add(duration, 'days')
-                  .format('YYYY-MM-DD');
-
-                secondaryServices.push({
-                  user: profile?.id || 0,
-                  product: subProduct.product?.id || subProduct.productId || 0,
-                  start: startDate,
-                  end: endDate,
-                  discount: subProduct.discount || 0,
-                  type: subProduct.product?.type || 1,
-                  tax: subProduct.tax || 0,
-                  price: subProduct.product?.price || subProduct.amount || 0,
-                  quantity: quantityNum,
-                  subProductId: subProduct.id,
-                });
-              }
-            }
-          },
-        );
-
-        // Only update if secondaryServices is different from current
-        const currentServices = reservationData.secondaryServices || [];
-        if (
-          JSON.stringify(secondaryServices) !== JSON.stringify(currentServices)
-        ) {
-          updateReservationItemData({
-            cartId: CartId,
-            reservationData: {
-              ...reservationData,
-              secondaryServices,
-            },
-          });
-        }
-      }
-    };
-
-    // Run initial sync
-    initialSync();
-
-    // Track previous modifiedQuantities to detect changes
-    let prevModifiedQuantities: Record<number, number> | undefined;
-
-    // Subscribe to store changes
-    const unsubscribe = useReservationStore.subscribe(
-      (state: {reservations: ReservationStoreItem[]}) => {
-        const reservation = state.reservations.find(
-          (r: ReservationStoreItem) => {
-            const rKey = getReservationKey({
-              productId: r.productId,
-              date: r.date,
-              fromTime: r.fromTime,
-              toTime: r.toTime,
-            });
-            return rKey === storeKey;
-          },
-        );
-        const currentModifiedQuantities = reservation?.modifiedQuantities;
-
-        // Skip if we just updated from local
-        if (isUpdatingFromLocalRef.current) {
-          setTimeout(() => {
-            isUpdatingFromLocalRef.current = false;
-          }, 100);
-          prevModifiedQuantities = currentModifiedQuantities;
-          return;
-        }
-
-        // Only update if actually changed
-        if (
-          currentModifiedQuantities &&
-          JSON.stringify(currentModifiedQuantities) !==
-            JSON.stringify(prevModifiedQuantities)
-        ) {
-          // Build secondaryServices from modifiedQuantities
-          const secondaryServices: ReservationSecondaryService[] = [];
-
-          Object.entries(currentModifiedQuantities).forEach(
-            ([subProductIdStr, quantity]) => {
-              const subProductId = Number(subProductIdStr);
-              const quantityNum = quantity as number;
-              if (quantityNum > 0) {
-                // Find subProduct from product.subProducts
-                const subProduct = product?.subProducts?.find(
-                  sp => sp.id === subProductId,
-                );
-                if (subProduct) {
-                  const startDate = reservedDate;
-                  const duration = subProduct.product?.duration || 1;
-                  const endDate = moment(startDate, 'YYYY-MM-DD')
-                    .add(duration, 'days')
-                    .format('YYYY-MM-DD');
-
-                  secondaryServices.push({
-                    user: profile?.id || 0,
-                    product:
-                      subProduct.product?.id || subProduct.productId || 0,
-                    start: startDate,
-                    end: endDate,
-                    discount: subProduct.discount || 0,
-                    type: subProduct.product?.type || 1,
-                    tax: subProduct.tax || 0,
-                    price: subProduct.product?.price || subProduct.amount || 0,
-                    quantity: quantityNum,
-                    subProductId: subProduct.id,
-                  });
-                }
-              }
-            },
-          );
-
-          // Update cart with new secondaryServices
-          updateReservationItemData({
-            cartId: CartId,
-            reservationData: {
-              ...reservationData,
-              secondaryServices,
-            },
-          });
-        }
-
-        prevModifiedQuantities = currentModifiedQuantities;
-      },
-    );
-
-    return () => {
-      unsubscribe();
-    };
-  }, [
-    isReservationItem,
-    reservationData,
-    CartId,
-    product?.id,
-    product?.subProducts,
-    updateReservationItemData,
-  ]);
+  // REMOVED: No longer syncing from ReservationStore to Cart
+  // Cart is the single source of truth
+  // ReservationStore is only used for PreReserveBottomSheet sync
+  // Each cart item is independent and identified by unique CartId
 
   // Calculate totals for reservation vs regular items
   const reservationTotals = useMemo(() => {
@@ -592,8 +417,25 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
     isUpdatingFromLocalRef.current = true;
 
     // Update cart
-    updateReservationItemData({
+    // IMPORTANT: We use CartId to ensure we only update THIS specific cart item
+    // Each cart item has a unique CartId, so changes to secondaryServices
+    // will only affect this specific item, not other items with the same productId
+    console.log('🔄 [CartServiceCard] Updating cart item secondaryServices:', {
       cartId: CartId,
+      productId: product?.id,
+      reservedDate: reservationData.reservedDate,
+      reservedStartTime: reservationData.reservedStartTime,
+      reservedEndTime: reservationData.reservedEndTime,
+      updatedServicesCount: updatedServices.length,
+      updatedServices: updatedServices.map(s => ({
+        subProductId: s.subProductId,
+        quantity: s.quantity,
+        product: s.product,
+      })),
+    });
+
+    updateReservationItemData({
+      cartId: CartId, // Use unique CartId to target specific item
       reservationData: {
         ...reservationData,
         secondaryServices: updatedServices,

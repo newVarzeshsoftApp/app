@@ -103,7 +103,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
             // For reserve tab, always reset to the initial screen (reserve)
             // even if already focused, to reset the stack to initial route
             if (route.name === 'reserve') {
-              // First navigate to reserve tab if not focused
+              // Navigate to reserve tab first if not focused
               if (!isFocused) {
                 navigate('Root', {
                   screen: 'HomeNavigator',
@@ -113,18 +113,25 @@ const TabBar: React.FC<BottomTabBarProps> = ({
                 });
               }
 
-              // Reset nested stack using navigationRef
-              // Navigate with undefined params to reset to initial route
-              if (navigationRef.isReady()) {
-                setTimeout(() => {
+              // Reset ReserveStackNavigator to initial route (reserve)
+              // If we're on a nested route (e.g., reserveDetail), reset the stack to 'reserve'
+              const reserveRoute = state.routes.find(r => r.name === 'reserve');
+              if (
+                reserveRoute?.state &&
+                reserveRoute.state.index !== undefined &&
+                reserveRoute.state.index > 0
+              ) {
+                // Use navigationRef to navigate to reserve tab with undefined params
+                // This will reset the nested ReserveStackNavigator to initial route
+                if (navigationRef.isReady()) {
                   navigationRef.navigate('Root' as any, {
                     screen: 'HomeNavigator',
                     params: {
                       screen: 'reserve',
-                      params: undefined, // This should reset to initial route
+                      params: undefined, // This resets nested stack to initial route
                     },
                   });
-                }, 50);
+                }
               }
             } else if (!isFocused) {
               navigate('Root', {

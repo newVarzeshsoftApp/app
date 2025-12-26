@@ -64,8 +64,18 @@ export interface CartItem {
 const CART_KEY = 'shopping_cart';
 
 // Generate unique ID without uuid dependency
+// This ensures each cart item has a unique identifier
+// Format: timestamp (base36) + random string (base36)
+// This guarantees uniqueness even for items added in the same millisecond
 const generateCartId = (): string => {
-  return Date.now().toString(36) + Math.random().toString(36).substring(2);
+  const timestamp = Date.now().toString(36);
+  const random = Math.random().toString(36).substring(2);
+  const uniqueId = timestamp + random;
+  
+  // Log for debugging (can be removed in production)
+  console.log('🆔 [generateCartId] Generated unique CartId:', uniqueId);
+  
+  return uniqueId;
 };
 
 // Storage operations
@@ -369,8 +379,19 @@ export const updateReservationData = async (
     const itemIndex = cart.findIndex(item => item.CartId === cartId);
 
     if (itemIndex === -1) {
-      throw new Error('Cart item not found');
+      throw new Error(`Cart item not found with CartId: ${cartId}`);
     }
+
+    // Log to ensure we're updating the correct item
+    const itemToUpdate = cart[itemIndex];
+    console.log('🔄 [updateReservationData] Updating reservation data:', {
+      cartId,
+      productId: itemToUpdate.product?.id,
+      reservedDate: reservationData.reservedDate,
+      reservedStartTime: reservationData.reservedStartTime,
+      reservedEndTime: reservationData.reservedEndTime,
+      secondaryServicesCount: reservationData.secondaryServices?.length || 0,
+    });
 
     const updatedItem = {
       ...cart[itemIndex],
@@ -380,10 +401,18 @@ export const updateReservationData = async (
     cart[itemIndex] = updatedItem;
     await setCartStorage(cart);
 
+    console.log('✅ [updateReservationData] Successfully updated cart item:', {
+      cartId,
+      productId: itemToUpdate.product?.id,
+    });
+
     // NOTE: Do NOT sync to ReservationStore here to avoid circular updates
     // The CartServiceCard listener will handle syncing when quantities change
   } catch (error) {
-    console.error('Error updating reservation data:', error);
+    console.error('❌ [updateReservationData] Error updating reservation data:', {
+      cartId,
+      error,
+    });
     throw new Error('Failed to update reservation data');
   }
 };

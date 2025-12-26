@@ -108,13 +108,11 @@ export const useReservationStore = create<ReservationStoreState>(set => ({
   updateReservation: async (
     key: string,
     updates: Partial<ReservationStoreItem>,
-  ): Promise<ReservationStoreItem | undefined> => {
+  ): Promise<void> => {
     try {
       await updateReservationStore(key, updates);
       const reservations = await getReservationStore();
       set({reservations});
-      // Return the updated reservation
-      return reservations.find(r => getReservationKey(r) === key);
     } catch (error) {
       console.error('Error updating reservation:', error);
       throw error;
@@ -132,7 +130,9 @@ export const useReservationStore = create<ReservationStoreState>(set => ({
     }
   },
 
-  // Sync with cart items
+  // Sync with cart items - SIMPLIFIED: Cart is single source of truth
+  // This function ONLY updates cartId in ReservationStore to track which cart item this is
+  // It does NOT overwrite modifiedQuantities or subProducts - those come from cart directly
   syncWithCart: async (cartItems: CartItem[]) => {
     try {
       const reservationCartItems = cartItems.filter(
@@ -148,7 +148,7 @@ export const useReservationStore = create<ReservationStoreState>(set => ({
         reservationMap.set(key, r);
       });
 
-      // Process cart items
+      // Process cart items - ONLY update cartId, don't touch modifiedQuantities or subProducts
       for (const cartItem of reservationCartItems) {
         const storeItem = convertCartItemToReservationStoreItem(
           cartItem,
@@ -162,16 +162,22 @@ export const useReservationStore = create<ReservationStoreState>(set => ({
           const existing = reservationMap.get(key);
 
           if (existing) {
-            // Update existing (especially cartId and quantities)
+            // ONLY update cartId - don't touch modifiedQuantities or subProducts
+            // Cart is the source of truth, ReservationStore is just for tracking
             await updateReservationStore(key, {
-              cartId: storeItem.cartId,
-              subProducts: storeItem.subProducts,
-              modifiedQuantities: storeItem.modifiedQuantities,
+              cartId: storeItem.cartId, // Only update cartId
+              // Don't update modifiedQuantities or subProducts - they come from cart
               updatedAt: new Date().toISOString(),
             });
           } else {
-            // Add new
-            await addToReservationStore(storeItem);
+            // Add new reservation only if cart has secondaryServices
+            const cartHasSecondaryServices =
+              cartItem.reservationData?.secondaryServices &&
+              cartItem.reservationData.secondaryServices.length > 0;
+
+            if (cartHasSecondaryServices) {
+              await addToReservationStore(storeItem);
+            }
           }
         }
       }
@@ -185,7 +191,6 @@ export const useReservationStore = create<ReservationStoreState>(set => ({
         });
 
         if (!existsInCart && reservation.cartId) {
-          // If it was in cart but now removed, remove from store
           await removeFromReservationStore(key);
         }
       }
@@ -242,8 +247,7 @@ export const useReservationStore = create<ReservationStoreState>(set => ({
             date: date,
             fromTime: preReservedItem.fromTime,
             toTime: preReservedItem.toTime,
-            dayName:
-              preReservedItem.dayName || calculateDayName(date),
+            dayName: preReservedItem.dayName || calculateDayName(date),
             cartId: undefined, // Not in cart
             subProducts: preReservedItem.subProducts || [],
             modifiedQuantities: preReservedItem.modifiedQuantities || {},
@@ -259,7 +263,8 @@ export const useReservationStore = create<ReservationStoreState>(set => ({
             await updateReservationStore(key, {
               subProducts: preReservedItem.subProducts || existing.subProducts,
               modifiedQuantities:
-                preReservedItem.modifiedQuantities || existing.modifiedQuantities,
+                preReservedItem.modifiedQuantities ||
+                existing.modifiedQuantities,
               updatedAt: new Date().toISOString(),
             });
           }
@@ -272,7 +277,6 @@ export const useReservationStore = create<ReservationStoreState>(set => ({
         if (!validKeys.has(key) && !reservation.cartId) {
           // Not in preReservedItems and not in cart, remove it
           await removeFromReservationStore(key);
-
         }
       }
 
@@ -290,15 +294,20 @@ export const useReservationStore = create<ReservationStoreState>(set => ({
   },
 
   // Helper: Find reservation by cartId
-  findReservationByCartId: (cartId: string) => {
+  findReservationByCartId: (
+    cartId: string,
+  ): ReservationStoreItem | undefined => {
     const state = useReservationStore.getState();
-    return state.reservations.find(r => r.cartId === cartId);
+    return state.reservations.find(
+      (r: ReservationStoreItem) => r.cartId === cartId,
+    );
   },
 
   // Helper: Find reservation by key
-  findReservationByKey: (key: string) => {
+  findReservationByKey: (key: string): ReservationStoreItem | undefined => {
     const state = useReservationStore.getState();
-    return state.reservations.find(r => getReservationKey(r) === key);
+    return state.reservations.find(
+      (r: ReservationStoreItem) => getReservationKey(r) === key,
+    );
   },
 }));
-
