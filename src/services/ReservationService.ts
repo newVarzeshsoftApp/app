@@ -78,10 +78,12 @@ const ReservationService = {
 
   GetReservation: async (
     query: ReservationQuery,
+    signal?: AbortSignal,
   ): Promise<ResponseReserveViewResponseDto> => {
     try {
       const response = await axiosInstance.get<ResponseReserveViewResponseDto>(
         baseUrl + getReservation(query),
+        {signal},
       );
       if (response.status === Status.Ok) {
         return response.data;
@@ -90,6 +92,10 @@ const ReservationService = {
       }
     } catch (error) {
       console.error('Error in GetReservation function:', error);
+      // Don't handle AbortError - let React Query handle it
+      if (axios.isCancel(error)) {
+        throw error;
+      }
       if (axios.isAxiosError(error) && error.response) {
         handleMutationError(error);
         throw new Error(

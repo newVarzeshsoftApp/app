@@ -9,7 +9,7 @@ export const useGetReservation = (
 ): UseQueryResult<ResponseReserveViewResponseDto, Error> => {
   return useQuery({
     queryKey: ['Reservation', query],
-    queryFn: () => ReservationService.GetReservation(query),
+    queryFn: ({signal}) => ReservationService.GetReservation(query, signal),
     enabled: enabled !== false && !!query.tagId && !!query.start,
     retry: false,
     staleTime: 0, // Data is always considered stale, will refetch every time

@@ -7,7 +7,8 @@ import {
   StyleSheet,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {RouteProp, useRoute} from '@react-navigation/native';
+import {RouteProp, useRoute, useNavigation} from '@react-navigation/native';
+import {useQueryClient} from '@tanstack/react-query';
 import {HomeStackParamList} from '../../../utils/types/NavigationTypes';
 import BaseText from '../../../components/BaseText';
 import BaseButton from '../../../components/Button/BaseButton';
@@ -45,6 +46,7 @@ import {CartItem} from '../../../utils/helpers/CartStorage';
 import {BottomSheetMethods} from '../../../components/BottomSheet/BottomSheet';
 import {useReservationStore} from '../../../store/reservationStore';
 import {getCart} from '../../../utils/helpers/CartStorage';
+import {ReservationQuery} from '../../../services/models/requestQueries';
 
 type ReserveDetailRouteProp = RouteProp<HomeStackParamList, 'reserveDetail'>;
 
@@ -60,6 +62,8 @@ const ReserveDetailScreen: React.FC = () => {
   const preReserveBottomSheetRef = useRef<PreReserveBottomSheetRef>(null);
 
   // Custom Hooks
+  const navigation = useNavigation();
+  const queryClient = useQueryClient();
   const {profile, SKU} = useAuth();
   const {
     addToCart,
@@ -103,6 +107,67 @@ const ReserveDetailScreen: React.FC = () => {
 
   // Track if initial sync has been done
   const initialSyncDoneRef = useRef(false);
+
+  // Build query object for canceling (same as in useReservationData)
+  const reservationQuery = useMemo((): ReservationQuery | null => {
+    if (!params.tagId || !params.start) return null;
+
+    const baseQuery: Partial<ReservationQuery> = {
+      tagId: params.tagId,
+      start: params.start,
+    };
+
+    if (params.patternId !== undefined) baseQuery.patternId = params.patternId;
+    if (params.gender !== undefined)
+      baseQuery.gender = params.gender as 'Female' | 'Male' | 'Both';
+    if (params.saleUnit !== undefined) baseQuery.saleUnit = params.saleUnit;
+    if (params.startTime !== undefined) baseQuery.startTime = params.startTime;
+    if (params.endTime !== undefined) baseQuery.endTime = params.endTime;
+    if (params.end !== undefined) baseQuery.end = params.end;
+    if (params.days !== undefined) {
+      baseQuery.days = Array.isArray(params.days)
+        ? params.days.join(',')
+        : params.days;
+    }
+
+    return baseQuery as ReservationQuery;
+  }, [params]);
+
+  // Handle back button press - cancel query before navigating back
+  const handleBackPress = useCallback(() => {
+    // Cancel all Reservation queries (React Query will only cancel pending requests)
+    queryClient.cancelQueries({
+      queryKey: ['Reservation'],
+      exact: false, // Match all queries that start with 'Reservation'
+    });
+
+    // Navigate back
+    navigationRef.goBack();
+  }, [queryClient]);
+
+  // Cancel query when navigating back (beforeRemove) - fallback for other navigation methods
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('beforeRemove', () => {
+      // Cancel all Reservation queries
+      queryClient.cancelQueries({
+        queryKey: ['Reservation'],
+        exact: false,
+      });
+    });
+
+    return unsubscribe;
+  }, [navigation, queryClient]);
+
+  // Cancel query on unmount as well (cleanup)
+  useEffect(() => {
+    return () => {
+      // Cancel all Reservation queries on unmount
+      queryClient.cancelQueries({
+        queryKey: ['Reservation'],
+        exact: false,
+      });
+    };
+  }, [queryClient]);
 
   // Sync ReservationStore with Cart ONLY on mount (not on every cart change)
   useEffect(() => {
@@ -745,7 +810,7 @@ const ReserveDetailScreen: React.FC = () => {
         <View className="flex-row items-center justify-between px-5 pt-4 pb-2 relative">
           {/* Back Button */}
           <BaseButton
-            onPress={() => navigationRef.goBack()}
+            onPress={handleBackPress}
             noText
             LeftIcon={ArrowRight2}
             type="Outline"
