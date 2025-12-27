@@ -1193,7 +1193,7 @@ const ReserveScreen: React.FC = () => {
       <BottomSheet
         ref={fromDateSheetRef}
         Title="از تاریخ"
-        snapPoints={[55]}
+        snapPoints={[60]}
         buttonText="تایید"
         disablePan
         onButtonPress={saveFromDate}>
@@ -1208,7 +1208,7 @@ const ReserveScreen: React.FC = () => {
       <BottomSheet
         ref={toDateSheetRef}
         Title="تا تاریخ"
-        snapPoints={[55]}
+        snapPoints={[60]}
         buttonText="تایید"
         disablePan
         onButtonPress={saveToDate}>
@@ -1224,7 +1224,7 @@ const ReserveScreen: React.FC = () => {
       <BottomSheet
         ref={durationSheetRef}
         Title="مدت رزرو"
-        snapPoints={[50]}
+        snapPoints={[60]}
         buttonText="تایید"
         disablePan
         onButtonPress={saveDuration}>
@@ -1248,7 +1248,7 @@ const ReserveScreen: React.FC = () => {
       <BottomSheet
         ref={fromHourSheetRef}
         Title="از ساعت"
-        snapPoints={[50]}
+        snapPoints={[60]}
         buttonText="تایید"
         disablePan
         onButtonPress={saveFromHour}>
@@ -1272,7 +1272,7 @@ const ReserveScreen: React.FC = () => {
       <BottomSheet
         ref={toHourSheetRef}
         Title="تا ساعت"
-        snapPoints={[50]}
+        snapPoints={[60]}
         buttonText="تایید"
         disablePan
         onButtonPress={saveToHour}>
@@ -1322,7 +1322,7 @@ const ReserveScreen: React.FC = () => {
       <BottomSheet
         ref={genderSheetRef}
         Title="انتخاب جنسیت"
-        snapPoints={[50]}
+        snapPoints={[60]}
         buttonText="تایید"
         disablePan
         onButtonPress={saveGender}>
