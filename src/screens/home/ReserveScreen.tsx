@@ -446,13 +446,13 @@ const ReserveScreen: React.FC = () => {
             tag.unit,
           );
 
-        // Set first available time slot
+        // Set first fromHour and last toHour
         if (generatedFromHours.length > 0 && generatedToHours.length > 0) {
           setFilters(prev => ({
             ...prev,
             duration: matchingDuration, // Always set duration from tag
             fromHour: generatedFromHours[0].value,
-            toHour: generatedToHours[0].value,
+            toHour: generatedToHours[generatedToHours.length - 1].value, // آخرین مقدار
           }));
         }
       }
@@ -461,7 +461,8 @@ const ReserveScreen: React.FC = () => {
       if (durationOptions.length > 0) {
         const defaultFromHour =
           fromHours.length > 0 ? fromHours[0].value : '10';
-        const defaultToHour = toHours.length > 0 ? toHours[0].value : '11';
+        const defaultToHour =
+          toHours.length > 0 ? toHours[toHours.length - 1].value : '11'; // آخرین مقدار
 
         setFilters(prev => ({
           ...prev,
@@ -472,6 +473,34 @@ const ReserveScreen: React.FC = () => {
       }
     }
   }, [filters.service, durationOptions, fromHours, toHours]);
+
+  // Auto-update time range when duration changes (for "all services" mode)
+  const prevDurationRef = useRef<{
+    value: string;
+    label: string;
+    tag?: ReservationTag;
+  } | null>(null);
+  React.useEffect(() => {
+    // Only update when service is "all" and duration is selected and duration actually changed
+    if (
+      filters.service?.value === 'all' &&
+      filters.duration?.tag &&
+      prevDurationRef.current?.tag?.id !== filters.duration.tag.id
+    ) {
+      if (fromHours.length > 0 && toHours.length > 0) {
+        const firstFromHour = fromHours[0].value;
+        const lastToHour = toHours[toHours.length - 1].value; // آخرین مقدار
+
+        setFilters(prev => ({
+          ...prev,
+          fromHour: firstFromHour,
+          toHour: lastToHour,
+        }));
+      }
+    }
+    // Update ref
+    prevDurationRef.current = filters.duration;
+  }, [filters.duration, filters.service, fromHours, toHours]);
 
   // Temp states for pickers
   const [tempFromDate, setTempFromDate] = useState<DateSelectorState | null>(
