@@ -11,7 +11,12 @@ interface HelpBottomSheetProps {
 
 const HelpBottomSheet: React.FC<HelpBottomSheetProps> = ({bottomSheetRef}) => {
   return (
-    <BottomSheet ref={bottomSheetRef} snapPoints={[45]} Title="راهنما">
+    <BottomSheet
+      ref={bottomSheetRef}
+      snapPoints={[55]}
+      scrollView
+      disablePan
+      Title="راهنما">
       <View className="gap-4 px-2">
         {/* Legend Item - Pre Reserved (Dashed) */}
         <View className="flex-row items-center gap-3">

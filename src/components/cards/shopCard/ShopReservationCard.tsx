@@ -303,13 +303,16 @@ const ShopReservationCard: React.FC<ShopReservationCardProps> = ({data}) => {
 
             {/* Row 4: SubProducts (Right) */}
             {subProductsText && (
-              <View className="flex-row justify-end items-center gap-2">
+              <View className="flex-row justify-start items-center gap-2">
                 <AddSquare
                   size={20}
                   color={isDark ? '#FFFFFF' : '#AAABAD'}
                   variant="Bold"
                 />
-                <BaseText type="body3" color="secondary">
+                <BaseText
+                  type="body3"
+                  color="secondary"
+                  className="max-w-[250px] line-clamp-1">
                   {subProductsText}
                 </BaseText>
               </View>

@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import {Image, Platform, TouchableOpacity, View} from 'react-native';
+import {Image, Platform, View} from 'react-native';
 import BaseText from '../../../components/BaseText';
 import {Survey} from '../../../services/models/response/SurveyResService';
 import {useTranslation} from 'react-i18next';
@@ -73,14 +73,18 @@ const MainPageSurveyCard: React.FC<MainPageSurveyCardProps> = ({
       start={Platform.OS === 'web' ? {x: 1, y: 1} : {x: 1, y: -1}}
       locations={[0.2, 1, 1]}
       style={{
-        flex: 1,
+        width: '100%',
         borderRadius: 24,
-        height: 160,
+        minHeight: 160,
         justifyContent: 'center',
         alignItems: 'center',
       }}>
-      <View className="flex-1  p-[1px] w-full  relative z-10 overflow-hidden ">
-        <View className=" flex-1 w-full items-center px-7 py-4 gap-2  overflow-hidden h-full dark:bg-neutral-dark-300/80 bg-neutral-0/80 rounded-3xl">
+      <View
+        className="w-full p-[1px] relative z-10"
+        style={{overflow: 'hidden'}}>
+        <View
+          className="w-full items-center px-7 py-5 gap-2 dark:bg-neutral-dark-300/80 bg-neutral-0/80 rounded-3xl"
+          style={{overflow: 'hidden'}}>
           {/* First Shade  */}
           <View className="flex  justify-between items-center w-full flex-row gap-4">
             <View className="w-[61px] h-[61px]">
@@ -113,7 +117,17 @@ const MainPageSurveyCard: React.FC<MainPageSurveyCardProps> = ({
             </View>
           </View>
 
-          <View className="w-[200px] h-[200px] z-[1] bottom-[-85px]   web:-left-[15%]  left-[64%] absolute rotate-180 opacity-35 ">
+          <View
+            style={{
+              width: 200,
+              height: 200,
+              zIndex: 1,
+              bottom: -85,
+              left: Platform.OS === 'web' ? '-15%' : '64%',
+              position: 'absolute',
+              opacity: 0.35,
+              transform: [{rotate: '180deg'}],
+            }}>
             <Image
               source={require('../../../assets/images/shade/shape/SecondaryShade.png')}
               resizeMode="contain"

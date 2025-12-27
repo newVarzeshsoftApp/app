@@ -42,28 +42,30 @@ const OrderDetailCard: React.FC<OrderDetailProps> = ({item, isReseption}) => {
                 {moment(item.createdAt).format('jYYYY/jMM/jDD HH:MM')}
               </BaseText>
             </View>
-            <View className="flex-row items-center justify-between ">
-              <BaseText type="body3" color="secondary">
-                {t('receptionsNumber')}: {''}
-              </BaseText>
-              <BaseButton
-                size="Small"
-                onPress={() =>
-                  navigate('Root', {
-                    screen: 'HistoryNavigator',
-                    params: {
-                      screen: 'orderDetail',
-                      params: {id: Number(item.saleOrderReceptionId ?? 0)},
-                    },
-                  })
-                }
-                type="Outline"
-                color="Supportive5-Blue"
-                LinkButton
-                text={item.saleOrderReceptionId}
-                rounded
-              />
-            </View>
+            {item.saleOrderReceptionId && (
+              <View className="flex-row items-center justify-between ">
+                <BaseText type="body3" color="secondary">
+                  {t('receptionsNumber')}: {''}
+                </BaseText>
+                <BaseButton
+                  size="Small"
+                  onPress={() =>
+                    navigate('Root', {
+                      screen: 'HistoryNavigator',
+                      params: {
+                        screen: 'orderDetail',
+                        params: {id: Number(item.saleOrderReceptionId ?? 0)},
+                      },
+                    })
+                  }
+                  type="Outline"
+                  color="Supportive5-Blue"
+                  LinkButton
+                  text={item.saleOrderReceptionId}
+                  rounded
+                />
+              </View>
+            )}
           </>
         ) : (
           <>

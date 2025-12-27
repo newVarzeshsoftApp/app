@@ -36,10 +36,13 @@ const CartCreditCard: React.FC<CartCreditCardProps> = ({data}) => {
       />
 
       <View className="CardBase">
-        <View className="flex-row items-center justify-between">
-          <View className="flex-row items-center gap-2">
+        <View className="flex-row items-center justify-between gap-2">
+          <View className="flex-row flex-1 items-center gap-2">
             <FlashCircle size="24" color="#fed376" variant="Bold" />
-            <BaseText type="subtitle2" color="supportive1">
+            <BaseText
+              type="subtitle2"
+              color="supportive1"
+              className="flex-1 line-clamp-1 truncate">
               {product.title}
             </BaseText>
           </View>

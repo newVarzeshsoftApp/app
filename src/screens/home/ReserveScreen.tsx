@@ -1298,7 +1298,7 @@ const ReserveScreen: React.FC = () => {
       <BottomSheet
         ref={serviceSheetRef}
         Title="انتخاب خدمت"
-        snapPoints={[50]}
+        snapPoints={[60]}
         buttonText="تایید"
         disablePan
         onButtonPress={saveService}>

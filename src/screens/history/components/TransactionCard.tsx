@@ -97,6 +97,8 @@ const TransactionCard: React.FC<TransactionProps> = ({
                 <BaseText type="body3" color="base">
                   {item.type === 0 && item.sourceType === 10
                     ? 'عودت رزرو'
+                    : item.type === 1 && item.sourceType === 10
+                    ? 'جریمه ی لغو رزرو'
                     : item.gateway?.title ??
                       t(`${TransactionSourceType[item.sourceType ?? 0]}`)}
                 </BaseText>

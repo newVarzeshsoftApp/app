@@ -5,6 +5,7 @@ import React, {
   useCallback,
   ReactNode,
   useState,
+  useEffect,
 } from 'react';
 import {
   StyleSheet,
@@ -12,6 +13,7 @@ import {
   Dimensions,
   TouchableWithoutFeedback,
   Platform,
+  ScrollView,
 } from 'react-native';
 import Animated, {
   useSharedValue,
@@ -82,10 +84,38 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
     const insets = useSafeAreaInsets();
     const screenDimensions = Dimensions.get('screen');
     const windowDimensions = Dimensions.get('window');
-    // Use window height instead of screen height to exclude status bar and navigation bar
+    // For web, track window.innerHeight to account for address bar and browser UI changes
+    const [webWindowHeight, setWebWindowHeight] = useState(
+      Platform.OS === 'web' && typeof window !== 'undefined'
+        ? window.innerHeight
+        : null,
+    );
+
+    useEffect(() => {
+      if (Platform.OS === 'web' && typeof window !== 'undefined') {
+        const updateHeight = () => {
+          setWebWindowHeight(window.innerHeight);
+        };
+        updateHeight();
+        window.addEventListener('resize', updateHeight);
+        // Also listen to orientationchange for mobile browsers
+        window.addEventListener('orientationchange', updateHeight);
+        return () => {
+          window.removeEventListener('resize', updateHeight);
+          window.removeEventListener('orientationchange', updateHeight);
+        };
+      }
+    }, []);
+
+    // For web, use tracked window.innerHeight to account for address bar and browser UI
+    // For native, use window height to exclude status bar and navigation bar
+    const actualWindowHeight =
+      Platform.OS === 'web' && webWindowHeight !== null
+        ? webWindowHeight
+        : windowDimensions.height;
     // Subtract top inset (status bar) to get the actual usable height
     // For snap points calculation, we use window height minus top inset
-    const usableHeight = windowDimensions.height - insets.top;
+    const usableHeight = actualWindowHeight - insets.top;
     const {theme} = useTheme();
 
     /**
@@ -346,7 +376,7 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
               <View
                 style={{
                   flex: 1,
-                  paddingBottom: Math.max(insets.bottom, 16), // Ensure buttons are above safe area
+                  minHeight: 0, // Important for flex children to shrink properly
                 }}
                 className={`Container gap-4 mx-auto ${
                   disablePan ? 'pt-4' : ''
@@ -388,10 +418,20 @@ const BottomSheet = forwardRef<BottomSheetMethods, BottomSheetProps>(
                     </Animated.ScrollView>
                   </GestureDetector>
                 ) : (
-                  // Non-scrollable Content
-                  <View className="flex-grow gap-3">
-                    <View className="flex-1">{children}</View>
-                    <View className="flex-row  justify-center gap-3">
+                  // Non-scrollable Content with scrollable children if needed
+                  <View style={{flex: 1, minHeight: 0, gap: 12}}>
+                    <ScrollView
+                      style={{flex: 1, minHeight: 0}}
+                      showsVerticalScrollIndicator={false}
+                      contentContainerStyle={{flexGrow: 1}}>
+                      {children}
+                    </ScrollView>
+                    <View
+                      className="flex-row justify-center gap-3"
+                      style={{
+                        paddingBottom: Math.max(insets.bottom, 16),
+                        paddingTop: 8,
+                      }}>
                       {deleteButtonText && onDeleteButtonPress && (
                         <BaseButton
                           text={deleteButtonText || ''}

@@ -119,14 +119,14 @@ const HomeScreen: React.FC = () => {
       ) : (
         bannerData.length > 0 && <BannerSlider data={bannerData} />
       )}
-      {hasSurvey ? (
+      {hasSurvey && (
         <View className="Container px-4">
           <MainPageSurveyCard
             survey={previewSurvey}
             isSingleSurvey={isSingleSurvey}
           />
         </View>
-      ) : null}
+      )}
     </View>
   );
 

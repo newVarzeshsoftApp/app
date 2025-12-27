@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState, useCallback} from 'react';
+import React, {useEffect, useMemo, useState, useCallback, useRef} from 'react';
 import {
   ActivityIndicator,
   Platform,
@@ -71,6 +71,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
   const {totalAmount, totalTax, totalDiscount, totalShopGift} =
     useCartTotals(items);
   const amountPayable = totalAmount + totalTax - totalDiscount;
+  const scrollViewRef = useRef<ScrollView>(null);
 
   // Get reservation expiration time
   const hasReservationItems = items.some(
@@ -91,6 +92,18 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
       setSteps(1);
     }
   }, [items.length]);
+
+  // Scroll to top when step changes
+  useEffect(() => {
+    // Use requestAnimationFrame to ensure DOM has rendered before scrolling
+    const scrollToTop = () => {
+      scrollViewRef.current?.scrollTo({y: 0, animated: true});
+    };
+    // Double requestAnimationFrame to ensure layout is complete
+    requestAnimationFrame(() => {
+      requestAnimationFrame(scrollToTop);
+    });
+  }, [steps]);
 
   // Helper to get start time for a reservation item (prefer createdAt from ReservationStore)
   const getReservationStartTime = useCallback((item: CartItem): Date | null => {
@@ -691,6 +704,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
   return (
     <View className="flex-1 relative">
       <ScrollView
+        ref={scrollViewRef}
         contentContainerStyle={{flexGrow: 1}}
         showsVerticalScrollIndicator={false}>
         <View className="Container  flex-1 py-5 web:pt-[90px] pb-[180px] gap-5 relative ">
@@ -936,8 +950,24 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
           disabled={!PaymentMethod}
           isLoading={CreatePayment.isPending || SaleOrder.isPending}
           Steps={steps}
-          BackStep={() => setSteps(1)}
-          NextStep={() => (steps === 1 ? setSteps(2) : SubmitSaleOrder())}
+          BackStep={() => {
+            setSteps(1);
+            // Scroll to top after state update
+            setTimeout(() => {
+              scrollViewRef.current?.scrollTo({y: 0, animated: true});
+            }, 0);
+          }}
+          NextStep={() => {
+            if (steps === 1) {
+              setSteps(2);
+              // Scroll to top after state update
+              setTimeout(() => {
+                scrollViewRef.current?.scrollTo({y: 0, animated: true});
+              }, 0);
+            } else {
+              SubmitSaleOrder();
+            }
+          }}
           t={t}
         />
       )}
