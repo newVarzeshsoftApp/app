@@ -164,7 +164,9 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
       return {total: 0, tax: 0, subProductsTotal: 0};
     }
 
-    const basePrice = product?.price || 0;
+    // Use reservePrice if available, otherwise fallback to price
+    const basePrice =
+      (product as any)?.reservePrice || product?.price || 0;
     const discount = product?.discount || 0;
     const tax = product?.tax || 0;
     const subProductsTotal =

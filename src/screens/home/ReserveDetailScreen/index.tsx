@@ -641,8 +641,12 @@ const ReserveDetailScreen: React.FC = () => {
 
         // ساخت CartItem برای سبد خرید
         // ServiceEntryDto تقریباً همه فیلدهای Product رو داره
+        // حفظ reservePrice برای استفاده در سبد خرید
         const cartItem = {
-          product: data.item as any, // Cast به any چون ServiceEntryDto ≈ Product
+          product: {
+            ...data.item,
+            reservePrice: data.item.reservePrice, // حفظ reservePrice
+          } as any, // Cast به any چون ServiceEntryDto ≈ Product
           quantity: 1,
           isReserve: true,
           reservationData: {

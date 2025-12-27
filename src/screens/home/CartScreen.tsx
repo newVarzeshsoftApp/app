@@ -24,7 +24,7 @@ import {useGetGetway} from '../../utils/hooks/Getway/useGetGetway';
 import BaseButton from '../../components/Button/BaseButton';
 import WalletBalance from './components/WalletBalance';
 import {useGetUserCredit} from '../../utils/hooks/User/useUserCredit';
-import {useMutation} from '@tanstack/react-query';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
 import {PaymentService} from '../../services/PaymentService';
 import {BottomTabScreenProps} from '@react-navigation/bottom-tabs';
 import {HomeStackParamList} from '../../utils/types/NavigationTypes';
@@ -54,6 +54,7 @@ type PaymentMethodType = {
 type CartScreenProps = BottomTabScreenProps<HomeStackParamList, 'cart'>;
 const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Cart'});
+  const queryClient = useQueryClient();
   const {totalItems, items, emptyCart, removeFromCart} = useCartContext();
   const [steps, setSteps] = useState<1 | 2>(1);
   const {data: Getways, isLoading} = useGetGetway();
@@ -222,6 +223,8 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     onSuccess(data, variables, context) {
       emptyCart();
       setSteps(1); // Reset step to 1 before navigation
+      // Update wallet credit after successful payment
+      queryClient.invalidateQueries({queryKey: ['UserCredit']});
       navigate('Root', {screen: 'PaymentDetail', params: {id: data}});
     },
   });
@@ -272,7 +275,10 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     // Build reservation items DTO with isReserve: true
     const reservationItemsDTO = reservationItems.map(item => {
       const reservationData: ReservationData = item.reservationData!;
-      const amount = item.SelectedPriceList
+      // Use reservePrice if available, otherwise fallback to SelectedPriceList or price
+      const amount = (item.product as any)?.reservePrice
+        ? (item.product as any).reservePrice
+        : item.SelectedPriceList
         ? item.SelectedPriceList.price
         : item.product.price;
       const discount = item.SelectedPriceList

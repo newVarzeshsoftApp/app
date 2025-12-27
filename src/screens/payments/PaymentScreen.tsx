@@ -8,7 +8,7 @@ import {CloseCircle, TickCircle} from 'iconsax-react-native';
 import BaseText from '../../components/BaseText';
 import {formatNumber} from '../../utils/helpers/helpers';
 import BaseButton from '../../components/Button/BaseButton';
-import {useMutation} from '@tanstack/react-query';
+import {useMutation, useQueryClient} from '@tanstack/react-query';
 import {PaymentService} from '../../services/PaymentService';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import moment from 'jalali-moment';
@@ -25,6 +25,7 @@ type PaymentScreenProps = NativeStackScreenProps<
 >;
 const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'payment'});
+  const queryClient = useQueryClient();
   const [PaymentData, setPaymentData] = useState<PaymentVerifyRes | null>(null);
   const {profile: ProfileData} = useAuth();
 
@@ -46,6 +47,9 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
     onSuccess(data, variables, context) {
       setPaymentData(data);
       setIsInitialLoading(false);
+      // Update wallet credit after successful payment
+
+      queryClient.invalidateQueries({queryKey: ['UserCredit']});
     },
     onError: error => {
       handleMutationError(error);
@@ -58,6 +62,8 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
       isSuccses && emptyCart();
       setPaymentData(data);
       setIsInitialLoading(false);
+      // Update wallet credit after successful payment
+      queryClient.invalidateQueries({queryKey: ['UserCredit']});
     },
     onError: error => {
       handleMutationError(error);

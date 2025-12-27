@@ -12,7 +12,9 @@ export const useCartTotals = (items: CartItem[]) => {
 
         // Handle reservation items
         if (item.isReserve && item.reservationData) {
-          const basePrice = item?.product?.price || 0;
+          // Use reservePrice if available, otherwise fallback to price
+          const basePrice =
+            (item?.product as any)?.reservePrice || item?.product?.price || 0;
           const discount = item?.product?.discount || 0;
           const tax = item?.product?.tax || 0;
 

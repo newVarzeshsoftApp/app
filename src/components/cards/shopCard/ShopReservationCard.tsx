@@ -201,21 +201,23 @@ const ShopReservationCard: React.FC<ShopReservationCardProps> = ({data}) => {
         .format('jYYYY/jMM/jDD')
     : null;
 
-  // Get subProducts from product
-  const subProducts = data?.product?.subProducts || [];
-
-  // Format subProducts text
+  // Format subProducts text from saleOrder.subProductOrders
   const subProductsText = useMemo(() => {
-    if (!subProducts || subProducts.length === 0) return null;
+    // Type assertion: subProductOrders exists in runtime but not in SaleOrder type
+    const saleOrder = data?.saleOrder as any;
+    const subProductOrders = saleOrder?.subProductOrders || [];
 
-    const items = subProducts.map(sub => {
-      const quantity = sub.quantity || 1;
-      const title = sub.product?.title || '';
-      return `${quantity} ${title}`;
-    });
+    if (!subProductOrders || subProductOrders.length === 0) return null;
+
+    // Extract meta from each subProductOrder and join them
+    const items = subProductOrders
+      .map((order: any) => order?.meta)
+      .filter((meta: string | undefined) => meta && meta.trim() !== ''); // Filter out empty metas
+
+    if (items.length === 0) return null;
 
     return items.join('، ');
-  }, [subProducts]);
+  }, [data?.saleOrder]);
 
   return (
     <>
