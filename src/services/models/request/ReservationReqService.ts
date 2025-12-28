@@ -37,4 +37,5 @@ export interface CreateReserveDto {
 
 export interface CancelReservationDto {
   id: number; // order id
+  amount?: number; // penalty amount
 }

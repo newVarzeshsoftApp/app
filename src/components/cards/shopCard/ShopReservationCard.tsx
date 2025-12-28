@@ -60,35 +60,50 @@ const ShopReservationCard: React.FC<ShopReservationCardProps> = ({data}) => {
     cancelBottomSheetRef.current?.close();
   }, []);
 
-  const handleConfirmCancel = useCallback(() => {
-    if (!orderId) return;
-    cancelReservationMutation.mutate(
-      {id: orderId},
-      {
-        onSuccess: () => {
-          closeCancelConfirm();
-          queryClient.invalidateQueries({queryKey: ['UserSaleItem']});
+  const handleConfirmCancel = useCallback(
+    (amount: number | undefined) => {
+      if (!orderId) return;
+      // Only include amount if it's defined and > 0
+      const mutationPayload: {id: number; amount?: number} = {id: orderId};
+      if (amount !== undefined && amount > 0) {
+        mutationPayload.amount = amount;
+      }
+      cancelReservationMutation.mutate(
+        mutationPayload as any, // Type assertion needed because CancelReservationDto has optional amount
+        {
+          onSuccess: () => {
+            closeCancelConfirm();
+            queryClient.invalidateQueries({queryKey: ['UserSaleItem']});
+          },
+          onError: err => {
+            Alert.alert('خطا', err.message || 'خطا در لغو رزرو');
+          },
         },
-        onError: err => {
-          Alert.alert('خطا', err.message || 'خطا در لغو رزرو');
-        },
-      },
-    );
-  }, [cancelReservationMutation, closeCancelConfirm, orderId, queryClient]);
+      );
+    },
+    [cancelReservationMutation, closeCancelConfirm, orderId, queryClient],
+  );
+
+  // Reserved date value (raw, for penalty calculation)
+  const reservedDateRaw = (data as any)?.reservedDate;
 
   // Format reserved date from reservedDate field (format: "2025-12-22 00:00")
   const reservedDate = useMemo(() => {
-    const reservedDateValue = (data as any)?.reservedDate;
-    if (reservedDateValue) {
+    if (reservedDateRaw) {
       return (
-        moment(reservedDateValue, 'YYYY-MM-DD HH:mm')
+        moment(reservedDateRaw, 'YYYY-MM-DD HH:mm')
           // @ts-ignore
           .local('fa')
           .format('jYYYY/jMM/jDD')
       );
     }
     return null;
-  }, [(data as any)?.reservedDate]);
+  }, [reservedDateRaw]);
+
+  // Total amount for penalty calculation
+  const totalAmount = useMemo(() => {
+    return data?.saleOrder?.totalAmount ?? data?.amount ?? 0;
+  }, [data?.saleOrder?.totalAmount, data?.amount]);
 
   // Reserved times (already in HH:mm format)
   const reservedStartTime = data?.reservedStartTime || '';
@@ -224,6 +239,9 @@ const ShopReservationCard: React.FC<ShopReservationCardProps> = ({data}) => {
       <CancelReservationConfirmSheet
         bottomSheetRef={cancelBottomSheetRef}
         reservationPenalty={reservationPenaltyRaw}
+        reservedDate={reservedDateRaw}
+        reservedStartTime={reservedStartTime}
+        totalAmount={totalAmount}
         isLoading={cancelReservationMutation.isPending}
         confirmDisabled={!orderId}
         onCancel={closeCancelConfirm}

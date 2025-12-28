@@ -101,21 +101,28 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
   const isExpired = momentJalali().isAfter(momentJalali.utc(data?.end));
   const isActiveReservation = isFromReservation && !isExpired && !!data?.usable;
 
+  // Reserved date value (raw, for penalty calculation)
+  const reservedDateRaw = (data as any)?.reservedDate;
+
   const reservedDate = useMemo(() => {
-    const reservedDateValue = (data as any)?.reservedDate;
-    if (reservedDateValue) {
+    if (reservedDateRaw) {
       return (
-        momentJalali(reservedDateValue, 'YYYY-MM-DD HH:mm')
+        momentJalali(reservedDateRaw, 'YYYY-MM-DD HH:mm')
           // @ts-ignore
           .local('fa')
           .format('jYYYY/jMM/jDD')
       );
     }
     return null;
-  }, [(data as any)?.reservedDate]);
+  }, [reservedDateRaw]);
 
   const reservedStartTime = data?.reservedStartTime || '';
   const reservedEndTime = data?.reservedEndTime || '';
+
+  // Total amount for penalty calculation
+  const totalAmount = useMemo(() => {
+    return data?.saleOrder?.totalAmount ?? data?.amount ?? 0;
+  }, [data?.saleOrder?.totalAmount, data?.amount]);
 
   const duration = useMemo(() => {
     if (reservedStartTime && reservedEndTime) {
@@ -211,18 +218,26 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
     cancelSheetRef.current?.expand();
   }, []);
 
-  const handleConfirmCancel = useCallback(() => {
-    if (!orderId) return;
-    cancelReservationMutation.mutate(
-      {id: orderId},
-      {
-        onSuccess: () => {
-          cancelSheetRef.current?.close();
-          queryClient.invalidateQueries({queryKey: ['UserSaleItem']});
+  const handleConfirmCancel = useCallback(
+    (amount: number | undefined) => {
+      if (!orderId) return;
+      // Only include amount if it's defined and > 0
+      const mutationPayload: {id: number; amount?: number} = {id: orderId};
+      if (amount !== undefined && amount > 0) {
+        mutationPayload.amount = amount;
+      }
+      cancelReservationMutation.mutate(
+        mutationPayload as any, // Type assertion needed because CancelReservationDto has optional amount
+        {
+          onSuccess: () => {
+            cancelSheetRef.current?.close();
+            queryClient.invalidateQueries({queryKey: ['UserSaleItem']});
+          },
         },
-      },
-    );
-  }, [cancelReservationMutation, orderId, queryClient]);
+      );
+    },
+    [cancelReservationMutation, orderId, queryClient],
+  );
 
   const ImageAnimatedStyle = useAnimatedStyle(() => {
     return {
@@ -260,6 +275,9 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
       <CancelReservationConfirmSheet
         bottomSheetRef={cancelSheetRef}
         reservationPenalty={reservationPenaltyRaw}
+        reservedDate={reservedDateRaw}
+        reservedStartTime={reservedStartTime}
+        totalAmount={totalAmount}
         isLoading={cancelReservationMutation.isPending}
         confirmDisabled={!orderId}
         onCancel={() => cancelSheetRef.current?.close()}
