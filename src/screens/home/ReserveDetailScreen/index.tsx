@@ -1,14 +1,14 @@
 import React, {useRef, useCallback, useEffect, useMemo} from 'react';
-import {
-  View,
-  Image,
-  ScrollView,
-  ActivityIndicator,
-  StyleSheet,
-} from 'react-native';
+import {View, Image, ActivityIndicator, StyleSheet} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {RouteProp, useRoute, useNavigation} from '@react-navigation/native';
 import {useQueryClient} from '@tanstack/react-query';
+import {Gesture, GestureDetector} from 'react-native-gesture-handler';
+import Animated, {
+  useSharedValue,
+  runOnJS,
+  useAnimatedScrollHandler,
+} from 'react-native-reanimated';
 import {HomeStackParamList} from '../../../utils/types/NavigationTypes';
 import BaseText from '../../../components/BaseText';
 import BaseButton from '../../../components/Button/BaseButton';
@@ -57,7 +57,7 @@ const ReserveDetailScreen: React.FC = () => {
   const params = route.params;
 
   // Refs
-  const scrollViewRef = useRef<ScrollView>(null);
+  const scrollViewRef = useRef<Animated.ScrollView>(null);
   const helpBottomSheetRef = useRef<BottomSheetMethods>(null);
   const preReserveBottomSheetRef = useRef<PreReserveBottomSheetRef>(null);
 
@@ -90,6 +90,64 @@ const ReserveDetailScreen: React.FC = () => {
     canGoNext,
     canGoPrev,
   } = usePageNavigation({totalPages: totalPagesForSlots});
+
+  // Track scroll state for gesture coordination
+  const scrollY = useSharedValue(0);
+
+  // Scroll handler
+  const scrollHandler = useAnimatedScrollHandler({
+    onScroll: event => {
+      scrollY.value = event?.contentOffset?.y || 0;
+    },
+  });
+
+  // Native scroll gesture (for ScrollView)
+  const nativeScrollGesture = Gesture.Native();
+
+  // Swipe gesture for page navigation
+  const swipeGesture = Gesture.Pan()
+    .minDistance(15) // Minimum distance before gesture activates
+    .activeOffsetX([-25, 25]) // Only activate if horizontal movement is significant
+    .failOffsetY([-20, 20]) // Fail if vertical movement is too much (to allow scrolling)
+    .onEnd(event => {
+      const swipeThreshold = 70; // Minimum swipe distance
+      const velocityThreshold = 350; // Minimum swipe velocity
+
+      // Only trigger if scroll is at top
+      const isAtTop = scrollY.value <= 30;
+      const verticalMovement = Math.abs(event.translationY);
+      const horizontalMovement = Math.abs(event.translationX);
+
+      // Don't trigger if vertical movement is more than horizontal
+      if (!isAtTop || verticalMovement > horizontalMovement * 0.6) {
+        return; // Don't interfere with scrolling
+      }
+
+      // Swipe right (positive translationX) = از چپ به راست = go to next page
+      if (
+        event.translationX > swipeThreshold ||
+        event.velocityX > velocityThreshold
+      ) {
+        if (canGoNext) {
+          runOnJS(navigatePage)('next');
+        }
+      }
+      // Swipe left (negative translationX) = از راست به چپ = go to previous page
+      else if (
+        event.translationX < -swipeThreshold ||
+        event.velocityX < -velocityThreshold
+      ) {
+        if (canGoPrev) {
+          runOnJS(navigatePage)('prev');
+        }
+      }
+    });
+
+  // Combine gestures - allow both scroll and swipe
+  const combinedGesture = Gesture.Simultaneous(
+    nativeScrollGesture,
+    swipeGesture,
+  );
 
   // Reservation state management
   const {
@@ -877,29 +935,33 @@ const ReserveDetailScreen: React.FC = () => {
           </BaseText>
         </View>
       ) : (
-        <ScrollView
-          ref={scrollViewRef}
-          className="flex-1"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}>
-          <View className=" pt-4 ">
-            {timeSlots.map(slot => {
-              const visibleDays = getVisibleDaysForSlot(slot.days);
-              return (
-                <TimeSlotRow
-                  key={slot.timeSlot}
-                  timeSlot={slot.timeSlot}
-                  visibleDays={visibleDays}
-                  slideAnim={slideAnim}
-                  opacityAnim={opacityAnim}
-                  onServicePress={handleServiceItemClick}
-                  isLoadingItems={getLoadingItems()}
-                  getItemState={getItemState}
-                />
-              );
-            })}
-          </View>
-        </ScrollView>
+        <GestureDetector gesture={combinedGesture}>
+          <Animated.ScrollView
+            ref={scrollViewRef}
+            className="flex-1"
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            onScroll={scrollHandler}
+            scrollEventThrottle={16}>
+            <View className=" pt-4 ">
+              {timeSlots.map(slot => {
+                const visibleDays = getVisibleDaysForSlot(slot.days);
+                return (
+                  <TimeSlotRow
+                    key={slot.timeSlot}
+                    timeSlot={slot.timeSlot}
+                    visibleDays={visibleDays}
+                    slideAnim={slideAnim}
+                    opacityAnim={opacityAnim}
+                    onServicePress={handleServiceItemClick}
+                    isLoadingItems={getLoadingItems()}
+                    getItemState={getItemState}
+                  />
+                );
+              })}
+            </View>
+          </Animated.ScrollView>
+        </GestureDetector>
       )}
 
       {/* Help Bottom Sheet */}
