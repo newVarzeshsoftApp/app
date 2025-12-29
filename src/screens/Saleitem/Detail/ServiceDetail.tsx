@@ -219,22 +219,22 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
   }, []);
 
   const handleConfirmCancel = useCallback(
-    (amount: number | undefined) => {
-    if (!orderId) return;
-      // Only include amount if it's defined and > 0
-      const mutationPayload: {id: number; amount?: number} = {id: orderId};
-      if (amount !== undefined && amount > 0) {
-        mutationPayload.amount = amount;
+    (penaltyAmount: number | undefined) => {
+      if (!orderId) return;
+      // Only include penaltyAmount if it's defined and > 0
+      const mutationPayload: {id: number; penaltyAmount?: number} = {id: orderId};
+      if (penaltyAmount !== undefined && penaltyAmount > 0) {
+        mutationPayload.penaltyAmount = penaltyAmount;
       }
-    cancelReservationMutation.mutate(
-        mutationPayload as any, // Type assertion needed because CancelReservationDto has optional amount
-      {
-        onSuccess: () => {
-          cancelSheetRef.current?.close();
-          queryClient.invalidateQueries({queryKey: ['UserSaleItem']});
+      cancelReservationMutation.mutate(
+        mutationPayload as any, // Type assertion needed because CancelReservationDto has optional penaltyAmount
+        {
+          onSuccess: () => {
+            cancelSheetRef.current?.close();
+            queryClient.invalidateQueries({queryKey: ['UserSaleItem']});
+          },
         },
-      },
-    );
+      );
     },
     [cancelReservationMutation, orderId, queryClient],
   );

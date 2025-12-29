@@ -9,6 +9,7 @@ import Animated, {
   runOnJS,
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
+import axios from 'axios';
 import {HomeStackParamList} from '../../../utils/types/NavigationTypes';
 import BaseText from '../../../components/BaseText';
 import BaseButton from '../../../components/Button/BaseButton';
@@ -72,7 +73,7 @@ const ReserveDetailScreen: React.FC = () => {
     removeFromCart,
     updateReservationItemData,
   } = useCartContext();
-  const {timeSlots, isLoading, error, totalPagesForSlots} =
+  const {timeSlots, isLoading, error, totalPagesForSlots, refetch} =
     useReservationData(params);
   const {
     loadReservations,
@@ -920,13 +921,51 @@ const ReserveDetailScreen: React.FC = () => {
           <ActivityIndicator size="large" color="#bcdd64" />
         </View>
       ) : error ? (
-        <View className="flex-1 items-center justify-center px-5">
-          <BaseText type="title4" color="secondary">
-            خطا در دریافت اطلاعات
-          </BaseText>
-          <BaseText type="body3" color="secondary" className="mt-2">
-            {error.message}
-          </BaseText>
+        <View className="flex-1 items-center justify-center px-5 gap-4">
+          {/* Check if error is 500 */}
+          {(() => {
+            // Check if it's an axios error with status 500
+            const isAxiosError = axios.isAxiosError(error);
+            const is500Error =
+              (isAxiosError && error.response?.status === 500) ||
+              (error as any)?.response?.status === 500 ||
+              (error as any)?.status === 500;
+
+            return is500Error ? (
+              <>
+                <BaseText type="title4" color="secondary">
+                  خطا در دریافت اطلاعات
+                </BaseText>
+                <BaseText
+                  type="body3"
+                  color="secondary"
+                  className="text-center">
+                  مشکلی در سرور رخ داده است. لطفاً دوباره تلاش کنید.
+                </BaseText>
+                <BaseButton
+                  text="تلاش مجدد"
+                  type="Fill"
+                  color="Black"
+                  rounded
+                  size="Large"
+                  Extraclass="mt-4"
+                  onPress={() => {
+                    refetch();
+                  }}
+                  isLoading={isLoading}
+                />
+              </>
+            ) : (
+              <>
+                <BaseText type="title4" color="secondary">
+                  خطا در دریافت اطلاعات
+                </BaseText>
+                <BaseText type="body3" color="secondary" className="mt-2">
+                  {error.message || 'خطای نامشخص'}
+                </BaseText>
+              </>
+            );
+          })()}
         </View>
       ) : timeSlots.length === 0 ? (
         <View className="flex-1 items-center justify-center px-5">

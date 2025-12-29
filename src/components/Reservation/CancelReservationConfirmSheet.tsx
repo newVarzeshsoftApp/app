@@ -6,15 +6,10 @@ import BaseButton from '../Button/BaseButton';
 import {Warning2} from 'iconsax-react-native';
 import moment from 'jalali-moment';
 import {formatNumber} from '../../utils/helpers/helpers';
-
-type ReservationPenaltyUnit = 'DAY' | 'HOUR';
-type ReservationPenaltyDto = {
-  unit: ReservationPenaltyUnit;
-  quantity: number;
-  hourAmount: number;
-  percent: number;
-  description?: string;
-};
+import {
+  formatPenaltyLabel,
+  ReservationPenaltyDto,
+} from './utils/penaltyHelpers';
 
 type PenaltyDisplayItem = {
   timeLabel: string;
@@ -78,9 +73,27 @@ const findApplicablePenalty = (
   const hoursRemaining = reservationDateTime.diff(now, 'hours', true);
   const daysRemaining = hoursRemaining / 24;
 
-  // Separate DAY and HOUR penalties
+  // Separate penalties by unit
   const dayPenalties = penalties.filter(p => p.unit === 'DAY');
   const hourPenalties = penalties.filter(p => p.unit === 'HOUR');
+  const weekPenalties = penalties.filter(p => p.unit === 'WEEK');
+  const monthPenalties = penalties.filter(p => p.unit === 'MONTH');
+
+  // Convert all penalties to hours for comparison
+  const convertToHours = (penalty: ReservationPenaltyDto): number => {
+    switch (penalty.unit) {
+      case 'HOUR':
+        return penalty.quantity;
+      case 'DAY':
+        return penalty.quantity * 24;
+      case 'WEEK':
+        return penalty.quantity * 168; // 7 days * 24 hours
+      case 'MONTH':
+        return penalty.quantity * 730; // ~30.4 days * 24 hours
+      default:
+        return penalty.hourAmount || 0;
+    }
+  };
 
   // If we're within 24 hours, check HOUR penalties first
   if (hoursRemaining <= 24 && hourPenalties.length > 0) {
@@ -97,40 +110,52 @@ const findApplicablePenalty = (
   }
 
   // Check DAY penalties
-  // Find penalties that apply (quantity >= daysRemaining)
   const applicableDayPenalties = dayPenalties.filter(
     p => daysRemaining <= p.quantity,
   );
   if (applicableDayPenalties.length > 0) {
-    // Get the one with the smallest quantity (most precise match)
     return applicableDayPenalties.reduce((prev, current) =>
       prev.quantity < current.quantity ? prev : current,
     );
   }
 
+  // Check WEEK penalties
+  const weeksRemaining = daysRemaining / 7;
+  const applicableWeekPenalties = weekPenalties.filter(
+    p => weeksRemaining <= p.quantity,
+  );
+  if (applicableWeekPenalties.length > 0) {
+    return applicableWeekPenalties.reduce((prev, current) =>
+      prev.quantity < current.quantity ? prev : current,
+    );
+  }
+
+  // Check MONTH penalties
+  const monthsRemaining = daysRemaining / 30;
+  const applicableMonthPenalties = monthPenalties.filter(
+    p => monthsRemaining <= p.quantity,
+  );
+  if (applicableMonthPenalties.length > 0) {
+    return applicableMonthPenalties.reduce((prev, current) =>
+      prev.quantity < current.quantity ? prev : current,
+    );
+  }
+
   // If no penalty applies (reservation is too far in the future),
-  // return the one with the largest quantity (furthest deadline)
-  const allPenalties = [...dayPenalties, ...hourPenalties];
+  // return the one with the largest hourAmount (furthest deadline)
+  const allPenalties = [
+    ...dayPenalties,
+    ...hourPenalties,
+    ...weekPenalties,
+    ...monthPenalties,
+  ];
   if (allPenalties.length > 0) {
     return allPenalties.reduce((prev, current) =>
-      prev.quantity > current.quantity ? prev : current,
+      convertToHours(prev) > convertToHours(current) ? prev : current,
     );
   }
 
   return null;
-};
-
-const formatPenaltyLabel = (penalty: ReservationPenaltyDto): string => {
-  if (penalty.unit === 'DAY') {
-    if (penalty.quantity === 1) return '۱ روز قبل';
-    else if (penalty.quantity === 7) return '۱ هفته قبل';
-    else if (penalty.quantity === 30) return '۱ ماه قبل';
-    else return `${penalty.quantity} روز قبل`;
-  } else if (penalty.unit === 'HOUR') {
-    if (penalty.quantity === 1) return 'تا ۱ ساعت مانده';
-    else return `تا ${penalty.quantity} ساعت مانده`;
-  }
-  return '';
 };
 
 const CancelReservationConfirmSheet: React.FC<
@@ -176,12 +201,12 @@ const CancelReservationConfirmSheet: React.FC<
   }, [applicablePenalty, totalAmount]);
 
   const handleConfirm = useCallback(() => {
-    // Only send amount if penalty exists and amount > 0
-    const amount =
+    // Only send penaltyAmount if penalty exists and amount > 0
+    const penaltyAmount =
       penaltyCalculation?.penaltyAmount && penaltyCalculation.penaltyAmount > 0
         ? penaltyCalculation.penaltyAmount
         : undefined;
-    onConfirm(amount);
+    onConfirm(penaltyAmount);
   }, [onConfirm, penaltyCalculation]);
 
   return (
@@ -193,7 +218,7 @@ const CancelReservationConfirmSheet: React.FC<
       Title="آیا از لغو این رزرو مطمئن هستید؟">
       <View className=" gap-4">
         {penaltyCalculation && (
-          <View className="gap-3 BaseServiceCard">
+          <View className="gap-1 BaseServiceCard">
             <View className="flex-row items-center gap-2  border-b border-neutral-100 dark:border-neutral-dark-400/50 pb-2">
               <View className="w-[44px] h-[44px] bg-warning-100 dark:bg-warning-dark-100 rounded-full justify-center items-center">
                 <Warning2 size={24} color="#E8842F" variant="Bold" />
@@ -202,9 +227,9 @@ const CancelReservationConfirmSheet: React.FC<
                 جریمه لغو رزرو شما
               </BaseText>
             </View>
-            <View className=" gap-3">
+            <View className="gap-3">
               {/* Time Label */}
-              <View className="flex-row items-center justify-between py-2 border-b border-neutral-0 dark:border-neutral-dark-400/50">
+              <View className="flex-row items-center justify-between py-3 border-b border-neutral-0 dark:border-neutral-dark-400/50">
                 <BaseText type="body3" color="secondary">
                   {penaltyCalculation.timeLabel}
                 </BaseText>

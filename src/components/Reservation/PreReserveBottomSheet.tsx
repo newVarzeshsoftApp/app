@@ -38,6 +38,10 @@ import {
 } from '../../utils/helpers/ReservationStorage';
 import {CartItem, getCart} from '../../utils/helpers/CartStorage';
 import {resetNavigationHistory} from '../../navigation/navigationRef';
+import {
+  formatPenaltyLabel,
+  ReservationPenaltyDto,
+} from './utils/penaltyHelpers';
 
 // SubProduct interface from API
 interface SubProduct {
@@ -58,15 +62,6 @@ interface SubProduct {
   };
   subProducts?: SubProduct[]; // Nested subProducts
   [key: string]: any; // For other properties
-}
-
-// Penalty item from API
-interface ReservationPenaltyDto {
-  quantity: number;
-  unit: 'DAY' | 'HOUR';
-  percent: number;
-  description: string;
-  hourAmount: number;
 }
 
 // Formatted penalty item for display
@@ -151,27 +146,8 @@ const formatPenaltyItems = (
   const sorted = [...penalties].sort((a, b) => b.hourAmount - a.hourAmount);
 
   return sorted.map(penalty => {
-    let timeLabel = '';
-    if (penalty.unit === 'DAY') {
-      if (penalty.quantity === 1) {
-        timeLabel = '۱ روز قبل';
-      } else if (penalty.quantity === 7) {
-        timeLabel = '۱ هفته قبل';
-      } else if (penalty.quantity === 30) {
-        timeLabel = '۱ ماه قبل';
-      } else {
-        timeLabel = `${penalty.quantity} روز قبل`;
-      }
-    } else if (penalty.unit === 'HOUR') {
-      if (penalty.quantity === 1) {
-        timeLabel = 'تا ۱ ساعت مانده';
-      } else {
-        timeLabel = `تا ${penalty.quantity} ساعت مانده`;
-      }
-    }
-
     return {
-      timeLabel,
+      timeLabel: formatPenaltyLabel(penalty),
       percentage: penalty.percent,
     };
   });
@@ -1276,10 +1252,12 @@ const PreReserveBottomSheet = forwardRef<
                 onPress={() => setPenaltyExpanded(!penaltyExpanded)}
                 className="rounded-2xl overflow-hidden">
                 {/* Header */}
-                <View className="flex-row items-center justify-between p-4 bg-warning-100 rounded-full">
+                <View className="flex-row items-center justify-between p-4 bg-warning-100 dark:bg-warning-300 rounded-full">
                   <View className="flex-row items-center gap-2">
-                    <Warning2 size={20} color="#E8842F" variant="Bold" />
-                    <BaseText type="body3">جریمه لغو رزرو</BaseText>
+                    <Warning2 size={24} color="#E8842F" variant="Bold" />
+                    <BaseText type="body3" className="!text-black">
+                      جریمه لغو رزرو
+                    </BaseText>
                   </View>
                   <View className="flex-row items-center gap-2">
                     {penaltyExpanded ? (
@@ -1308,11 +1286,11 @@ const PreReserveBottomSheet = forwardRef<
                                 ? 0
                                 : 1,
                           }}>
-                          <BaseText type="body3" color="base">
-                            %{penalty.percentage}
-                          </BaseText>
                           <BaseText type="body3" color="secondary">
                             {penalty.timeLabel}
+                          </BaseText>
+                          <BaseText type="body3" color="base">
+                            %{penalty.percentage}
                           </BaseText>
                         </View>
                       ),

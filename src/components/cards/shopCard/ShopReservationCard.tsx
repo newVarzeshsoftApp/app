@@ -61,25 +61,27 @@ const ShopReservationCard: React.FC<ShopReservationCardProps> = ({data}) => {
   }, []);
 
   const handleConfirmCancel = useCallback(
-    (amount: number | undefined) => {
-    if (!orderId) return;
-      // Only include amount if it's defined and > 0
-      const mutationPayload: {id: number; amount?: number} = {id: orderId};
-      if (amount !== undefined && amount > 0) {
-        mutationPayload.amount = amount;
+    (penaltyAmount: number | undefined) => {
+      if (!orderId) return;
+      // Only include penaltyAmount if it's defined and > 0
+      const mutationPayload: {id: number; penaltyAmount?: number} = {
+        id: orderId,
+      };
+      if (penaltyAmount !== undefined && penaltyAmount > 0) {
+        mutationPayload.penaltyAmount = penaltyAmount;
       }
-    cancelReservationMutation.mutate(
-        mutationPayload as any, // Type assertion needed because CancelReservationDto has optional amount
-      {
-        onSuccess: () => {
-          closeCancelConfirm();
-          queryClient.invalidateQueries({queryKey: ['UserSaleItem']});
+      cancelReservationMutation.mutate(
+        mutationPayload as any, // Type assertion needed because CancelReservationDto has optional penaltyAmount
+        {
+          onSuccess: () => {
+            closeCancelConfirm();
+            queryClient.invalidateQueries({queryKey: ['UserSaleItem']});
+          },
+          onError: err => {
+            Alert.alert('خطا', err.message || 'خطا در لغو رزرو');
+          },
         },
-        onError: err => {
-          Alert.alert('خطا', err.message || 'خطا در لغو رزرو');
-        },
-      },
-    );
+      );
     },
     [cancelReservationMutation, closeCancelConfirm, orderId, queryClient],
   );
