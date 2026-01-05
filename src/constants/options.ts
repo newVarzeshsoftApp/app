@@ -88,6 +88,20 @@ export enum PaymentStatus {
   Nok,
   Reject,
 }
+
+export enum DayType {
+  ALL,
+  EVEN,
+  ODD,
+  OTHER,
+}
+
+export enum TimeRanges {
+  ALL,
+  AM,
+  PM,
+  MIXED,
+}
 // const receptionAmount = (item.totalAmount || 0) + (item.discount || 0);
 //               const normalOrderAmount = item.normalSaleOrder
 //                 ?.map((value: SaleOrder) => (value.totalAmount || 0) + (value.discount || 0))

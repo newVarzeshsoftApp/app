@@ -1,9 +1,9 @@
-import axios from 'axios';
+import axios, {AxiosResponse} from 'axios';
 import {Status} from '../models/enums';
 import {routes} from '../routes/routes';
 import axiosInstance from '../utils/AxiosInstans';
 import {handleMutationError} from '../utils/helpers/errorHandler';
-import {SaleOrderBody} from './models/request/OperationalReqService';
+import {CreateSaleOrderDto, SaleOrderBody} from './models/request/OperationalReqService';
 import {
   SaleOrderByIDRes,
   PaymentResultRes,
@@ -15,16 +15,19 @@ const {
 } = routes;
 
 export const OperationalService = {
-  SaleOrder: async (body: SaleOrderBody): Promise<any> => {
+  SaleOrder: async (body: CreateSaleOrderDto | SaleOrderBody): Promise<any> => {
     try {
-      const response = await axiosInstance.post(baseUrl + saleOrder(), body);
+      const response = await axiosInstance.post<
+        CreateSaleOrderDto | SaleOrderBody,
+        AxiosResponse<any>
+      >(baseUrl + saleOrder(), body);
       if (response.status === Status.Ok || response.status === Status.Created) {
         return response.data;
       } else {
-        throw new Error(`Request failed with status ${response}`);
+        throw new Error(`Request failed with status ${response.status}`);
       }
     } catch (error) {
-      console.error('Error in SignIN function:', error);
+      console.error('Error in SaleOrder function:', error);
       if (axios.isAxiosError(error) && error.response) {
         handleMutationError(error);
         throw new Error(
@@ -34,10 +37,10 @@ export const OperationalService = {
       throw error;
     }
   },
-  GetPaymentResult: async (ids: string): Promise<PaymentResultRes> => {
+  GetPaymentResult: async (): Promise<PaymentResultRes> => {
     try {
       const response = await axiosInstance.get<PaymentResultRes>(
-        baseUrl + getPaymentResult(ids),
+        baseUrl + getPaymentResult(),
       );
       if (response.status === Status.Ok || response.status === Status.Created) {
         return response.data;

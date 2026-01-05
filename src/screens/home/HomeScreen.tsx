@@ -9,6 +9,8 @@ import {Survey} from '../../services/models/response/SurveyResService';
 import {BannerContent} from '../../services/models/response/AdsResService';
 import MainPageSurveyCard from './components/MainPageSurveyCard';
 import moment from 'jalali-moment';
+import BaseButton from '../../components/Button/BaseButton';
+import {navigate} from '../../navigation/navigationRef';
 
 // داده‌های تستی بنر - برای تست و اپدیت استفاده کنید
 const TEST_BANNER_DATA: BannerContent[] = [
@@ -119,6 +121,29 @@ const HomeScreen: React.FC = () => {
       ) : (
         bannerData.length > 0 && <BannerSlider data={bannerData} />
       )}
+      {/* دکمه کلاس گروهی */}
+      <View className="Container px-4">
+        <BaseButton
+          text="کلاس گروهی"
+          type="Fill"
+          color="Black"
+          size="Large"
+          rounded
+          onPress={() => {
+            // groupClassRoom is in ReserveStackNavigator which is nested in reserve tab
+            navigate('Root', {
+              screen: 'HomeNavigator',
+              params: {
+                screen: 'reserve',
+                params: {
+                  screen: 'groupClassRoom',
+                  params: undefined,
+                },
+              },
+            } as any);
+          }}
+        />
+      </View>
       {hasSurvey && (
         <View className="Container px-4">
           <MainPageSurveyCard

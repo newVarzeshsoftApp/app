@@ -39,3 +39,20 @@ export interface CancelReservationDto {
   id: number; // order id
   penaltyAmount?: number; // penalty amount
 }
+
+export interface PreReserveDTO {
+  product: number;
+  day: string;
+  fromTime: string;
+  toTime: string;
+  gender: string;
+  specificDate: string;
+  isLocked: boolean;
+}
+
+export interface GroupClassRoomPreReserveDTO {
+  groupClassRoom: number;
+  contractor: number;
+  user: number;
+  status: 'released' | 'locked' | 'reserved';
+}

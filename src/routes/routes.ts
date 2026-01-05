@@ -3,6 +3,9 @@ import {
   AllOrganizationQuery,
   CategoryQuery,
   GatewayLogQuery,
+  GroupClassRoomParticipantsQuery,
+  GroupClassRoomPreReserveQuery,
+  GroupClassRoomQuery,
   IntroductionMethodQuery,
   PreReserveQuery,
   ProductQuery,
@@ -82,7 +85,10 @@ export const routes = {
   },
   operational: {
     saleOrder: () => `sale-order`,
-    getPaymentResult: (ids: string) => `user/order/payment/result?id.in=${ids}`,
+    getPaymentResult: () => `user/order/payment/result`,
+  },
+  saleUnit: {
+    getAll: () => 'sale-unit',
   },
   manageLocker: {
     openLocker: () => `locker/open-locker`,
@@ -141,8 +147,30 @@ export const routes = {
     },
     preReserve: (query: PreReserveQuery) =>
       'reservation/pre-reserve' + prepareQuery(query),
+    calculatePrice: () => 'reservation/calculate-price',
     submit: () => 'reservation/submit',
     cancel: () => 'reservation/cancel',
     getExpiresTime: () => 'reservation/expires-time',
+  },
+  contractor: {
+    getAll: () => 'contractor',
+  },
+  groupClassRoom: {
+    getAll: (query?: GroupClassRoomQuery) =>
+      'group-class-room' + (query ? prepareQuery(query) : ''),
+    getServices: (query?: GroupClassRoomQuery) =>
+      'group-class-room/services' + (query?.search ? prepareQuery({search: query.search}) : ''),
+    getParticipants: (id: number, query: GroupClassRoomParticipantsQuery) =>
+      `group-class-room/participants/${id}` + prepareQuery(query),
+    getOrganizationUnit: () => 'group-class-room/organization-unit',
+    preReserve: () => 'group-class-room/pre-reserve',
+  },
+  rmqMonitor: {
+    getQueueConsumers: (queueName: string) =>
+      `rmq-monitor/queue/${queueName}/consumers`,
+    checkDuplicateConsumers: (queueName: string) =>
+      `rmq-monitor/queue/${queueName}/check-duplicates`,
+    checkOrganizationConsumers: (orgKey: string) =>
+      `rmq-monitor/organization/${orgKey}/check-consumers`,
   },
 };

@@ -1,4 +1,4 @@
-import {ProductType, RegisteredServiceStatus} from '../../constants/options';
+import {DayType, ProductType, RegisteredServiceStatus, TimeRanges} from '../../constants/options';
 
 export interface AllOrganizationQuery {
   sku?: string;
@@ -6,7 +6,7 @@ export interface AllOrganizationQuery {
   id?: number;
 }
 export interface UserSaleItemQuey {
-  status?: RegisteredServiceStatus;
+  status?: RegisteredServiceStatus | number;
   limit?: number;
   offset?: number;
   type?: number;
@@ -14,11 +14,12 @@ export interface UserSaleItemQuey {
   sortField?: string;
   sortOrder?: -1 | 1;
   isReserved?: boolean;
-  isGift?: boolean;
+  isGift: boolean; // Required in Swagger
   PageNumber?: number;
   PageSize?: number;
   searchQuery?: string;
   isCanceled?: boolean;
+  'product.hasSubProduct'?: boolean;
 }
 //
 export interface UserPaymentQuey {
@@ -126,4 +127,25 @@ export interface PreReserveQuery {
   gender: string;
   specificDate: string;
   isLocked: boolean;
+}
+
+export interface GroupClassRoomQuery {
+  dayType?: DayType;
+  timeRange?: TimeRanges;
+  contractor?: string;
+  organizationUnit?: string;
+  service?: string;
+  search?: string; // For group-class-room/services
+}
+
+export interface GroupClassRoomParticipantsQuery {
+  contractor: number;
+  waitingForGroupClass: boolean;
+}
+
+export interface GroupClassRoomPreReserveQuery {
+  groupClassRoom: number;
+  contractor: number;
+  user: number;
+  status: 'released' | 'locked' | 'reserved';
 }

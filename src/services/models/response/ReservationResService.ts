@@ -161,3 +161,9 @@ export interface AuthResponseSignUpDto {
 export interface ReservationExpiresTimeRes {
   ttlSecond: number; // Time in seconds until reservation expires
 }
+
+// Calculate price response
+export interface ResPreReserveDTO {
+  price: number;
+  tax: number;
+}

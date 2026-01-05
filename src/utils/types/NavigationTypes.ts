@@ -70,6 +70,7 @@ export type HomeStackParamList = {
     end?: string;
     days?: string;
   };
+  groupClassRoom: undefined;
   cart: undefined;
   wallet: NavigatorScreenParams<WalletStackParamList> | undefined;
   myServices: undefined;
