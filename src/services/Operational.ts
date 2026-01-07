@@ -15,16 +15,24 @@ const {
 } = routes;
 
 export const OperationalService = {
-  SaleOrder: async (body: SaleOrderBody): Promise<any> => {
+  SaleOrder: async (body: SaleOrderBody): Promise<number> => {
     try {
-      const response = await axiosInstance.post(baseUrl + saleOrder(), body);
+      const response = await axiosInstance.post<{orders: number[]}>(
+        baseUrl + saleOrder(),
+        body,
+      );
       if (response.status === Status.Ok || response.status === Status.Created) {
-        return response.data;
+        // Extract first order ID from orders array
+        const orderId = response.data?.orders?.[0];
+        if (orderId === undefined) {
+          throw new Error('No order ID found in response');
+        }
+        return orderId;
       } else {
         throw new Error(`Request failed with status ${response}`);
       }
     } catch (error) {
-      console.error('Error in SignIN function:', error);
+      console.error('Error in SaleOrder function:', error);
       if (axios.isAxiosError(error) && error.response) {
         handleMutationError(error);
         throw new Error(
