@@ -64,6 +64,15 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
       setIsInitialLoading(false);
       // Update wallet credit after successful payment
       queryClient.invalidateQueries({queryKey: ['UserCredit']});
+
+      // TEST: Navigate to PaymentDetail with order ID from response
+      // const orderId = data?.orders?.[0];
+      // if (orderId) {
+      //   navigate('Root', {
+      //     screen: 'PaymentDetail',
+      //     params: {id: String(orderId)},
+      //   });
+      // }
     },
     onError: error => {
       handleMutationError(error);

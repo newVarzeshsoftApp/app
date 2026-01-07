@@ -8,10 +8,10 @@
     "lint": "eslint .",
     "start": "react-native start",
     "build": "rm -rf dist/ && webpack --mode=production --config webpack.config.js ",
-    "web": "webpack serve --mode=development --config webpack.config.js --port 3000",
+    "web": "node scripts/web-server.js",
     "clean": "rm -rf node_modules && rm -f package-lock.json && npm cache clean --force",
     "test": "jest",
-    "dev":"npx serve -s dist -l tcp://0.0.0.0:3000"
+    "dev": "node scripts/dev-server.js"
   },
   "dependencies": {
     "@babel/plugin-proposal-export-namespace-from": "^7.18.9",
