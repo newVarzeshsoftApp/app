@@ -4,8 +4,8 @@ import {resources} from './src/constants/options';
 
 i18n.use(initReactI18next).init({
   resources,
-  lng: 'en', // default language
-  fallbackLng: 'en',
+  lng: 'fa', // default language
+  fallbackLng: 'fa',
   // debug: true,
   interpolation: {escapeValue: false},
 });

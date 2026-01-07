@@ -1,5 +1,5 @@
-import React from 'react';
-import {Pressable, View, Text} from 'react-native';
+import React, {useState} from 'react';
+import {Pressable, View, Text, Platform, PressableProps} from 'react-native';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,70 +10,115 @@ import Animated, {
 import Check from '../../assets/icons/check.svg';
 import {useTheme} from '../../utils/ThemeContext';
 import {ICheckboxProps} from '../../models/props';
+import BaseText from '../BaseText';
 
-const Checkbox: React.FC<ICheckboxProps> = ({id, checked, onPress, label}) => {
+const Checkbox: React.FC<ICheckboxProps & PressableProps> = ({
+  id,
+  checked,
+  onCheckedChange,
+  label,
+  ...props
+}) => {
   const {theme} = useTheme();
 
-  // Animation values for the background circle and the pop effect on the checkbox itself
+  // For web pop effect
+  const [isScaled, setIsScaled] = useState(false);
+
+  // Reanimated values for mobile
   const circleScale = useSharedValue(0);
   const checkboxScale = useSharedValue(1);
 
   const handlePress = () => {
-    if (onPress) {
-      onPress(!checked);
+    if (onCheckedChange) {
+      onCheckedChange(!checked);
     }
-    // Animate the background circle from scale 0 to 1, and then back to 0
-    circleScale.value = withSequence(
-      withTiming(1.2, {duration: 200, easing: Easing.out(Easing.quad)}), // Expand to full size
-      withTiming(0, {duration: 200, easing: Easing.in(Easing.quad)}), // Shrink back to 0
-    );
 
-    // Pop animation for the checkbox square
-    checkboxScale.value = withSequence(
-      withTiming(1.3, {duration: 100, easing: Easing.out(Easing.quad)}), // Slightly larger
-      withTiming(1, {duration: 100, easing: Easing.in(Easing.quad)}), // Return to normal size
-    );
+    if (Platform.OS === 'web') {
+      // Web-only scale effect
+      setIsScaled(true);
+      setTimeout(() => setIsScaled(false), 250); // Reset scale after a brief delay
+    } else {
+      // Mobile animation with reanimated
+      circleScale.value = withSequence(
+        withTiming(1.2, {duration: 200, easing: Easing.out(Easing.quad)}),
+        withTiming(0, {duration: 200, easing: Easing.in(Easing.quad)}),
+      );
+
+      checkboxScale.value = withSequence(
+        withTiming(1.3, {duration: 100, easing: Easing.out(Easing.quad)}),
+        withTiming(1, {duration: 100, easing: Easing.in(Easing.quad)}),
+      );
+    }
   };
 
-  // Animated style for the background circle
+  // Animated styles for mobile
   const animatedCircleStyle = useAnimatedStyle(() => ({
     transform: [{scale: circleScale.value}],
   }));
 
-  // Animated style for the checkbox pop effect
   const animatedCheckboxStyle = useAnimatedStyle(() => ({
     transform: [{scale: checkboxScale.value}],
   }));
+
   return (
-    <View className="flex-row items-center space-x-2 ">
-      <Pressable onPress={handlePress} className="relative">
-        {/* Background circle that scales down */}
-        <Animated.View
-          style={animatedCircleStyle}
-          className="absolute -top-[7px] -left-[7px] w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-dark-100 z-[-1] "
-        />
+    <View className="flex-row items-center  gap-2">
+      <Pressable {...props} onPress={handlePress} className="relative">
+        {/* Background circle */}
+        {Platform.OS === 'web' ? (
+          <View
+            className={`absolute -top-[8px] -left-[8px] w-10 h-10 rounded-full transition-transform duration-200 ${
+              isScaled ? '' : 'scale-0'
+            } ${checked ? 'bg-primary-100  ' : ''} dark:bg-primary-dark-100`}
+          />
+        ) : (
+          <Animated.View
+            style={animatedCircleStyle}
+            className="absolute -top-[7px] -left-[7px] w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-dark-100"
+          />
+        )}
 
-        <Animated.View
-          style={animatedCheckboxStyle}
-          className={`w-6 h-6 rounded-lg flex items-center justify-center duration-150  ${
-            checked
-              ? 'bg-primary-500'
-              : 'bg-neutral-300 dark:bg-neutral-dark-300'
-          }`}>
-          {checked && (
-            <Check
-              width={16}
-              height={16}
-              stroke={theme === 'dark' ? 'black' : 'white'}
-            />
-          )}
-        </Animated.View>
+        {Platform.OS === 'web' ? (
+          <View
+            className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+              checked
+                ? `bg-primary-500 ${
+                    isScaled ? 'scale-110' : 'scale-100'
+                  } transition-transform duration-100`
+                : 'border border-neutral-400 dark:border-neutral-dark-700 scale-100 transition-transform duration-200'
+            }`}>
+            {checked && (
+              <Check
+                width={16}
+                height={16}
+                stroke={theme === 'dark' ? 'black' : 'white'}
+              />
+            )}
+          </View>
+        ) : (
+          <Animated.View
+            style={animatedCheckboxStyle}
+            className={`w-6 h-6 rounded-lg flex items-center justify-center ${
+              checked
+                ? 'bg-primary-500'
+                : 'bg-neutral-300 dark:bg-neutral-dark-300'
+            }`}>
+            {checked && (
+              <Check
+                width={16}
+                height={16}
+                stroke={theme === 'dark' ? 'black' : 'white'}
+              />
+            )}
+          </Animated.View>
+        )}
       </Pressable>
-
       {label && (
-        <Text className={`text-${theme === 'dark' ? 'white' : 'gray-700'}`}>
+        <BaseText
+          type="body2"
+          className=" truncate max-w-[300px]"
+          color={checked ? 'base' : 'secondary'}>
           {label}
-        </Text>
+        </BaseText>
       )}
     </View>
   );

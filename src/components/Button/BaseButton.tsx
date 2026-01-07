@@ -4,7 +4,7 @@ import {Image, Pressable, View} from 'react-native';
 import Loading from '../Spinner/Loading';
 import BaseText from '../BaseText';
 import {useTheme} from '../../utils/ThemeContext';
-
+import ArrowUp from '../../assets/icons/ArrowUp.svg';
 function BaseButton({
   size = 'Medium',
   color = 'Primary',
@@ -19,15 +19,20 @@ function BaseButton({
   noText,
   RightIcon,
   srcRight,
+  Extraclass,
   RightIconVariant,
+  LinkButton,
+  redbutton,
   ...props
 }: IButtonProps) {
   const [isPressed, setIsPressed] = useState(false);
   const {theme} = useTheme();
   const DarkMode = theme === 'dark';
-
   // Helper function to determine icon color
   const getIconColor = () => {
+    if (redbutton) {
+      return '#FD504F';
+    }
     switch (type) {
       case 'Fill':
         return DarkMode ? '#16181b' : '#ffffff';
@@ -37,6 +42,8 @@ function BaseButton({
           case 'Primary':
             return DarkMode ? '#8ac14f' : '#bcdc64';
           case 'Black':
+          case 'Supportive1-Yellow':
+          case 'Supportive5-Blue':
             return DarkMode ? '#ffffff' : '#16181b';
           case 'Success':
             return '#37c976';
@@ -61,6 +68,9 @@ function BaseButton({
 
   // Helper function to determine text color
   const getTextColor = () => {
+    if (redbutton) {
+      return 'error';
+    }
     switch (type) {
       case 'Fill':
         return 'button';
@@ -70,6 +80,8 @@ function BaseButton({
           case 'Primary':
             return 'active';
           case 'Black':
+          case 'Supportive1-Yellow':
+          case 'Supportive5-Blue':
             return 'base';
           case 'Success':
             return 'Success500';
@@ -105,6 +117,9 @@ function BaseButton({
     }
   };
   const GetPressedDesign = () => {
+    if (redbutton) {
+      return '!border-error-100 border';
+    }
     if (isPressed) {
       switch (type) {
         case 'Fill':
@@ -121,6 +136,14 @@ function BaseButton({
               return DarkMode
                 ? '!border-success-dark-300  !bg-success-dark-700'
                 : '!border-success-300 !bg-success-700';
+            case 'Supportive1-Yellow':
+              return DarkMode
+                ? '!border-supportive1-dark-300 !bg-supportive1-dark-700  '
+                : '!border-supportive1-300 !bg-supportive1-700 ';
+            case 'Supportive5-Blue':
+              return DarkMode
+                ? '!border-supportive5-dark-300 !bg-supportive5-dark-700  '
+                : '!border-supportive5-300 !bg-supportive5-700 ';
             default:
               return 'border-gray-500';
           }
@@ -172,17 +195,20 @@ function BaseButton({
       }
     }
   };
+  const small = size === 'Medium' || size === 'Small';
   return (
     <Pressable
       disabled={disabled || isLoading}
       onPressIn={() => setIsPressed(true)}
       onPressOut={() => setIsPressed(false)}
       {...props}
-      className={`flex items-center justify-center flex-row gap-2  ${
-        disabled && !isLoading && 'opacity-30'
+      className={`flex items-center justify-center flex-row ${
+        LinkButton ? 'gap-0' : 'gap-2'
+      } duration-150  ${
+        disabled && !isLoading ? '!opacity-30' : '!opacity-100'
       }  ${type}-${color} ${GetPressedDesign()} ${getSizeStyles()} ${
         rounded ? '!rounded-full' : ''
-      }`}>
+      } ${Extraclass}`}>
       {isLoading ? (
         <Loading size={32} circleClassName={getIconColor()} />
       ) : (
@@ -190,14 +216,21 @@ function BaseButton({
           {LeftIcon ? (
             <View>
               <LeftIcon
-                size={size === 'Medium' || size === 'Small' ? 20 : 24}
+                size={small ? 16 : 24}
                 color={getIconColor()}
                 variant={LeftIconVariant}
               />
             </View>
           ) : (
             srcLeft && (
-              <Image src={srcLeft} width={20} height={20} alt={srcLeft} />
+              <Image
+                source={srcLeft}
+                style={{
+                  resizeMode: 'contain',
+                  width: small ? 20 : 32,
+                  height: small ? 20 : 32,
+                }}
+              />
             )
           )}
           {!noText && (
@@ -210,15 +243,28 @@ function BaseButton({
           {RightIcon ? (
             <View>
               <RightIcon
-                size={size === 'Medium' || size === 'Small' ? 20 : 24}
+                size={small ? 16 : 24}
                 color={getIconColor()}
                 variant={RightIconVariant}
               />
             </View>
           ) : (
             srcRight && (
-              <Image src={srcRight} width={20} height={20} alt={srcRight} />
+              <Image
+                source={srcRight}
+                width={small ? 20 : 32}
+                height={small ? 20 : 32}
+              />
             )
+          )}
+          {LinkButton && (!LeftIcon || !RightIcon) && (
+            <View>
+              <ArrowUp
+                stroke={getIconColor()}
+                width={small ? 20 : 32}
+                height={small ? 20 : 32}
+              />
+            </View>
           )}
         </>
       )}

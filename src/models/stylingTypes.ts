@@ -14,6 +14,7 @@ export type ITextType =
   | 'caption'
   | 'placeholder'
   | 'badge';
+  
 export type TypeTextColor =
   | 'base'
   | 'secondary'
@@ -23,12 +24,26 @@ export type TypeTextColor =
   | 'success'
   | 'error'
   | 'button' 
+  |"neutral600"
+  | "secondaryPurple"
+  | "supportive1"
+  |"supportive2"
+  |"supportive3"
+  |"supportive4"
+  |"supportive5"
+  |"supportive6"
   | "Primary600"
   | "Success600"
   | "Success500";
+export type TypeBadgeColor =
+  | 'primary'
+  | 'secondary'
+  | 'warning'
+  | 'success'
+  | 'error';
 
 
   export type IStyle‌TypeButton ="Fill" | "Tonal" |"Outline"| "TextButton" 
-  export type IColorButton ="Primary" | "Black"| "Success"
+  export type IColorButton ="Primary" | "Black"| "Success"  |"Supportive1-Yellow" | "Supportive5-Blue" | "Error"
   export type IIconVariant ="Bold" | "Linear"
   export type ISizeButton ="Medium" | "Large"| "Small"

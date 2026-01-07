@@ -2,8 +2,9 @@
 module.exports = {
   content: [
     './App.{js,jsx,ts,tsx}',
-    './src/**/*.{js,jsx,ts,tsx}', // Adjust this to your file structure
+    './src/**/*.{js,jsx,ts,tsx}',
     './index.web.js',
+    './public/index.html',
   ],
   presets: [require('nativewind/preset')],
   darkMode: 'class',
@@ -48,6 +49,11 @@ module.exports = {
     'fa_placeholder',
     'fa_badge',
 
+    'bg-primary-500',
+    'bg-secondary-500',
+    'bg-warning-500',
+    'bg-success-500',
+    'bg-error-500',
     // Text Colors for Light and Dark Themes
     'text-text-base',
     'text-text-secondary',
@@ -60,7 +66,16 @@ module.exports = {
     'text-text-Success600',
     'text-text-Success500',
     'text-text-Primary600',
+    'text-text-secondaryPurple',
+    'text-text-supportive1',
+    'text-text-supportive2',
+    'text-text-supportive3',
+    'text-text-supportive4',
+    'text-text-supportive5',
+    'text-text-supportive6',
+    'text-text-neutral600',
 
+    'text-text-neutral600-dark',
     'text-text-tonal-dark',
     'text-text-base-dark',
     'text-text-secondary-dark',
@@ -73,8 +88,17 @@ module.exports = {
     'text-text-Success600-dark',
     'text-text-Success500-dark',
     'text-text-Primary600-dark',
+    'text-text-secondaryPurple-dark',
+    'text-text-supportive1-dark',
+    'text-text-supportive2-dark',
+    'text-text-supportive3-dark',
+    'text-text-supportive4-dark',
+    'text-text-supportive5-dark',
+    'text-text-supportive6-dark',
 
     'Fill-Primary',
+    'Fill-Supportive1-Yellow',
+    'Fill-Supportive5-Blue',
     'Fill-Black',
     'Fill-Success',
     'Tonal-Primary',
@@ -82,6 +106,7 @@ module.exports = {
     'Tonal-Success',
     'Outline-Primary',
     'Outline-Black',
+    'Outline-Supportive5-Blue',
     'Outline-Success',
     'TextButton-Primary',
     'TextButton-Black',
@@ -90,6 +115,9 @@ module.exports = {
 
   theme: {
     extend: {
+      boxShadow: {
+        custom: '4px 4px 10px rgba(0,0,0,0.05)',
+      },
       fontFamily: {
         poppins: ['Poppins-Regular', 'Poppins-Bold', 'Poppins-SemiBold'],
         yekan: [
@@ -193,7 +221,7 @@ module.exports = {
           600: '#e64948',
           700: '#b43938',
           dark: {
-            100: '#6a3221',
+            100: '#6a2221',
             200: '#8b2c2b',
             300: '#b43938',
             400: '#e64948',
@@ -344,7 +372,7 @@ module.exports = {
           },
           secondary: {
             DEFAULT: '#55575c', // Light - Neutral-600
-            dark: '#f4f4f5', // Dark - Neutral-600
+            dark: '#AAABAD', // Dark - Neutral-600
           },
           muted: {
             DEFAULT: '#aaabad', // Light - Neutral-400
@@ -354,6 +382,7 @@ module.exports = {
             DEFAULT: '#bcdc64', // Light - Primary-500
             dark: '#8ac14f', // Dark - Primary-500
           },
+
           warning: {
             DEFAULT: '#ff9134', // Light - Warning-500
             dark: '#ff7a1a', // Dark - Warning-500
@@ -381,6 +410,34 @@ module.exports = {
           Success500: {
             DEFAULT: '#37c976', // Light - Success
             dark: '#37c976', // Dark - Success
+          },
+          secondaryPurple: {
+            DEFAULT: '#7676ee', // Light - Success
+            dark: '#7676ee', // Dark - Success
+          },
+          supportive1: {
+            DEFAULT: '#fed376', // Light - Success
+            dark: '#fed376', // Dark - Success
+          },
+          supportive2: {
+            DEFAULT: '#b28bc9', // Light - Success
+            dark: '#b28bc9', // Dark - Success
+          },
+          supportive3: {
+            DEFAULT: '#ff4a74', // Light - Success
+            dark: '#ff4a74', // Dark - Success
+          },
+          supportive4: {
+            DEFAULT: '#1327d6', // Light - Success
+            dark: '#1327d6', // Dark - Success
+          },
+          supportive5: {
+            DEFAULT: '#5bc8ff', // Light - Success
+            dark: '#5bc8ff', // Dark - Success
+          },
+          supportive6: {
+            DEFAULT: '#0de7aa', // Light - Success
+            dark: '#0de7aa', // Dark - Success
           },
         },
         // Background Colors

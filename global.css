@@ -1,42 +1,70 @@
-@font-face {
-  font-family: 'Poppins-Regular';
-  src: url('./src/assets/font/Poppins-Regular.ttf') format('truetype');
-  font-weight: normal;
-}
-
-@font-face {
-  font-family: 'Poppins-Bold';
-  src: url('./src/assets/font/Poppins-Bold.ttf') format('truetype');
-  font-weight: bold;
-}
-
-@font-face {
-  font-family: 'Poppins-SemiBold';
-  src: url('./src/assets/font/Poppins-SemiBold.ttf') format('truetype');
-  font-weight: 600;
-}
-
-@font-face {
-  font-family: 'YekanBakhFaNum-Regular';
-  src: url('./src/assets/font/YekanBakhFaNum-Regular.ttf') format('truetype');
-  font-weight: normal;
-}
-
-@font-face {
-  font-family: 'YekanBakhFaNum-Bold';
-  src: url('./src/assets/font/YekanBakhFaNum-Bold.ttf') format('truetype');
-  font-weight: bold;
-}
-
-@font-face {
-  font-family: 'YekanBakhFaNum-SemiBold';
-  src: url('./src/assets/font/YekanBakhFaNum-SemiBold.ttf') format('truetype');
-  font-weight: 600;
-}
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+.ReactCollapse--collapse {
+  transition: height 500ms;
+}
+@layer base {
+  /* Poppins Font Family */
+  @font-face {
+    font-family: 'Poppins-Regular';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('./src/assets/font/Poppins-Regular.woff2');
+  }
+  @font-face {
+    font-family: 'Poppins-Bold';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('./src/assets/font/Poppins-Bold.woff2');
+  }
+  @font-face {
+    font-family: 'Poppins-SemiBold';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('./src/assets/font/Poppins-SemiBold.woff2');
+  }
+
+  /* YekanBakhFaNum Font Family */
+  @font-face {
+    font-family: 'YekanBakhFaNum-Regular';
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url('./src/assets/font/YekanBakhFaNum-Regular.woff2');
+  }
+  @font-face {
+    font-family: 'YekanBakhFaNum-Bold';
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url('./src/assets/font/YekanBakhFaNum-Bold.woff2');
+  }
+  @font-face {
+    font-family: 'YekanBakhFaNum-SemiBold';
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url('./src/assets/font/YekanBakhFaNum-SemiBold.woff2');
+  }
+}
 @layer components {
+  .Container {
+    @apply px-5 w-full max-w-[450px];
+  }
+
+  .CardBase {
+    @apply p-4 rounded-3xl  gap-3 bg-white/40 dark:bg-neutral-dark-300/40 shadow-custom  border border-white dark:border-neutral-dark-300;
+  }
+  .GiftCard {
+    @apply p-4 rounded-3xl gap-3 bg-supportive2-500/20  shadow-custom  border border-supportive2-500/60;
+  }
+  .bottomsheet {
+    @apply p-4 rounded-3xl gap-3 bg-[#F8F8F9] dark:bg-[#24262C] shadow-custom  border border-white dark:border-neutral-dark-300;
+  }
   /* Primary */
   .Fill-Primary {
     @apply bg-primary-500 hover:bg-primary-400 border-2 border-transparent;
@@ -54,6 +82,12 @@
   /* Black */
   .Fill-Black {
     @apply bg-neutral-900  hover:bg-neutral-800 dark:bg-neutral-dark-900 hover:dark:bg-neutral-dark-800 border-2 border-transparent;
+  }
+  .Fill-Supportive1-Yellow {
+    @apply bg-supportive1-500  hover:bg-supportive1-400  hover:dark:bg-supportive1-dark-400 border-2 border-transparent;
+  }
+  .Fill-Supportive5-Blue {
+    @apply bg-supportive5-500  hover:bg-supportive5-400  hover:dark:bg-supportive5-dark-400 border-2 border-transparent;
   }
   .Tonal-Black {
     @apply bg-neutral-200  hover:bg-neutral-100 dark:bg-neutral-dark-200 hover:dark:bg-neutral-dark-100 border-2 border-transparent;
@@ -78,14 +112,19 @@
   .TextButton-Success {
     @apply bg-transparent border border-transparent;
   }
+  .BaseServiceCard {
+    @apply dark:bg-neutral-dark-300/50 bg-neutral-0/50  w-full  p-4 rounded-3xl  border border-neutral-0 dark:border-neutral-dark-400/50 min-w-[320px];
+  }
+
+  .Outline-Supportive5-Blue {
+    @apply bg-transparent border border-supportive5-500 hover:border-supportive5-400;
+  }
 }
-.Outline {
-  @apply bg-transparent border border-primary-500 hover:border-primary-400;
-}
+
 @layer utilities {
   /* Typography */
   .title1 {
-    @apply font-bold leading-[2rem] text-[1.5rem] lg:leading-[2.5rem] lg:text-[2rem];
+    @apply font-semibold  leading-[2rem] text-[1.5rem] lg:leading-[2.5rem] lg:text-[2rem];
   }
   .title2 {
     @apply font-bold leading-[1.5rem] text-[1.25rem] lg:leading-[2rem] lg:text-[1.75rem];
