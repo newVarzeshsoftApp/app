@@ -8,6 +8,6 @@ export const useGetPaymentResult = (
   return useQuery({
     queryKey: ['PaymentResult', ids],
     queryFn: () => OperationalService.GetPaymentResult(ids),
-    enabled: !!ids && ids.length > 0,
+    enabled: Boolean(ids && ids.trim().length > 0),
   });
 };
