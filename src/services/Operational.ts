@@ -15,19 +15,19 @@ const {
 } = routes;
 
 export const OperationalService = {
-  SaleOrder: async (body: SaleOrderBody): Promise<number> => {
+  SaleOrder: async (body: SaleOrderBody): Promise<string> => {
     try {
       const response = await axiosInstance.post<{orders: number[]}>(
         baseUrl + saleOrder(),
         body,
       );
       if (response.status === Status.Ok || response.status === Status.Created) {
-        // Extract first order ID from orders array
-        const orderId = response.data?.orders?.[0];
-        if (orderId === undefined) {
-          throw new Error('No order ID found in response');
+        // Return all order IDs joined with comma for useGetPaymentResult
+        const orders = response.data?.orders;
+        if (!orders || orders.length === 0) {
+          throw new Error('No order IDs found in response');
         }
-        return orderId;
+        return orders.join(',');
       } else {
         throw new Error(`Request failed with status ${response}`);
       }
