@@ -23,12 +23,11 @@ RUN npm run build
 FROM node:20-alpine AS runner
 WORKDIR /app
 
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/dist ./dist      # <-- changed from .next to dist
+COPY --from=builder /app/dist ./dist     
 COPY --from=builder /app/node_modules ./node_modules
 
 EXPOSE 3200
-CMD ["node", "dist/main"]                 # <-- NestJS entry point
-
+CMD ["npm", "run", "dev"]
