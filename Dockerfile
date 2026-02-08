@@ -1,3 +1,4 @@
+# Stage 1: Dependencies
 FROM node:20-alpine AS deps
 WORKDIR /app
 
@@ -11,21 +12,23 @@ RUN npm config set fetch-retries 10 \
 
 RUN npm ci --prefer-offline --legacy-peer-deps
 
+# Stage 2: Build
 FROM node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
+# Stage 3: Runner
 FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 
 COPY --from=builder /app/package*.json ./
-COPY --from=builder /app/.next ./.next
-COPY --from=builder /app/public ./public
+COPY --from=builder /app/dist ./dist      # <-- changed from .next to dist
 COPY --from=builder /app/node_modules ./node_modules
 
 EXPOSE 3200
-CMD ["npm", "start"]
+CMD ["node", "dist/main"]                 # <-- NestJS entry point
+
