@@ -2,7 +2,15 @@ FROM node:20-alpine AS deps
 WORKDIR /app
 
 COPY package*.json ./
-RUN npm ci
+ENV NODE_OPTIONS="--dns-result-order=ipv4first"
+
+RUN npm config set fetch-retries 10 \
+ && npm config set fetch-retry-mintimeout 20000 \
+ && npm config set fetch-retry-maxtimeout 180000 \
+ && npm config set fetch-timeout 600000
+
+RUN npm ci --prefer-offline
+
 
 FROM node:20-alpine AS builder
 WORKDIR /app
