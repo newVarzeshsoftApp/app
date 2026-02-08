@@ -9,8 +9,7 @@ RUN npm config set fetch-retries 10 \
  && npm config set fetch-retry-maxtimeout 180000 \
  && npm config set fetch-timeout 600000
 
-RUN npm ci --prefer-offline
-
+RUN npm ci --prefer-offline --legacy-peer-deps
 
 FROM node:20-alpine AS builder
 WORKDIR /app
