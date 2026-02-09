@@ -10,6 +10,9 @@ const env = process.env.NODE_ENV || 'development';
 
 console.log(`🚀 Starting webpack dev server in ${env} mode on port ${port}...`);
 
+console.log(`🚀 BASE_URL: ${process.env.BASE_URL}`);
+
+
 const webpack = spawn(
   'webpack',
   [
