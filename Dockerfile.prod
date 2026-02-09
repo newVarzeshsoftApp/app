@@ -6,7 +6,7 @@ WORKDIR /app
 COPY package*.json ./
 ENV NODE_OPTIONS="--dns-result-order=ipv4first"
 
-ARG BASE_URL="https://gatewaybb.varzeshsoft.com/api/"
+ARG BASE_URL
 ENV BASE_URL=${BASE_URL}
 
 RUN npm config set fetch-retries 10 \
@@ -35,7 +35,7 @@ ENV NODE_ENV=production
 # BASE_URL can be set via Coolify environment variables or docker build --build-arg
 
 
-ARG BASE_URL="https://gatewaybb.varzeshsoft.com/api/"
+ARG BASE_URL
 ENV BASE_URL=${BASE_URL}
 
 RUN echo "BASE_URL: ${BASE_URL}"
