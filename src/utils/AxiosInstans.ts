@@ -1,14 +1,16 @@
 import axios from 'axios';
-import {getTokens, removeTokens, storeTokens} from './helpers/tokenStorage';
-import {SignInResponse} from '../services/models/response/AuthResService';
+import { getTokens, removeTokens, storeTokens } from './helpers/tokenStorage';
+import { SignInResponse } from '../services/models/response/AuthResService';
 import AuthService from '../services/AuthService';
-import {navigate} from '../navigation/navigationRef';
-import {Platform} from 'react-native';
+import { navigate } from '../navigation/navigationRef';
+import { Platform } from 'react-native';
 
 const axiosInstance = axios.create({
   baseURL: process.env.BASE_URL,
   // timeout: 10000,
 });
+
+console.log('BASE_URL:', process.env.BASE_URL);
 
 axiosInstance.interceptors.request.use(async config => {
   const tokens = await getTokens();

@@ -152,9 +152,11 @@ module.exports = (env, argv) => {
           __dirname,
           isProduction ? '.env.production' : '.env.development',
         ),
+        systemvars: true,
       }),
       new webpack.DefinePlugin({
         __DEV__: JSON.stringify(!isProduction),
+        'process.env.BASE_URL': JSON.stringify(process.env.BASE_URL || ''),
       }),
       isProduction && new CompressionPlugin(), // Gzip compression in production
       isProduction &&
