@@ -112,7 +112,10 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
     // Build reservation items DTO with isReserve: true
     const reservationItemsDTO = reservationItems.map(item => {
       const reservationData: ReservationData = item.reservationData!;
-      const amount = item.SelectedPriceList
+      // Use reservePrice if available, otherwise fallback to SelectedPriceList or price
+      const amount = (item.product as any)?.reservePrice
+        ? (item.product as any)?.reservePrice
+        : item.SelectedPriceList
         ? item.SelectedPriceList.price
         : item.product.price;
       const discount = item.SelectedPriceList

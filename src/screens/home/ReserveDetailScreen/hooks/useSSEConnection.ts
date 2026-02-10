@@ -69,9 +69,14 @@ export const useSSEConnection = ({
       try {
         // Use direct server URL like backend example (without /api)
         // For Socket.IO, use http(s) here (NOT ws(s)). Engine.IO will upgrade to ws/wss automatically.
-        const SERVER_URL = 'https://gatewaybb.varzeshsoft.com';
+        const SERVER_URL = process.env.BASE_URL;
         const NAMESPACE = '/events'; // namespace تعریف‌شده در گیت‌وی Nest
         const SOCKET_PATH = '/socket.io'; // مسیر هندشیک پیش‌فرض Socket.IO
+
+        if (!SERVER_URL) {
+          console.error('SERVER_URL is not defined. Please set BASE_URL environment variable.');
+          return;
+        }
 
         const serverUrl = `${SERVER_URL}${NAMESPACE}`;
         const isSecure = SERVER_URL.startsWith('https');
