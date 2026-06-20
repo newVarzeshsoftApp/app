@@ -90,17 +90,17 @@ export enum PaymentStatus {
 }
 
 export enum DayType {
-  ALL,
-  EVEN,
-  ODD,
-  OTHER,
+  ALL = 'ALL',
+  EVEN = 'EVEN',
+  ODD = 'ODD',
+  OTHER = 'OTHER',
 }
 
 export enum TimeRanges {
-  ALL,
-  AM,
-  PM,
-  MIXED,
+  ALL = 'ALL',
+  AM = 'AM',
+  PM = 'PM',
+  MIXED = 'MIXED',
 }
 // const receptionAmount = (item.totalAmount || 0) + (item.discount || 0);
 //               const normalOrderAmount = item.normalSaleOrder

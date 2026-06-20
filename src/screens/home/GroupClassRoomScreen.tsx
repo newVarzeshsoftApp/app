@@ -1,4 +1,4 @@
-import React, {useState, useRef, useMemo} from 'react';
+import React, {useState, useRef, useMemo, useCallback} from 'react';
 import {
   View,
   Image,
@@ -8,12 +8,14 @@ import {
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {
-  Calendar,
   Clock,
   ArrowDown2,
   CloseCircle,
   SearchNormal1,
+  Sun1,
+  Moon,
 } from 'iconsax-react-native';
+import type {Icon} from 'iconsax-react-native';
 import NavigationHeader from '../../components/header/NavigationHeader';
 import BaseText from '../../components/BaseText';
 import BaseButton from '../../components/Button/BaseButton';
@@ -28,7 +30,7 @@ import {useGetGroupClassRoomServices} from '../../utils/hooks/GroupClassRoom/use
 import {useGetGroupClassRoomOrganizationUnit} from '../../utils/hooks/GroupClassRoom';
 import {useGetContractors} from '../../utils/hooks/Contractor';
 import {DayType, TimeRanges} from '../../constants/options';
-import {GroupClassRoomQuery} from '../../services/models/requestQueries';
+import {buildGroupClassRoomListParams} from '../../utils/helpers/groupClassRoomHelpers';
 import {useNavigation} from '@react-navigation/native';
 import {HomeStackParamList} from '../../utils/types/NavigationTypes';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -55,12 +57,107 @@ interface FilterState {
   timeRange: TimeRanges;
 }
 
-const TIME_RANGE_OPTIONS = [
-  {value: TimeRanges.ALL, label: 'همه', icon: 'clock'},
-  {value: TimeRanges.MIXED, label: 'ترکیبی', icon: 'sun-moon'},
-  {value: TimeRanges.PM, label: 'بعد از ظهر', icon: 'moon'},
-  {value: TimeRanges.AM, label: 'قبل از ظهر', icon: 'sun'},
+type TimeRangeStyle = {
+  shortLabel: string;
+  Icon?: Icon;
+  getIconColor: (isSelected: boolean, isDark: boolean) => string;
+};
+
+const TIME_RANGE_STYLES: Record<TimeRanges, TimeRangeStyle> = {
+  [TimeRanges.ALL]: {
+    shortLabel: 'همه',
+    Icon: Clock,
+    getIconColor: (isSelected, isDark) =>
+      isSelected
+        ? isDark
+          ? '#d2e897'
+          : '#859d47'
+        : isDark
+          ? '#717181'
+          : '#717181',
+  },
+  [TimeRanges.MIXED]: {
+    shortLabel: 'ترکیبی',
+    getIconColor: (isSelected, isDark) =>
+      isSelected
+        ? isDark
+          ? '#d2e897'
+          : '#859d47'
+        : isDark
+          ? '#717181'
+          : '#717181',
+  },
+  [TimeRanges.PM]: {
+    shortLabel: 'عصر',
+    Icon: Moon,
+    getIconColor: (isSelected, isDark) =>
+      isSelected
+        ? isDark
+          ? '#d2e897'
+          : '#859d47'
+        : isDark
+          ? '#717181'
+          : '#717181',
+  },
+  [TimeRanges.AM]: {
+    shortLabel: 'صبح',
+    Icon: Sun1,
+    getIconColor: (isSelected, isDark) =>
+      isSelected
+        ? isDark
+          ? '#d2e897'
+          : '#859d47'
+        : isDark
+          ? '#717181'
+          : '#717181',
+  },
+};
+
+const TIME_RANGE_ROWS: TimeRanges[][] = [
+  [TimeRanges.ALL, TimeRanges.MIXED],
+  [TimeRanges.AM, TimeRanges.PM],
 ];
+
+const MixedTimeIcon: React.FC<{color: string; size?: number}> = ({
+  color,
+  size = 22,
+}) => (
+  <View
+    style={{width: size, height: size}}
+    className="relative items-center justify-center">
+    <View className="absolute -top-0.5 -left-0.5">
+      <Sun1 size={size * 0.58} variant="Bold" color={color} />
+    </View>
+    <View className="absolute -bottom-0.5 -right-0.5">
+      <Moon size={size * 0.58} variant="Bold" color={color} />
+    </View>
+  </View>
+);
+
+const renderTimeRangeIcon = (
+  timeRange: TimeRanges,
+  isSelected: boolean,
+  isDark: boolean,
+) => {
+  const style = TIME_RANGE_STYLES[timeRange];
+  const color = style.getIconColor(isSelected, isDark);
+  const iconSize = 18;
+
+  if (timeRange === TimeRanges.MIXED) {
+    return <MixedTimeIcon color={color} size={iconSize} />;
+  }
+
+  const IconComponent = style.Icon;
+  if (!IconComponent) return null;
+
+  return (
+    <IconComponent
+      size={iconSize}
+      variant={isSelected ? 'Bold' : 'Linear'}
+      color={color}
+    />
+  );
+};
 
 const DAY_TYPE_OPTIONS = [
   {value: DayType.ALL, label: 'همه'},
@@ -195,32 +292,12 @@ const GroupClassRoomScreen: React.FC = () => {
     contractorSheetRef.current?.close();
   };
 
-  // Build query for navigation
-  const buildQuery = (): GroupClassRoomQuery => {
-    const query: GroupClassRoomQuery = {};
-
-    if (filters.dayType !== DayType.ALL) {
-      query.dayType = filters.dayType;
-    }
-
-    if (filters.timeRange !== TimeRanges.ALL) {
-      query.timeRange = filters.timeRange;
-    }
-
-    if (filters.contractor && filters.contractor.value !== 'all') {
-      query.contractor = filters.contractor.value;
-    }
-
-    if (filters.organizationUnit) {
-      query.organizationUnit = filters.organizationUnit.value;
-    }
-
-    if (filters.service && filters.service.value !== 'all') {
-      query.service = filters.service.value;
-    }
-
-    return query;
-  };
+  const handleShowResults = useCallback(() => {
+    navigation.navigate(
+      'groupClassRoomList',
+      buildGroupClassRoomListParams(filters),
+    );
+  }, [filters, navigation]);
 
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-neutral-dark-100 relative">
@@ -319,16 +396,16 @@ const GroupClassRoomScreen: React.FC = () => {
               </BaseText>
               <View className="gap-1 flex-row items-center flex-1">
                 <UserRadioButton
-                  checked={filters.contractor ? true : false}
+                  checked={Boolean(filters.contractor?.data)}
                   asButton
                   genders={
                     filters.contractor?.data?.gender ?? profile?.gender ?? 0
                   }
                   placeHolder="انتخاب مربی"
                   Name={
-                    filters.contractor
-                      ? `${filters.contractor.data?.firstName || ''} ${
-                          filters.contractor.data?.lastName || ''
+                    filters.contractor?.data
+                      ? `${filters.contractor.data.firstName || ''} ${
+                          filters.contractor.data.lastName || ''
                         }`.trim()
                       : null
                   }
@@ -338,7 +415,7 @@ const GroupClassRoomScreen: React.FC = () => {
                       Array.isArray(contractorsData) &&
                       contractorsData.length > 0
                     ) {
-                      setContractorSearchQuery(''); // Reset search when opening
+                      setContractorSearchQuery('');
                       contractorSheetRef.current?.expand();
                     }
                   }}
@@ -367,34 +444,49 @@ const GroupClassRoomScreen: React.FC = () => {
               <BaseText type="title4" color="base">
                 ساعت
               </BaseText>
-              <View className="flex-row gap-2">
-                {TIME_RANGE_OPTIONS.map(option => {
-                  const isSelected = filters.timeRange === option.value;
-                  return (
-                    <TouchableOpacity
-                      key={option.value}
-                      onPress={() =>
-                        setFilters(prev => ({...prev, timeRange: option.value}))
-                      }
-                      className={`flex-1 h-12 rounded-full items-center justify-center ${
-                        isSelected
-                          ? option.value === TimeRanges.ALL
-                            ? 'bg-purple-200 dark:bg-purple-800'
-                            : option.value === TimeRanges.MIXED
-                            ? 'bg-yellow-200 dark:bg-yellow-800'
-                            : option.value === TimeRanges.PM
-                            ? 'bg-orange-200 dark:bg-orange-800'
-                            : 'bg-pink-200 dark:bg-pink-800'
-                          : 'bg-neutral-200 dark:bg-neutral-dark-300'
-                      }`}>
-                      <BaseText
-                        type="subtitle2"
-                        color={isSelected ? 'base' : 'muted'}>
-                        {option.label}
-                      </BaseText>
-                    </TouchableOpacity>
-                  );
-                })}
+              <View className="gap-2">
+                {TIME_RANGE_ROWS.map((row, rowIndex) => (
+                  <View key={rowIndex} className="flex-row gap-2">
+                    {row.map(timeRange => {
+                      const isSelected = filters.timeRange === timeRange;
+                      const style = TIME_RANGE_STYLES[timeRange];
+
+                      return (
+                        <TouchableOpacity
+                          key={timeRange}
+                          activeOpacity={0.7}
+                          onPress={() =>
+                            setFilters(prev => ({...prev, timeRange}))
+                          }
+                          className={`flex-1 flex-row items-center gap-2.5 px-3 py-3 rounded-xl border ${
+                            isSelected
+                              ? 'bg-primary-100 dark:bg-primary-dark-200 border-primary-500 dark:border-primary-dark-400'
+                              : 'bg-neutral-0 dark:bg-neutral-dark-200 border-neutral-200 dark:border-neutral-dark-400'
+                          }`}>
+                          <View
+                            className={`w-9 h-9 rounded-full items-center justify-center ${
+                              isSelected
+                                ? 'bg-primary-200 dark:bg-primary-dark-300'
+                                : 'bg-neutral-100 dark:bg-neutral-dark-300'
+                            }`}>
+                            {renderTimeRangeIcon(
+                              timeRange,
+                              isSelected,
+                              isDark,
+                            )}
+                          </View>
+                          <View className="flex-1">
+                            <BaseText
+                              type="subtitle2"
+                              color={isSelected ? 'base' : 'secondary'}>
+                              {style.shortLabel}
+                            </BaseText>
+                          </View>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                ))}
               </View>
             </View>
 
@@ -412,10 +504,10 @@ const GroupClassRoomScreen: React.FC = () => {
                       onPress={() =>
                         setFilters(prev => ({...prev, dayType: option.value}))
                       }
-                      className={`flex-1 h-10 rounded-full items-center justify-center ${
+                      className={`flex-1 h-10 rounded-full items-center justify-center border ${
                         isSelected
-                          ? 'bg-neutral-900 dark:bg-neutral-700'
-                          : 'bg-neutral-0 dark:bg-neutral-dark-200 border border-neutral-300 dark:border-neutral-dark-400'
+                          ? 'bg-primary-700 border-primary-500 dark:bg-primary-dark-500 dark:border-primary-dark-400'
+                          : 'bg-neutral-0 dark:bg-neutral-dark-200 border-neutral-300 dark:border-neutral-dark-400'
                       }`}>
                       <BaseText
                         type="subtitle2"
@@ -449,11 +541,7 @@ const GroupClassRoomScreen: React.FC = () => {
             color="Black"
             size="Large"
             rounded
-            onPress={() => {
-              const query = buildQuery();
-              // TODO: Navigate to group class room detail/list screen
-              console.log('Navigate with query:', query);
-            }}
+            onPress={handleShowResults}
           />
         </SafeAreaView>
       </View>

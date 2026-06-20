@@ -1,4 +1,13 @@
 import {NavigatorScreenParams} from '@react-navigation/native';
+import {DayType, TimeRanges} from '../../constants/options';
+
+export type GroupClassRoomListParams = {
+  dayType?: DayType;
+  timeRange?: TimeRanges;
+  contractor?: string;
+  organizationUnit?: string;
+  service?: string;
+};
 
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
@@ -71,6 +80,7 @@ export type HomeStackParamList = {
     days?: string;
   };
   groupClassRoom: undefined;
+  groupClassRoomList: GroupClassRoomListParams;
   cart: undefined;
   wallet: NavigatorScreenParams<WalletStackParamList> | undefined;
   myServices: undefined;

@@ -41,13 +41,31 @@ const linking: LinkingOptions<RootStackParamList> = {
             screens: {
               Home: '',
               saleItem: 'sale-items',
-              reserve: 'reserve',
-              reserveDetail: {
-                path: 'reserve/detail',
-                parse: {
-                  tagId: Number,
-                  patternId: (val: string) => (val ? Number(val) : undefined),
-                  saleUnit: (val: string) => (val ? Number(val) : undefined),
+              reserve: {
+                path: 'reserve',
+                screens: {
+                  reserve: '',
+                  reserveDetail: {
+                    path: 'detail',
+                    parse: {
+                      tagId: Number,
+                      patternId: (val: string) =>
+                        val ? Number(val) : undefined,
+                      saleUnit: (val: string) =>
+                        val ? Number(val) : undefined,
+                    },
+                  },
+                  groupClassRoom: 'groupClassRoom',
+                  groupClassRoomList: {
+                    path: 'groupClassRoom/list',
+                    parse: {
+                      dayType: (value: string) => value,
+                      timeRange: (value: string) => value,
+                      contractor: (value: string) => value,
+                      organizationUnit: (value: string) => value,
+                      service: (value: string) => value,
+                    },
+                  },
                 },
               },
               cart: 'cart',
