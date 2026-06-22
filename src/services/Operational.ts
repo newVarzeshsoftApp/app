@@ -1,13 +1,13 @@
-import axios, {AxiosResponse} from 'axios';
+import axios from 'axios';
 import {Status} from '../models/enums';
 import {routes} from '../routes/routes';
 import axiosInstance from '../utils/AxiosInstans';
 import {handleMutationError} from '../utils/helpers/errorHandler';
-import {CreateSaleOrderDto, SaleOrderBody} from './models/request/OperationalReqService';
 import {
-  SaleOrderByIDRes,
-  PaymentResultRes,
-} from './models/response/UseResrService';
+  CreateSaleOrderDto,
+  SaleOrderBody,
+} from './models/request/OperationalReqService';
+import {PaymentResultRes} from './models/response/UseResrService';
 
 const {
   operational: {saleOrder, getPaymentResult},
@@ -15,14 +15,21 @@ const {
 } = routes;
 
 export const OperationalService = {
-  SaleOrder: async (body: CreateSaleOrderDto | SaleOrderBody): Promise<any> => {
+  SaleOrder: async (
+    body: CreateSaleOrderDto | SaleOrderBody,
+  ): Promise<string> => {
     try {
-      const response = await axiosInstance.post<
-        CreateSaleOrderDto | SaleOrderBody,
-        AxiosResponse<any>
-      >(baseUrl + saleOrder(), body);
+      const response = await axiosInstance.post<{orders: number[]}>(
+        baseUrl + saleOrder(),
+        body,
+      );
       if (response.status === Status.Ok || response.status === Status.Created) {
-        return response.data;
+        // Return all order IDs joined with comma for useGetPaymentResult
+        const orders = response.data?.orders;
+        if (!orders || orders.length === 0) {
+          throw new Error('No order IDs found in response');
+        }
+        return orders.join(',');
       } else {
         throw new Error(`Request failed with status ${response.status}`);
       }
@@ -37,10 +44,10 @@ export const OperationalService = {
       throw error;
     }
   },
-  GetPaymentResult: async (): Promise<PaymentResultRes> => {
+  GetPaymentResult: async (ids: string): Promise<PaymentResultRes> => {
     try {
       const response = await axiosInstance.get<PaymentResultRes>(
-        baseUrl + getPaymentResult(),
+        baseUrl + getPaymentResult(ids),
       );
       if (response.status === Status.Ok || response.status === Status.Created) {
         return response.data;

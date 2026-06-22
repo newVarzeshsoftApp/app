@@ -3,12 +3,11 @@ import {OperationalService} from '../../../services/Operational';
 import {PaymentResultRes} from '../../../services/models/response/UseResrService';
 
 export const useGetPaymentResult = (
-  enabled?: boolean,
+  ids: string,
 ): UseQueryResult<PaymentResultRes, Error> => {
   return useQuery({
-    queryKey: ['PaymentResult'],
-    queryFn: () => OperationalService.GetPaymentResult(),
-    enabled: enabled !== false,
-    retry: false,
+    queryKey: ['PaymentResult', ids],
+    queryFn: () => OperationalService.GetPaymentResult(ids),
+    enabled: Boolean(ids && ids.trim().length > 0),
   });
 };

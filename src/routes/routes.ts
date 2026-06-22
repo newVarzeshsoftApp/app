@@ -85,7 +85,7 @@ export const routes = {
   },
   operational: {
     saleOrder: () => `sale-order`,
-    getPaymentResult: () => `user/order/payment/result`,
+    getPaymentResult: (ids: string) => `user/order/payment/result?id.in=${ids}`,
   },
   saleUnit: {
     getAll: () => 'sale-unit',

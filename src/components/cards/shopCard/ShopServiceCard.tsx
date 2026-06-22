@@ -47,13 +47,19 @@ const ShopServiceCard: React.FC<ShopServiceProps> = ({data}) => {
         )}
         <View className="flex-row items-center justify-between gap-4">
           <BaseText type="body3" color="secondary">
-            {data.unlimited
-              ? t('unlimitedServicePrice')
-              : t('SingleservicePrice')}{' '}
-            :
+            {/*{data.unlimited*/}
+            {/*  ? t('unlimitedServicePrice')*/}
+            {/*  : t('SingleservicePrice')}{' '}*/}
+            {
+              t('unlimitedServicePrice')
+            }{' :'}
           </BaseText>
           <BaseText type="body3" color="secondaryPurple">
-            {formatNumber(data.price ?? 0)} ﷼
+            {/*{formatNumber(data.price ?? 0)} ﷼*/}
+            {(data?.priceList && data?.priceList?.length>1)
+                ? `${formatNumber(data?.priceList?.sort((a,b)=>a.price-b.price)[0]?.price ?? 0)}  تا ${formatNumber(data?.priceList?.sort((a,b)=>b.price-a.price)[0]?.price ?? 0)}`
+                : formatNumber(data?.priceList?.[0]?.price ?? data.price ??0)
+            } ﷼
           </BaseText>
         </View>
 

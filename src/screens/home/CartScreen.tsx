@@ -238,6 +238,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
       setSteps(1); // Reset step to 1 before navigation
       // Update wallet credit after successful payment
       queryClient.invalidateQueries({queryKey: ['UserCredit']});
+      // data is already a string with comma-separated order IDs
       navigate('Root', {screen: 'PaymentDetail', params: {id: data}});
     },
   });

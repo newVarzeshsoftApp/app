@@ -19,6 +19,7 @@ import {navigate} from '../../navigation/navigationRef';
 import {ProductType, TransactionSourceType} from '../../constants/options';
 import {ReservationData} from '../../utils/helpers/CartStorage';
 import {SaleOrderItem} from '../../services/models/request/OperationalReqService';
+import {useGetPaymentResult} from '../../utils/hooks/Operational/useGetPaymentResult';
 type PaymentScreenProps = NativeStackScreenProps<
   DrawerStackParamList,
   'Paymentresult'
@@ -31,6 +32,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
 
   const [isSuccses, SetisSuccses] = useState(route.params?.Status === 'OK');
   const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [orderIds, setOrderIds] = useState<string[]>([]);
   const {totalItems, items, emptyCart} = useCartContext();
 
   const normalizedItems = useMemo(() => {
@@ -64,12 +66,18 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
       setIsInitialLoading(false);
       // Update wallet credit after successful payment
       queryClient.invalidateQueries({queryKey: ['UserCredit']});
+
+      // Store orders in state
+      if (data?.orders && data.orders.length > 0) {
+        setOrderIds(data.orders);
+      }
     },
     onError: error => {
       handleMutationError(error);
       setIsInitialLoading(false);
     },
   });
+
   const CreatePayment = useMutation({
     mutationFn: PaymentService.CreatePayment,
     onSuccess(data, variables, context) {
@@ -104,7 +112,10 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
     // Build reservation items DTO with isReserve: true
     const reservationItemsDTO = reservationItems.map(item => {
       const reservationData: ReservationData = item.reservationData!;
-      const amount = item.SelectedPriceList
+      // Use reservePrice if available, otherwise fallback to SelectedPriceList or price
+      const amount = (item.product as any)?.reservePrice
+        ? (item.product as any)?.reservePrice
+        : item.SelectedPriceList
         ? item.SelectedPriceList.price
         : item.product.price;
       const discount = item.SelectedPriceList
@@ -385,6 +396,16 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
 
     return ordersArray;
   }, [normalizedItems, ProfileData?.id]);
+
+  // Build idParam from orderIds for useGetPaymentResult
+  const idParam = useMemo(() => {
+    return orderIds.length > 0 ? orderIds.join(',') : '';
+  }, [orderIds]);
+
+  // Call useGetPaymentResult with idParam
+  const {data: paymentResultData, isLoading: isPaymentResultLoading} =
+    useGetPaymentResult(idParam);
+
   useEffect(() => {
     const {Authority, isDeposite, code, refId} = route.params || {};
 
@@ -536,43 +557,45 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
                         {PaymentData?.payment?.id?.toString()}
                       </BaseText>
                     </View>
-
-                    <View className="flex-row items-start justify-between ">
-                      <View>
-                        <BaseText type="body3" color="secondary">
-                          {t('Transaction number')}: {''}
-                        </BaseText>
-                      </View>
-                      <View className="flex-row gap-2 flex-wrap justify-end flex-1">
-                        {PaymentData?.payment?.transactions?.map(
-                          (transaction, index: number) => {
-                            return (
-                              <BaseButton
-                                key={index}
-                                disabled={!isSuccses}
-                                onPress={() =>
-                                  navigate('Root', {
-                                    screen: 'HistoryNavigator',
-                                    params: {
-                                      screen: 'DepositDetail',
-                                      params: {
-                                        id: transaction?.id ?? 0,
-                                      },
-                                    },
-                                  })
-                                }
-                                size="Small"
-                                type="Outline"
-                                color="Supportive5-Blue"
-                                text={(transaction?.id ?? 0).toString()}
-                                LinkButton
-                                rounded
-                              />
-                            );
-                          },
-                        )}
-                      </View>
-                    </View>
+                    {paymentResultData?.transactions &&
+                      paymentResultData.transactions.length > 0 && (
+                        <View className="flex-row items-start justify-between ">
+                          <View>
+                            <BaseText type="body3" color="secondary">
+                              {t('Transaction number')}: {''}
+                            </BaseText>
+                          </View>
+                          <View className="flex-row gap-2 flex-wrap justify-end flex-1">
+                            {paymentResultData?.transactions?.map(
+                              (transaction, index: number) => {
+                                return (
+                                  <BaseButton
+                                    key={index}
+                                    disabled={!isSuccses}
+                                    onPress={() =>
+                                      navigate('Root', {
+                                        screen: 'HistoryNavigator',
+                                        params: {
+                                          screen: 'DepositDetail',
+                                          params: {
+                                            id: transaction,
+                                          },
+                                        },
+                                      })
+                                    }
+                                    size="Small"
+                                    type="Outline"
+                                    color="Supportive5-Blue"
+                                    text={transaction.toString()}
+                                    LinkButton
+                                    rounded
+                                  />
+                                );
+                              },
+                            )}
+                          </View>
+                        </View>
+                      )}
                     <View className="flex-row items-start justify-between ">
                       <View>
                         <BaseText type="body3" color="secondary">

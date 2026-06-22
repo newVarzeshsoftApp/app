@@ -102,29 +102,28 @@ const ReserveDetailScreen: React.FC = () => {
     },
   });
 
-  // Native scroll gesture (for ScrollView)
-  const nativeScrollGesture = Gesture.Native();
-
   // Swipe gesture for page navigation
+  // این gesture فقط در بالای صفحه (در header area) فعال می‌شود
+  // و فقط زمانی کار می‌کند که حرکت افقی بیشتر از عمودی باشد
   const swipeGesture = Gesture.Pan()
-    .minDistance(15) // Minimum distance before gesture activates
-    .activeOffsetX([-25, 25]) // Only activate if horizontal movement is significant
-    .failOffsetY([-20, 20]) // Fail if vertical movement is too much (to allow scrolling)
+    .minDistance(30)
+    .activeOffsetX([-50, 50]) // فقط حرکت افقی قابل توجه
+    .failOffsetY([-5, 5]) // اگر حرکت عمودی بیشتر از 5 پیکسل باشد، fail می‌شود
     .onEnd(event => {
-      const swipeThreshold = 70; // Minimum swipe distance
-      const velocityThreshold = 350; // Minimum swipe velocity
+      const swipeThreshold = 80;
+      const velocityThreshold = 400;
 
-      // Only trigger if scroll is at top
-      const isAtTop = scrollY.value <= 30;
+      // فقط در بالای صفحه کار می‌کند
+      const isAtTop = scrollY.value <= 50;
       const verticalMovement = Math.abs(event.translationY);
       const horizontalMovement = Math.abs(event.translationX);
 
-      // Don't trigger if vertical movement is more than horizontal
-      if (!isAtTop || verticalMovement > horizontalMovement * 0.6) {
-        return; // Don't interfere with scrolling
+      // اگر حرکت عمودی بیشتر از افقی باشد یا در بالای صفحه نباشیم، کار نکن
+      if (!isAtTop || verticalMovement > horizontalMovement * 0.4) {
+        return;
       }
 
-      // Swipe right (positive translationX) = از چپ به راست = go to next page
+      // Swipe right = go to next page
       if (
         event.translationX > swipeThreshold ||
         event.velocityX > velocityThreshold
@@ -133,7 +132,7 @@ const ReserveDetailScreen: React.FC = () => {
           runOnJS(navigatePage)('next');
         }
       }
-      // Swipe left (negative translationX) = از راست به چپ = go to previous page
+      // Swipe left = go to previous page
       else if (
         event.translationX < -swipeThreshold ||
         event.velocityX < -velocityThreshold
@@ -143,12 +142,6 @@ const ReserveDetailScreen: React.FC = () => {
         }
       }
     });
-
-  // Combine gestures - allow both scroll and swipe
-  const combinedGesture = Gesture.Simultaneous(
-    nativeScrollGesture,
-    swipeGesture,
-  );
 
   // Reservation state management
   const {
@@ -974,14 +967,24 @@ const ReserveDetailScreen: React.FC = () => {
           </BaseText>
         </View>
       ) : (
-        <GestureDetector gesture={combinedGesture}>
+        <View className="flex-1">
+          {/* Swipe gesture area - فقط در بالای صفحه */}
+          <GestureDetector gesture={swipeGesture}>
+            <View
+              className="absolute top-0 left-0 right-0 z-10"
+              style={{height: 100, pointerEvents: 'box-none'}}
+            />
+          </GestureDetector>
+
+          {/* ScrollView - بدون gesture detector */}
           <Animated.ScrollView
             ref={scrollViewRef}
             className="flex-1"
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.scrollContent}
             onScroll={scrollHandler}
-            scrollEventThrottle={16}>
+            scrollEventThrottle={16}
+            scrollEnabled={true}>
             <View className=" pt-4 ">
               {timeSlots.map(slot => {
                 const visibleDays = getVisibleDaysForSlot(slot.days);
@@ -1000,7 +1003,7 @@ const ReserveDetailScreen: React.FC = () => {
               })}
             </View>
           </Animated.ScrollView>
-        </GestureDetector>
+        </View>
       )}
 
       {/* Help Bottom Sheet */}
