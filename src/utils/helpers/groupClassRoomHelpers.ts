@@ -372,23 +372,108 @@ export const resolveGroupClassRoomProductContractor = (
   };
 };
 
+export const resolveGroupClassRoomPreReserveStatus = (
+  waitingForGroupClass: boolean,
+): ReservationStatus =>
+  waitingForGroupClass
+    ? ReservationStatus.Reserved
+    : ReservationStatus.Locked;
+
+export type GroupClassRoomSSEEvent = {
+  key?: string;
+  groupClassRoom?: number;
+  contractor?: number;
+  organizationSku?: string;
+  preReservedCount?: number;
+  filled?: number;
+  waitingListCount?: number;
+  status?: string;
+};
+
+const patchGroupClassRoomItemFromEvent = (
+  item: GroupClassRoom,
+  event: GroupClassRoomSSEEvent,
+): GroupClassRoom => {
+  if (item.id !== event.groupClassRoom) {
+    return item;
+  }
+
+  const config = getGroupClassRoomConfig(item);
+  const shouldPatchConfig =
+    config &&
+    (event.contractor == null || config.contractorId === event.contractor);
+
+  const patchedConfig =
+    config && shouldPatchConfig
+      ? {
+          ...config,
+          ...(event.filled != null ? {filled: event.filled} : {}),
+          ...(event.waitingListCount != null
+            ? {waitingListCount: event.waitingListCount}
+            : {}),
+        }
+      : config;
+
+  return {
+    ...item,
+    ...(event.preReservedCount != null
+      ? {preReservedCount: event.preReservedCount}
+      : {}),
+    ...(patchedConfig ? {config: patchedConfig} : {}),
+  };
+};
+
+export const patchGroupClassRoomFromEvent = (
+  data: unknown,
+  event: GroupClassRoomSSEEvent,
+): unknown => {
+  if (!event.groupClassRoom) {
+    return data;
+  }
+
+  if (Array.isArray(data)) {
+    return data.map(item => patchGroupClassRoomItemFromEvent(item, event));
+  }
+
+  if (
+    typeof data === 'object' &&
+    data !== null &&
+    'content' in data &&
+    Array.isArray((data as {content: unknown}).content)
+  ) {
+    const response = data as {content: GroupClassRoom[]; total?: number};
+
+    return {
+      ...response,
+      content: response.content.map(item =>
+        patchGroupClassRoomItemFromEvent(item, event),
+      ),
+    };
+  }
+
+  return data;
+};
+
 export const buildGroupClassRoomPreReservePayload = ({
   userId,
   groupClassRoomId,
   contractorId,
   organization,
-  status = ReservationStatus.Reserved,
+  waitingForGroupClass = false,
+  status,
 }: {
   userId: number;
   groupClassRoomId: number;
   contractorId: number;
   organization?: GetAllOrganizationResponse | null;
+  waitingForGroupClass?: boolean;
   status?: ReservationStatus;
 }): GroupClassRoomPreReserveQuery => ({
   user: userId,
   groupClassRoom: groupClassRoomId,
   contractor: contractorId,
-  status,
+  status: status ?? resolveGroupClassRoomPreReserveStatus(waitingForGroupClass),
+  waitingForGroupClass,
   key: GROUP_CLASS_ROOM_KEY,
   organizationKey: organization?.key,
   organizationSku: organization?.sku,

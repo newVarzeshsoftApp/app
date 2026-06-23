@@ -10,6 +10,7 @@ import {Box1, Trash} from 'iconsax-react-native';
 import {
   convertToPersianTimeLabel,
   formatNumber,
+  getPackageFinalPrice,
 } from '../../../utils/helpers/helpers';
 import Badge from '../../Badge/Badge';
 import BottomSheet, {BottomSheetMethods} from '../../BottomSheet/BottomSheet';
@@ -82,7 +83,7 @@ const CartPackageCard: React.FC<CartPackageCardProps> = ({data}) => {
             />
           </View>
           <BaseText type="subtitle2" color="base">
-            {formatNumber(product?.price ?? 0)} ﷼
+            {formatNumber(getPackageFinalPrice(product))} ﷼
           </BaseText>
         </View>
 

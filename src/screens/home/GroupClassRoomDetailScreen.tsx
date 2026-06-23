@@ -8,6 +8,7 @@ import React, {
 } from 'react';
 import {ActivityIndicator, View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {useQueryClient} from '@tanstack/react-query';
 import {CloseCircle} from 'iconsax-react-native';
 import {useTranslation} from 'react-i18next';
 import Animated, {
@@ -28,7 +29,6 @@ import BottomSheet, {
 import {TruncatedText} from '../../components/TruncatedText';
 import CustomCollapsible from '../../components/CustomCollapsible';
 import {GroupClassRoomStackParamList} from '../../utils/types/NavigationTypes';
-import {ReservationStatus} from '../../models/enums';
 import {useTheme} from '../../utils/ThemeContext';
 import {useAuth} from '../../utils/hooks/useAuth';
 import {useCartContext} from '../../utils/CartContext';
@@ -42,6 +42,9 @@ import {
   buildGroupClassRoomPreReservePayload,
   getGroupClassRoomContractorProfile,
   getGroupClassRoomDayOptions,
+  getGroupClassRoomPreReservedCount,
+  groupClassRoomDetailParamsToQuery,
+  patchGroupClassRoomFromEvent,
   resolveGroupClassRoomProductContractor,
 } from '../../utils/helpers/groupClassRoomHelpers';
 import {
@@ -72,6 +75,11 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
   const {addToCart} = useCartContext();
   const {theme} = useTheme();
   const {t} = useTranslation('translation', {keyPrefix: 'Shop.Service'});
+  const queryClient = useQueryClient();
+  const detailQuery = useMemo(
+    () => groupClassRoomDetailParamsToQuery(route.params),
+    [route.params],
+  );
 
   const {
     groupClassRoomId,
@@ -87,10 +95,20 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
     refetch,
   } = useGroupClassRoomDetail(route.params);
 
+  const handleGroupClassRoomEvent = useCallback(
+    (event: Parameters<typeof patchGroupClassRoomFromEvent>[1]) => {
+      queryClient.setQueryData(['GroupClassRooms', detailQuery], oldData =>
+        patchGroupClassRoomFromEvent(oldData, event),
+      );
+      refetch();
+    },
+    [detailQuery, queryClient, refetch],
+  );
+
   useGroupClassRoomEvents({
     enabled: !isError,
     groupClassRoomId,
-    onUpdate: refetch,
+    onUpdate: handleGroupClassRoomEvent,
   });
 
   const serviceId = classRoom?.service?.id;
@@ -117,6 +135,11 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
 
   const dayOptions = useMemo(
     () => (classRoom ? getGroupClassRoomDayOptions(classRoom) : []),
+    [classRoom],
+  );
+
+  const preReservedCount = useMemo(
+    () => (classRoom ? getGroupClassRoomPreReservedCount(classRoom) : 0),
     [classRoom],
   );
 
@@ -286,7 +309,7 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
         groupClassRoomId: classRoom.id,
         contractorId: activeContractorId,
         organization,
-        status: ReservationStatus.Reserved,
+        waitingForGroupClass: waitingList,
       });
 
       await preReserve(payload);
@@ -628,16 +651,27 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
                     </View>
 
                     {!isResultsLoading ? (
-                      <BaseButton
-                        color={waitingList ? 'Supportive5-Blue' : 'Black'}
-                        onPress={handleAddToCart}
-                        type="Fill"
-                        text={waitingList ? 'رزرو لیست انتظار' : t('addToCart')}
-                        rounded
-                        size="Large"
-                        disabled={!canSubmit}
-                        isLoading={isPreReserveLoading}
-                      />
+                      <View className="gap-3">
+                        {!waitingList && preReservedCount > 0 ? (
+                          <View className="px-3 py-2 rounded-full border border-dashed border-warning-500 items-center justify-center">
+                            <BaseText type="subtitle3" color="warning">
+                              {preReservedCount} نفر در حال خرید
+                            </BaseText>
+                          </View>
+                        ) : null}
+                        <BaseButton
+                          color={waitingList ? 'Supportive5-Blue' : 'Black'}
+                          onPress={handleAddToCart}
+                          type="Fill"
+                          text={
+                            waitingList ? 'رزرو لیست انتظار' : t('addToCart')
+                          }
+                          rounded
+                          size="Large"
+                          disabled={!canSubmit}
+                          isLoading={isPreReserveLoading}
+                        />
+                      </View>
                     ) : null}
                   </View>
                 </View>

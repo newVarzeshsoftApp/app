@@ -1,11 +1,12 @@
 import {useCallback} from 'react';
 import {GROUP_CLASS_ROOM_KEY} from '../../../constants/groupClassRoom';
 import {useSSEConnection} from '../../../screens/home/ReserveDetailScreen/hooks/useSSEConnection';
+import {GroupClassRoomSSEEvent} from '../../helpers/groupClassRoomHelpers';
 import {useAuth} from '../useAuth';
 
 type UseGroupClassRoomEventsOptions = {
   enabled?: boolean;
-  onUpdate: () => void;
+  onUpdate: (event: GroupClassRoomSSEEvent) => void;
   groupClassRoomId?: number;
 };
 
@@ -18,11 +19,7 @@ export const useGroupClassRoomEvents = ({
   const organizationSku = SKU?.sku;
 
   const handleEvent = useCallback(
-    (event: {
-      key?: string;
-      groupClassRoom?: number;
-      organizationSku?: string;
-    }) => {
+    (event: GroupClassRoomSSEEvent) => {
       const isGroupClassRoomEvent =
         event.key === GROUP_CLASS_ROOM_KEY || event.groupClassRoom != null;
 
@@ -36,7 +33,7 @@ export const useGroupClassRoomEvents = ({
         return;
       }
 
-      onUpdate();
+      onUpdate(event);
     },
     [groupClassRoomId, onUpdate],
   );

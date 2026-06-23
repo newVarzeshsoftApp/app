@@ -57,6 +57,7 @@ export interface GroupClassRoomPreReserveDTO {
   contractor: number;
   user: number;
   status: ReservationStatus;
+  waitingForGroupClass?: boolean;
   key?: string;
   organizationKey?: string;
   organizationSku?: string;

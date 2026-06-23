@@ -4,7 +4,7 @@ import {Product} from '../../../services/models/response/ProductResService';
 import {Box1} from 'iconsax-react-native';
 import BaseText from '../../BaseText';
 import Badge from '../../Badge/Badge';
-import {ConvertDuration, formatNumber} from '../../../utils/helpers/helpers';
+import {ConvertDuration, formatNumber, getPackageFinalPrice, getPackageDiscountAmount} from '../../../utils/helpers/helpers';
 import {useTranslation} from 'react-i18next';
 import {TruncatedText} from '../../TruncatedText';
 
@@ -21,6 +21,8 @@ type NavigationProps = NativeStackNavigationProp<
 >;
 const ShopPackageService: React.FC<ShopServiceProps> = ({data}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Shop.Package'});
+  const packageDiscount = getPackageDiscountAmount(data);
+  const finalPrice = getPackageFinalPrice(data);
 
   return (
     <View className="BaseServiceCard h-full">
@@ -33,10 +35,17 @@ const ShopPackageService: React.FC<ShopServiceProps> = ({data}) => {
             {data.title}
           </BaseText>
         </View>
-        <View className="flex-row items-center justify-between  gap-4">
-          <BaseText type="title4" color="secondaryPurple">
-            {formatNumber(data.price)} ﷼
-          </BaseText>
+        <View className="flex-row items-center justify-between gap-4">
+          <View className="flex-row items-center gap-2">
+            {packageDiscount > 0 ? (
+              <BaseText type="body3" color="muted" className="line-through">
+                {formatNumber(data.price)} ﷼
+              </BaseText>
+            ) : null}
+            <BaseText type="title4" color="secondaryPurple">
+              {formatNumber(finalPrice)} ﷼
+            </BaseText>
+          </View>
           <View>
             <BaseText type="subtitle3" color="secondary">
               {t('Duration')} : {''}

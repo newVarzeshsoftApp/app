@@ -277,18 +277,13 @@ const GroupClassRoomScreen: React.FC = () => {
   }, [organizationUnitOptions]);
 
   useEffect(() => {
-    if (!servicesData || !Array.isArray(servicesData) || servicesData.length !== 1) {
-      return;
-    }
-
-    const singleService = serviceOptions.find(option => option.value !== 'all');
-    if (!singleService) return;
+    if (serviceOptions.length === 0) return;
 
     setFilters(prev => {
       if (prev.service) return prev;
-      return {...prev, service: singleService};
+      return {...prev, service: serviceOptions[0]};
     });
-  }, [servicesData, serviceOptions]);
+  }, [serviceOptions]);
 
   // Save handlers
   const saveOrganizationUnit = () => {

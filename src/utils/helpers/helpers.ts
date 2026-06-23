@@ -1,4 +1,5 @@
 import {genders, PickerOption} from '../../constants/options';
+import {Product} from '../../services/models/response/ProductResService';
 
 /**
  * Checks if the given object is not empty, undefined, or null.
@@ -283,3 +284,16 @@ export const getNumberLabel = (index: number): string => {
   ];
   return labels[index] || `${index + 1}th`;
 };
+
+export const getPackageDiscountAmount = (
+  product?: Pick<Product, 'subProducts'>,
+): number =>
+  product?.subProducts?.reduce(
+    (sum, subProduct) => sum + (subProduct.discount || 0),
+    0,
+  ) ?? 0;
+
+export const getPackageFinalPrice = (
+  product?: Pick<Product, 'price' | 'subProducts'>,
+): number =>
+  Math.max((product?.price ?? 0) - getPackageDiscountAmount(product), 0);

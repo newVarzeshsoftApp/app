@@ -2,6 +2,7 @@ import React, {useCallback, useMemo} from 'react';
 import {View, Image, ScrollView, ActivityIndicator} from 'react-native';
 import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {useQueryClient} from '@tanstack/react-query';
 import NavigationHeader from '../../components/header/NavigationHeader';
 import BaseText from '../../components/BaseText';
 import BaseButton from '../../components/Button/BaseButton';
@@ -14,6 +15,7 @@ import {
   getGroupClassRoomConfig,
   groupClassRoomListParamsToQuery,
   normalizeGroupClassRoomResponse,
+  patchGroupClassRoomFromEvent,
 } from '../../utils/helpers/groupClassRoomHelpers';
 
 type GroupClassRoomListRouteProp = RouteProp<
@@ -25,6 +27,7 @@ const GroupClassRoomListScreen: React.FC = () => {
   const route = useRoute<GroupClassRoomListRouteProp>();
   const navigation =
     useNavigation<NativeStackNavigationProp<GroupClassRoomStackParamList>>();
+  const queryClient = useQueryClient();
   const query = useMemo(
     () => groupClassRoomListParamsToQuery(route.params ?? {}),
     [route.params],
@@ -33,14 +36,23 @@ const GroupClassRoomListScreen: React.FC = () => {
   const {
     data: classRoomsData,
     isLoading,
-    isFetching,
     isError,
     refetch,
   } = useGetGroupClassRooms(query);
 
+  const handleGroupClassRoomEvent = useCallback(
+    (event: Parameters<typeof patchGroupClassRoomFromEvent>[1]) => {
+      queryClient.setQueryData(['GroupClassRooms', query], oldData =>
+        patchGroupClassRoomFromEvent(oldData, event),
+      );
+      refetch();
+    },
+    [query, queryClient, refetch],
+  );
+
   useGroupClassRoomEvents({
     enabled: !isError,
-    onUpdate: refetch,
+    onUpdate: handleGroupClassRoomEvent,
   });
 
   const classRooms = useMemo(
@@ -78,7 +90,7 @@ const GroupClassRoomListScreen: React.FC = () => {
     [navigateToDetail],
   );
 
-  const isResultsLoading = isLoading || isFetching;
+  const isResultsLoading = isLoading;
 
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-neutral-dark-100 relative">
