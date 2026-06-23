@@ -50,9 +50,14 @@ export interface PreReserveDTO {
   isLocked: boolean;
 }
 
+import {ReservationStatus} from '../../models/enums';
+
 export interface GroupClassRoomPreReserveDTO {
   groupClassRoom: number;
   contractor: number;
   user: number;
-  status: 'released' | 'locked' | 'reserved';
+  status: ReservationStatus;
+  key?: string;
+  organizationKey?: string;
+  organizationSku?: string;
 }

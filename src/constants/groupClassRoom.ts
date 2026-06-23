@@ -1,0 +1,3 @@
+export const GROUP_CLASS_ROOM_KEY = 'GROUP_CLASS_ROOM';
+
+export const GROUP_CLASS_ROOM_DAY_DISPLAY_ORDER = [6, 0, 1, 2, 3, 4, 5];

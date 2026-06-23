@@ -7,6 +7,7 @@ interface ContractorInfoProps {
   imageName?: string;
   firstName?: string;
   lastName?: string;
+  fullName?: string;
   gender?: number;
 }
 
@@ -14,13 +15,18 @@ const ContractorInfo: React.FC<ContractorInfoProps> = ({
   imageName,
   firstName,
   lastName,
+  fullName,
   gender,
 }) => {
+  const displayName =
+    fullName?.trim() || [firstName, lastName].filter(Boolean).join(' ').trim();
+  const avatarName = firstName || fullName?.split(' ')[0] || displayName;
+
   const avatarUri = useMemo(() => {
     return `https://avatar.iran.liara.run/public/${
       (gender ?? 0) === 0 ? 'boy' : 'girl'
-    }?username=${firstName}`;
-  }, [gender, firstName]);
+    }?username=${avatarName}`;
+  }, [avatarName, gender]);
 
   const {data: base64Image} = useBase64ImageFromMedia(imageName, 'Media');
 
@@ -34,7 +40,7 @@ const ContractorInfo: React.FC<ContractorInfoProps> = ({
         />
       </View>
       <BaseText type="body3" color="secondary">
-        {firstName} {lastName}
+        {displayName}
       </BaseText>
     </View>
   );

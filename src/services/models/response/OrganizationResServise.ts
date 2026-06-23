@@ -34,6 +34,7 @@ export type GetAllOrganizationResponse = {
   createdAt: string;
   name: string;
   sku: string;
+  key?: string;
   port: number;
   imageUrl: string | null;
   officialLogo: Logo;

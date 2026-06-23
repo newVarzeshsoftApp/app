@@ -14,3 +14,9 @@ export enum StorageKeys {
   refreshToken = 'refreshToken',
   lang = 'lang',
 }
+
+export enum ReservationStatus {
+  Released = 'released',
+  Locked = 'locked',
+  Reserved = 'reserved',
+}

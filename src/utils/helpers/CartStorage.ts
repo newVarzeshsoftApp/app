@@ -58,7 +58,17 @@ export interface CartItem {
   // Reservation-specific fields
   isReserve?: boolean;
   reservationData?: ReservationData;
+  // Group class room fields
+  isGroupClassRoom?: boolean;
+  groupClassRoomData?: GroupClassRoomCartData;
   addedToCartAt?: string; // ISO timestamp when item was added to cart (for expiration check)
+}
+
+export interface GroupClassRoomCartData {
+  groupClassRoomId: number;
+  contractorId: number;
+  waitingForGroupClass?: boolean;
+  selectedDays?: number[];
 }
 
 const CART_KEY = 'shopping_cart';

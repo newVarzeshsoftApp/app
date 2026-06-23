@@ -2,7 +2,13 @@
   "Global": {
     "Home Screen": "Home Screen",
     "fa": "persian",
-    "en": "english"
+    "en": "english",
+    "Home": "Home",
+    "reserve": "Reserve",
+    "groupClassRoom": "Group Class",
+    "cart": "Cart",
+    "wallet": "Wallet",
+    "myServices": "My Services"
   },
   "Auth": {
     "login": "login"

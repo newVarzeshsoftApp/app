@@ -10,7 +10,7 @@ import Animated, {
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 import axios from 'axios';
-import {HomeStackParamList} from '../../../utils/types/NavigationTypes';
+import {HomeStackParamList, ReserveStackParamList} from '../../../utils/types/NavigationTypes';
 import BaseText from '../../../components/BaseText';
 import BaseButton from '../../../components/Button/BaseButton';
 import {ArrowRight2, InfoCircle} from 'iconsax-react-native';
@@ -49,7 +49,7 @@ import {useReservationStore} from '../../../store/reservationStore';
 import {getCart} from '../../../utils/helpers/CartStorage';
 import {ReservationQuery} from '../../../services/models/requestQueries';
 
-type ReserveDetailRouteProp = RouteProp<HomeStackParamList, 'reserveDetail'>;
+type ReserveDetailRouteProp = RouteProp<ReserveStackParamList, 'reserveDetail'>;
 
 const ReserveDetailScreen: React.FC = () => {
   const route = useRoute<ReserveDetailRouteProp>();
@@ -194,8 +194,8 @@ const ReserveDetailScreen: React.FC = () => {
     });
 
     // Navigate back
-    navigationRef.goBack();
-  }, [queryClient]);
+    navigation.goBack();
+  }, [navigation, queryClient]);
 
   // Cancel query when navigating back (beforeRemove) - fallback for other navigation methods
   useEffect(() => {
@@ -662,6 +662,7 @@ const ReserveDetailScreen: React.FC = () => {
       ],
     ),
     enabled: !!profile && !!SKU,
+    organizationSku: SKU?.sku,
   });
 
   // 🆕 Callback for when pre-reserve is successful - add to cart immediately

@@ -575,8 +575,8 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
               : item.product?.type ?? 1,
           contractor: item?.SelectedContractor?.contractorId ?? null,
           contractorId: item?.SelectedContractor?.contractorId ?? null,
-          start: startDateGregorian, // Gregorian format (YYYY-MM-DD)
-          end: endDateGregorian, // Gregorian format (YYYY-MM-DD)
+          start: startDateGregorian,
+          end: endDateGregorian,
           isOnline: true,
           user: ProfileData?.id,
           amount: amount,
@@ -589,6 +589,13 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
           duration: item.SelectedPriceList
             ? item.SelectedPriceList.duration
             : item.product.duration,
+          ...(item.isGroupClassRoom && item.groupClassRoomData
+            ? {
+                groupClassRoom: item.groupClassRoomData.groupClassRoomId,
+                waitingForGroupClass:
+                  item.groupClassRoomData.waitingForGroupClass ?? false,
+              }
+            : {}),
         };
       });
 

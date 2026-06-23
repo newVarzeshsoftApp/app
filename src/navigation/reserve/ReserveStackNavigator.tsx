@@ -1,12 +1,10 @@
 import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {HomeStackParamList} from '../../utils/types/NavigationTypes';
+import {ReserveStackParamList} from '../../utils/types/NavigationTypes';
 import ReserveScreen from '../../screens/home/ReserveScreen';
 import ReserveDetailScreen from '../../screens/home/ReserveDetailScreen';
-import GroupClassRoomScreen from '../../screens/home/GroupClassRoomScreen';
-import GroupClassRoomListScreen from '../../screens/home/GroupClassRoomListScreen';
 
-const Stack = createNativeStackNavigator<HomeStackParamList>();
+const Stack = createNativeStackNavigator<ReserveStackParamList>();
 
 const ReserveStackNavigator: React.FC = () => {
   return (
@@ -17,11 +15,6 @@ const ReserveStackNavigator: React.FC = () => {
       }}>
       <Stack.Screen name="reserve" component={ReserveScreen} />
       <Stack.Screen name="reserveDetail" component={ReserveDetailScreen} />
-      <Stack.Screen name="groupClassRoom" component={GroupClassRoomScreen} />
-      <Stack.Screen
-        name="groupClassRoomList"
-        component={GroupClassRoomListScreen}
-      />
     </Stack.Navigator>
   );
 };

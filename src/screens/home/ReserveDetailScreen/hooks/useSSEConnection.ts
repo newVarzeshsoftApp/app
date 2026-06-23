@@ -6,48 +6,59 @@ import {getTokens} from '../../../../utils/helpers/tokenStorage';
 import io from 'socket.io-client';
 import type {Socket} from 'socket.io-client';
 
+import {GROUP_CLASS_ROOM_KEY} from '../../constants/groupClassRoom';
+
 interface SSEEvent {
-  fromTime: string;
-  toTime: string;
-  date?: string; // Optional because some events use specificDate
-  specificDate?: string; // Alternative to date
-  product: number;
+  fromTime?: string;
+  toTime?: string;
+  date?: string;
+  specificDate?: string;
+  product?: number;
   user?: number;
   gender?: string | null;
   order?: number;
-  status?: 'reserved' | 'pre-reserved' | 'cancelled' | 'locked';
-  isLocked?: string | boolean; // 'true' | 'false' or boolean
-  day?: string; // day name like 'day3'
+  status?: 'reserved' | 'pre-reserved' | 'cancelled' | 'locked' | 'released';
+  isLocked?: string | boolean;
+  day?: string;
   organizationKey?: string;
   organizationSku?: string;
+  key?: string;
+  groupClassRoom?: number;
+  contractor?: number;
   price?: number;
+  preReservedCount?: number;
+  filled?: number;
+  waitingListCount?: number;
 }
 
 interface UseSSEConnectionProps {
   onEvent: (event: SSEEvent) => void;
   enabled?: boolean;
+  organizationSku?: string;
 }
 
 export const useSSEConnection = ({
   onEvent,
   enabled = true,
+  organizationSku,
 }: UseSSEConnectionProps) => {
   const {profile, SKU} = useAuth();
   const socketRef = useRef<Socket | null>(null);
   const isConnectingRef = useRef(false);
 
-  // Memoize values to prevent unnecessary reconnections
   const onEventRef = useRef(onEvent);
   const enabledRef = useRef(enabled);
   const profileRef = useRef(profile);
   const SKURef = useRef(SKU);
+  const organizationSkuRef = useRef(organizationSku ?? SKU?.sku);
 
   useEffect(() => {
     onEventRef.current = onEvent;
     enabledRef.current = enabled;
     profileRef.current = profile;
     SKURef.current = SKU;
-  }, [onEvent, enabled, profile, SKU]);
+    organizationSkuRef.current = organizationSku ?? SKU?.sku;
+  }, [onEvent, enabled, profile, SKU, organizationSku]);
 
   useEffect(() => {
     // Only support Socket.IO on web platform
@@ -151,6 +162,15 @@ export const useSSEConnection = ({
 
         // Listen for CLIENT_REMOTE events
         socket.on('CLIENT_REMOTE', (data: SSEEvent) => {
+          const activeSku = organizationSkuRef.current;
+          if (
+            activeSku &&
+            data.organizationSku &&
+            data.organizationSku !== activeSku
+          ) {
+            return;
+          }
+
           console.log('\n📨 Received CLIENT_REMOTE event:');
           console.log(JSON.stringify(data, null, 2));
           console.log('🔍 Calling onEventRef.current with data:', data);

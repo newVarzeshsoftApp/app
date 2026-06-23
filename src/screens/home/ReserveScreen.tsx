@@ -26,7 +26,7 @@ import {useGetReservationTags} from '../../utils/hooks/Reservation/useGetReserva
 import {useGetReservationPatterns} from '../../utils/hooks/Reservation/useGetReservationPatterns';
 import {ReservationTag} from '../../services/models/response/ReservationResService';
 import {useNavigation} from '@react-navigation/native';
-import {HomeStackParamList} from '../../utils/types/NavigationTypes';
+import {ReserveStackParamList} from '../../utils/types/NavigationTypes';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 
 // روزهای هفته - دوشنبه = 1 (میلادی)
@@ -210,7 +210,7 @@ interface FilterState {
 }
 
 type ReserveScreenNavigationProp = NativeStackNavigationProp<
-  HomeStackParamList,
+  ReserveStackParamList,
   'reserve'
 >;
 

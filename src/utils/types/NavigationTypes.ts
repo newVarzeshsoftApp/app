@@ -9,6 +9,34 @@ export type GroupClassRoomListParams = {
   service?: string;
 };
 
+export type GroupClassRoomDetailParams = GroupClassRoomListParams & {
+  groupClassRoomId: number;
+  contractorId: number;
+  waitingList?: boolean;
+  title?: string;
+};
+
+export type ReserveStackParamList = {
+  reserve: undefined;
+  reserveDetail: {
+    tagId: number;
+    patternId?: number;
+    gender?: 'Female' | 'Male' | 'Both';
+    saleUnit?: number;
+    startTime?: string;
+    endTime?: string;
+    start: string;
+    end?: string;
+    days?: string;
+  };
+};
+
+export type GroupClassRoomStackParamList = {
+  groupClassRoom: undefined;
+  groupClassRoomList: GroupClassRoomListParams;
+  groupClassRoomDetail: GroupClassRoomDetailParams;
+};
+
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
   Root: NavigatorScreenParams<DrawerStackParamList>;
@@ -67,20 +95,8 @@ export type WalletStackParamList = {
 export type HomeStackParamList = {
   Home: undefined;
   saleItem: undefined;
-  reserve: undefined;
-  reserveDetail: {
-    tagId: number;
-    patternId?: number;
-    gender?: 'Female' | 'Male' | 'Both';
-    saleUnit?: number;
-    startTime?: string;
-    endTime?: string;
-    start: string;
-    end?: string;
-    days?: string;
-  };
-  groupClassRoom: undefined;
-  groupClassRoomList: GroupClassRoomListParams;
+  reserve: NavigatorScreenParams<ReserveStackParamList> | undefined;
+  groupClassRoom: NavigatorScreenParams<GroupClassRoomStackParamList> | undefined;
   cart: undefined;
   wallet: NavigatorScreenParams<WalletStackParamList> | undefined;
   myServices: undefined;

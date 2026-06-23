@@ -13,9 +13,10 @@ import {
   formatScheduleDaysLabel,
   formatScheduleTime,
   getCapacityColors,
-  getPrimarySchedule,
-  getTotalPreReservedCount,
-  resolveGroupClassRoomContractor,
+  getGroupClassRoomActionState,
+  getGroupClassRoomCapacity,
+  getGroupClassRoomContractorProfile,
+  getGroupClassRoomPreReservedCount,
 } from '../../../utils/helpers/groupClassRoomHelpers';
 import {TypeTextColor} from '../../../models/stylingTypes';
 
@@ -23,30 +24,37 @@ type GroupClassRoomCardProps = {
   data: GroupClassRoom;
   selectedContractor?: User;
   onJoinPress?: (item: GroupClassRoom) => void;
+  onWaitingListPress?: (item: GroupClassRoom) => void;
   isJoinLoading?: boolean;
+  isWaitingListLoading?: boolean;
 };
 
 const GroupClassRoomCard: React.FC<GroupClassRoomCardProps> = ({
   data,
   selectedContractor,
   onJoinPress,
+  onWaitingListPress,
   isJoinLoading = false,
+  isWaitingListLoading = false,
 }) => {
-  const schedule = useMemo(() => getPrimarySchedule(data), [data]);
-  const contractor = useMemo(
-    () => resolveGroupClassRoomContractor(data, selectedContractor),
+  const contractorProfile = useMemo(
+    () => getGroupClassRoomContractorProfile(data, selectedContractor),
     [data, selectedContractor],
   );
-  const preReservedCount = useMemo(() => getTotalPreReservedCount(data), [data]);
-  const filled = data.filled ?? 0;
-  const quantity = data.quantity ?? 0;
-  const remainingCapacity = Math.max(quantity - filled, 0);
-  const progress = quantity > 0 ? filled / quantity : 0;
-  const colors = useMemo(
-    () => getCapacityColors(filled, quantity),
-    [filled, quantity],
+  const capacity = useMemo(() => getGroupClassRoomCapacity(data), [data]);
+  const preReservedCount = useMemo(
+    () => getGroupClassRoomPreReservedCount(data),
+    [data],
   );
-  const isActive = data.enabled && data.reservable && remainingCapacity > 0;
+  const actionState = useMemo(() => getGroupClassRoomActionState(data), [data]);
+
+  const progress =
+    capacity.max > 0 ? capacity.filled / capacity.max : 0;
+  const colors = useMemo(
+    () => getCapacityColors(capacity.filled, capacity.max),
+    [capacity.filled, capacity.max],
+  );
+  const isActive = capacity.max > 0 && capacity.filled < capacity.max;
 
   const {data: imageSrc, isLoading: imageLoading} = useBase64ImageFromMedia(
     data.service?.image?.name,
@@ -60,14 +68,23 @@ const GroupClassRoomCard: React.FC<GroupClassRoomCardProps> = ({
       items.push({label: 'فقط در ساعت کلاس', textColor: 'supportive1'});
     }
 
-    if (data.fixed) {
+    if (data.fixed || data.burnAfterAbsence) {
       items.push({label: 'غیبت غیرمجاز', textColor: 'error'});
-    } else {
+    }
+
+    if (data.isFlexible) {
       items.push({label: 'انتخاب روزها', textColor: 'supportive5'});
     }
 
     return items;
-  }, [data.fixed, data.useJustInSchedules]);
+  }, [
+    data.burnAfterAbsence,
+    data.fixed,
+    data.isFlexible,
+    data.useJustInSchedules,
+  ]);
+
+  const schedules = data.schedules ?? [];
 
   return (
     <View className="BaseServiceCard">
@@ -106,35 +123,43 @@ const GroupClassRoomCard: React.FC<GroupClassRoomCardProps> = ({
           />
           <View className="flex-row gap-1 items-center">
             <BaseText type="title4" color={colors.TextColor as TypeTextColor}>
-              {filled}
+              {capacity.filled}
             </BaseText>
             <BaseText type="title4" color="muted">
-              {quantity} /
+              {capacity.max} /
             </BaseText>
           </View>
         </View>
       </View>
 
       <View className="pt-3 gap-3">
-        {contractor ? (
+        {contractorProfile ? (
           <View className="flex-row items-center">
             <ContractorInfo
-              firstName={contractor.firstName}
-              lastName={contractor.lastName}
-              imageName={contractor.profile?.name}
-              gender={contractor.gender}
+              fullName={contractorProfile.fullName}
+              firstName={contractorProfile.firstName}
+              imageName={contractorProfile.imageName}
+              gender={contractorProfile.gender}
             />
           </View>
         ) : null}
 
-        <View className="flex-row items-center justify-between">
-          <BaseText type="body3" color="secondary">
-            {formatScheduleDaysLabel(schedule?.days)}
-          </BaseText>
-          <BaseText type="body3" color="secondary">
-            {formatScheduleTime(schedule)}
-          </BaseText>
-        </View>
+        {schedules.length > 0 ? (
+          <View className="gap-1">
+            {schedules.map((schedule, index) => (
+              <View
+                key={schedule.id ?? index}
+                className="flex-row items-center justify-between">
+                <BaseText type="body3" color="secondary">
+                  {formatScheduleDaysLabel(schedule.days)}
+                </BaseText>
+                <BaseText type="body3" color="secondary">
+                  {formatScheduleTime(schedule)}
+                </BaseText>
+              </View>
+            ))}
+          </View>
+        ) : null}
 
         {badges.length > 0 ? (
           <View className="flex-row flex-wrap gap-1">
@@ -151,24 +176,52 @@ const GroupClassRoomCard: React.FC<GroupClassRoomCardProps> = ({
         ) : null}
 
         <View className="flex-row items-center gap-2 pt-2 border-t border-neutral-0 dark:border-neutral-dark-400/50">
-          {preReservedCount > 0 ? (
+          {preReservedCount > 0 && actionState.type === 'join' ? (
             <View className="flex-1 px-3 py-2 rounded-full border border-dashed border-warning-500 items-center justify-center">
               <BaseText type="subtitle3" color="warning">
                 {preReservedCount} نفر در حال خرید
               </BaseText>
             </View>
           ) : null}
-          <View className={preReservedCount > 0 ? 'flex-1' : 'flex-1 w-full'}>
-            <BaseButton
-              text="عضویت در کلاس"
-              type="Fill"
-              color="Black"
-              size="Large"
-              rounded
-              disabled={!isActive}
-              isLoading={isJoinLoading}
-              onPress={() => onJoinPress?.(data)}
-            />
+
+          <View
+            className={
+              preReservedCount > 0 && actionState.type === 'join'
+                ? 'flex-1'
+                : 'flex-1 w-full'
+            }>
+            {actionState.type === 'waitingList' ? (
+              <BaseButton
+                text="رزرو لیست انتظار"
+                type="Fill"
+                color="Supportive5-Blue"
+                size="Large"
+                rounded
+                disabled={!actionState.canPress}
+                isLoading={isWaitingListLoading}
+                onPress={() => onWaitingListPress?.(data)}
+              />
+            ) : actionState.type === 'join' ? (
+              <BaseButton
+                text="عضویت در کلاس"
+                type="Fill"
+                color="Black"
+                size="Large"
+                rounded
+                disabled={!actionState.canPress}
+                isLoading={isJoinLoading}
+                onPress={() => onJoinPress?.(data)}
+              />
+            ) : (
+              <BaseButton
+                text="عضویت در کلاس"
+                type="Fill"
+                color="Black"
+                size="Large"
+                rounded
+                disabled
+              />
+            )}
           </View>
         </View>
       </View>

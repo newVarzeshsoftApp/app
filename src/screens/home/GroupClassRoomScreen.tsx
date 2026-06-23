@@ -1,4 +1,4 @@
-import React, {useState, useRef, useMemo, useCallback} from 'react';
+import React, {useState, useRef, useMemo, useCallback, useEffect} from 'react';
 import {
   View,
   Image,
@@ -30,9 +30,9 @@ import {useGetGroupClassRoomServices} from '../../utils/hooks/GroupClassRoom/use
 import {useGetGroupClassRoomOrganizationUnit} from '../../utils/hooks/GroupClassRoom';
 import {useGetContractors} from '../../utils/hooks/Contractor';
 import {DayType, TimeRanges} from '../../constants/options';
-import {buildGroupClassRoomListParams} from '../../utils/helpers/groupClassRoomHelpers';
+import {buildGroupClassRoomListParams, validateGroupClassRoomFilters, GroupClassRoomFilterErrors} from '../../utils/helpers/groupClassRoomHelpers';
 import {useNavigation} from '@react-navigation/native';
-import {HomeStackParamList} from '../../utils/types/NavigationTypes';
+import {GroupClassRoomStackParamList} from '../../utils/types/NavigationTypes';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {
   GroupClassRoomService,
@@ -41,7 +41,7 @@ import {
 import {User} from '../../services/models/response/UseResrService';
 
 type GroupClassRoomScreenNavigationProp = NativeStackNavigationProp<
-  HomeStackParamList,
+  GroupClassRoomStackParamList,
   'groupClassRoom'
 >;
 
@@ -203,6 +203,8 @@ const GroupClassRoomScreen: React.FC = () => {
   const [contractorSearchQuery, setContractorSearchQuery] =
     useState<string>('');
   const [isSearchFocused, setIsSearchFocused] = useState<boolean>(false);
+  const [validationErrors, setValidationErrors] =
+    useState<GroupClassRoomFilterErrors>({});
 
   const iconColor = useMemo(() => (isDark ? '#55575C' : '#AAABAD'), [isDark]);
 
@@ -265,6 +267,29 @@ const GroupClassRoomScreen: React.FC = () => {
     });
   }, [contractorsData, contractorSearchQuery]);
 
+  useEffect(() => {
+    if (organizationUnitOptions.length !== 1) return;
+
+    setFilters(prev => {
+      if (prev.organizationUnit) return prev;
+      return {...prev, organizationUnit: organizationUnitOptions[0]};
+    });
+  }, [organizationUnitOptions]);
+
+  useEffect(() => {
+    if (!servicesData || !Array.isArray(servicesData) || servicesData.length !== 1) {
+      return;
+    }
+
+    const singleService = serviceOptions.find(option => option.value !== 'all');
+    if (!singleService) return;
+
+    setFilters(prev => {
+      if (prev.service) return prev;
+      return {...prev, service: singleService};
+    });
+  }, [servicesData, serviceOptions]);
+
   // Save handlers
   const saveOrganizationUnit = () => {
     const selected = organizationUnitOptions.find(
@@ -272,6 +297,7 @@ const GroupClassRoomScreen: React.FC = () => {
     );
     if (selected) {
       setFilters(prev => ({...prev, organizationUnit: selected}));
+      setValidationErrors(prev => ({...prev, organizationUnit: undefined}));
     }
     organizationUnitSheetRef.current?.close();
   };
@@ -280,6 +306,7 @@ const GroupClassRoomScreen: React.FC = () => {
     const selected = serviceOptions.find(s => s.value === tempService);
     if (selected) {
       setFilters(prev => ({...prev, service: selected}));
+      setValidationErrors(prev => ({...prev, service: undefined}));
     }
     serviceSheetRef.current?.close();
   };
@@ -288,14 +315,38 @@ const GroupClassRoomScreen: React.FC = () => {
     const selected = contractorOptions.find(c => c.value === tempContractor);
     if (selected) {
       setFilters(prev => ({...prev, contractor: selected}));
+      setValidationErrors(prev => ({...prev, contractor: undefined}));
     }
     contractorSheetRef.current?.close();
   };
 
   const handleShowResults = useCallback(() => {
+    const errors = validateGroupClassRoomFilters(filters);
+
+    if (Object.keys(errors).length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+
+    setValidationErrors({});
+
+    if (
+      !filters.organizationUnit ||
+      !filters.service ||
+      !filters.contractor
+    ) {
+      return;
+    }
+
     navigation.navigate(
       'groupClassRoomList',
-      buildGroupClassRoomListParams(filters),
+      buildGroupClassRoomListParams({
+        dayType: filters.dayType,
+        timeRange: filters.timeRange,
+        organizationUnit: filters.organizationUnit,
+        service: filters.service,
+        contractor: filters.contractor,
+      }),
     );
   }, [filters, navigation]);
 
@@ -347,7 +398,11 @@ const GroupClassRoomScreen: React.FC = () => {
                 disabled={
                   orgUnitsLoading || organizationUnitOptions.length === 0
                 }
-                className="h-12 py-3 px-4 flex-row items-center justify-between border border-neutral-300 dark:border-neutral-dark-400 rounded-full bg-neutral-0 dark:bg-neutral-dark-200">
+                className={`h-12 py-3 px-4 flex-row items-center justify-between border rounded-full bg-neutral-0 dark:bg-neutral-dark-200 ${
+                  validationErrors.organizationUnit
+                    ? 'border-[#F55F56]'
+                    : 'border-neutral-300 dark:border-neutral-dark-400'
+                }`}>
                 <BaseText
                   type="subtitle2"
                   color={filters.organizationUnit ? 'base' : 'muted'}>
@@ -357,6 +412,11 @@ const GroupClassRoomScreen: React.FC = () => {
                 </BaseText>
                 <ArrowDown2 size={20} color={iconColor} />
               </TouchableOpacity>
+              {validationErrors.organizationUnit ? (
+                <BaseText type="caption" className="text-[#F55F56] px-1">
+                  {validationErrors.organizationUnit}
+                </BaseText>
+              ) : null}
             </View>
 
             {/* خدمت */}
@@ -377,7 +437,11 @@ const GroupClassRoomScreen: React.FC = () => {
                   }
                 }}
                 disabled={servicesLoading || serviceOptions.length === 0}
-                className="h-12 py-3 px-4 flex-row items-center justify-between border border-neutral-300 dark:border-neutral-dark-400 rounded-full bg-neutral-0 dark:bg-neutral-dark-200">
+                className={`h-12 py-3 px-4 flex-row items-center justify-between border rounded-full bg-neutral-0 dark:bg-neutral-dark-200 ${
+                  validationErrors.service
+                    ? 'border-[#F55F56]'
+                    : 'border-neutral-300 dark:border-neutral-dark-400'
+                }`}>
                 <BaseText
                   type="subtitle2"
                   color={filters.service ? 'base' : 'muted'}>
@@ -387,6 +451,11 @@ const GroupClassRoomScreen: React.FC = () => {
                 </BaseText>
                 <ArrowDown2 size={20} color={iconColor} />
               </TouchableOpacity>
+              {validationErrors.service ? (
+                <BaseText type="caption" className="text-[#F55F56] px-1">
+                  {validationErrors.service}
+                </BaseText>
+              ) : null}
             </View>
 
             {/* مربی */}
@@ -427,9 +496,13 @@ const GroupClassRoomScreen: React.FC = () => {
                     LeftIcon={CloseCircle}
                     LeftIconVariant="Bold"
                     style={{padding: 10}}
-                    onPress={() =>
-                      setFilters(prev => ({...prev, contractor: null}))
-                    }
+                    onPress={() => {
+                      setFilters(prev => ({...prev, contractor: null}));
+                      setValidationErrors(prev => ({
+                        ...prev,
+                        contractor: undefined,
+                      }));
+                    }}
                     type="TextButton"
                     size="Large"
                     rounded
@@ -437,6 +510,11 @@ const GroupClassRoomScreen: React.FC = () => {
                   />
                 )}
               </View>
+              {validationErrors.contractor ? (
+                <BaseText type="caption" className="text-[#F55F56] px-1">
+                  {validationErrors.contractor}
+                </BaseText>
+              ) : null}
             </View>
 
             {/* ساعت */}
@@ -680,6 +758,10 @@ const GroupClassRoomScreen: React.FC = () => {
                       setFilters(prev => ({
                         ...prev,
                         contractor: selectedOption,
+                      }));
+                      setValidationErrors(prev => ({
+                        ...prev,
+                        contractor: undefined,
                       }));
                     }
                     contractorSheetRef.current?.close();

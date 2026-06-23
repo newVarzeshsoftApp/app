@@ -1,30 +1,30 @@
 import React, {useCallback, useMemo} from 'react';
-import {
-  View,
-  Image,
-  ScrollView,
-  ActivityIndicator,
-} from 'react-native';
-import {RouteProp, useRoute} from '@react-navigation/native';
+import {View, Image, ScrollView, ActivityIndicator} from 'react-native';
+import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import NavigationHeader from '../../components/header/NavigationHeader';
 import BaseText from '../../components/BaseText';
 import BaseButton from '../../components/Button/BaseButton';
 import GroupClassRoomCard from '../../components/cards/GroupClassRoom/GroupClassRoomCard';
 import {useGetGroupClassRooms} from '../../utils/hooks/GroupClassRoom/useGetGroupClassRooms';
-import {HomeStackParamList} from '../../utils/types/NavigationTypes';
+import {useGroupClassRoomEvents} from '../../utils/hooks/GroupClassRoom/useGroupClassRoomEvents';
+import {GroupClassRoomStackParamList} from '../../utils/types/NavigationTypes';
 import {GroupClassRoom} from '../../services/models/response/GroupClassRoomResService';
 import {
+  getGroupClassRoomConfig,
   groupClassRoomListParamsToQuery,
   normalizeGroupClassRoomResponse,
 } from '../../utils/helpers/groupClassRoomHelpers';
 
 type GroupClassRoomListRouteProp = RouteProp<
-  HomeStackParamList,
+  GroupClassRoomStackParamList,
   'groupClassRoomList'
 >;
 
 const GroupClassRoomListScreen: React.FC = () => {
   const route = useRoute<GroupClassRoomListRouteProp>();
+  const navigation =
+    useNavigation<NativeStackNavigationProp<GroupClassRoomStackParamList>>();
   const query = useMemo(
     () => groupClassRoomListParamsToQuery(route.params ?? {}),
     [route.params],
@@ -38,6 +38,11 @@ const GroupClassRoomListScreen: React.FC = () => {
     refetch,
   } = useGetGroupClassRooms(query);
 
+  useGroupClassRoomEvents({
+    enabled: !isError,
+    onUpdate: refetch,
+  });
+
   const classRooms = useMemo(
     () => normalizeGroupClassRoomResponse(classRoomsData),
     [classRoomsData],
@@ -47,9 +52,31 @@ const GroupClassRoomListScreen: React.FC = () => {
     ? Number(route.params.contractor)
     : undefined;
 
-  const handleJoinClass = useCallback((_item: GroupClassRoom) => {
-    // TODO: Navigate to group class room join / pre-reserve flow
-  }, []);
+  const navigateToDetail = useCallback(
+    (item: GroupClassRoom, waitingList: boolean) => {
+      const contractorId = getGroupClassRoomConfig(item)?.contractorId;
+      if (!contractorId) return;
+
+      navigation.navigate('groupClassRoomDetail', {
+        ...(route.params ?? {}),
+        groupClassRoomId: item.id,
+        contractorId,
+        waitingList,
+        title: item.title,
+      });
+    },
+    [navigation, route.params],
+  );
+
+  const handleJoinClass = useCallback(
+    (item: GroupClassRoom) => navigateToDetail(item, false),
+    [navigateToDetail],
+  );
+
+  const handleWaitingListPress = useCallback(
+    (item: GroupClassRoom) => navigateToDetail(item, true),
+    [navigateToDetail],
+  );
 
   const isResultsLoading = isLoading || isFetching;
 
@@ -96,6 +123,7 @@ const GroupClassRoomListScreen: React.FC = () => {
             </View>
           ) : classRooms.length > 0 ? (
             classRooms.map(item => {
+              const configContractorId = getGroupClassRoomConfig(item)?.contractorId;
               const selectedContractor = selectedContractorId
                 ? item.contractors?.find(
                     contractor => contractor.id === selectedContractorId,
@@ -104,10 +132,11 @@ const GroupClassRoomListScreen: React.FC = () => {
 
               return (
                 <GroupClassRoomCard
-                  key={item.id}
+                  key={`${item.id}-${configContractorId ?? 'default'}`}
                   data={item}
                   selectedContractor={selectedContractor}
                   onJoinPress={handleJoinClass}
+                  onWaitingListPress={handleWaitingListPress}
                 />
               );
             })

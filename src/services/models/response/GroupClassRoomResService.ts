@@ -7,7 +7,9 @@ export interface GroupClassRoomConfig {
   contractorFullName: string;
   contractorMax: number;
   contractorAlarm: number;
+  contractorWaitingListMax: number;
   filled: number;
+  waitingListCount: number;
   [key: string]: any;
 }
 
@@ -26,6 +28,7 @@ export interface GroupClassRoomSchedule {
 export interface GroupClassRoom {
   id: number;
   title: string;
+  isFlexible?: boolean;
   price: number;
   sessions: number;
   durations: number;
@@ -36,6 +39,7 @@ export interface GroupClassRoom {
   enabled: boolean;
   reservable: boolean;
   fixed: boolean;
+  burnAfterAbsence?: boolean;
   useJustInSchedules: boolean;
   service: Product;
   category: Category;
@@ -47,7 +51,9 @@ export interface GroupClassRoom {
   };
   schedules?: GroupClassRoomSchedule[];
   order: number;
+  config?: GroupClassRoomConfig;
   configs?: GroupClassRoomConfig[];
+  preReservedCount?: number;
   updatedAt?: string;
   createdAt?: string;
   deletedAt?: string | null;
