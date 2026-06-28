@@ -42,14 +42,12 @@ import {
   buildGroupClassRoomPreReservePayload,
   getGroupClassRoomContractorProfile,
   getGroupClassRoomDayOptions,
-  getGroupClassRoomPreReservedCount,
-  groupClassRoomDetailParamsToQuery,
-  patchGroupClassRoomFromEvent,
+  getGroupClassRoomPreReserveDisplay,
+  refetchGroupClassRoomQueries,
   resolveGroupClassRoomProductContractor,
 } from '../../utils/helpers/groupClassRoomHelpers';
 import {
   useGroupClassRoomDetail,
-  useGroupClassRoomEvents,
   usePreReserveGroupClassRoom,
 } from '../../utils/hooks/GroupClassRoom';
 import {
@@ -72,14 +70,10 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
 }) => {
   const scrollY = useSharedValue(0);
   const {profile: profileData, SKU: organization} = useAuth();
-  const {addToCart} = useCartContext();
+  const {addToCart, items: cartItems} = useCartContext();
   const {theme} = useTheme();
   const {t} = useTranslation('translation', {keyPrefix: 'Shop.Service'});
   const queryClient = useQueryClient();
-  const detailQuery = useMemo(
-    () => groupClassRoomDetailParamsToQuery(route.params),
-    [route.params],
-  );
 
   const {
     groupClassRoomId,
@@ -94,22 +88,6 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
     isError,
     refetch,
   } = useGroupClassRoomDetail(route.params);
-
-  const handleGroupClassRoomEvent = useCallback(
-    (event: Parameters<typeof patchGroupClassRoomFromEvent>[1]) => {
-      queryClient.setQueryData(['GroupClassRooms', detailQuery], oldData =>
-        patchGroupClassRoomFromEvent(oldData, event),
-      );
-      refetch();
-    },
-    [detailQuery, queryClient, refetch],
-  );
-
-  useGroupClassRoomEvents({
-    enabled: !isError,
-    groupClassRoomId,
-    onUpdate: handleGroupClassRoomEvent,
-  });
 
   const serviceId = classRoom?.service?.id;
   const {data: productData, isLoading: isProductLoading} = UseGetProductByID(
@@ -138,10 +116,28 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
     [classRoom],
   );
 
-  const preReservedCount = useMemo(
-    () => (classRoom ? getGroupClassRoomPreReservedCount(classRoom) : 0),
-    [classRoom],
+  const preReserveDisplay = useMemo(
+    () =>
+      classRoom
+        ? getGroupClassRoomPreReserveDisplay(classRoom, {
+            userId: profileData?.id,
+            contractorId,
+            cartItems,
+          })
+        : {
+            isPreReservedByMe: false,
+            othersPreReservedCount: 0,
+            totalPreReservedCount: 0,
+          },
+    [cartItems, classRoom, contractorId, profileData?.id],
   );
+
+  const handleContinuePurchase = useCallback(() => {
+    navigate('Root', {
+      screen: 'HomeNavigator',
+      params: {screen: 'cart'},
+    });
+  }, []);
 
   const contractorProfile = useMemo(
     () =>
@@ -314,6 +310,8 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
 
       await preReserve(payload);
 
+      await refetchGroupClassRoomQueries(queryClient);
+
       await addToCart({
         product: productData,
         SelectedPriceList: selectedPriceList,
@@ -342,6 +340,7 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
     preReserve,
     productData,
     profileData,
+    queryClient,
     selectedContractor,
     selectedDays,
     selectedPriceList,
@@ -652,25 +651,44 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
 
                     {!isResultsLoading ? (
                       <View className="gap-3">
-                        {!waitingList && preReservedCount > 0 ? (
+                        {preReserveDisplay.isPreReservedByMe ? (
+                          <View className="px-3 py-2 rounded-full border border-white dark:border-white items-center justify-center">
+                            <BaseText type="subtitle3" color="base">
+                              این کلاس در سبد خرید شماست
+                            </BaseText>
+                          </View>
+                        ) : !waitingList &&
+                          preReserveDisplay.othersPreReservedCount > 0 ? (
                           <View className="px-3 py-2 rounded-full border border-dashed border-warning-500 items-center justify-center">
                             <BaseText type="subtitle3" color="warning">
-                              {preReservedCount} نفر در حال خرید
+                              {preReserveDisplay.othersPreReservedCount} نفر در
+                              حال خرید
                             </BaseText>
                           </View>
                         ) : null}
-                        <BaseButton
-                          color={waitingList ? 'Supportive5-Blue' : 'Black'}
-                          onPress={handleAddToCart}
-                          type="Fill"
-                          text={
-                            waitingList ? 'رزرو لیست انتظار' : t('addToCart')
-                          }
-                          rounded
-                          size="Large"
-                          disabled={!canSubmit}
-                          isLoading={isPreReserveLoading}
-                        />
+                        {preReserveDisplay.isPreReservedByMe ? (
+                          <BaseButton
+                            color="Primary"
+                            onPress={handleContinuePurchase}
+                            type="Fill"
+                            text="ادامه خرید"
+                            rounded
+                            size="Large"
+                          />
+                        ) : (
+                          <BaseButton
+                            color={waitingList ? 'Supportive5-Blue' : 'Black'}
+                            onPress={handleAddToCart}
+                            type="Fill"
+                            text={
+                              waitingList ? 'رزرو لیست انتظار' : t('addToCart')
+                            }
+                            rounded
+                            size="Large"
+                            disabled={!canSubmit}
+                            isLoading={isPreReserveLoading}
+                          />
+                        )}
                       </View>
                     ) : null}
                   </View>

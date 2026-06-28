@@ -112,6 +112,7 @@ type ShopDetail = {
   readonly?: boolean;
   contractorId?: number;
   priceId?: number;
+  fromPackageId?: number;
 };
 export type ShopStackParamList = {
   creditService: undefined;

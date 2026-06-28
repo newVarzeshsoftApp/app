@@ -9,9 +9,14 @@ export const useGetGroupClassRooms = (
 ): UseQueryResult<GroupClassRoomResponse, Error> => {
   return useQuery({
     queryKey: ['GroupClassRooms', query],
-    queryFn: () => GroupClassRoomService.GetAll(query),
+    queryFn: ({signal}) => GroupClassRoomService.GetAll(query, signal),
     enabled: enabled !== false,
     retry: false,
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
+    refetchOnReconnect: true,
   });
 };
 

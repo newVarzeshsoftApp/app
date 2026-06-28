@@ -81,10 +81,10 @@ const generateCartId = (): string => {
   const timestamp = Date.now().toString(36);
   const random = Math.random().toString(36).substring(2);
   const uniqueId = timestamp + random;
-  
+
   // Log for debugging (can be removed in production)
   console.log('🆔 [generateCartId] Generated unique CartId:', uniqueId);
-  
+
   return uniqueId;
 };
 
@@ -419,10 +419,13 @@ export const updateReservationData = async (
     // NOTE: Do NOT sync to ReservationStore here to avoid circular updates
     // The CartServiceCard listener will handle syncing when quantities change
   } catch (error) {
-    console.error('❌ [updateReservationData] Error updating reservation data:', {
-      cartId,
-      error,
-    });
+    console.error(
+      '❌ [updateReservationData] Error updating reservation data:',
+      {
+        cartId,
+        error,
+      },
+    );
     throw new Error('Failed to update reservation data');
   }
 };

@@ -144,6 +144,12 @@
       "Price per session": "Price per session",
       "Contractor selection": "Contractor selection",
       "Confirm": "Confirm"
+    },
+    "Package": {
+      "contractorSelection": "Contractor selection",
+      "chooseContractor": "Select contractor",
+      "changeContractor": "Change contractor",
+      "contractorNotSelected": "No contractor selected"
     }
   },
   "Validation": {

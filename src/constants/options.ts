@@ -63,7 +63,7 @@ export enum TransactionSourceType {
   OfferedDiscount, // تخفیف هدف مند
   Archived, // بایگانی شده
   Transfer, // انتقالی
-  Reserve, // رزور
+  Reserve, // رزرو
 }
 export enum ProductType {
   Product,

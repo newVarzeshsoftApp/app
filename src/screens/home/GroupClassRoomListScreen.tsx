@@ -1,22 +1,22 @@
 import React, {useCallback, useMemo} from 'react';
 import {View, Image, ScrollView, ActivityIndicator} from 'react-native';
-import {RouteProp, useNavigation, useRoute} from '@react-navigation/native';
+import {RouteProp, useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {useQueryClient} from '@tanstack/react-query';
 import NavigationHeader from '../../components/header/NavigationHeader';
 import BaseText from '../../components/BaseText';
 import BaseButton from '../../components/Button/BaseButton';
 import GroupClassRoomCard from '../../components/cards/GroupClassRoom/GroupClassRoomCard';
 import {useGetGroupClassRooms} from '../../utils/hooks/GroupClassRoom/useGetGroupClassRooms';
-import {useGroupClassRoomEvents} from '../../utils/hooks/GroupClassRoom/useGroupClassRoomEvents';
 import {GroupClassRoomStackParamList} from '../../utils/types/NavigationTypes';
 import {GroupClassRoom} from '../../services/models/response/GroupClassRoomResService';
 import {
   getGroupClassRoomConfig,
   groupClassRoomListParamsToQuery,
   normalizeGroupClassRoomResponse,
-  patchGroupClassRoomFromEvent,
 } from '../../utils/helpers/groupClassRoomHelpers';
+import {logGroupClassRoomSseDebug} from '../../utils/helpers/groupClassRoomSseDebug';
+
+const GROUP_CLASS_ROOM_LIST_POLL_MS = 5000;
 
 type GroupClassRoomListRouteProp = RouteProp<
   GroupClassRoomStackParamList,
@@ -27,11 +27,14 @@ const GroupClassRoomListScreen: React.FC = () => {
   const route = useRoute<GroupClassRoomListRouteProp>();
   const navigation =
     useNavigation<NativeStackNavigationProp<GroupClassRoomStackParamList>>();
-  const queryClient = useQueryClient();
   const query = useMemo(
     () => groupClassRoomListParamsToQuery(route.params ?? {}),
     [route.params],
   );
+
+  const selectedContractorId = route.params?.contractor
+    ? Number(route.params.contractor)
+    : undefined;
 
   const {
     data: classRoomsData,
@@ -40,33 +43,35 @@ const GroupClassRoomListScreen: React.FC = () => {
     refetch,
   } = useGetGroupClassRooms(query);
 
-  const handleGroupClassRoomEvent = useCallback(
-    (event: Parameters<typeof patchGroupClassRoomFromEvent>[1]) => {
-      queryClient.setQueryData(['GroupClassRooms', query], oldData =>
-        patchGroupClassRoomFromEvent(oldData, event),
-      );
-      refetch();
-    },
-    [query, queryClient, refetch],
-  );
+  useFocusEffect(
+    useCallback(() => {
+      void refetch();
 
-  useGroupClassRoomEvents({
-    enabled: !isError,
-    onUpdate: handleGroupClassRoomEvent,
-  });
+      // Fallback while backend does not broadcast CLIENT_REMOTE on release
+      const intervalId = setInterval(() => {
+        logGroupClassRoomSseDebug(
+          'POLL',
+          'list refetch (release SSE fallback)',
+        );
+        void refetch();
+      }, GROUP_CLASS_ROOM_LIST_POLL_MS);
+
+      return () => clearInterval(intervalId);
+    }, [refetch]),
+  );
 
   const classRooms = useMemo(
     () => normalizeGroupClassRoomResponse(classRoomsData),
     [classRoomsData],
   );
 
-  const selectedContractorId = route.params?.contractor
-    ? Number(route.params.contractor)
-    : undefined;
-
   const navigateToDetail = useCallback(
     (item: GroupClassRoom, waitingList: boolean) => {
-      const contractorId = getGroupClassRoomConfig(item)?.contractorId;
+      const configContractorId = getGroupClassRoomConfig(
+        item,
+        selectedContractorId,
+      )?.contractorId;
+      const contractorId = configContractorId ?? selectedContractorId;
       if (!contractorId) return;
 
       navigation.navigate('groupClassRoomDetail', {
@@ -77,7 +82,7 @@ const GroupClassRoomListScreen: React.FC = () => {
         title: item.title,
       });
     },
-    [navigation, route.params],
+    [navigation, route.params, selectedContractorId],
   );
 
   const handleJoinClass = useCallback(
@@ -135,7 +140,10 @@ const GroupClassRoomListScreen: React.FC = () => {
             </View>
           ) : classRooms.length > 0 ? (
             classRooms.map(item => {
-              const configContractorId = getGroupClassRoomConfig(item)?.contractorId;
+              const configContractorId = getGroupClassRoomConfig(
+                item,
+                selectedContractorId,
+              )?.contractorId;
               const selectedContractor = selectedContractorId
                 ? item.contractors?.find(
                     contractor => contractor.id === selectedContractorId,
@@ -146,6 +154,7 @@ const GroupClassRoomListScreen: React.FC = () => {
                 <GroupClassRoomCard
                   key={`${item.id}-${configContractorId ?? 'default'}`}
                   data={item}
+                  contractorId={selectedContractorId}
                   selectedContractor={selectedContractor}
                   onJoinPress={handleJoinClass}
                   onWaitingListPress={handleWaitingListPress}

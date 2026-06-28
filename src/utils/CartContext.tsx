@@ -10,7 +10,10 @@ interface CartContextProps {
   addToCart: (
     item: Omit<CartItem, 'CartId' | 'quantity'> & {quantity?: number},
   ) => Promise<void>;
-  removeFromCart: (cartId: string) => Promise<void>;
+  removeFromCart: (
+    cartId: string,
+    options?: {skipGroupClassRoomRelease?: boolean},
+  ) => Promise<void>;
   updateItemQuantity: ({
     cartId,
     quantity,

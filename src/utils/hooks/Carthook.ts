@@ -1,4 +1,5 @@
 import {useState, useCallback, useEffect, useMemo} from 'react';
+import {useQueryClient} from '@tanstack/react-query';
 import {
   getCart,
   addCart,
@@ -10,7 +11,10 @@ import {
   ReservationData,
   setSyncingCartToStore,
 } from '../helpers/CartStorage';
+import {releaseGroupClassRoomFromCartItem} from '../helpers/groupClassRoomCartHelpers';
+import {logGroupClassRoomReleaseFlow} from '../helpers/groupClassRoomSseDebug';
 import {useReservationStore} from '../../store/reservationStore';
+import {useAuth} from './useAuth';
 
 interface CartSummary {
   totalItems: number;
@@ -18,6 +22,8 @@ interface CartSummary {
 }
 
 export const useCart = () => {
+  const queryClient = useQueryClient();
+  const {profile, SKU: organization} = useAuth();
   const [cartSummary, setCartSummary] = useState<CartSummary>({
     totalItems: 0,
     items: [],
@@ -59,15 +65,62 @@ export const useCart = () => {
 
   // Remove item from cart
   const removeFromCart = useCallback(
-    async (cartId: string) => {
+    async (
+      cartId: string,
+      options?: {skipGroupClassRoomRelease?: boolean},
+    ) => {
       try {
+        const cart = await getCart();
+        const itemToRemove = cart.find(item => item.CartId === cartId);
+
+        logGroupClassRoomReleaseFlow('removeFromCart called', {
+          cartId,
+          skipGroupClassRoomRelease: options?.skipGroupClassRoomRelease ?? false,
+          isGroupClassRoom: itemToRemove?.isGroupClassRoom ?? false,
+          groupClassRoomId: itemToRemove?.groupClassRoomData?.groupClassRoomId,
+          contractorId: itemToRemove?.groupClassRoomData?.contractorId,
+          userId: profile?.id,
+        });
+
+        if (
+          !options?.skipGroupClassRoomRelease &&
+          itemToRemove?.isGroupClassRoom &&
+          itemToRemove.groupClassRoomData &&
+          profile?.id
+        ) {
+          await releaseGroupClassRoomFromCartItem({
+            item: itemToRemove,
+            userId: profile.id,
+            organization,
+            queryClient,
+          });
+        } else if (
+          itemToRemove?.isGroupClassRoom &&
+          !options?.skipGroupClassRoomRelease
+        ) {
+          logGroupClassRoomReleaseFlow('release skipped (missing user or data)', {
+            cartId,
+            hasGroupClassRoomData: !!itemToRemove.groupClassRoomData,
+            userId: profile?.id,
+          });
+        }
+
         await removeCart(cartId);
         await refreshCart();
+
+        logGroupClassRoomReleaseFlow('removeFromCart finished', {cartId});
       } catch (error) {
+        logGroupClassRoomReleaseFlow('removeFromCart FAILED', {
+          cartId,
+          error:
+            error instanceof Error
+              ? {name: error.name, message: error.message}
+              : error,
+        });
         console.error('Failed to remove item from cart:', error);
       }
     },
-    [refreshCart],
+    [organization, profile?.id, queryClient, refreshCart],
   );
 
   // Update item quantity

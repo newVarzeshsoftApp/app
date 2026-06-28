@@ -21,10 +21,12 @@ const {baseUrl, groupClassRoom} = routes;
 const GroupClassRoomService = {
   GetAll: async (
     query?: GroupClassRoomQuery,
+    signal?: AbortSignal,
   ): Promise<GroupClassRoomResponse> => {
     try {
       const response = await axiosInstance.get<GroupClassRoomResponse>(
         baseUrl + groupClassRoom.getAll(query),
+        {signal},
       );
       if (response.status === Status.Ok) {
         return response.data;
@@ -32,6 +34,9 @@ const GroupClassRoomService = {
         throw new Error(`Request failed with status ${response.status}`);
       }
     } catch (error) {
+      if (axios.isCancel(error)) {
+        throw error;
+      }
       console.error('Error in GetAllGroupClassRooms function:', error);
       if (axios.isAxiosError(error) && error.response) {
         handleMutationError(error);

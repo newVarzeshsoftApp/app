@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useEffect,
   useLayoutEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -36,6 +37,8 @@ import {FlatList} from 'react-native-gesture-handler';
 import Badge from '../../components/Badge/Badge';
 import ShopCreditService from '../../components/cards/shopCard/ShopCreditService';
 import ShopServiceCard from '../../components/cards/shopCard/ShopServiceCard';
+import PackageDetailServiceCard from '../../components/cards/shopCard/PackageItems/PackageDetailServiceCard';
+import PackageDetailCreditCard from '../../components/cards/shopCard/PackageItems/PackageDetailCreditCard';
 import {subProducts} from '../../services/models/response/UseResrService';
 import {
   Contractors,
@@ -51,6 +54,13 @@ import BottomSheet, {
 import UserRadioButton from '../../components/Button/RadioButton/UserRadioButton';
 import {useAuth} from '../../utils/hooks/useAuth';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
+import {useFocusEffect} from '@react-navigation/native';
+import {
+  getPackageContractorSelection,
+  resolveContractorForPackageItem,
+  setPackageContractorSelection,
+  setPackageItemContractorSelection,
+} from '../../utils/helpers/packageContractorStore';
 
 type ServiceScreenProp = NativeStackScreenProps<
   ShopStackParamList,
@@ -66,6 +76,8 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
   const {addToCart} = useCartContext();
   const {theme} = useTheme();
   const bottomSheetContractorRef = useRef<BottomSheetMethods>(null);
+  const pendingItemProductIdRef = useRef<number | null>(null);
+  const [listRefreshKey, setListRefreshKey] = useState(0);
   const [selectedContractor, setSelectedContractor] =
     useState<Contractors | null>(null);
 
@@ -94,20 +106,89 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
   }, [navigation, scrollY, route.params?.title]);
 
   useEffect(() => {
+    if (!data?.hasContractor || !data.contractors?.length) return;
+
+    const storedContractorId = getPackageContractorSelection(route.params.id);
+    const storedContractor = storedContractorId
+      ? data.contractors.find(
+          item =>
+            item.contractorId === storedContractorId ||
+            item.contractor?.id === storedContractorId,
+        )
+      : undefined;
+
     if (route.params.contractorId) {
-      const foundedContractor = data?.contractors?.find(
-        item => item?.contractor?.id === route.params.contractorId,
+      const routeContractor = data.contractors.find(
+        item => item.contractor?.id === route.params.contractorId,
       );
-      if (foundedContractor) {
-        setSelectedContractor(foundedContractor);
+      if (routeContractor) {
+        setSelectedContractor(routeContractor);
         return;
       }
     }
 
-    if (data?.requiredContractor) {
-      setSelectedContractor(data?.contractors?.[0] ?? null);
+    if (storedContractor) {
+      setSelectedContractor(storedContractor);
+      return;
     }
-  }, [data?.contractors, data?.requiredContractor, route.params.contractorId]);
+
+    setSelectedContractor(data.contractors[0]);
+  }, [
+    data?.contractors,
+    data?.hasContractor,
+    route.params.contractorId,
+    route.params.id,
+  ]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setListRefreshKey(prev => prev + 1);
+
+      if (!data?.hasContractor || !data.contractors?.length) return;
+
+      const storedContractorId = getPackageContractorSelection(route.params.id);
+      if (!storedContractorId) return;
+
+      const storedContractor = data.contractors.find(
+        item =>
+          item.contractorId === storedContractorId ||
+          item.contractor?.id === storedContractorId,
+      );
+
+      if (storedContractor) {
+        setSelectedContractor(storedContractor);
+      }
+    }, [data?.contractors, data?.hasContractor, route.params.id]),
+  );
+
+  const handleContractorSelect = useCallback(
+    (contractor: Contractors) => {
+      setSelectedContractor(contractor);
+
+      if (pendingItemProductIdRef.current) {
+        setPackageItemContractorSelection(
+          route.params.id,
+          pendingItemProductIdRef.current,
+          contractor,
+        );
+        pendingItemProductIdRef.current = null;
+      } else {
+        const contractorId =
+          contractor.contractorId ?? contractor.contractor?.id;
+        if (contractorId) {
+          setPackageContractorSelection(route.params.id, contractorId);
+        }
+      }
+
+      setListRefreshKey(prev => prev + 1);
+      bottomSheetContractorRef.current?.close();
+    },
+    [route.params.id],
+  );
+
+  const handleClearContractor = useCallback(() => {
+    setSelectedContractor(null);
+  }, []);
 
   const cardComponentMapping: Record<number, React.FC<{data: Product}>> = {
     1: ShopServiceCard,
@@ -119,38 +200,152 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
     2: 'creditDetail',
   };
 
-  const renderItem = useCallback(
-    ({item}: {item: subProducts}) => {
-      const CardComponent = cardComponentMapping[item?.product?.type!];
-      const routeName = navigationMapping[item?.product?.type!];
-      if (CardComponent) {
-        return (
-          <TouchableOpacity
-            key={item?.product?.id}
-            onPress={() =>
-              navigate('Root', {
-                screen: 'ShopNavigator',
-                params: {
-                  screen: routeName as keyof ShopStackParamList,
-                  params: {
-                    id: item?.product?.id ?? 0,
-                    title: item?.product?.title ?? '',
-                    readonly: true,
-                  },
-                },
-              })
-            }>
-            <CardComponent key={item?.id} data={item?.product!} />
-          </TouchableOpacity>
-        );
-      }
-      return <Text>Unknown type: {item?.product?.type}</Text>;
+  const getActiveContractorId = useCallback(() => {
+    return (
+      getPackageContractorSelection(route.params.id) ??
+      selectedContractor?.contractorId ??
+      selectedContractor?.contractor?.id
+    );
+  }, [route.params.id, selectedContractor]);
+
+  const openContractorSheet = useCallback(() => {
+    bottomSheetContractorRef.current?.expand();
+  }, []);
+
+  const navigateToPackageItem = useCallback(
+    (product: Product) => {
+      const routeName = navigationMapping[product.type];
+      if (!routeName) return;
+
+      const activeContractorId = getActiveContractorId();
+
+      navigate('Root', {
+        screen: 'ShopNavigator',
+        params: {
+          screen: routeName as keyof ShopStackParamList,
+          params: {
+            id: product.id,
+            title: product.title,
+            readonly: true,
+            fromPackageId: route.params.id,
+            ...(activeContractorId ? {contractorId: activeContractorId} : {}),
+          },
+        },
+      });
     },
-    [cardComponentMapping, navigationMapping],
+    [getActiveContractorId, navigationMapping, route.params.id],
   );
 
-  const canSubmit =
-    !!data && (!data.requiredContractor || !!selectedContractor);
+  const handleItemContractorSelect = useCallback(
+    (product: Product) => {
+      if (data?.hasContractor && data.contractors?.length) {
+        pendingItemProductIdRef.current = product.id;
+        openContractorSheet();
+        return;
+      }
+
+      navigateToPackageItem(product);
+    },
+    [data?.contractors, data?.hasContractor, navigateToPackageItem, openContractorSheet],
+  );
+
+  const renderItem = useCallback(
+    ({item}: {item: subProducts}) => {
+      const product = item?.product;
+      if (!product) {
+        return null;
+      }
+
+      const activeContractorId = getActiveContractorId();
+      const itemContractor = resolveContractorForPackageItem(
+        product,
+        data?.contractors ?? [],
+        route.params.id,
+        activeContractorId,
+      );
+
+      if (product.type === 1 && product.hasContractor) {
+        return (
+          <PackageDetailServiceCard
+            key={item.id}
+            data={product}
+            selectedContractor={itemContractor}
+            onPressCard={() => navigateToPackageItem(product)}
+            onSelectContractor={() => handleItemContractorSelect(product)}
+          />
+        );
+      }
+
+      if (product.type === 2 && product.hasContractor) {
+        return (
+          <PackageDetailCreditCard
+            key={item.id}
+            data={product}
+            selectedContractor={itemContractor}
+            onPressCard={() => navigateToPackageItem(product)}
+            onSelectContractor={() => handleItemContractorSelect(product)}
+          />
+        );
+      }
+
+      const CardComponent = cardComponentMapping[product.type];
+      if (!CardComponent) {
+        return <Text>Unknown type: {product.type}</Text>;
+      }
+
+      return (
+        <TouchableOpacity
+          key={item.id}
+          onPress={() => navigateToPackageItem(product)}>
+          <CardComponent data={product} />
+        </TouchableOpacity>
+      );
+    },
+    [
+      cardComponentMapping,
+      data?.contractors,
+      getActiveContractorId,
+      handleItemContractorSelect,
+      listRefreshKey,
+      navigateToPackageItem,
+      route.params.id,
+    ],
+  );
+
+  const canSubmit = useMemo(() => {
+    if (!data) return false;
+
+    const activeContractorId = getActiveContractorId();
+    const itemsRequiringContractor =
+      data.subProducts?.filter(subProduct => subProduct.product?.hasContractor) ??
+      [];
+
+    const allItemContractorsSelected =
+      itemsRequiringContractor.length === 0 ||
+      itemsRequiringContractor.every(subProduct =>
+        !!resolveContractorForPackageItem(
+          subProduct.product!,
+          data.contractors ?? [],
+          route.params.id,
+          activeContractorId,
+        ),
+      );
+
+    const packageRequiresContractor =
+      !!data.hasContractor && (data.contractors?.length ?? 0) > 0;
+    const isPackageContractorSelected =
+      !packageRequiresContractor ||
+      !!selectedContractor ||
+      !!getPackageContractorSelection(route.params.id);
+
+    return allItemContractorsSelected && isPackageContractorSelected;
+  }, [
+    data,
+    getActiveContractorId,
+    listRefreshKey,
+    route.params.id,
+    selectedContractor,
+  ]);
 
   const handleAddToCart = useCallback(async () => {
     if (!data || !canSubmit) return;
@@ -160,12 +355,20 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
         product: data,
         SelectedContractor: selectedContractor,
       });
+      if (selectedContractor) {
+        const contractorId =
+          selectedContractor.contractorId ??
+          selectedContractor.contractor?.id;
+        if (contractorId) {
+          setPackageContractorSelection(route.params.id, contractorId);
+        }
+      }
       navigate('Root', {screen: 'HomeNavigator', params: {screen: 'cart'}});
     } catch (error) {
       handleMutationError(error);
       console.error('Failed to add package to cart:', error);
     }
-  }, [addToCart, canSubmit, data, selectedContractor]);
+  }, [addToCart, canSubmit, data, route.params.id, selectedContractor]);
 
   return (
     <>
@@ -181,10 +384,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
               key={index}
               genders={item?.contractor?.gender ?? 0}
               checked={selectedContractor === item}
-              onCheckedChange={() => {
-                setSelectedContractor(item);
-                bottomSheetContractorRef.current?.close();
-              }}
+              onCheckedChange={() => handleContractorSelect(item)}
               Name={`${item?.contractor?.firstName ?? ''} ${
                 item?.contractor?.lastName ?? ''
               }`.trim()}
@@ -321,7 +521,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
                             noText
                             LeftIcon={CloseCircle}
                             LeftIconVariant="Bold"
-                            onPress={() => setSelectedContractor(null)}
+                            onPress={handleClearContractor}
                             type="TextButton"
                             size="Large"
                             rounded
@@ -340,6 +540,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
                       {data?.hasSubProduct ? (
                         <FlatList
                           data={data?.subProducts ?? []}
+                          extraData={listRefreshKey}
                           keyExtractor={(item, index) => `key-${index}`}
                           renderItem={renderItem}
                           showsVerticalScrollIndicator={false}

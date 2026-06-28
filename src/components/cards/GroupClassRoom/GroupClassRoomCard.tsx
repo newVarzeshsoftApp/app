@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {Image, View} from 'react-native';
 import {Circle} from 'react-native-progress';
 import BaseText from '../../BaseText';
@@ -16,12 +16,16 @@ import {
   getGroupClassRoomActionState,
   getGroupClassRoomCapacity,
   getGroupClassRoomContractorProfile,
-  getGroupClassRoomPreReservedCount,
+  getGroupClassRoomPreReserveDisplay,
 } from '../../../utils/helpers/groupClassRoomHelpers';
 import {TypeTextColor} from '../../../models/stylingTypes';
+import {useAuth} from '../../../utils/hooks/useAuth';
+import {useCartContext} from '../../../utils/CartContext';
+import {navigate} from '../../../navigation/navigationRef';
 
 type GroupClassRoomCardProps = {
   data: GroupClassRoom;
+  contractorId?: number;
   selectedContractor?: User;
   onJoinPress?: (item: GroupClassRoom) => void;
   onWaitingListPress?: (item: GroupClassRoom) => void;
@@ -31,22 +35,47 @@ type GroupClassRoomCardProps = {
 
 const GroupClassRoomCard: React.FC<GroupClassRoomCardProps> = ({
   data,
+  contractorId,
   selectedContractor,
   onJoinPress,
   onWaitingListPress,
   isJoinLoading = false,
   isWaitingListLoading = false,
 }) => {
+  const {profile} = useAuth();
+  const {items: cartItems} = useCartContext();
+
   const contractorProfile = useMemo(
     () => getGroupClassRoomContractorProfile(data, selectedContractor),
     [data, selectedContractor],
   );
-  const capacity = useMemo(() => getGroupClassRoomCapacity(data), [data]);
-  const preReservedCount = useMemo(
-    () => getGroupClassRoomPreReservedCount(data),
-    [data],
+  const capacity = useMemo(
+    () => getGroupClassRoomCapacity(data, contractorId),
+    [contractorId, data],
   );
-  const actionState = useMemo(() => getGroupClassRoomActionState(data), [data]);
+  const preReserveDisplay = useMemo(
+    () =>
+      getGroupClassRoomPreReserveDisplay(data, {
+        userId: profile?.id,
+        contractorId,
+        cartItems,
+      }),
+    [cartItems, contractorId, data, profile?.id],
+  );
+  const actionState = useMemo(
+    () =>
+      getGroupClassRoomActionState(data, contractorId, {
+        isPreReservedByMe: preReserveDisplay.isPreReservedByMe,
+      }),
+    [contractorId, data, preReserveDisplay.isPreReservedByMe],
+  );
+
+  const handleContinuePurchase = useCallback(() => {
+    navigate('Root', {
+      screen: 'HomeNavigator',
+      params: {screen: 'cart'},
+    });
+  }, []);
 
   const progress =
     capacity.max > 0 ? capacity.filled / capacity.max : 0;
@@ -176,21 +205,39 @@ const GroupClassRoomCard: React.FC<GroupClassRoomCardProps> = ({
         ) : null}
 
         <View className="flex-row items-center gap-2 pt-2 border-t border-neutral-0 dark:border-neutral-dark-400/50">
-          {preReservedCount > 0 && actionState.type === 'join' ? (
+          {preReserveDisplay.isPreReservedByMe ? (
+            <View className="flex-1 px-3 py-2 rounded-full border border-white dark:border-white items-center justify-center">
+              <BaseText type="subtitle3" color="base">
+                در سبد خرید شما
+              </BaseText>
+            </View>
+          ) : preReserveDisplay.othersPreReservedCount > 0 &&
+            actionState.type === 'join' ? (
             <View className="flex-1 px-3 py-2 rounded-full border border-dashed border-warning-500 items-center justify-center">
               <BaseText type="subtitle3" color="warning">
-                {preReservedCount} نفر در حال خرید
+                {preReserveDisplay.othersPreReservedCount} نفر در حال خرید
               </BaseText>
             </View>
           ) : null}
 
           <View
             className={
-              preReservedCount > 0 && actionState.type === 'join'
+              preReserveDisplay.isPreReservedByMe ||
+              (preReserveDisplay.othersPreReservedCount > 0 &&
+                actionState.type === 'join')
                 ? 'flex-1'
                 : 'flex-1 w-full'
             }>
-            {actionState.type === 'waitingList' ? (
+            {actionState.type === 'preReservedByMe' ? (
+              <BaseButton
+                text="ادامه خرید"
+                type="Fill"
+                color="Primary"
+                size="Large"
+                rounded
+                onPress={handleContinuePurchase}
+              />
+            ) : actionState.type === 'waitingList' ? (
               <BaseButton
                 text="رزرو لیست انتظار"
                 type="Fill"

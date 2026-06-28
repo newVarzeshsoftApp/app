@@ -43,6 +43,12 @@ import usePriceCalculations from '../../utils/hooks/usePriceCalculations';
 import {useAuth} from '../../utils/hooks/useAuth';
 import {navigate} from '../../navigation/navigationRef';
 import {useBase64ImageFromMedia} from '../../utils/hooks/useBase64Image';
+import {
+  getPackageContractorSelection,
+  getPackageItemContractorSelection,
+  snapshotToContractors,
+  setPackageItemContractorSelection,
+} from '../../utils/helpers/packageContractorStore';
 
 type ServiceDetailProp = NativeStackScreenProps<
   ShopStackParamList,
@@ -123,19 +129,62 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
   }, [data?.priceList, route.params.priceId]);
 
   useEffect(() => {
+    if (!data?.contractors?.length) return;
+
     if (route.params.contractorId) {
-      const foundedContractor = data?.contractors?.find(
-        (item, index) => item?.contractor?.id === route.params.contractorId,
+      const foundedContractor = data.contractors.find(
+        item => item?.contractor?.id === route.params.contractorId,
       );
       if (foundedContractor) {
         setSelectedContractor(foundedContractor);
         return;
       }
     }
-    if (data?.requiredContractor) {
-      setSelectedContractor(data?.contractors?.[0]);
+
+    if (route.params.fromPackageId) {
+      const itemSnapshot = getPackageItemContractorSelection(
+        route.params.fromPackageId,
+        route.params.id,
+      );
+      if (itemSnapshot) {
+        const storedContractor = data.contractors.find(
+          item =>
+            item.contractorId === itemSnapshot.contractorId ||
+            item.contractor?.id === itemSnapshot.contractorId,
+        );
+        setSelectedContractor(
+          storedContractor ?? snapshotToContractors(itemSnapshot),
+        );
+        return;
+      }
+
+      const storedContractorId = getPackageContractorSelection(
+        route.params.fromPackageId,
+      );
+      if (storedContractorId) {
+        const storedContractor = data.contractors.find(
+          item =>
+            item.contractorId === storedContractorId ||
+            item.contractor?.id === storedContractorId,
+        );
+        if (storedContractor) {
+          setSelectedContractor(storedContractor);
+          return;
+        }
+      }
     }
-  }, [data?.requiredContractor, data?.contractors, route.params.priceId]);
+
+    if (data.requiredContractor) {
+      setSelectedContractor(data.contractors[0]);
+    }
+  }, [
+    data?.contractors,
+    data?.requiredContractor,
+    route.params.contractorId,
+    route.params.fromPackageId,
+    route.params.id,
+    route.params.priceId,
+  ]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -160,6 +209,25 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
 
   const {Discount, PricePreSession, Tax, Total, purchaseProfit} =
     usePriceCalculations({data, SelectedPriceList});
+
+  const isPackagePreview = !!route.params.fromPackageId;
+  const isContractorEditable = !route.params.readonly || isPackagePreview;
+
+  const handleContractorSelect = useCallback(
+    (contractor: Contractors) => {
+      setSelectedContractor(contractor);
+      if (route.params.fromPackageId) {
+        setPackageItemContractorSelection(
+          route.params.fromPackageId,
+          route.params.id,
+          contractor,
+        );
+      }
+      BottomSheetContractorRef.current?.close();
+    },
+    [route.params.fromPackageId, route.params.id],
+  );
+
   const handleAddToCart = useCallback(async () => {
     try {
       await addToCart({
@@ -244,10 +312,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                   key={index}
                   genders={item?.contractor?.gender ?? 0}
                   checked={SelectedContractor === item}
-                  onCheckedChange={() => {
-                    setSelectedContractor(item);
-                    BottomSheetContractorRef.current?.close();
-                  }}
+                  onCheckedChange={() => handleContractorSelect(item)}
                   Name={`${item?.contractor?.firstName} ${item?.contractor?.lastName}`}
                   ImageUrl={item?.contractor?.profile?.name}
                 />
@@ -351,7 +416,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                                 <UserRadioButton
                                   checked={SelectedContractor ? true : false}
                                   asButton
-                                  readonly={route.params.readonly}
+                                  readonly={!isContractorEditable}
                                   genders={
                                     SelectedContractor?.contractor?.gender ??
                                     ProfileData?.gender ??
@@ -372,8 +437,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                                   }
                                 />
                                 {!data?.requiredContractor &&
-                                  !route.params.contractorId &&
-                                  route.params.readonly &&
+                                  isContractorEditable &&
                                   SelectedContractor && (
                                     <BaseButton
                                       noText

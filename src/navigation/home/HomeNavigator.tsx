@@ -9,10 +9,13 @@ import GroupClassRoomStackNavigator from '../groupClassRoom/GroupClassRoomStackN
 import CartScreen from '../../screens/home/CartScreen';
 import WalletStackNavigator from '../wallet/WalletStackNavigator';
 import MyserviceScreen from '../../screens/home/myServices/MyserviceScreen';
+import {useGroupClassRoomEvents} from '../../utils/hooks/GroupClassRoom/useGroupClassRoomEvents';
 
 const Tab = createBottomTabNavigator<HomeStackParamList>();
 
 const HomeNavigator: React.FC = ({navigation}: any) => {
+  useGroupClassRoomEvents({enabled: true});
+
   return (
     <Tab.Navigator
       tabBar={props => <TabBar {...props} />}
