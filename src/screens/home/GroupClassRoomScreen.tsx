@@ -327,8 +327,7 @@ const GroupClassRoomScreen: React.FC = () => {
 
     if (
       !filters.organizationUnit ||
-      !filters.service ||
-      !filters.contractor
+      !filters.service
     ) {
       return;
     }
@@ -456,7 +455,7 @@ const GroupClassRoomScreen: React.FC = () => {
             {/* مربی */}
             <View className="gap-2">
               <BaseText type="title4" color="base">
-                مربی
+                مربی (اختیاری)
               </BaseText>
               <View className="gap-1 flex-row items-center flex-1">
                 <UserRadioButton

@@ -15,14 +15,21 @@ import {
 import Badge from '../../Badge/Badge';
 import BottomSheet, {BottomSheetMethods} from '../../BottomSheet/BottomSheet';
 import {useCartContext} from '../../../utils/CartContext';
+import ContractorInfo from '../../ContractorInfo/ContractorInfo';
+import {snapshotToContractors} from '../../../utils/helpers/packageContractorStore';
 type CartPackageCardProps = {
   data: CartItem;
 };
 const CartPackageCard: React.FC<CartPackageCardProps> = ({data}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Cart'});
   const {updateItemQuantity, removeFromCart} = useCartContext();
-  const {product, quantity, CartId} = data;
+  const {product, quantity, CartId, packageContractorData, SelectedContractor} =
+    data;
   const RemoveItemRef = useRef<BottomSheetMethods>(null);
+  const packageContractors =
+    packageContractorData?.itemContractors?.map(snapshotToContractors) ?? [];
+  const displayContractor =
+    SelectedContractor ?? packageContractors[0] ?? null;
 
   return (
     <>
@@ -55,6 +62,16 @@ const CartPackageCard: React.FC<CartPackageCardProps> = ({data}) => {
             redbutton
           />
         </View>
+        {displayContractor ? (
+          <View>
+            <ContractorInfo
+              firstName={displayContractor.contractor?.firstName}
+              lastName={displayContractor.contractor?.lastName}
+              imageName={displayContractor.contractor?.profile?.name}
+              gender={displayContractor.contractor?.gender}
+            />
+          </View>
+        ) : null}
         <View className="flex-row items-center justify-between gap-2 border-b border-neutral-0 dark:border-neutral-dark-400/50 pb-4">
           <View className="flex-row items-center gap-4 ">
             <BaseButton
@@ -106,15 +123,30 @@ const CartPackageCard: React.FC<CartPackageCardProps> = ({data}) => {
             <View className="flex-row items-center gap-1 flex-wrap">
               {product?.hasSubProduct ? (
                 product?.subProducts?.map((item, index) => {
+                  const itemContractor =
+                    packageContractorData?.itemContractors?.find(
+                      entry => entry.productId === item.product?.id,
+                    );
+
                   return (
-                    <Badge
-                      key={index}
-                      CreditMode={item.product?.type === 2 ? true : false}
-                      defaultMode
-                      textColor="supportive5"
-                      className="w-fit"
-                      value={item.product?.title ?? ''}
-                    />
+                    <View key={index} className="gap-1 w-full">
+                      <Badge
+                        CreditMode={item.product?.type === 2}
+                        defaultMode
+                        textColor="supportive5"
+                        className="w-fit"
+                        value={item.product?.title ?? ''}
+                      />
+                      {itemContractor ? (
+                        <ContractorInfo
+                          fullName={`${itemContractor.firstName ?? ''} ${
+                            itemContractor.lastName ?? ''
+                          }`.trim()}
+                          imageName={itemContractor.imageName}
+                          gender={itemContractor.gender}
+                        />
+                      ) : null}
+                    </View>
                   );
                 })
               ) : (

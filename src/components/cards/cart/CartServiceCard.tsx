@@ -40,13 +40,60 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
     SelectedPriceList,
     isReserve,
     reservationData,
+    isGroupClassRoom,
+    groupClassRoomData,
   } = data;
+  const isGroupClassRoomItem = Boolean(
+    isGroupClassRoom || groupClassRoomData?.groupClassRoomId,
+  );
   const {updateItemQuantity, removeFromCart, updateReservationItemData} =
     useCartContext();
   const RemoveItemRef = useRef<BottomSheetMethods>(null);
   const preReserveMutation = usePreReserve();
   // Flag to prevent sync loop when updating from local
   const isUpdatingFromLocalRef = useRef(false);
+
+  const groupClassRoomContractor = useMemo(() => {
+    if (!isGroupClassRoomItem || !groupClassRoomData) return null;
+
+    if (SelectedContractor?.contractor) {
+      return {
+        firstName: SelectedContractor.contractor.firstName,
+        lastName: SelectedContractor.contractor.lastName,
+        imageName: SelectedContractor.contractor.profile?.name,
+        gender: SelectedContractor.contractor.gender,
+      };
+    }
+
+    if (groupClassRoomData.contractorName) {
+      return {
+        fullName: groupClassRoomData.contractorName,
+        imageName: groupClassRoomData.contractorImageName,
+        gender: groupClassRoomData.contractorGender,
+      };
+    }
+
+    return null;
+  }, [SelectedContractor, groupClassRoomData, isGroupClassRoomItem]);
+
+  const groupClassRoomScheduleRows = useMemo(() => {
+    if (!isGroupClassRoomItem || !groupClassRoomData) return [];
+
+    if (groupClassRoomData.scheduleRows?.length) {
+      return groupClassRoomData.scheduleRows;
+    }
+
+    if (groupClassRoomData.scheduleDaysLabel) {
+      return [
+        {
+          daysLabel: groupClassRoomData.scheduleDaysLabel,
+          timeLabel: groupClassRoomData.scheduleTimeLabel ?? '',
+        },
+      ];
+    }
+
+    return [];
+  }, [groupClassRoomData, isGroupClassRoomItem]);
 
   // For reservation items, calculate price differently
   const isReservationItem = isReserve && reservationData;
@@ -617,7 +664,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
         }}
       />
       <View className="CardBase gap-3">
-        <View className="w-full h-[185px] bg-neutral-0 dark:bg-neutral-dark-0 rounded-3xl  relative overflow-hidden">
+        <View className="w-full h-[185px] bg-neutral-0 dark:bg-neutral-dark-0 rounded-3xl relative overflow-hidden">
           {product?.image?.name && (
             <ResponsiveImage
               customSource={{default: product?.image?.name}}
@@ -627,73 +674,137 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
             />
           )}
         </View>
-        <View className="flex-row items-center justify-between">
-          <BaseText type="subtitle2" color="base">
-            {product?.title}
-          </BaseText>
-          <BaseButton
-            noText
-            onPress={() => RemoveItemRef.current?.expand()}
-            type="Outline"
-            color="Black"
-            LeftIcon={Trash}
-            redbutton
-          />
-        </View>
-        {SelectedContractor && (
-          <View>
-            <ContractorInfo
-              firstName={SelectedContractor?.contractor?.firstName}
-              lastName={SelectedContractor?.contractor?.lastName}
-              imageName={SelectedContractor?.contractor?.profile?.name}
-              gender={SelectedContractor?.contractor?.gender}
-            />
-          </View>
-        )}
-        <View className="flex-row items-center justify-between gap-2 border-b border-neutral-0 dark:border-neutral-dark-400/50 pb-4">
-          <View className="flex-row items-center gap-4 ">
-            {isReservationItem ? (
-              // For reservation items, show "1 عدد" without controls (fixed at 1)
+
+        {isGroupClassRoomItem ? (
+          <>
+            <View className="flex-row items-center justify-between">
               <BaseText type="subtitle2" color="base">
-                ۱ عدد
+                {product?.title}
               </BaseText>
-            ) : (
-              // For regular items, show quantity controls
-              <>
-                <BaseButton
-                  onPress={() =>
-                    CartId &&
-                    updateItemQuantity({cartId: CartId, quantity: quantity + 1})
-                  }
-                  type="Tonal"
-                  color="Black"
-                  text="+"
+              <BaseButton
+                noText
+                onPress={() => RemoveItemRef.current?.expand()}
+                type="Outline"
+                color="Black"
+                LeftIcon={Trash}
+                redbutton
+              />
+            </View>
+
+            {groupClassRoomContractor ? (
+              <View>
+                <ContractorInfo
+                  firstName={groupClassRoomContractor.firstName}
+                  lastName={groupClassRoomContractor.lastName}
+                  fullName={groupClassRoomContractor.fullName}
+                  imageName={groupClassRoomContractor.imageName}
+                  gender={groupClassRoomContractor.gender}
                 />
-                <BaseText type="subtitle2" color="base">
-                  {quantity}
+              </View>
+            ) : null}
+
+            {groupClassRoomScheduleRows.length > 0 ? (
+              <View className="gap-1">
+                {groupClassRoomScheduleRows.map((row, index) => (
+                  <View
+                    key={`${row.daysLabel}-${row.timeLabel}-${index}`}
+                    className="flex-row items-center justify-between">
+                    <BaseText type="body3" color="secondary">
+                      {row.daysLabel}
+                    </BaseText>
+                    <BaseText type="body3" color="secondary">
+                      {row.timeLabel}
+                    </BaseText>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+
+            {groupClassRoomData?.waitingForGroupClass ? (
+              <View className="px-3 py-2 rounded-full border border-dashed border-warning-500 items-center justify-center">
+                <BaseText type="subtitle3" color="warning">
+                  لیست انتظار
                 </BaseText>
-                <BaseButton
-                  type="Tonal"
-                  color="Black"
-                  text="-"
-                  onPress={() =>
-                    CartId &&
-                    updateItemQuantity({
-                      cartId: CartId,
-                      quantity: quantity === 1 ? quantity : quantity - 1,
-                    })
-                  }
+              </View>
+            ) : null}
+
+            <View className="border-b border-neutral-0 dark:border-neutral-dark-400/50" />
+          </>
+        ) : (
+          <>
+            <View className="flex-row items-center justify-between">
+              <BaseText type="subtitle2" color="base">
+                {product?.title}
+              </BaseText>
+              <BaseButton
+                noText
+                onPress={() => RemoveItemRef.current?.expand()}
+                type="Outline"
+                color="Black"
+                LeftIcon={Trash}
+                redbutton
+              />
+            </View>
+            {SelectedContractor && (
+              <View>
+                <ContractorInfo
+                  firstName={SelectedContractor?.contractor?.firstName}
+                  lastName={SelectedContractor?.contractor?.lastName}
+                  imageName={SelectedContractor?.contractor?.profile?.name}
+                  gender={SelectedContractor?.contractor?.gender}
                 />
-              </>
+              </View>
             )}
-          </View>
-          <BaseText type="subtitle2" color="base">
-            {formatNumber(
-              isReservationItem ? reservationTotals.total : Total + (Tax || 0),
-            )}{' '}
-            ﷼
-          </BaseText>
-        </View>
+            <View className="flex-row items-center justify-between gap-2 border-b border-neutral-0 dark:border-neutral-dark-400/50 pb-4">
+              <View className="flex-row items-center gap-4 ">
+                {isReservationItem ? (
+                  <BaseText type="subtitle2" color="base">
+                    ۱ عدد
+                  </BaseText>
+                ) : (
+                  <>
+                    <BaseButton
+                      onPress={() =>
+                        CartId &&
+                        updateItemQuantity({
+                          cartId: CartId,
+                          quantity: quantity + 1,
+                        })
+                      }
+                      type="Tonal"
+                      color="Black"
+                      text="+"
+                    />
+                    <BaseText type="subtitle2" color="base">
+                      {quantity}
+                    </BaseText>
+                    <BaseButton
+                      type="Tonal"
+                      color="Black"
+                      text="-"
+                      onPress={() =>
+                        CartId &&
+                        updateItemQuantity({
+                          cartId: CartId,
+                          quantity: quantity === 1 ? quantity : quantity - 1,
+                        })
+                      }
+                    />
+                  </>
+                )}
+              </View>
+              <BaseText type="subtitle2" color="base">
+                {formatNumber(
+                  isReservationItem
+                    ? reservationTotals.total
+                    : Total + (Tax || 0),
+                )}{' '}
+                ﷼
+              </BaseText>
+            </View>
+          </>
+        )}
+
         <View className="gap-4">
           <BaseText type="subtitle2" color="secondaryPurple">
             {t('order Detail')}

@@ -18,7 +18,7 @@ import {useAuth} from '../../utils/hooks/useAuth';
 import {navigate} from '../../navigation/navigationRef';
 import {ProductType, TransactionSourceType} from '../../constants/options';
 import {ReservationData} from '../../utils/helpers/CartStorage';
-import {SaleOrderItem} from '../../services/models/request/OperationalReqService';
+import {resolveCartItemContractorId} from '../../utils/helpers/packageContractorStore';
 import {useGetPaymentResult} from '../../utils/hooks/Operational/useGetPaymentResult';
 type PaymentScreenProps = NativeStackScreenProps<
   DrawerStackParamList,
@@ -301,6 +301,8 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
           )
           .format('YYYY-MM-DD');
 
+        const contractorId = resolveCartItemContractorId(item);
+
         return {
           quantity: 1,
           product: item.product.id,
@@ -310,8 +312,8 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
             item.product?.type === ProductType.Package
               ? 4
               : item.product?.type ?? 1,
-          contractor: item?.SelectedContractor?.contractorId ?? null,
-          contractorId: item?.SelectedContractor?.contractorId ?? null,
+          contractor: contractorId,
+          contractorId,
           start: startDateGregorian, // Gregorian format (YYYY-MM-DD)
           end: endDateGregorian, // Gregorian format (YYYY-MM-DD)
           isOnline: true,

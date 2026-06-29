@@ -11,6 +11,7 @@ import {
 } from './ReservationStorage';
 import {useReservationStore} from '../../store/reservationStore';
 import moment from 'jalali-moment';
+import {PackageCartData} from './packageContractorStore';
 
 let EncryptedStorage: typeof EncryptedStorageType;
 
@@ -61,7 +62,13 @@ export interface CartItem {
   // Group class room fields
   isGroupClassRoom?: boolean;
   groupClassRoomData?: GroupClassRoomCartData;
+  packageContractorData?: PackageCartData;
   addedToCartAt?: string; // ISO timestamp when item was added to cart (for expiration check)
+}
+
+export interface GroupClassRoomCartScheduleRow {
+  daysLabel: string;
+  timeLabel: string;
 }
 
 export interface GroupClassRoomCartData {
@@ -69,6 +76,12 @@ export interface GroupClassRoomCartData {
   contractorId: number;
   waitingForGroupClass?: boolean;
   selectedDays?: number[];
+  contractorName?: string;
+  contractorImageName?: string;
+  contractorGender?: number;
+  scheduleRows?: GroupClassRoomCartScheduleRow[];
+  scheduleDaysLabel?: string;
+  scheduleTimeLabel?: string;
 }
 
 const CART_KEY = 'shopping_cart';
@@ -120,6 +133,69 @@ export const addCart = async (
 
     // برای آیتم‌های رزروی، باید همه آیتم‌های رزروی را چک کنیم
     const isReservationItem = item.isReserve && item.reservationData;
+
+    // Group class room items must never merge with regular service items (same product.id).
+    const isGroupClassRoomItem = item.isGroupClassRoom && item.groupClassRoomData;
+
+    if (isGroupClassRoomItem) {
+      const newGroupClassRoomData = item.groupClassRoomData!;
+      const hasSameSelectedDays = (
+        existingDays?: number[],
+        nextDays?: number[],
+      ) => {
+        const left = [...(existingDays ?? [])].sort((a, b) => a - b);
+        const right = [...(nextDays ?? [])].sort((a, b) => a - b);
+
+        if (left.length !== right.length) {
+          return false;
+        }
+
+        return left.every((day, index) => day === right[index]);
+      };
+
+      const duplicateIndex = cart.findIndex(cartItem => {
+        if (!cartItem.isGroupClassRoom || !cartItem.groupClassRoomData) {
+          return false;
+        }
+
+        const existingGroupClassRoomData = cartItem.groupClassRoomData;
+
+        return (
+          existingGroupClassRoomData.groupClassRoomId ===
+            newGroupClassRoomData.groupClassRoomId &&
+          existingGroupClassRoomData.contractorId ===
+            newGroupClassRoomData.contractorId &&
+          cartItem.SelectedPriceList?.id === item.SelectedPriceList?.id &&
+          hasSameSelectedDays(
+            existingGroupClassRoomData.selectedDays,
+            newGroupClassRoomData.selectedDays,
+          )
+        );
+      });
+
+      if (duplicateIndex !== -1) {
+        cart[duplicateIndex] = {
+          ...cart[duplicateIndex],
+          ...item,
+          quantity: 1,
+          CartId: cart[duplicateIndex].CartId,
+          submitAt: cart[duplicateIndex].submitAt,
+          addedToCartAt:
+            cart[duplicateIndex].addedToCartAt ?? new Date().toISOString(),
+        };
+      } else {
+        cart.push({
+          ...item,
+          quantity: 1,
+          CartId: generateCartId(),
+          submitAt: new Date().toISOString(),
+          addedToCartAt: new Date().toISOString(),
+        });
+      }
+
+      await setCartStorage(cart);
+      return;
+    }
 
     if (isReservationItem) {
       // برای رزروها: چک می‌کنیم که آیا همان خدمت با همان تاریخ و ساعت وجود دارد
@@ -278,7 +354,9 @@ export const addCart = async (
     } else {
       // برای آیتم‌های غیر رزروی
       const existingItemIndex = cart.findIndex(
-        cartItem => cartItem.product?.id === item.product?.id,
+        cartItem =>
+          !cartItem.isGroupClassRoom &&
+          cartItem.product?.id === item.product?.id,
       );
 
       if (existingItemIndex !== -1) {

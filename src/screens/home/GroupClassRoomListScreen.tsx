@@ -13,6 +13,7 @@ import {
   getGroupClassRoomConfig,
   groupClassRoomListParamsToQuery,
   normalizeGroupClassRoomResponse,
+  resolveGroupClassRoomDetailContractorId,
 } from '../../utils/helpers/groupClassRoomHelpers';
 import {logGroupClassRoomSseDebug} from '../../utils/helpers/groupClassRoomSseDebug';
 
@@ -67,11 +68,10 @@ const GroupClassRoomListScreen: React.FC = () => {
 
   const navigateToDetail = useCallback(
     (item: GroupClassRoom, waitingList: boolean) => {
-      const configContractorId = getGroupClassRoomConfig(
+      const contractorId = resolveGroupClassRoomDetailContractorId(
         item,
         selectedContractorId,
-      )?.contractorId;
-      const contractorId = configContractorId ?? selectedContractorId;
+      );
       if (!contractorId) return;
 
       navigation.navigate('groupClassRoomDetail', {

@@ -10,10 +10,11 @@ import {useTranslation} from 'react-i18next';
 type PackageDetailItemContractorProps = {
   selectedContractor: Contractors | null;
   onSelectPress: () => void;
+  isContractorRequired?: boolean;
 };
 
 const PackageDetailItemContractor: React.FC<PackageDetailItemContractorProps> =
-  ({selectedContractor, onSelectPress}) => {
+  ({selectedContractor, onSelectPress, isContractorRequired = true}) => {
     const {t} = useTranslation('translation', {keyPrefix: 'Shop.Package'});
     const contractorUser = selectedContractor?.contractor;
     const contractorName = contractorUser
@@ -24,6 +25,7 @@ const PackageDetailItemContractor: React.FC<PackageDetailItemContractorProps> =
       <View className="pt-3 gap-2 border-t border-neutral-0 dark:border-neutral-dark-400/50">
         <BaseText type="body3" color="secondary">
           {t('contractorSelection')}
+          {!isContractorRequired ? ' (اختیاری)' : ''}
         </BaseText>
 
         {selectedContractor && contractorName ? (
@@ -45,17 +47,19 @@ const PackageDetailItemContractor: React.FC<PackageDetailItemContractorProps> =
           </View>
         ) : (
           <View className="gap-2">
-            <Pressable
-              onPress={onSelectPress}
-              className="flex-row items-center gap-2 px-3 py-2 rounded-2xl border border-dashed border-warning-500 bg-warning-500/10">
-              <User size={18} color="#f59e0b" variant="Bold" />
-              <BaseText type="subtitle3" color="warning">
-                {t('contractorNotSelected')}
-              </BaseText>
-            </Pressable>
+            {isContractorRequired ? (
+              <Pressable
+                onPress={onSelectPress}
+                className="flex-row items-center gap-2 px-3 py-2 rounded-2xl border border-dashed border-warning-500 bg-warning-500/10">
+                <User size={18} color="#f59e0b" variant="Bold" />
+                <BaseText type="subtitle3" color="warning">
+                  {t('contractorNotSelected')}
+                </BaseText>
+              </Pressable>
+            ) : null}
             <BaseButton
               text={t('chooseContractor')}
-              type="Fill"
+              type={isContractorRequired ? 'Fill' : 'Outline'}
               color="Black"
               size="Medium"
               rounded

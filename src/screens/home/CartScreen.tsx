@@ -46,6 +46,7 @@ import {
   convertCartItemToReservationStoreItem,
   getReservationKey,
 } from '../../utils/helpers/ReservationStorage';
+import {resolveCartItemContractorId} from '../../utils/helpers/packageContractorStore';
 type PaymentMethodType = {
   getway?: number;
   isWallet?: boolean;
@@ -562,6 +563,8 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
           )
           .format('YYYY-MM-DD');
 
+        const contractorId = resolveCartItemContractorId(item);
+
         return {
           quantity: 1,
           product: item.product.id,
@@ -573,8 +576,8 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
             item.product?.type === ProductType.Package
               ? 4
               : item.product?.type ?? 1,
-          contractor: item?.SelectedContractor?.contractorId ?? null,
-          contractorId: item?.SelectedContractor?.contractorId ?? null,
+          contractor: contractorId,
+          contractorId,
           start: startDateGregorian,
           end: endDateGregorian,
           isOnline: true,

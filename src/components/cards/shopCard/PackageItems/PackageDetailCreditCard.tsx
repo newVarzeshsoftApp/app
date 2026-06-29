@@ -17,6 +17,7 @@ type PackageDetailCreditCardProps = {
   onPressCard: () => void;
   onSelectContractor: () => void;
   isGift?: boolean;
+  isContractorRequired?: boolean;
 };
 
 const PackageDetailCreditCard: React.FC<PackageDetailCreditCardProps> = ({
@@ -25,6 +26,7 @@ const PackageDetailCreditCard: React.FC<PackageDetailCreditCardProps> = ({
   onPressCard,
   onSelectContractor,
   isGift,
+  isContractorRequired = true,
 }) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Shop.creditService'});
 
@@ -82,6 +84,7 @@ const PackageDetailCreditCard: React.FC<PackageDetailCreditCardProps> = ({
       <PackageDetailItemContractor
         selectedContractor={selectedContractor}
         onSelectPress={onSelectContractor}
+        isContractorRequired={isContractorRequired}
       />
     </View>
   );

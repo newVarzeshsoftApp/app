@@ -39,6 +39,7 @@ import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {formatNumber} from '../../utils/helpers/helpers';
 import {navigate} from '../../navigation/navigationRef';
 import {
+  buildGroupClassRoomCartData,
   buildGroupClassRoomPreReservePayload,
   getGroupClassRoomContractorProfile,
   getGroupClassRoomDayOptions,
@@ -298,6 +299,9 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
 
     const activeContractorId =
       selectedContractor?.contractorId ?? contractorId;
+    const resolvedContractor =
+      selectedContractor ??
+      resolveGroupClassRoomProductContractor(classRoom, activeContractorId);
 
     try {
       const payload = buildGroupClassRoomPreReservePayload({
@@ -315,14 +319,14 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
       await addToCart({
         product: productData,
         SelectedPriceList: selectedPriceList,
-        SelectedContractor: selectedContractor,
+        SelectedContractor: resolvedContractor ?? null,
         isGroupClassRoom: true,
-        groupClassRoomData: {
-          groupClassRoomId: classRoom.id,
+        groupClassRoomData: buildGroupClassRoomCartData(classRoom, {
           contractorId: activeContractorId,
-          waitingForGroupClass: waitingList,
+          selectedContractor: resolvedContractor,
           selectedDays: isFlexible ? selectedDays : undefined,
-        },
+          waitingForGroupClass: waitingList,
+        }),
       });
 
       navigate('Root', {screen: 'HomeNavigator', params: {screen: 'cart'}});

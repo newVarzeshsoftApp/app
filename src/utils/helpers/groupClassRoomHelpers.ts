@@ -11,7 +11,10 @@ import {GetAllOrganizationResponse} from '../../services/models/response/Organiz
 import {ColorRingConfig, DayType, TimeRanges} from '../../constants/options';
 import {
   GROUP_CLASS_ROOM_DAY_DISPLAY_ORDER,
+  GROUP_CLASS_ROOM_DAY_LABELS,
+  GROUP_CLASS_ROOM_EVEN_DAY_IDS,
   GROUP_CLASS_ROOM_KEY,
+  GROUP_CLASS_ROOM_ODD_DAY_IDS,
 } from '../../constants/groupClassRoom';
 import {
   GroupClassRoomDetailParams,
@@ -21,24 +24,21 @@ import {
   GroupClassRoomPreReserveQuery,
   GroupClassRoomQuery,
 } from '../../services/models/requestQueries';
-import {CartItem} from './CartStorage';
+import {CartItem, GroupClassRoomCartData, GroupClassRoomCartScheduleRow} from './CartStorage';
 import {logGroupClassRoomRefetchSnapshot} from './groupClassRoomSseDebug';
-
-const EVEN_DAY_IDS = [6, 1, 3];
-const ODD_DAY_IDS = [0, 2, 4];
-
-const DAY_LABELS: Record<number, string> = {
-  0: 'یکشنبه',
-  1: 'دوشنبه',
-  2: 'سه‌شنبه',
-  3: 'چهارشنبه',
-  4: 'پنجشنبه',
-  5: 'جمعه',
-  6: 'شنبه',
-};
 
 const isSubsetOf = (days: number[], allowed: number[]) =>
   days.length > 0 && days.every(day => allowed.includes(day));
+
+const sortGroupClassRoomDays = (days: number[]) =>
+  [...days].sort(
+    (a, b) =>
+      GROUP_CLASS_ROOM_DAY_DISPLAY_ORDER.indexOf(a) -
+      GROUP_CLASS_ROOM_DAY_DISPLAY_ORDER.indexOf(b),
+  );
+
+export const getGroupClassRoomDayLabel = (day: number) =>
+  GROUP_CLASS_ROOM_DAY_LABELS[day] ?? `روز ${day}`;
 
 const getGroupClassRoomConfigs = (
   item: GroupClassRoom,
@@ -115,17 +115,17 @@ export const formatScheduleTime = (schedule?: GroupClassRoomSchedule) => {
 export const formatScheduleDaysLabel = (days?: number[]) => {
   if (!days?.length) return '';
 
-  const sortedDays = [...days].sort((a, b) => a - b);
+  const sortedDays = sortGroupClassRoomDays(days);
 
-  if (isSubsetOf(sortedDays, EVEN_DAY_IDS)) {
+  if (isSubsetOf(sortedDays, GROUP_CLASS_ROOM_EVEN_DAY_IDS)) {
     return 'روزهای زوج';
   }
 
-  if (isSubsetOf(sortedDays, ODD_DAY_IDS)) {
+  if (isSubsetOf(sortedDays, GROUP_CLASS_ROOM_ODD_DAY_IDS)) {
     return 'روزهای فرد';
   }
 
-  return sortedDays.map(day => DAY_LABELS[day] ?? `روز ${day}`).join('، ');
+  return sortedDays.map(day => getGroupClassRoomDayLabel(day)).join('، ');
 };
 
 export const getPrimarySchedule = (item: GroupClassRoom) => item.schedules?.[0];
@@ -311,15 +311,18 @@ export const normalizeGroupClassRoomResponse = (
 export const buildGroupClassRoomListParams = (filters: {
   dayType: DayType;
   timeRange: TimeRanges;
-  contractor: {value: string};
+  contractor?: {value: string} | null;
   organizationUnit: {value: string};
   service: {value: string};
 }): GroupClassRoomListParams => {
   const params: GroupClassRoomListParams = {
     organizationUnit: filters.organizationUnit.value,
     service: filters.service.value,
-    contractor: filters.contractor.value,
   };
+
+  if (filters.contractor?.value && filters.contractor.value !== 'all') {
+    params.contractor = filters.contractor.value;
+  }
 
   if (filters.dayType !== DayType.ALL) {
     params.dayType = filters.dayType;
@@ -353,10 +356,6 @@ export const validateGroupClassRoomFilters = (filters: {
     errors.service = 'لطفاً خدمت را انتخاب کنید';
   }
 
-  if (!filters.contractor?.data || filters.contractor.value === 'all') {
-    errors.contractor = 'لطفاً مربی را انتخاب کنید';
-  }
-
   return errors;
 };
 
@@ -365,11 +364,30 @@ export const groupClassRoomListParamsToQuery = (
 ): GroupClassRoomQuery => ({
   dayType: params.dayType,
   timeRange: params.timeRange,
-  contractor: params.contractor,
+  contractor:
+    params.contractor && params.contractor !== 'all'
+      ? params.contractor
+      : undefined,
   organizationUnit: params.organizationUnit,
   service:
     params.service && params.service !== 'all' ? params.service : undefined,
 });
+
+export const resolveGroupClassRoomDetailContractorId = (
+  item: GroupClassRoom,
+  filterContractorId?: number,
+): number | undefined => {
+  if (filterContractorId != null) {
+    return filterContractorId;
+  }
+
+  const configContractorId = getGroupClassRoomConfig(item)?.contractorId;
+  if (configContractorId != null) {
+    return configContractorId;
+  }
+
+  return item.contractors?.[0]?.id;
+};
 
 export const resolveGroupClassRoomContractor = (
   item: GroupClassRoom,
@@ -470,7 +488,7 @@ export const getGroupClassRoomDayOptions = (
   return GROUP_CLASS_ROOM_DAY_DISPLAY_ORDER.filter(day => dayMap.has(day)).map(
     day => ({
       day,
-      label: DAY_LABELS[day] ?? `روز ${day}`,
+      label: getGroupClassRoomDayLabel(day),
       from: dayMap.get(day)!.from,
       to: dayMap.get(day)!.to,
     }),
@@ -527,6 +545,66 @@ export const resolveGroupClassRoomProductContractor = (
   return {
     contractorId: matchedUser.id,
     contractor: matchedUser,
+  };
+};
+
+export const buildGroupClassRoomCartScheduleRows = (
+  classRoom: GroupClassRoom,
+  selectedDays?: number[],
+): GroupClassRoomCartScheduleRow[] => {
+  if (selectedDays?.length) {
+    return getGroupClassRoomDayOptions(classRoom)
+      .filter(option => selectedDays.includes(option.day))
+      .map(option => ({
+        daysLabel: option.label,
+        timeLabel: `${option.from} – ${option.to}`,
+      }));
+  }
+
+  return (classRoom.schedules ?? [])
+    .map(schedule => ({
+      daysLabel: formatScheduleDaysLabel(schedule.days),
+      timeLabel: formatScheduleTime(schedule).replace(' - ', ' – '),
+    }))
+    .filter(row => row.daysLabel && row.timeLabel);
+};
+
+export const buildGroupClassRoomCartData = (
+  classRoom: GroupClassRoom,
+  options: {
+    contractorId: number;
+    selectedContractor?: Contractors | null;
+    selectedDays?: number[];
+    waitingForGroupClass?: boolean;
+  },
+): GroupClassRoomCartData => {
+  const resolvedContractor =
+    options.selectedContractor ??
+    resolveGroupClassRoomProductContractor(classRoom, options.contractorId);
+
+  const contractorUser = resolvedContractor?.contractor;
+  const contractorName =
+    [contractorUser?.firstName, contractorUser?.lastName]
+      .filter(Boolean)
+      .join(' ')
+      .trim() || classRoom.config?.contractorFullName;
+
+  const scheduleRows = buildGroupClassRoomCartScheduleRows(
+    classRoom,
+    options.selectedDays,
+  );
+
+  return {
+    groupClassRoomId: classRoom.id,
+    contractorId: options.contractorId,
+    waitingForGroupClass: options.waitingForGroupClass,
+    selectedDays: options.selectedDays,
+    contractorName: contractorName || undefined,
+    contractorImageName: contractorUser?.profile?.name,
+    contractorGender: contractorUser?.gender,
+    scheduleRows,
+    scheduleDaysLabel: scheduleRows.map(row => row.daysLabel).join(' | ') || undefined,
+    scheduleTimeLabel: scheduleRows.map(row => row.timeLabel).join('، ') || undefined,
   };
 };
 

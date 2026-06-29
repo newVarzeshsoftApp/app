@@ -56,8 +56,12 @@ import {useAuth} from '../../utils/hooks/useAuth';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {useFocusEffect} from '@react-navigation/native';
 import {
+  applyPackageContractorsToProduct,
+  areRequiredPackageContractorsSelected,
+  collectPackageContractorsForCart,
   getPackageContractorSelection,
   resolveContractorForPackageItem,
+  resolvePackageCartContractor,
   setPackageContractorSelection,
   setPackageItemContractorSelection,
 } from '../../utils/helpers/packageContractorStore';
@@ -76,10 +80,16 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
   const {addToCart} = useCartContext();
   const {theme} = useTheme();
   const bottomSheetContractorRef = useRef<BottomSheetMethods>(null);
-  const pendingItemProductIdRef = useRef<number | null>(null);
+  const [contractorSheetProductId, setContractorSheetProductId] = useState<
+    number | null
+  >(null);
   const [listRefreshKey, setListRefreshKey] = useState(0);
   const [selectedContractor, setSelectedContractor] =
     useState<Contractors | null>(null);
+  const {data: contractorSheetProduct} = UseGetProductByID(
+    contractorSheetProductId ?? 0,
+    {enabled: !!contractorSheetProductId},
+  );
 
   const packageDiscount = getPackageDiscountAmount(data);
   const finalPrice = getPackageFinalPrice(data);
@@ -132,10 +142,13 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
       return;
     }
 
-    setSelectedContractor(data.contractors[0]);
+    if (data.requiredContractor) {
+      setSelectedContractor(data.contractors[0]);
+    }
   }, [
     data?.contractors,
     data?.hasContractor,
+    data?.requiredContractor,
     route.params.contractorId,
     route.params.id,
   ]);
@@ -161,18 +174,48 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
     }, [data?.contractors, data?.hasContractor, route.params.id]),
   );
 
+  const contractorSheetOptions = useMemo(() => {
+    if (contractorSheetProductId && contractorSheetProduct?.contractors?.length) {
+      return contractorSheetProduct.contractors;
+    }
+
+    return data?.contractors ?? [];
+  }, [contractorSheetProduct?.contractors, contractorSheetProductId, data?.contractors]);
+
+  const getContractorSheetSelection = useCallback(() => {
+    if (contractorSheetProductId) {
+      if (!contractorSheetProduct) {
+        return null;
+      }
+
+      return resolveContractorForPackageItem(
+        contractorSheetProduct,
+        data?.contractors ?? [],
+        route.params.id,
+      );
+    }
+
+    return selectedContractor;
+  }, [
+    contractorSheetProduct,
+    contractorSheetProductId,
+    data?.contractors,
+    route.params.id,
+    selectedContractor,
+  ]);
+
   const handleContractorSelect = useCallback(
     (contractor: Contractors) => {
-      setSelectedContractor(contractor);
-
-      if (pendingItemProductIdRef.current) {
+      if (contractorSheetProductId) {
         setPackageItemContractorSelection(
           route.params.id,
-          pendingItemProductIdRef.current,
+          contractorSheetProductId,
           contractor,
         );
-        pendingItemProductIdRef.current = null;
+        setContractorSheetProductId(null);
       } else {
+        setSelectedContractor(contractor);
+
         const contractorId =
           contractor.contractorId ?? contractor.contractor?.id;
         if (contractorId) {
@@ -183,7 +226,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
       setListRefreshKey(prev => prev + 1);
       bottomSheetContractorRef.current?.close();
     },
-    [route.params.id],
+    [contractorSheetProductId, route.params.id],
   );
 
   const handleClearContractor = useCallback(() => {
@@ -208,7 +251,8 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
     );
   }, [route.params.id, selectedContractor]);
 
-  const openContractorSheet = useCallback(() => {
+  const openContractorSheet = useCallback((productId?: number) => {
+    setContractorSheetProductId(productId ?? null);
     bottomSheetContractorRef.current?.expand();
   }, []);
 
@@ -238,15 +282,14 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
 
   const handleItemContractorSelect = useCallback(
     (product: Product) => {
-      if (data?.hasContractor && data.contractors?.length) {
-        pendingItemProductIdRef.current = product.id;
-        openContractorSheet();
+      if (product.hasContractor) {
+        openContractorSheet(product.id);
         return;
       }
 
       navigateToPackageItem(product);
     },
-    [data?.contractors, data?.hasContractor, navigateToPackageItem, openContractorSheet],
+    [navigateToPackageItem, openContractorSheet],
   );
 
   const renderItem = useCallback(
@@ -270,6 +313,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
             key={item.id}
             data={product}
             selectedContractor={itemContractor}
+            isContractorRequired={product.requiredContractor}
             onPressCard={() => navigateToPackageItem(product)}
             onSelectContractor={() => handleItemContractorSelect(product)}
           />
@@ -282,6 +326,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
             key={item.id}
             data={product}
             selectedContractor={itemContractor}
+            isContractorRequired={product.requiredContractor}
             onPressCard={() => navigateToPackageItem(product)}
             onSelectContractor={() => handleItemContractorSelect(product)}
           />
@@ -315,50 +360,40 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
   const canSubmit = useMemo(() => {
     if (!data) return false;
 
-    const activeContractorId = getActiveContractorId();
-    const itemsRequiringContractor =
-      data.subProducts?.filter(subProduct => subProduct.product?.hasContractor) ??
-      [];
-
-    const allItemContractorsSelected =
-      itemsRequiringContractor.length === 0 ||
-      itemsRequiringContractor.every(subProduct =>
-        !!resolveContractorForPackageItem(
-          subProduct.product!,
-          data.contractors ?? [],
-          route.params.id,
-          activeContractorId,
-        ),
-      );
-
-    const packageRequiresContractor =
-      !!data.hasContractor && (data.contractors?.length ?? 0) > 0;
-    const isPackageContractorSelected =
-      !packageRequiresContractor ||
-      !!selectedContractor ||
-      !!getPackageContractorSelection(route.params.id);
-
-    return allItemContractorsSelected && isPackageContractorSelected;
-  }, [
-    data,
-    getActiveContractorId,
-    listRefreshKey,
-    route.params.id,
-    selectedContractor,
-  ]);
+    return areRequiredPackageContractorsSelected(
+      data,
+      route.params.id,
+      selectedContractor,
+    );
+  }, [data, route.params.id, selectedContractor, listRefreshKey]);
 
   const handleAddToCart = useCallback(async () => {
     if (!data || !canSubmit) return;
 
+    const itemContractors = collectPackageContractorsForCart(
+      route.params.id,
+      data,
+    );
+    const resolvedContractor = resolvePackageCartContractor(
+      data,
+      route.params.id,
+      selectedContractor,
+    );
+    const productWithContractors = applyPackageContractorsToProduct(
+      data,
+      itemContractors,
+    );
+
     try {
       await addToCart({
-        product: data,
-        SelectedContractor: selectedContractor,
+        product: productWithContractors,
+        SelectedContractor: resolvedContractor,
+        packageContractorData: {itemContractors},
       });
-      if (selectedContractor) {
+      if (resolvedContractor) {
         const contractorId =
-          selectedContractor.contractorId ??
-          selectedContractor.contractor?.id;
+          resolvedContractor.contractorId ??
+          resolvedContractor.contractor?.id;
         if (contractorId) {
           setPackageContractorSelection(route.params.id, contractorId);
         }
@@ -379,18 +414,22 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
         snapPoints={[70]}
         Title={tService('Contractor List')}>
         <View className="gap-3">
-          {data?.contractors?.map((item, index) => (
-            <UserRadioButton
-              key={index}
-              genders={item?.contractor?.gender ?? 0}
-              checked={selectedContractor === item}
-              onCheckedChange={() => handleContractorSelect(item)}
-              Name={`${item?.contractor?.firstName ?? ''} ${
-                item?.contractor?.lastName ?? ''
-              }`.trim()}
-              ImageUrl={item?.contractor?.profile?.name}
-            />
-          ))}
+          {contractorSheetOptions.map((item, index) => {
+            const sheetSelection = getContractorSheetSelection();
+
+            return (
+              <UserRadioButton
+                key={index}
+                genders={item?.contractor?.gender ?? 0}
+                checked={sheetSelection === item}
+                onCheckedChange={() => handleContractorSelect(item)}
+                Name={`${item?.contractor?.firstName ?? ''} ${
+                  item?.contractor?.lastName ?? ''
+                }`.trim()}
+                ImageUrl={item?.contractor?.profile?.name}
+              />
+            );
+          })}
         </View>
       </BottomSheet>
 
@@ -511,9 +550,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
                                 }`.trim()
                               : null
                           }
-                          onCheckedChange={() =>
-                            bottomSheetContractorRef.current?.expand()
-                          }
+                          onCheckedChange={() => openContractorSheet()}
                           ImageUrl={selectedContractor?.contractor?.profile?.name}
                         />
                         {!data?.requiredContractor && selectedContractor ? (

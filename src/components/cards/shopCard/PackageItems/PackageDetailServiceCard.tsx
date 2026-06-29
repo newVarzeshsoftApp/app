@@ -14,6 +14,7 @@ type PackageDetailServiceCardProps = {
   selectedContractor: Contractors | null;
   onPressCard: () => void;
   onSelectContractor: () => void;
+  isContractorRequired?: boolean;
 };
 
 const PackageDetailServiceCard: React.FC<PackageDetailServiceCardProps> = ({
@@ -21,6 +22,7 @@ const PackageDetailServiceCard: React.FC<PackageDetailServiceCardProps> = ({
   selectedContractor,
   onPressCard,
   onSelectContractor,
+  isContractorRequired = true,
 }) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Shop.Service'});
   const {data: imageSrc, isLoading} = useBase64ImageFromMedia(
@@ -90,6 +92,7 @@ const PackageDetailServiceCard: React.FC<PackageDetailServiceCardProps> = ({
       <PackageDetailItemContractor
         selectedContractor={selectedContractor}
         onSelectPress={onSelectContractor}
+        isContractorRequired={isContractorRequired}
       />
     </View>
   );
