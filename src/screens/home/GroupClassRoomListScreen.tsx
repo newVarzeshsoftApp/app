@@ -10,7 +10,7 @@ import {useGetGroupClassRooms} from '../../utils/hooks/GroupClassRoom/useGetGrou
 import {GroupClassRoomStackParamList} from '../../utils/types/NavigationTypes';
 import {GroupClassRoom} from '../../services/models/response/GroupClassRoomResService';
 import {
-  getGroupClassRoomConfig,
+  expandGroupClassRoomListItems,
   groupClassRoomListParamsToQuery,
   normalizeGroupClassRoomResponse,
   resolveGroupClassRoomDetailContractorId,
@@ -48,7 +48,10 @@ const GroupClassRoomListScreen: React.FC = () => {
   );
 
   const classRooms = useMemo(
-    () => normalizeGroupClassRoomResponse(classRoomsData),
+    () =>
+      expandGroupClassRoomListItems(
+        normalizeGroupClassRoomResponse(classRoomsData),
+      ),
     [classRoomsData],
   );
 
@@ -126,21 +129,21 @@ const GroupClassRoomListScreen: React.FC = () => {
             </View>
           ) : classRooms.length > 0 ? (
             classRooms.map(item => {
-              const configContractorId = getGroupClassRoomConfig(
+              const itemContractorId = resolveGroupClassRoomDetailContractorId(
                 item,
                 selectedContractorId,
-              )?.contractorId;
-              const selectedContractor = selectedContractorId
+              );
+              const selectedContractor = itemContractorId
                 ? item.contractors?.find(
-                    contractor => contractor.id === selectedContractorId,
+                    contractor => contractor.id === itemContractorId,
                   )
                 : undefined;
 
               return (
                 <GroupClassRoomCard
-                  key={`${item.id}-${configContractorId ?? 'default'}`}
+                  key={`${item.id}-${itemContractorId ?? 'default'}`}
                   data={item}
-                  contractorId={selectedContractorId}
+                  contractorId={itemContractorId}
                   selectedContractor={selectedContractor}
                   onJoinPress={handleJoinClass}
                   onWaitingListPress={handleWaitingListPress}

@@ -2,6 +2,7 @@ import {
   Contractors,
   Product,
 } from '../../services/models/response/ProductResService';
+import {SaleOrderItem} from '../../services/models/request/OperationalReqService';
 import type {CartItem} from './CartStorage';
 
 export type PackageContractorSnapshot = {
@@ -261,6 +262,51 @@ export const resolveContractorForPackageItem = (
   }
 
   return findContractorById(packageContractors, contractorId) ?? null;
+};
+
+export const buildPackageSaleOrderSubItems = (
+  item: Pick<CartItem, 'product' | 'packageContractorData'>,
+  userId: number,
+  endDate: string,
+): SaleOrderItem[] => {
+  const subProducts = item.product.subProducts ?? [];
+
+  return subProducts.map(subProduct => {
+    const productId = subProduct.product?.id ?? subProduct.productId;
+    const itemContractor = item.packageContractorData?.itemContractors?.find(
+      entry => entry.productId === productId,
+    );
+    const contractorId =
+      itemContractor?.contractorId ?? subProduct.contractorId ?? null;
+    const price =
+      subProduct.price?.price ?? subProduct.product?.price ?? subProduct.amount ?? 0;
+    const discount = subProduct.discount ?? 0;
+    const amount = subProduct.amount ?? price;
+    const priceId = subProduct.priceId ?? subProduct.price?.id ?? null;
+
+    const subItem: SaleOrderItem = {
+      id: subProduct.id,
+      product: productId,
+      quantity: subProduct.quantity ?? 1,
+      discount,
+      price,
+      tax: subProduct.tax ?? 0,
+      amount,
+      user: userId,
+      manualPrice: false,
+      type: subProduct.product?.type ?? 1,
+      registeredService: 0,
+      end: endDate,
+      priceId,
+      waitingForGroupClass: false,
+    };
+
+    if (contractorId && subProduct.product?.hasContractor) {
+      subItem.contractor = contractorId;
+    }
+
+    return subItem;
+  });
 };
 
 export const resolveCartItemContractorId = (

@@ -18,6 +18,7 @@ export type RegisteredGroupClassScheduleDto = {
 };
 
 export type SaleOrderItem = {
+  id?: number;
   product?: number;
   duration?: number;
   quantity?: number;
@@ -39,6 +40,7 @@ export type SaleOrderItem = {
   groupClassRoom?: number;
   isOnline?: boolean;
   registeredGroupClassSchedule?: RegisteredGroupClassScheduleDto[];
+  items?: SaleOrderItem[];
 };
 
 export type SaleOrderBody = {

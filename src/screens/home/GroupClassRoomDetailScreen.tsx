@@ -9,7 +9,6 @@ import React, {
 import {ActivityIndicator, View} from 'react-native';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {useQueryClient} from '@tanstack/react-query';
-import {CloseCircle} from 'iconsax-react-native';
 import {useTranslation} from 'react-i18next';
 import Animated, {
   interpolate,
@@ -40,13 +39,14 @@ import {formatNumber} from '../../utils/helpers/helpers';
 import {navigate} from '../../navigation/navigationRef';
 import {
   buildGroupClassRoomCartData,
+  buildGroupClassRoomOptimisticPreReserveEvent,
   buildGroupClassRoomPreReservePayload,
   getGroupClassRoomActionState,
   getGroupClassRoomContractorProfile,
   getGroupClassRoomDayOptions,
   getGroupClassRoomPreReserveDisplay,
-  refetchGroupClassRoomQueries,
   resolveGroupClassRoomProductContractor,
+  applyGroupClassRoomEventToQueryCache,
 } from '../../utils/helpers/groupClassRoomHelpers';
 import {
   useGroupClassRoomDetail,
@@ -102,7 +102,6 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
 
   const bottomSheetDescriptionRef = useRef<BottomSheetMethods>(null);
   const bottomSheetPriceListRef = useRef<BottomSheetMethods>(null);
-  const bottomSheetContractorRef = useRef<BottomSheetMethods>(null);
   const hasInitializedContractor = useRef(false);
 
   const [sortedPriceList, setSortedPriceList] = useState<PriceList[]>([]);
@@ -158,21 +157,6 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
         : undefined,
     [classRoom],
   );
-
-  const contractorOptions = useMemo(() => {
-    if (!classRoom || !productData?.contractors?.length) return [];
-
-    return productData.contractors.map(entry => {
-      const matchedUser = classRoom.contractors?.find(
-        contractor => contractor.id === entry.contractorId,
-      );
-
-      return {
-        ...entry,
-        contractor: matchedUser ?? entry.contractor,
-      };
-    });
-  }, [classRoom, productData?.contractors]);
 
   const displayedContractor = useMemo(() => {
     if (selectedContractor?.contractor) {
@@ -325,7 +309,16 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
 
       await preReserve(payload);
 
-      await refetchGroupClassRoomQueries(queryClient);
+      applyGroupClassRoomEventToQueryCache(
+        queryClient,
+        buildGroupClassRoomOptimisticPreReserveEvent(
+          classRoom,
+          activeContractorId,
+          profileData!.id!,
+          waitingList,
+        ),
+        {skipAutoAdjust: true},
+      );
 
       await addToCart({
         product: productData,
@@ -437,31 +430,6 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
         </View>
       </BottomSheet>
 
-      <BottomSheet
-        ref={bottomSheetContractorRef}
-        scrollView
-        disablePan
-        snapPoints={[70]}
-        Title={t('Contractor List')}>
-        <View className="gap-3">
-          {contractorOptions.map(item => (
-            <UserRadioButton
-              key={item.id ?? item.contractorId}
-              genders={item.contractor?.gender ?? 0}
-              checked={selectedContractor?.contractorId === item.contractorId}
-              onCheckedChange={() => {
-                setSelectedContractor(item);
-                bottomSheetContractorRef.current?.close();
-              }}
-              Name={`${item.contractor?.firstName ?? ''} ${
-                item.contractor?.lastName ?? ''
-              }`.trim()}
-              ImageUrl={item.contractor?.profile?.name}
-            />
-          ))}
-        </View>
-      </BottomSheet>
-
       <View style={{flex: 1}}>
         <Animated.ScrollView
           showsHorizontalScrollIndicator={false}
@@ -567,34 +535,14 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
                               <BaseText color="base" type="title4">
                                 {t('Contractor selection')}
                               </BaseText>
-                              <View className="gap-3 flex-row items-center flex-1">
-                                <UserRadioButton
-                                  checked={!!selectedContractor}
-                                  asButton
-                                  genders={displayedContractor?.gender ?? 0}
-                                  placeHolder={t('Choose Contractor')}
-                                  Name={displayedContractor?.name ?? null}
-                                  onCheckedChange={() =>
-                                    bottomSheetContractorRef.current?.expand()
-                                  }
-                                  ImageUrl={displayedContractor?.imageName}
-                                />
-                                {!productData.requiredContractor &&
-                                  selectedContractor && (
-                                    <BaseButton
-                                      noText
-                                      LeftIcon={CloseCircle}
-                                      LeftIconVariant="Bold"
-                                      onPress={() =>
-                                        setSelectedContractor(null)
-                                      }
-                                      type="TextButton"
-                                      size="Large"
-                                      rounded
-                                      color="Black"
-                                    />
-                                  )}
-                              </View>
+                              <UserRadioButton
+                                checked={!!selectedContractor}
+                                readonly
+                                genders={displayedContractor?.gender ?? 0}
+                                placeHolder={t('Choose Contractor')}
+                                Name={displayedContractor?.name ?? null}
+                                ImageUrl={displayedContractor?.imageName}
+                              />
                             </View>
                           ) : null}
 

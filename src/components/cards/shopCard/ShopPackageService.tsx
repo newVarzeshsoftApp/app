@@ -36,7 +36,7 @@ const ShopPackageService: React.FC<ShopServiceProps> = ({data}) => {
           </BaseText>
         </View>
         <View className="flex-row items-center justify-between gap-4">
-          <View className="flex-row items-center gap-2">
+          <View className="gap-1">
             {packageDiscount > 0 ? (
               <BaseText type="body3" color="muted" className="line-through">
                 {formatNumber(data.price)} ﷼

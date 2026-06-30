@@ -18,7 +18,7 @@ import {useAuth} from '../../utils/hooks/useAuth';
 import {navigate} from '../../navigation/navigationRef';
 import {ProductType, TransactionSourceType} from '../../constants/options';
 import {ReservationData} from '../../utils/helpers/CartStorage';
-import {resolveCartItemContractorId} from '../../utils/helpers/packageContractorStore';
+import {resolveCartItemContractorId, buildPackageSaleOrderSubItems} from '../../utils/helpers/packageContractorStore';
 import {useGetPaymentResult} from '../../utils/hooks/Operational/useGetPaymentResult';
 type PaymentScreenProps = NativeStackScreenProps<
   DrawerStackParamList,
@@ -302,32 +302,48 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
           .format('YYYY-MM-DD');
 
         const contractorId = resolveCartItemContractorId(item);
+        const isPackage = item.product?.type === ProductType.Package;
+        const packageSubItems = isPackage
+          ? buildPackageSaleOrderSubItems(
+              item,
+              ProfileData?.id ?? 0,
+              endDateGregorian,
+            )
+          : undefined;
+        const packageLevelContractorId =
+          isPackage && item.product?.hasContractor ? contractorId : null;
 
         return {
           quantity: 1,
           product: item.product.id,
           tax: item?.product?.tax ?? 0,
           manualPrice: false,
-          type:
-            item.product?.type === ProductType.Package
-              ? 4
-              : item.product?.type ?? 1,
-          contractor: contractorId,
-          contractorId,
+          type: isPackage ? 4 : item.product?.type ?? 1,
+          ...(packageLevelContractorId
+            ? {
+                contractor: packageLevelContractorId,
+                contractorId: packageLevelContractorId,
+              }
+            : !isPackage
+            ? {
+                contractor: contractorId,
+                contractorId,
+              }
+            : {}),
           start: startDateGregorian, // Gregorian format (YYYY-MM-DD)
           end: endDateGregorian, // Gregorian format (YYYY-MM-DD)
           isOnline: true,
           user: ProfileData?.id,
           amount: amount,
-          discount:
-            item.product?.type === ProductType.Package
-              ? discount
-              : (amount * discount) / 100,
+          discount: isPackage ? discount : (amount * discount) / 100,
           priceId: item.SelectedPriceList?.id ?? null,
           price: amount,
           duration: item.SelectedPriceList
             ? item.SelectedPriceList.duration
             : item.product.duration,
+          registeredService: 0,
+          waitingForGroupClass: false,
+          ...(packageSubItems?.length ? {items: packageSubItems} : {}),
         };
       });
 

@@ -46,7 +46,7 @@ import {
   convertCartItemToReservationStoreItem,
   getReservationKey,
 } from '../../utils/helpers/ReservationStorage';
-import {resolveCartItemContractorId} from '../../utils/helpers/packageContractorStore';
+import {resolveCartItemContractorId, buildPackageSaleOrderSubItems} from '../../utils/helpers/packageContractorStore';
 type PaymentMethodType = {
   getway?: number;
   isWallet?: boolean;
@@ -558,6 +558,16 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
           .format('YYYY-MM-DD');
 
         const contractorId = resolveCartItemContractorId(item);
+        const isPackage = item.product?.type === ProductType.Package;
+        const packageSubItems = isPackage
+          ? buildPackageSaleOrderSubItems(
+              item,
+              ProfileData?.id ?? 0,
+              endDateGregorian,
+            )
+          : undefined;
+        const packageLevelContractorId =
+          isPackage && item.product?.hasContractor ? contractorId : null;
 
         return {
           quantity: 1,
@@ -566,26 +576,32 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
             ? item?.product?.tax ?? 0
             : (amount * (item?.product?.tax ?? 0)) / 100,
           manualPrice: false,
-          type:
-            item.product?.type === ProductType.Package
-              ? 4
-              : item.product?.type ?? 1,
-          contractor: contractorId,
-          contractorId,
+          type: isPackage ? 4 : item.product?.type ?? 1,
+          ...(packageLevelContractorId
+            ? {
+                contractor: packageLevelContractorId,
+                contractorId: packageLevelContractorId,
+              }
+            : !isPackage
+            ? {
+                contractor: contractorId,
+                contractorId,
+              }
+            : {}),
           start: startDateGregorian,
           end: endDateGregorian,
           isOnline: true,
           user: ProfileData?.id,
           amount: amount,
-          discount:
-            item.product?.type === ProductType.Package
-              ? discount
-              : (amount * discount) / 100,
+          discount: isPackage ? discount : (amount * discount) / 100,
           priceId: item.SelectedPriceList?.id ?? null,
           price: amount,
           duration: item.SelectedPriceList
             ? item.SelectedPriceList.duration
             : item.product.duration,
+          registeredService: 0,
+          waitingForGroupClass: false,
+          ...(packageSubItems?.length ? {items: packageSubItems} : {}),
           ...(item.isGroupClassRoom && item.groupClassRoomData
             ? {
                 groupClassRoom: item.groupClassRoomData.groupClassRoomId,

@@ -12,10 +12,10 @@ export const useGetGroupClassRooms = (
     queryFn: ({signal}) => GroupClassRoomService.GetAll(query, signal),
     enabled: enabled !== false,
     retry: false,
-    staleTime: 0,
-    gcTime: 0,
+    staleTime: 60_000,
+    gcTime: 5 * 60_000,
     refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
     refetchOnReconnect: true,
   });
 };

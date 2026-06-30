@@ -10,6 +10,7 @@ export interface GroupClassRoomConfig {
   contractorWaitingListMax: number;
   filled: number;
   waitingListCount: number;
+  preReservedCount?: number;
   preReservedUserId?: number;
   [key: string]: any;
 }

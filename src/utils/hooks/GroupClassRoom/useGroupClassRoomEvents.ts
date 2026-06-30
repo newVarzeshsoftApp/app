@@ -1,17 +1,15 @@
 import {useCallback, useEffect} from 'react';
 import {useQueryClient} from '@tanstack/react-query';
 import {useSSEConnection} from '../../../screens/home/ReserveDetailScreen/hooks/useSSEConnection';
-import {GROUP_CLASS_ROOM_KEY} from '../../../constants/groupClassRoom';
 import {useCartContext} from '../../CartContext';
 import {getCart} from '../../helpers/CartStorage';
 import {
   GroupClassRoomSSEEvent,
+  applyGroupClassRoomEventToQueryCache,
   findGroupClassRoomCartItemByEvent,
   groupClassRoomEventMatchesOrganization,
-  isGroupClassRoomEventLocked,
   isGroupClassRoomEventReleased,
   isGroupClassRoomSSEEvent,
-  refetchGroupClassRoomQueries,
   shouldSkipOwnGroupClassRoomLockEvent,
 } from '../../helpers/groupClassRoomHelpers';
 import {useAuth} from '../useAuth';
@@ -19,38 +17,10 @@ import {
   logGroupClassRoomHandlerDecision,
   logGroupClassRoomEventTrace,
   logGroupClassRoomReleaseFlow,
-  logGroupClassRoomSseDebug,
 } from '../../helpers/groupClassRoomSseDebug';
 
 type UseGroupClassRoomEventsOptions = {
   enabled?: boolean;
-};
-
-const shouldRefetchGroupClassRoomEvent = (
-  event: GroupClassRoomSSEEvent,
-  isMyAction: boolean,
-): boolean => {
-  if (isGroupClassRoomEventReleased(event)) {
-    return true;
-  }
-
-  if (shouldSkipOwnGroupClassRoomLockEvent(event, isMyAction)) {
-    return false;
-  }
-
-  if (isGroupClassRoomEventLocked(event.status)) {
-    return true;
-  }
-
-  if (
-    event.preReservedCount != null ||
-    event.filled != null ||
-    event.waitingListCount != null
-  ) {
-    return true;
-  }
-
-  return event.key === GROUP_CLASS_ROOM_KEY;
 };
 
 export const useGroupClassRoomEvents = ({
@@ -70,7 +40,6 @@ export const useGroupClassRoomEvents = ({
       const isMyAction =
         event.user !== undefined && event.user === profile?.id;
       const isReleaseEvent = isGroupClassRoomEventReleased(event);
-      const shouldRefetch = shouldRefetchGroupClassRoomEvent(event, isMyAction);
 
       logGroupClassRoomEventTrace('GCR event received', {
         event,
@@ -79,9 +48,6 @@ export const useGroupClassRoomEvents = ({
         organizationKey: organization?.key,
         isMyAction,
         isReleaseEvent,
-        isLockedStatus: isGroupClassRoomEventLocked(event.status),
-        skipOwnLock: shouldSkipOwnGroupClassRoomLockEvent(event, isMyAction),
-        shouldRefetch,
       });
 
       if (!groupClassRoomEventMatchesOrganization(event, organization)) {
@@ -102,31 +68,17 @@ export const useGroupClassRoomEvents = ({
         return;
       }
 
-      if (!shouldRefetch) {
-        logGroupClassRoomHandlerDecision(
-          'ignored',
-          shouldSkipOwnGroupClassRoomLockEvent(event, isMyAction)
-            ? 'own locked event (already updated locally)'
-            : 'event did not match refetch rules',
-          event,
-        );
-        return;
-      }
+      const skipAutoAdjust = shouldSkipOwnGroupClassRoomLockEvent(event, isMyAction);
+
+      applyGroupClassRoomEventToQueryCache(queryClient, event, {
+        skipAutoAdjust,
+      });
 
       logGroupClassRoomHandlerDecision(
         'accepted',
-        isReleaseEvent ? 'refetching list (release)' : 'refetching list',
+        'cache patched from SSE (no refetch)',
         event,
       );
-      await refetchGroupClassRoomQueries(queryClient, {
-        includeInactive: isReleaseEvent,
-        debugGroupClassRoomId: event.groupClassRoom,
-      });
-      logGroupClassRoomSseDebug('REFETCH', 'group class room queries refetched', {
-        groupClassRoomId: event.groupClassRoom,
-        isReleaseEvent,
-        isMyAction,
-      });
 
       if (!isReleaseEvent) {
         return;

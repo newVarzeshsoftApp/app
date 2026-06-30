@@ -1,10 +1,11 @@
 import {QueryClient} from '@tanstack/react-query';
+import {GROUP_CLASS_ROOM_KEY} from '../../constants/groupClassRoom';
 import GroupClassRoomService from '../../services/GroupClassRoomService';
 import {GetAllOrganizationResponse} from '../../services/models/response/OrganizationResServise';
 import {CartItem} from './CartStorage';
 import {
+  applyGroupClassRoomEventToQueryCache,
   buildGroupClassRoomReleasePayload,
-  refetchGroupClassRoomQueries,
 } from './groupClassRoomHelpers';
 import {logGroupClassRoomReleaseFlow} from './groupClassRoomSseDebug';
 
@@ -65,12 +66,12 @@ export const releaseGroupClassRoomFromCartItem = async ({
   }
 
   if (queryClient) {
-    logGroupClassRoomReleaseFlow('refetch after local release', {
-      groupClassRoomId,
-    });
-    await refetchGroupClassRoomQueries(queryClient, {
-      includeInactive: true,
-      debugGroupClassRoomId: groupClassRoomId,
+    applyGroupClassRoomEventToQueryCache(queryClient, {
+      key: GROUP_CLASS_ROOM_KEY,
+      groupClassRoom: groupClassRoomId,
+      contractor: contractorId,
+      status: 'released',
+      isLocked: false,
     });
   }
 };
