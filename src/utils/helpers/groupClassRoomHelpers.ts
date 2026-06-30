@@ -24,7 +24,12 @@ import {
   GroupClassRoomPreReserveQuery,
   GroupClassRoomQuery,
 } from '../../services/models/requestQueries';
-import {CartItem, GroupClassRoomCartData, GroupClassRoomCartScheduleRow} from './CartStorage';
+import {
+  CartItem,
+  GroupClassRoomCartData,
+  GroupClassRoomCartScheduleRow,
+  RegisteredGroupClassScheduleItem,
+} from './CartStorage';
 import {logGroupClassRoomRefetchSnapshot} from './groupClassRoomSseDebug';
 
 const isSubsetOf = (days: number[], allowed: number[]) =>
@@ -266,8 +271,12 @@ export const getGroupClassRoomActionState = (
   }
 
   const isFull = capacity.max > 0 && capacity.filled >= capacity.max;
+  const waitingListCount = config?.waitingListCount ?? 0;
+  const waitingListMax = config?.contractorWaitingListMax ?? 0;
+  const preReservedCount = getGroupClassRoomPreReservedCount(item);
   const hasWaitingListSpace =
-    (config?.waitingListCount ?? 0) < (config?.contractorWaitingListMax ?? 0);
+    waitingListMax > 0 &&
+    waitingListCount + preReservedCount < waitingListMax;
 
   if (!isFull) {
     return {type: 'join', canPress: true};
@@ -548,6 +557,43 @@ export const resolveGroupClassRoomProductContractor = (
   };
 };
 
+const normalizeScheduleTime = (time?: string): string => {
+  if (!time) {
+    return '00:00:00';
+  }
+
+  if (time.length === 5) {
+    return `${time}:00`;
+  }
+
+  return time;
+};
+
+export const buildRegisteredGroupClassSchedule = (
+  classRoom: GroupClassRoom,
+  selectedDays?: number[],
+): RegisteredGroupClassScheduleItem[] =>
+  (classRoom.schedules ?? [])
+    .map(schedule => {
+      const days = selectedDays?.length
+        ? (schedule.days ?? []).filter(day => selectedDays.includes(day))
+        : schedule.days ?? [];
+
+      if (!days.length || schedule.id == null) {
+        return null;
+      }
+
+      return {
+        groupClassRoom: classRoom.id,
+        id: schedule.id,
+        days,
+        from: normalizeScheduleTime(schedule.from),
+        to: normalizeScheduleTime(schedule.to),
+        groupClassRoomScheduleId: schedule.id,
+      };
+    })
+    .filter((entry): entry is RegisteredGroupClassScheduleItem => entry != null);
+
 export const buildGroupClassRoomCartScheduleRows = (
   classRoom: GroupClassRoom,
   selectedDays?: number[],
@@ -593,6 +639,10 @@ export const buildGroupClassRoomCartData = (
     classRoom,
     options.selectedDays,
   );
+  const registeredGroupClassSchedule = buildRegisteredGroupClassSchedule(
+    classRoom,
+    options.selectedDays,
+  );
 
   return {
     groupClassRoomId: classRoom.id,
@@ -605,6 +655,7 @@ export const buildGroupClassRoomCartData = (
     scheduleRows,
     scheduleDaysLabel: scheduleRows.map(row => row.daysLabel).join(' | ') || undefined,
     scheduleTimeLabel: scheduleRows.map(row => row.timeLabel).join('، ') || undefined,
+    registeredGroupClassSchedule,
   };
 };
 

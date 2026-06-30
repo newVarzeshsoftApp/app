@@ -515,7 +515,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
                               {tService('Discount')} :
                             </BaseText>
                             <BaseText type="body3" color="success">
-                              {formatNumber(packageDiscount)}- ﷼
+                              {formatNumber(packageDiscount)} ﷼
                             </BaseText>
                           </View>
                         ) : null}

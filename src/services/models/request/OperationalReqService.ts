@@ -8,6 +8,15 @@ export type SaleOrderTransaction = {
   usedByOther?: boolean;
 };
 
+export type RegisteredGroupClassScheduleDto = {
+  groupClassRoom: number;
+  id: number;
+  days: number[];
+  from: string;
+  to: string;
+  groupClassRoomScheduleId: number;
+};
+
 export type SaleOrderItem = {
   product?: number;
   duration?: number;
@@ -29,6 +38,7 @@ export type SaleOrderItem = {
   waitingForGroupClass?: boolean;
   groupClassRoom?: number;
   isOnline?: boolean;
+  registeredGroupClassSchedule?: RegisteredGroupClassScheduleDto[];
 };
 
 export type SaleOrderBody = {

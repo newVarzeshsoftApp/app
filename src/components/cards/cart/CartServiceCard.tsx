@@ -97,10 +97,11 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
 
   // For reservation items, calculate price differently
   const isReservationItem = isReserve && reservationData;
+  const isExpiringCartItem = isReservationItem || isGroupClassRoomItem;
 
-  // Get reservation expiration time
-  const {data: expiresTimeData, isLoading: isLoadingExpiresTime} =
-    useGetReservationExpiresTime(!!isReservationItem);
+  const {data: expiresTimeData} = useGetReservationExpiresTime(
+    !!isExpiringCartItem,
+  );
 
   // State for countdown timer
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
@@ -140,14 +141,15 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
     }
   }, [isReservationItem, reservationData, CartId, product?.id]);
 
-  // Calculate remaining time for reservation items
+  // Calculate remaining time for reservation and group class items
   useEffect(() => {
-    // Use createdAt from ReservationStore (pre-reserve time) if available, otherwise use addedToCartAt
-    const startTime = reservationFromStore?.createdAt || data.addedToCartAt;
+    const startTime = isGroupClassRoomItem
+      ? data.addedToCartAt
+      : reservationFromStore?.createdAt || data.addedToCartAt;
 
-    if (!isReservationItem || !startTime || !expiresTimeData?.ttlSecond) {
+    if (!isExpiringCartItem || !startTime || !expiresTimeData?.ttlSecond) {
       setRemainingTime(null);
-      hasAutoDeletedRef.current = false; // Reset flag when closed
+      hasAutoDeletedRef.current = false;
       return;
     }
 
@@ -180,13 +182,13 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
 
     return () => clearInterval(interval);
   }, [
-    isReservationItem,
+    isExpiringCartItem,
+    isGroupClassRoomItem,
     reservationFromStore?.createdAt,
     data.addedToCartAt,
     expiresTimeData,
     CartId,
     removeFromCart,
-    product?.id,
   ]);
 
   // Format remaining time for display
@@ -1049,24 +1051,30 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
               </View>
             )}
 
-          {/* Expiration Time Info - Below reservation details or sub-products */}
-          {isReservationItem &&
-            reservationData &&
+          {/* Expiration Time Info */}
+          {isExpiringCartItem &&
             expiresTimeData?.ttlSecond &&
             remainingTime !== null && (
               <View className="flex-row items-center gap-2 p-3 BaseServiceCard mt-2">
                 <View className="flex-1 gap-2">
                   <BaseText type="subtitle2">
                     {remainingTime > 0
-                      ? `زمان باقیمانده برای تکمیل رزرو: ${formatRemainingTime(
-                          remainingTime,
-                        )}`
-                      : 'زمان رزرو منقضی شده است'}
+                      ? isGroupClassRoomItem
+                        ? `زمان باقیمانده تا حذف از سبد خرید: ${formatRemainingTime(
+                            remainingTime,
+                          )}`
+                        : `زمان باقیمانده برای تکمیل رزرو: ${formatRemainingTime(
+                            remainingTime,
+                          )}`
+                      : isGroupClassRoomItem
+                        ? 'زمان تکمیل خرید منقضی شده است'
+                        : 'زمان رزرو منقضی شده است'}
                   </BaseText>
                   {remainingTime > 0 && (
                     <BaseText type="subtitle3" color="secondary">
-                      در صورت عدم تکمیل رزرو در این زمان، رزرو به صورت خودکار
-                      حذف می‌شود
+                      {isGroupClassRoomItem
+                        ? 'در صورت عدم تکمیل خرید در این زمان، آیتم به صورت خودکار از سبد حذف می‌شود'
+                        : 'در صورت عدم تکمیل رزرو در این زمان، رزرو به صورت خودکار حذف می‌شود'}
                     </BaseText>
                   )}
                 </View>

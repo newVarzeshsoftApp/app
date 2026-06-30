@@ -212,7 +212,8 @@ const GroupClassRoomCard: React.FC<GroupClassRoomCardProps> = ({
               </BaseText>
             </View>
           ) : preReserveDisplay.othersPreReservedCount > 0 &&
-            actionState.type === 'join' ? (
+            (actionState.type === 'join' ||
+              actionState.type === 'waitingList') ? (
             <View className="flex-1 px-3 py-2 rounded-full border border-dashed border-warning-500 items-center justify-center">
               <BaseText type="subtitle3" color="warning">
                 {preReserveDisplay.othersPreReservedCount} نفر در حال خرید
@@ -224,7 +225,8 @@ const GroupClassRoomCard: React.FC<GroupClassRoomCardProps> = ({
             className={
               preReserveDisplay.isPreReservedByMe ||
               (preReserveDisplay.othersPreReservedCount > 0 &&
-                actionState.type === 'join')
+                (actionState.type === 'join' ||
+                  actionState.type === 'waitingList'))
                 ? 'flex-1'
                 : 'flex-1 w-full'
             }>

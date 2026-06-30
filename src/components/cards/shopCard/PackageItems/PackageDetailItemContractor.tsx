@@ -37,7 +37,7 @@ const PackageDetailItemContractor: React.FC<PackageDetailItemContractorProps> =
               gender={contractorUser?.gender}
             />
             <BaseButton
-              text={t('changeContractor')}
+              text={t('editContractor')}
               type="Outline"
               color="Black"
               size="Small"

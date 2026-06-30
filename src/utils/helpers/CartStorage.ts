@@ -71,6 +71,15 @@ export interface GroupClassRoomCartScheduleRow {
   timeLabel: string;
 }
 
+export interface RegisteredGroupClassScheduleItem {
+  groupClassRoom: number;
+  id: number;
+  days: number[];
+  from: string;
+  to: string;
+  groupClassRoomScheduleId: number;
+}
+
 export interface GroupClassRoomCartData {
   groupClassRoomId: number;
   contractorId: number;
@@ -82,6 +91,7 @@ export interface GroupClassRoomCartData {
   scheduleRows?: GroupClassRoomCartScheduleRow[];
   scheduleDaysLabel?: string;
   scheduleTimeLabel?: string;
+  registeredGroupClassSchedule?: RegisteredGroupClassScheduleItem[];
 }
 
 const CART_KEY = 'shopping_cart';

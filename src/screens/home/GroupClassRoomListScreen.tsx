@@ -15,9 +15,6 @@ import {
   normalizeGroupClassRoomResponse,
   resolveGroupClassRoomDetailContractorId,
 } from '../../utils/helpers/groupClassRoomHelpers';
-import {logGroupClassRoomSseDebug} from '../../utils/helpers/groupClassRoomSseDebug';
-
-const GROUP_CLASS_ROOM_LIST_POLL_MS = 5000;
 
 type GroupClassRoomListRouteProp = RouteProp<
   GroupClassRoomStackParamList,
@@ -47,17 +44,6 @@ const GroupClassRoomListScreen: React.FC = () => {
   useFocusEffect(
     useCallback(() => {
       void refetch();
-
-      // Fallback while backend does not broadcast CLIENT_REMOTE on release
-      const intervalId = setInterval(() => {
-        logGroupClassRoomSseDebug(
-          'POLL',
-          'list refetch (release SSE fallback)',
-        );
-        void refetch();
-      }, GROUP_CLASS_ROOM_LIST_POLL_MS);
-
-      return () => clearInterval(intervalId);
     }, [refetch]),
   );
 

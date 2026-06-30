@@ -41,6 +41,7 @@ import {navigate} from '../../navigation/navigationRef';
 import {
   buildGroupClassRoomCartData,
   buildGroupClassRoomPreReservePayload,
+  getGroupClassRoomActionState,
   getGroupClassRoomContractorProfile,
   getGroupClassRoomDayOptions,
   getGroupClassRoomPreReserveDisplay,
@@ -131,6 +132,16 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
             totalPreReservedCount: 0,
           },
     [cartItems, classRoom, contractorId, profileData?.id],
+  );
+
+  const actionState = useMemo(
+    () =>
+      classRoom
+        ? getGroupClassRoomActionState(classRoom, contractorId, {
+            isPreReservedByMe: preReserveDisplay.isPreReservedByMe,
+          })
+        : {type: 'unavailable' as const, canPress: false},
+    [classRoom, contractorId, preReserveDisplay.isPreReservedByMe],
   );
 
   const handleContinuePurchase = useCallback(() => {
@@ -661,8 +672,9 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
                               این کلاس در سبد خرید شماست
                             </BaseText>
                           </View>
-                        ) : !waitingList &&
-                          preReserveDisplay.othersPreReservedCount > 0 ? (
+                        ) : preReserveDisplay.othersPreReservedCount > 0 &&
+                          (actionState.type === 'join' ||
+                            actionState.type === 'waitingList') ? (
                           <View className="px-3 py-2 rounded-full border border-dashed border-warning-500 items-center justify-center">
                             <BaseText type="subtitle3" color="warning">
                               {preReserveDisplay.othersPreReservedCount} نفر در
@@ -689,7 +701,10 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
                             }
                             rounded
                             size="Large"
-                            disabled={!canSubmit}
+                            disabled={
+                              !canSubmit ||
+                              (waitingList && !actionState.canPress)
+                            }
                             isLoading={isPreReserveLoading}
                           />
                         )}
