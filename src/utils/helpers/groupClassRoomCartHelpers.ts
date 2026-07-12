@@ -1,19 +1,75 @@
 import {QueryClient} from '@tanstack/react-query';
-import {GROUP_CLASS_ROOM_KEY} from '../../constants/groupClassRoom';
 import GroupClassRoomService from '../../services/GroupClassRoomService';
 import {GetAllOrganizationResponse} from '../../services/models/response/OrganizationResServise';
+import {GroupClassRoom} from '../../services/models/response/GroupClassRoomResService';
 import {CartItem} from './CartStorage';
 import {
   applyGroupClassRoomEventToQueryCache,
+  buildGroupClassRoomOptimisticPreReserveEvent,
+  buildGroupClassRoomReleaseEvent,
   buildGroupClassRoomReleasePayload,
+  GroupClassRoomSSEEvent,
+  refetchGroupClassRoomsAfterEvent,
 } from './groupClassRoomHelpers';
-import {logGroupClassRoomReleaseFlow} from './groupClassRoomSseDebug';
+import {
+  setGroupClassRoomLiveLock,
+} from './groupClassRoomLiveLocks';
+import {broadcastClientRemoteEvent} from '../hooks/sharedSocketManager';
+import {
+  logGroupClassRoomEventTrace,
+  logGroupClassRoomReleaseCalled,
+  logGroupClassRoomReleaseFlow,
+  logGroupClassRoomReleaseSent,
+} from './groupClassRoomSseDebug';
 
 type ReleaseGroupClassRoomFromCartParams = {
   item: CartItem;
   userId: number;
   organization?: GetAllOrganizationResponse | null;
   queryClient?: QueryClient;
+};
+
+type LockGroupClassRoomAfterPreReserveParams = {
+  classRoom: GroupClassRoom;
+  contractorId: number;
+  userId: number;
+  waitingForGroupClass: boolean;
+  organization?: GetAllOrganizationResponse | null;
+  queryClient?: QueryClient;
+};
+
+export const lockGroupClassRoomAfterPreReserve = ({
+  classRoom,
+  contractorId,
+  userId,
+  waitingForGroupClass,
+  organization,
+  queryClient,
+}: LockGroupClassRoomAfterPreReserveParams): GroupClassRoomSSEEvent => {
+  const lockEvent = buildGroupClassRoomOptimisticPreReserveEvent(
+    classRoom,
+    contractorId,
+    userId,
+    waitingForGroupClass,
+    organization,
+  );
+
+  logGroupClassRoomEventTrace('lock after preReserve', {
+    groupClassRoomId: classRoom.id,
+    contractorId,
+    preReservedCount: lockEvent.preReservedCount,
+  });
+
+  if (queryClient) {
+    applyGroupClassRoomEventToQueryCache(queryClient, lockEvent);
+  }
+
+  setGroupClassRoomLiveLock(classRoom.id, contractorId, {
+    preReservedCount: lockEvent.preReservedCount ?? 1,
+    preReservedUserId: userId,
+  });
+
+  return lockEvent;
 };
 
 export const releaseGroupClassRoomFromCartItem = async ({
@@ -37,6 +93,16 @@ export const releaseGroupClassRoomFromCartItem = async ({
     waitingForGroupClass: waitingForGroupClass ?? false,
   });
 
+  logGroupClassRoomReleaseCalled({
+    viewerUserId: userId,
+    eventUserId: userId,
+    groupClassRoomId,
+    contractorId,
+    organizationSku: organization?.sku,
+    cartId: item.CartId,
+    payload,
+  });
+
   logGroupClassRoomReleaseFlow('API release request', {
     cartId: item.CartId,
     payload,
@@ -50,8 +116,6 @@ export const releaseGroupClassRoomFromCartItem = async ({
       groupClassRoomId,
       contractorId,
       response,
-      backendNote:
-        'Other users need CLIENT_REMOTE with status released (or isLocked:false). If Tab B shows no RAW-RELEASE after this, backend is not broadcasting release.',
     });
   } catch (error) {
     logGroupClassRoomReleaseFlow('API release FAILED', {
@@ -65,13 +129,34 @@ export const releaseGroupClassRoomFromCartItem = async ({
     throw error;
   }
 
+  const releaseEvent = buildGroupClassRoomReleaseEvent({
+    groupClassRoomId,
+    contractorId,
+    userId,
+    organization,
+    preReservedCount: 0,
+  });
+
   if (queryClient) {
-    applyGroupClassRoomEventToQueryCache(queryClient, {
-      key: GROUP_CLASS_ROOM_KEY,
-      groupClassRoom: groupClassRoomId,
-      contractor: contractorId,
-      status: 'released',
-      isLocked: false,
+    applyGroupClassRoomEventToQueryCache(queryClient, releaseEvent);
+    refetchGroupClassRoomsAfterEvent(queryClient, {
+      includeInactive: true,
+      debugGroupClassRoomId: groupClassRoomId,
     });
   }
+
+  // API POST already broadcasts CLIENT_REMOTE to all clients.
+  broadcastClientRemoteEvent(releaseEvent, {dispatchLocally: false});
+
+  logGroupClassRoomReleaseSent({
+    viewerUserId: userId,
+    eventUserId: userId,
+    groupClassRoomId,
+    contractorId,
+    status: releaseEvent.status,
+    isLocked: releaseEvent.isLocked,
+    preReservedCount: releaseEvent.preReservedCount,
+    organizationSku: organization?.sku,
+    cartId: item.CartId,
+  });
 };

@@ -17,6 +17,7 @@ import {
   getGroupClassRoomCapacity,
   getGroupClassRoomContractorProfile,
   getGroupClassRoomPreReserveDisplay,
+  getGroupClassRoomPreReserveOthersLabel,
 } from '../../../utils/helpers/groupClassRoomHelpers';
 import {TypeTextColor} from '../../../models/stylingTypes';
 import {useAuth} from '../../../utils/hooks/useAuth';
@@ -216,7 +217,10 @@ const GroupClassRoomCard: React.FC<GroupClassRoomCardProps> = ({
               actionState.type === 'waitingList') ? (
             <View className="flex-1 px-3 py-2 rounded-full border border-dashed border-warning-500 items-center justify-center">
               <BaseText type="subtitle3" color="warning">
-                {preReserveDisplay.othersPreReservedCount} نفر در حال خرید
+                {getGroupClassRoomPreReserveOthersLabel(
+                  preReserveDisplay.othersPreReservedCount,
+                  preReserveDisplay.countMode,
+                )}
               </BaseText>
             </View>
           ) : null}

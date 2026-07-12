@@ -1,6 +1,11 @@
 import React, {useCallback, useMemo} from 'react';
 import {View, Image, ScrollView, ActivityIndicator} from 'react-native';
-import {RouteProp, useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import {
+  RouteProp,
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import NavigationHeader from '../../components/header/NavigationHeader';
 import BaseText from '../../components/BaseText';

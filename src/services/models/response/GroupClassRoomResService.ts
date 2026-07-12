@@ -11,6 +11,7 @@ export interface GroupClassRoomConfig {
   filled: number;
   waitingListCount: number;
   preReservedCount?: number;
+  preReserveWaitingCount?: number;
   preReservedUserId?: number;
   [key: string]: any;
 }
@@ -56,6 +57,7 @@ export interface GroupClassRoom {
   config?: GroupClassRoomConfig;
   configs?: GroupClassRoomConfig[];
   preReservedCount?: number;
+  preReserveWaitingCount?: number;
   preReservedUserId?: number;
   updatedAt?: string;
   createdAt?: string;

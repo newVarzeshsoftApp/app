@@ -19,4 +19,5 @@ export enum ReservationStatus {
   Released = 'released',
   Locked = 'locked',
   Reserved = 'reserved',
+  Cancelled = 'cancelled',
 }

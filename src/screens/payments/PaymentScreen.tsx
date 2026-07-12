@@ -344,6 +344,20 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
           registeredService: 0,
           waitingForGroupClass: false,
           ...(packageSubItems?.length ? {items: packageSubItems} : {}),
+          ...(item.isGroupClassRoom && item.groupClassRoomData
+            ? {
+                groupClassRoom: item.groupClassRoomData.groupClassRoomId,
+                waitingForGroupClass:
+                  item.groupClassRoomData.waitingForGroupClass ?? false,
+                ...(item.groupClassRoomData.registeredGroupClassSchedule
+                  ?.length
+                  ? {
+                      registeredGroupClassSchedule:
+                        item.groupClassRoomData.registeredGroupClassSchedule,
+                    }
+                  : {}),
+              }
+            : {}),
         };
       });
 

@@ -4,5 +4,5 @@ export {useGetGroupClassRoomParticipants} from './useGetGroupClassRoomParticipan
 export {useGetGroupClassRoomOrganizationUnit} from './useGetGroupClassRoomOrganizationUnit';
 export {useGroupClassRoomDetail} from './useGroupClassRoomDetail';
 export {useGroupClassRoomEvents} from './useGroupClassRoomEvents';
+export {GroupClassRoomEventsProvider} from './GroupClassRoomEventsProvider';
 export {usePreReserveGroupClassRoom} from './usePreReserveGroupClassRoom';
-

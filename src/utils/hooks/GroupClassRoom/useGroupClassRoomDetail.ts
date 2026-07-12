@@ -27,7 +27,8 @@ export const useGroupClassRoomDetail = (params: GroupClassRoomDetailParams) => {
 
   return {
     classRoom,
-    isLoading: isLoading || isFetching,
+    isLoading,
+    isFetching,
     isError,
     refetch,
   };

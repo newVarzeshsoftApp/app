@@ -1,11 +1,6 @@
 import type {GroupClassRoomSSEEvent} from './groupClassRoomHelpers';
-import {
-  getGroupClassRoomPreReservedCount,
-  isGroupClassRoomEventReleased,
-  isGroupClassRoomSSEEvent,
-  normalizeGroupClassRoomResponse,
-} from './groupClassRoomHelpers';
 import type {SharedSSEEvent} from '../hooks/sharedSocketManager';
+import {ReservationStatus} from '../../models/enums';
 import {GROUP_CLASS_ROOM_KEY} from '../../constants/groupClassRoom';
 
 type DebugEntry = {
@@ -77,8 +72,10 @@ export const logGroupClassRoomRawSocketEvent = (
   const looksLikeRelease =
     data.status === 'released' ||
     data.status === 'cancelled' ||
-    data.isLocked === false ||
-    data.isLocked === 'false';
+    ((data.isLocked === false || data.isLocked === 'false') &&
+      data.status !== 'locked' &&
+      data.status !== 'reserved' &&
+      data.status !== 'pre-reserved');
 
   if (looksLikeRelease && !isGcrEvent) {
     pushEntry(
@@ -93,10 +90,15 @@ export const logGroupClassRoomRawSocketEvent = (
     return;
   }
 
-  const gcrEvent = data as GroupClassRoomSSEEvent;
-  const isRelease = isGroupClassRoomSSEEvent(gcrEvent)
-    ? isGroupClassRoomEventReleased(gcrEvent)
-    : false;
+  const isLockedStatus =
+    data.status === ReservationStatus.Locked ||
+    data.status === ReservationStatus.Reserved ||
+    data.status === 'pre-reserved';
+  const isRelease =
+    data.status === ReservationStatus.Released ||
+    data.status === 'cancelled' ||
+    (!isLockedStatus &&
+      (data.isLocked === false || data.isLocked === 'false'));
 
   pushEntry(
     isRelease ? 'RAW-RELEASE' : 'RAW',
@@ -125,11 +127,7 @@ export const logGroupClassRoomHandlerDecision = (
     return;
   }
 
-  pushEntry(
-    decision === 'accepted' ? 'ACCEPT' : 'IGNORE',
-    reason,
-    event,
-  );
+  pushEntry(decision === 'accepted' ? 'ACCEPT' : 'IGNORE', reason, event);
 };
 
 export const setGroupClassRoomSocketConnectedDebug = (connected: boolean) => {
@@ -138,10 +136,7 @@ export const setGroupClassRoomSocketConnectedDebug = (connected: boolean) => {
       connected;
   }
 
-  logGroupClassRoomSseDebug(
-    'SOCKET',
-    connected ? 'connected' : 'disconnected',
-  );
+  logGroupClassRoomSseDebug('SOCKET', connected ? 'connected' : 'disconnected');
 };
 
 export const logGroupClassRoomReleaseFlow = (
@@ -158,28 +153,98 @@ export const logGroupClassRoomEventTrace = (
   logGroupClassRoomSseDebug('TRACE', message, payload);
 };
 
-export const logGroupClassRoomRefetchSnapshot = (
-  message: string,
-  queryData: unknown,
-  groupClassRoomId?: number,
-) => {
-  const rooms = normalizeGroupClassRoomResponse(queryData);
-  const matchedRoom = groupClassRoomId
-    ? rooms.find(room => room.id === groupClassRoomId)
-    : undefined;
+type GroupClassRoomFlowLogPayload = {
+  viewerUserId?: number;
+  eventUserId?: number;
+  groupClassRoomId?: number;
+  contractorId?: number;
+  status?: string;
+  isLocked?: string | boolean;
+  preReservedCount?: number;
+  organizationSku?: string;
+  [key: string]: unknown;
+};
 
-  logGroupClassRoomSseDebug('REFETCH-DATA', message, {
-    groupClassRoomId,
-    roomCount: rooms.length,
-    matchedRoomId: matchedRoom?.id,
-    matchedPreReservedCount: matchedRoom
-      ? getGroupClassRoomPreReservedCount(matchedRoom)
-      : undefined,
-    rooms: groupClassRoomId
-      ? undefined
-      : rooms.map(room => ({
-          id: room.id,
-          preReservedCount: getGroupClassRoomPreReservedCount(room),
-        })),
-  });
+const logGroupClassRoomFlow = (
+  stage: 'PURCHASE-SENT' | 'PURCHASE-RECEIVED' | 'RELEASE-CALLED' | 'RELEASE-SENT' | 'RELEASE-RECEIVED',
+  message: string,
+  payload?: GroupClassRoomFlowLogPayload,
+) => {
+  if (!__DEV__) {
+    return;
+  }
+
+  pushEntry(stage, message, payload);
+
+  const viewer =
+    payload?.viewerUserId != null ? `viewer=${payload.viewerUserId}` : '';
+  const actor =
+    payload?.eventUserId != null ? `actor=${payload.eventUserId}` : '';
+  const room =
+    payload?.groupClassRoomId != null
+      ? `room=${payload.groupClassRoomId}`
+      : '';
+  const context = [viewer, actor, room].filter(Boolean).join(' | ');
+
+  console.log(
+    `%c[GCR] ${stage}%c ${message}${context ? ` (${context})` : ''}`,
+    'color:#0ea5e9;font-weight:bold',
+    'color:inherit',
+    payload ?? '',
+  );
+};
+
+/** User A: purchase/lock event emitted via socket after add-to-cart */
+export const logGroupClassRoomPurchaseSent = (
+  payload: GroupClassRoomFlowLogPayload,
+) => {
+  logGroupClassRoomFlow(
+    'PURCHASE-SENT',
+    'Purchase/lock event SENT to other users',
+    payload,
+  );
+};
+
+/** User B: purchase/lock event received via socket */
+export const logGroupClassRoomPurchaseReceived = (
+  payload: GroupClassRoomFlowLogPayload,
+) => {
+  logGroupClassRoomFlow(
+    'PURCHASE-RECEIVED',
+    'Purchase/lock event RECEIVED from socket',
+    payload,
+  );
+};
+
+/** User A: release API called when removing GCR item from cart */
+export const logGroupClassRoomReleaseCalled = (
+  payload: GroupClassRoomFlowLogPayload,
+) => {
+  logGroupClassRoomFlow(
+    'RELEASE-CALLED',
+    'Release API CALLED (remove from cart)',
+    payload,
+  );
+};
+
+/** User A: release event emitted via socket after API success */
+export const logGroupClassRoomReleaseSent = (
+  payload: GroupClassRoomFlowLogPayload,
+) => {
+  logGroupClassRoomFlow(
+    'RELEASE-SENT',
+    'Release event SENT to other users',
+    payload,
+  );
+};
+
+/** User B: release event received via socket */
+export const logGroupClassRoomReleaseReceived = (
+  payload: GroupClassRoomFlowLogPayload,
+) => {
+  logGroupClassRoomFlow(
+    'RELEASE-RECEIVED',
+    'Release event RECEIVED from socket',
+    payload,
+  );
 };

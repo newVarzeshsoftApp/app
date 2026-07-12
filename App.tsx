@@ -10,6 +10,7 @@ import {SafeAreaProvider} from 'react-native-safe-area-context';
 import {Host} from 'react-native-portalize';
 import {RootNavigator} from './src/navigation/RootNavigator';
 import {CartProvider} from './src/utils/CartContext';
+import {GroupClassRoomEventsProvider} from './src/utils/hooks/GroupClassRoom/GroupClassRoomEventsProvider';
 import {SENTRY, SENTRY_DSN} from './src/utils/helpers/sentryConfig';
 import {Buffer} from 'buffer';
 global.Buffer = global.Buffer || Buffer;
@@ -65,12 +66,14 @@ function AppContent() {
     <>
       <TenstackProvider>
         <CartProvider>
-          <View className="flex-1 bg-neutral-100 dark:bg-neutral-dark-100 max-w-[450px] web:overflow-hidden mx-auto w-full">
-            <Host>
-              <RootNavigator />
-              <ToastProvider />
-            </Host>
-          </View>
+          <GroupClassRoomEventsProvider>
+            <View className="flex-1 bg-neutral-100 dark:bg-neutral-dark-100 max-w-[450px] web:overflow-hidden mx-auto w-full">
+              <Host>
+                <RootNavigator />
+                <ToastProvider />
+              </Host>
+            </View>
+          </GroupClassRoomEventsProvider>
         </CartProvider>
       </TenstackProvider>
     </>

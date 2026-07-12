@@ -50,10 +50,9 @@ const GroupClassRoomService = {
 
   GetServices: async (): Promise<GroupClassRoomServicesResponse> => {
     try {
-      const response =
-        await axiosInstance.get<GroupClassRoomServicesResponse>(
-          baseUrl + groupClassRoom.getServices(),
-        );
+      const response = await axiosInstance.get<GroupClassRoomServicesResponse>(
+        baseUrl + groupClassRoom.getServices(),
+      );
       if (response.status === Status.Ok) {
         return response.data;
       } else {
@@ -126,7 +125,11 @@ const GroupClassRoomService = {
       const response = await axiosInstance.post<
         GroupClassRoomPreReserveQuery,
         AxiosResponse<AuthResponseSignUpDto>
-      >(baseUrl + groupClassRoom.preReserve(), body);
+      >(baseUrl + groupClassRoom.preReserve(), body, {
+        headers: {
+          'CLIENT-REMOTE': 'true',
+        },
+      });
       if (response.status === Status.Ok || response.status === Status.Created) {
         return response.data;
       } else {
@@ -146,4 +149,3 @@ const GroupClassRoomService = {
 };
 
 export default GroupClassRoomService;
-

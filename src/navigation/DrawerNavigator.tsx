@@ -35,14 +35,14 @@ const DrawerNavigator: React.FC = () => {
         }
 
         Alert.alert(
-              'Exit App',
-              'Do you want to quit the app?',
-              [
-                {text: 'Cancel', style: 'cancel'},
-                {text: 'OK', onPress: () => BackHandler.exitApp()},
-              ],
-              {cancelable: false},
-            );
+          'Exit App',
+          'Do you want to quit the app?',
+          [
+            {text: 'Cancel', style: 'cancel'},
+            {text: 'OK', onPress: () => BackHandler.exitApp()},
+          ],
+          {cancelable: false},
+        );
         return true;
       };
 

@@ -37,17 +37,23 @@ import usePriceCalculations from '../../utils/hooks/usePriceCalculations';
 import {handleMutationError} from '../../utils/helpers/errorHandler';
 import {formatNumber} from '../../utils/helpers/helpers';
 import {navigate} from '../../navigation/navigationRef';
+import {broadcastClientRemoteEvent} from '../../utils/hooks/sharedSocketManager';
+import {lockGroupClassRoomAfterPreReserve} from '../../utils/helpers/groupClassRoomCartHelpers';
 import {
   buildGroupClassRoomCartData,
-  buildGroupClassRoomOptimisticPreReserveEvent,
+  buildGroupClassRoomLockBroadcastEvent,
   buildGroupClassRoomPreReservePayload,
   getGroupClassRoomActionState,
   getGroupClassRoomContractorProfile,
   getGroupClassRoomDayOptions,
   getGroupClassRoomPreReserveDisplay,
+  getGroupClassRoomPreReserveOthersLabel,
   resolveGroupClassRoomProductContractor,
-  applyGroupClassRoomEventToQueryCache,
 } from '../../utils/helpers/groupClassRoomHelpers';
+import {
+  logGroupClassRoomEventTrace,
+  logGroupClassRoomPurchaseSent,
+} from '../../utils/helpers/groupClassRoomSseDebug';
 import {
   useGroupClassRoomDetail,
   usePreReserveGroupClassRoom,
@@ -129,6 +135,7 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
             isPreReservedByMe: false,
             othersPreReservedCount: 0,
             totalPreReservedCount: 0,
+            countMode: 'purchase' as const,
           },
     [cartItems, classRoom, contractorId, profileData?.id],
   );
@@ -160,7 +167,8 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
 
   const displayedContractor = useMemo(() => {
     if (selectedContractor?.contractor) {
-      const {firstName, lastName, profile, gender} = selectedContractor.contractor;
+      const {firstName, lastName, profile, gender} =
+        selectedContractor.contractor;
 
       return {
         name: `${firstName ?? ''} ${lastName ?? ''}`.trim(),
@@ -292,8 +300,7 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
   const handleAddToCart = useCallback(async () => {
     if (!canSubmit || !productData || !selectedPriceList || !classRoom) return;
 
-    const activeContractorId =
-      selectedContractor?.contractorId ?? contractorId;
+    const activeContractorId = selectedContractor?.contractorId ?? contractorId;
     const resolvedContractor =
       selectedContractor ??
       resolveGroupClassRoomProductContractor(classRoom, activeContractorId);
@@ -307,18 +314,44 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
         waitingForGroupClass: waitingList,
       });
 
+      logGroupClassRoomEventTrace('addToCart started', {
+        payload,
+        apiStatus: payload.status,
+        groupClassRoomId: classRoom.id,
+        contractorId: activeContractorId,
+      });
+
       await preReserve(payload);
 
-      applyGroupClassRoomEventToQueryCache(
+      const lockEvent = lockGroupClassRoomAfterPreReserve({
+        classRoom,
+        contractorId: activeContractorId,
+        userId: profileData!.id!,
+        waitingForGroupClass: waitingList,
+        organization,
         queryClient,
-        buildGroupClassRoomOptimisticPreReserveEvent(
-          classRoom,
-          activeContractorId,
-          profileData!.id!,
-          waitingList,
-        ),
-        {skipAutoAdjust: true},
+      });
+
+      const purchaseBroadcastEvent = buildGroupClassRoomLockBroadcastEvent(
+        payload,
+        lockEvent.preReservedCount ?? 0,
       );
+
+      // Fallback emit for gateways that relay client socket events.
+      broadcastClientRemoteEvent(purchaseBroadcastEvent, {
+        dispatchLocally: true,
+      });
+
+      logGroupClassRoomPurchaseSent({
+        viewerUserId: profileData!.id!,
+        eventUserId: profileData!.id!,
+        groupClassRoomId: classRoom.id,
+        contractorId: activeContractorId,
+        status: purchaseBroadcastEvent.status,
+        isLocked: purchaseBroadcastEvent.isLocked,
+        preReservedCount: purchaseBroadcastEvent.preReservedCount,
+        organizationSku: organization?.sku,
+      });
 
       await addToCart({
         product: productData,
@@ -335,6 +368,14 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
 
       navigate('Root', {screen: 'HomeNavigator', params: {screen: 'cart'}});
     } catch (error) {
+      logGroupClassRoomEventTrace('addToCart failed', {
+        groupClassRoomId: classRoom.id,
+        contractorId: activeContractorId,
+        error:
+          error instanceof Error
+            ? {name: error.name, message: error.message}
+            : error,
+      });
       handleMutationError(error);
       console.error('Failed to add group class room to cart:', error);
     }
@@ -625,8 +666,10 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
                             actionState.type === 'waitingList') ? (
                           <View className="px-3 py-2 rounded-full border border-dashed border-warning-500 items-center justify-center">
                             <BaseText type="subtitle3" color="warning">
-                              {preReserveDisplay.othersPreReservedCount} نفر در
-                              حال خرید
+                              {getGroupClassRoomPreReserveOthersLabel(
+                                preReserveDisplay.othersPreReservedCount,
+                                preReserveDisplay.countMode,
+                              )}
                             </BaseText>
                           </View>
                         ) : null}

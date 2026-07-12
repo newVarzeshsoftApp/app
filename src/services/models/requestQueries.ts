@@ -1,4 +1,9 @@
-import {DayType, ProductType, RegisteredServiceStatus, TimeRanges} from '../../constants/options';
+import {
+  DayType,
+  ProductType,
+  RegisteredServiceStatus,
+  TimeRanges,
+} from '../../constants/options';
 import {ReservationStatus} from '../../models/enums';
 
 export interface AllOrganizationQuery {
@@ -150,6 +155,7 @@ export interface GroupClassRoomPreReserveQuery {
   user: number;
   status: ReservationStatus;
   waitingForGroupClass?: boolean;
+  isLocked?: boolean;
   key?: string;
   organizationKey?: string;
   organizationSku?: string;

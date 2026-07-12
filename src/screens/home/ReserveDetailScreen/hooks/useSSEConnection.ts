@@ -52,12 +52,9 @@ export const useSSEConnection = ({
       return;
     }
 
-    return subscribeSharedSSE(
-      (event: SharedSSEEvent) => {
-        onEventRef.current(event);
-      },
-      organizationSku ?? SKU?.sku,
-    );
+    return subscribeSharedSSE((event: SharedSSEEvent) => {
+      onEventRef.current(event);
+    }, organizationSku ?? SKU?.sku);
   }, [enabled, organizationSku, profile, SKU]);
 
   return {

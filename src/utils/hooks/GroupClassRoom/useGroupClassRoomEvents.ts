@@ -2,21 +2,18 @@ import {useCallback, useEffect} from 'react';
 import {useQueryClient} from '@tanstack/react-query';
 import {useSSEConnection} from '../../../screens/home/ReserveDetailScreen/hooks/useSSEConnection';
 import {useCartContext} from '../../CartContext';
-import {getCart} from '../../helpers/CartStorage';
 import {
   GroupClassRoomSSEEvent,
-  applyGroupClassRoomEventToQueryCache,
-  findGroupClassRoomCartItemByEvent,
-  groupClassRoomEventMatchesOrganization,
+  isGroupClassRoomEventLockSignal,
   isGroupClassRoomEventReleased,
   isGroupClassRoomSSEEvent,
-  shouldSkipOwnGroupClassRoomLockEvent,
+  processGroupClassRoomRemoteEvent,
 } from '../../helpers/groupClassRoomHelpers';
 import {useAuth} from '../useAuth';
 import {
-  logGroupClassRoomHandlerDecision,
   logGroupClassRoomEventTrace,
-  logGroupClassRoomReleaseFlow,
+  logGroupClassRoomPurchaseReceived,
+  logGroupClassRoomReleaseReceived,
 } from '../../helpers/groupClassRoomSseDebug';
 
 type UseGroupClassRoomEventsOptions = {
@@ -37,92 +34,53 @@ export const useGroupClassRoomEvents = ({
         return;
       }
 
-      const isMyAction =
-        event.user !== undefined && event.user === profile?.id;
+      const isMyAction = event.user !== undefined && event.user === profile?.id;
       const isReleaseEvent = isGroupClassRoomEventReleased(event);
-
-      logGroupClassRoomEventTrace('GCR event received', {
-        event,
+      const flowPayload = {
         viewerUserId: profile?.id,
-        organizationSku: organization?.sku,
-        organizationKey: organization?.key,
-        isMyAction,
-        isReleaseEvent,
-      });
-
-      if (!groupClassRoomEventMatchesOrganization(event, organization)) {
-        logGroupClassRoomHandlerDecision(
-          'ignored',
-          'organization mismatch',
-          event,
-        );
-        return;
-      }
-
-      if (!event.groupClassRoom) {
-        logGroupClassRoomHandlerDecision(
-          'ignored',
-          'missing groupClassRoom id',
-          event,
-        );
-        return;
-      }
-
-      const skipAutoAdjust = shouldSkipOwnGroupClassRoomLockEvent(event, isMyAction);
-
-      applyGroupClassRoomEventToQueryCache(queryClient, event, {
-        skipAutoAdjust,
-      });
-
-      logGroupClassRoomHandlerDecision(
-        'accepted',
-        'cache patched from SSE (no refetch)',
-        event,
-      );
-
-      if (!isReleaseEvent) {
-        return;
-      }
-
-      logGroupClassRoomReleaseFlow('SSE release event processed on viewer', {
+        eventUserId: event.user,
         groupClassRoomId: event.groupClassRoom,
-        contractor: event.contractor,
-        eventUser: event.user,
-        viewerUserId: profile?.id,
+        contractorId: event.contractor,
         status: event.status,
         isLocked: event.isLocked,
-      });
+        preReservedCount: event.preReservedCount,
+        organizationSku: organization?.sku ?? event.organizationSku,
+        isMyAction,
+      };
+
+      // Only log RECEIVED for remote users (viewer B), not for own server echo (viewer A)
+      if (!isMyAction) {
+        if (isReleaseEvent) {
+          logGroupClassRoomReleaseReceived(flowPayload);
+        } else if (isGroupClassRoomEventLockSignal(event)) {
+          logGroupClassRoomPurchaseReceived(flowPayload);
+        }
+      }
 
       try {
-        const cartItems = await getCart();
-        const cartItem = findGroupClassRoomCartItemByEvent(cartItems, event);
-
-        logGroupClassRoomReleaseFlow('SSE release cart lookup', {
-          groupClassRoomId: event.groupClassRoom,
-          cartItemFound: !!cartItem?.CartId,
-          cartId: cartItem?.CartId,
+        await processGroupClassRoomRemoteEvent(event, {
+          queryClient,
+          profileId: profile?.id,
+          organization,
+          removeFromCart,
         });
-
-        if (cartItem?.CartId) {
-          await removeFromCart(cartItem.CartId, {
-            skipGroupClassRoomRelease: true,
-          });
-        }
       } catch (error) {
-        logGroupClassRoomReleaseFlow('SSE release cart cleanup FAILED', {
+        logGroupClassRoomEventTrace('GCR event handler FAILED', {
           groupClassRoomId: event.groupClassRoom,
+          viewerUserId: profile?.id,
           error:
             error instanceof Error
               ? {name: error.name, message: error.message}
               : error,
         });
-        console.error(
-          'Failed to remove group class room item from cart via SSE:',
-          error,
-        );
       }
     },
-    [organization, profile?.id, queryClient, removeFromCart],
+    [
+      organization,
+      profile?.id,
+      queryClient,
+      removeFromCart,
+    ],
   );
 
   useSSEConnection({

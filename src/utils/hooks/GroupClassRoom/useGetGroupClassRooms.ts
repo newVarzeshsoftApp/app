@@ -5,18 +5,24 @@ import {GroupClassRoomResponse} from '../../../services/models/response/GroupCla
 
 export const useGetGroupClassRooms = (
   query?: GroupClassRoomQuery,
-  enabled?: boolean,
+  options?: {
+    enabled?: boolean;
+    refetchInterval?: number | false;
+  },
 ): UseQueryResult<GroupClassRoomResponse, Error> => {
+  const enabled = options?.enabled !== false;
+
   return useQuery({
     queryKey: ['GroupClassRooms', query],
     queryFn: ({signal}) => GroupClassRoomService.GetAll(query, signal),
-    enabled: enabled !== false,
+    enabled,
     retry: false,
     staleTime: 60_000,
     gcTime: 5 * 60_000,
     refetchOnMount: true,
     refetchOnWindowFocus: false,
     refetchOnReconnect: true,
+    refetchInterval: options?.refetchInterval ?? false,
+    refetchIntervalInBackground: false,
   });
 };
-

@@ -26,11 +26,21 @@ import {
 } from '../../services/models/requestQueries';
 import {
   CartItem,
+  getCart,
   GroupClassRoomCartData,
   GroupClassRoomCartScheduleRow,
   RegisteredGroupClassScheduleItem,
 } from './CartStorage';
-import {logGroupClassRoomRefetchSnapshot} from './groupClassRoomSseDebug';
+import {
+  logGroupClassRoomEventTrace,
+  logGroupClassRoomHandlerDecision,
+  logGroupClassRoomReleaseFlow,
+  logGroupClassRoomSseDebug,
+} from './groupClassRoomSseDebug';
+import {
+  applyGroupClassRoomLiveLockFromEvent,
+  getGroupClassRoomLiveLock,
+} from './groupClassRoomLiveLocks';
 
 const isSubsetOf = (days: number[], allowed: number[]) =>
   days.length > 0 && days.every(day => allowed.includes(day));
@@ -101,10 +111,13 @@ export type GroupClassRoomActionState = {
   canPress: boolean;
 };
 
+export type GroupClassRoomPreReserveCountMode = 'purchase' | 'waitingList';
+
 export type GroupClassRoomPreReserveDisplay = {
   isPreReservedByMe: boolean;
   othersPreReservedCount: number;
   totalPreReservedCount: number;
+  countMode: GroupClassRoomPreReserveCountMode;
 };
 
 export const formatScheduleTime = (schedule?: GroupClassRoomSchedule) => {
@@ -144,24 +157,66 @@ export const getGroupClassRoomPreReservedCount = (
       ? getGroupClassRoomConfig(item, filterContractorId)
       : item.config ?? getGroupClassRoomConfigs(item)[0];
 
+  const rowContractorId = item.config?.contractorId ?? config?.contractorId;
+  const isRowScopedToContractor =
+    filterContractorId == null || rowContractorId === filterContractorId;
+
+  let baseCount = 0;
+
   if (typeof config?.preReservedCount === 'number') {
-    return config.preReservedCount;
+    baseCount = config.preReservedCount;
+  } else if (
+    isRowScopedToContractor &&
+    typeof item.preReservedCount === 'number'
+  ) {
+    baseCount = item.preReservedCount;
+  } else if (filterContractorId != null) {
+    baseCount = 0;
+  } else {
+    baseCount =
+      item.schedules?.reduce(
+        (total, schedule) => total + (schedule.preReservedCount ?? 0),
+        0,
+      ) ?? 0;
   }
 
-  if (filterContractorId == null && typeof item.preReservedCount === 'number') {
-    return item.preReservedCount;
+  if (filterContractorId == null) {
+    return baseCount;
   }
 
-  if (filterContractorId != null) {
-    return 0;
+  const liveLock = getGroupClassRoomLiveLock(item.id, filterContractorId);
+  if (liveLock?.preReservedCount != null) {
+    return Math.max(baseCount, liveLock.preReservedCount);
   }
 
-  return (
-    item.schedules?.reduce(
-      (total, schedule) => total + (schedule.preReservedCount ?? 0),
-      0,
-    ) ?? 0
-  );
+  return baseCount;
+};
+
+export const getGroupClassRoomPreReserveWaitingCount = (
+  item: GroupClassRoom,
+  filterContractorId?: number,
+): number => {
+  const config =
+    filterContractorId != null
+      ? getGroupClassRoomConfig(item, filterContractorId)
+      : item.config ?? getGroupClassRoomConfigs(item)[0];
+
+  if (typeof config?.preReserveWaitingCount === 'number') {
+    return config.preReserveWaitingCount;
+  }
+
+  const rowContractorId = item.config?.contractorId ?? config?.contractorId;
+  const isRowScopedToContractor =
+    filterContractorId == null || rowContractorId === filterContractorId;
+
+  if (
+    isRowScopedToContractor &&
+    typeof item.preReserveWaitingCount === 'number'
+  ) {
+    return item.preReserveWaitingCount;
+  }
+
+  return 0;
 };
 
 export const findGroupClassRoomInCart = (
@@ -195,7 +250,10 @@ export const getGroupClassRoomPreReservedUserId = (
     return config.preReservedUserId;
   }
 
-  if (filterContractorId == null && typeof item.preReservedUserId === 'number') {
+  if (
+    filterContractorId == null &&
+    typeof item.preReservedUserId === 'number'
+  ) {
     return item.preReservedUserId;
   }
 
@@ -222,32 +280,6 @@ export const isGroupClassRoomPreReservedByMe = ({
   }
 
   return getGroupClassRoomPreReservedUserId(item, contractorId) === userId;
-};
-
-export const getGroupClassRoomPreReserveDisplay = (
-  item: GroupClassRoom,
-  options?: {
-    userId?: number;
-    contractorId?: number;
-    cartItems?: CartItem[];
-  },
-): GroupClassRoomPreReserveDisplay => {
-  const totalPreReservedCount = getGroupClassRoomPreReservedCount(item);
-  const isPreReservedByMe = isGroupClassRoomPreReservedByMe({
-    item,
-    userId: options?.userId,
-    contractorId: options?.contractorId,
-    cartItems: options?.cartItems,
-  });
-
-  return {
-    isPreReservedByMe,
-    totalPreReservedCount,
-    othersPreReservedCount: Math.max(
-      0,
-      totalPreReservedCount - (isPreReservedByMe ? 1 : 0),
-    ),
-  };
 };
 
 export const getGroupClassRoomCapacity = (
@@ -289,13 +321,13 @@ export const getGroupClassRoomActionState = (
   const isFull = capacity.max > 0 && capacity.filled >= capacity.max;
   const waitingListCount = config?.waitingListCount ?? 0;
   const waitingListMax = config?.contractorWaitingListMax ?? 0;
-  const preReservedCount = getGroupClassRoomPreReservedCount(
+  const preReserveWaitingCount = getGroupClassRoomPreReserveWaitingCount(
     item,
     filterContractorId,
   );
   const hasWaitingListSpace =
     waitingListMax > 0 &&
-    waitingListCount + preReservedCount < waitingListMax;
+    waitingListCount + preReserveWaitingCount < waitingListMax;
 
   if (!isFull) {
     return {type: 'join', canPress: true};
@@ -306,6 +338,49 @@ export const getGroupClassRoomActionState = (
     canPress: hasWaitingListSpace,
   };
 };
+
+export const getGroupClassRoomPreReserveDisplay = (
+  item: GroupClassRoom,
+  options?: {
+    userId?: number;
+    contractorId?: number;
+    cartItems?: CartItem[];
+  },
+): GroupClassRoomPreReserveDisplay => {
+  const isPreReservedByMe = isGroupClassRoomPreReservedByMe({
+    item,
+    userId: options?.userId,
+    contractorId: options?.contractorId,
+    cartItems: options?.cartItems,
+  });
+  const actionState = getGroupClassRoomActionState(item, options?.contractorId, {
+    isPreReservedByMe,
+  });
+  const countMode: GroupClassRoomPreReserveCountMode =
+    actionState.type === 'waitingList' ? 'waitingList' : 'purchase';
+  const totalPreReservedCount =
+    countMode === 'waitingList'
+      ? getGroupClassRoomPreReserveWaitingCount(item, options?.contractorId)
+      : getGroupClassRoomPreReservedCount(item, options?.contractorId);
+
+  return {
+    isPreReservedByMe,
+    totalPreReservedCount,
+    countMode,
+    othersPreReservedCount: Math.max(
+      0,
+      totalPreReservedCount - (isPreReservedByMe ? 1 : 0),
+    ),
+  };
+};
+
+export const getGroupClassRoomPreReserveOthersLabel = (
+  count: number,
+  countMode: GroupClassRoomPreReserveCountMode,
+): string =>
+  countMode === 'waitingList'
+    ? `${count} نفر برای رزرو اقدام کرده‌اند`
+    : `${count} نفر در حال خرید`;
 
 export const getCapacityColors = (filled: number, max: number) => {
   const remaining = Math.max(max - filled, 0);
@@ -636,7 +711,9 @@ export const buildRegisteredGroupClassSchedule = (
         groupClassRoomScheduleId: schedule.id,
       };
     })
-    .filter((entry): entry is RegisteredGroupClassScheduleItem => entry != null);
+    .filter(
+      (entry): entry is RegisteredGroupClassScheduleItem => entry != null,
+    );
 
 export const buildGroupClassRoomCartScheduleRows = (
   classRoom: GroupClassRoom,
@@ -697,18 +774,17 @@ export const buildGroupClassRoomCartData = (
     contractorImageName: contractorUser?.profile?.name,
     contractorGender: contractorUser?.gender,
     scheduleRows,
-    scheduleDaysLabel: scheduleRows.map(row => row.daysLabel).join(' | ') || undefined,
-    scheduleTimeLabel: scheduleRows.map(row => row.timeLabel).join('، ') || undefined,
+    scheduleDaysLabel:
+      scheduleRows.map(row => row.daysLabel).join(' | ') || undefined,
+    scheduleTimeLabel:
+      scheduleRows.map(row => row.timeLabel).join('، ') || undefined,
     registeredGroupClassSchedule,
   };
 };
 
 export const resolveGroupClassRoomPreReserveStatus = (
-  waitingForGroupClass: boolean,
-): ReservationStatus =>
-  waitingForGroupClass
-    ? ReservationStatus.Reserved
-    : ReservationStatus.Locked;
+  _waitingForGroupClass: boolean,
+): ReservationStatus => ReservationStatus.Reserved;
 
 export type GroupClassRoomSSEEvent = {
   key?: string;
@@ -729,12 +805,24 @@ export const isGroupClassRoomSSEEvent = (
 ): boolean =>
   event.key === GROUP_CLASS_ROOM_KEY || event.groupClassRoom != null;
 
-export const isGroupClassRoomEventLocked = (
-  status?: string,
-): boolean =>
+export const isGroupClassRoomEventLocked = (status?: string): boolean =>
   status === ReservationStatus.Locked ||
   status === ReservationStatus.Reserved ||
   status === 'pre-reserved';
+
+export const isGroupClassRoomEventLockSignal = (
+  event?: Pick<GroupClassRoomSSEEvent, 'status' | 'isLocked'>,
+): boolean => {
+  if (!event || isGroupClassRoomEventReleased(event)) {
+    return false;
+  }
+
+  return (
+    isGroupClassRoomEventLocked(event.status) ||
+    event.isLocked === true ||
+    event.isLocked === 'true'
+  );
+};
 
 export const isGroupClassRoomEventReleased = (
   event?: Pick<GroupClassRoomSSEEvent, 'status' | 'isLocked'>,
@@ -745,9 +833,15 @@ export const isGroupClassRoomEventReleased = (
 
   if (
     event.status === ReservationStatus.Released ||
-    event.status === 'cancelled'
+    event.status === ReservationStatus.Cancelled
   ) {
     return true;
+  }
+
+  // POST body uses isLocked:false for both lock and release (reserve API convention).
+  // When status is locked/reserved, isLocked:false still means a lock — not a release.
+  if (event.status && isGroupClassRoomEventLocked(event.status)) {
+    return false;
   }
 
   return event.isLocked === false || event.isLocked === 'false';
@@ -773,12 +867,31 @@ type ApplyGroupClassRoomEventOptions = {
   skipAutoAdjust?: boolean;
 };
 
+const configMatchesGroupClassRoomEvent = (
+  config: GroupClassRoomConfig,
+  event: GroupClassRoomSSEEvent,
+): boolean => {
+  if (event.contractor != null) {
+    return config.contractorId === event.contractor;
+  }
+
+  if (
+    isGroupClassRoomEventReleased(event) &&
+    event.user != null &&
+    config.preReservedUserId === event.user
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
 const patchGroupClassRoomConfigFromEvent = (
   config: GroupClassRoomConfig,
   event: GroupClassRoomSSEEvent,
   options?: ApplyGroupClassRoomEventOptions,
 ): GroupClassRoomConfig => {
-  if (event.contractor != null && config.contractorId !== event.contractor) {
+  if (!configMatchesGroupClassRoomEvent(config, event)) {
     return config;
   }
 
@@ -806,19 +919,26 @@ const patchGroupClassRoomConfigFromEvent = (
   }
 
   if (
+    event.user != null &&
+    isGroupClassRoomEventLockSignal(event) &&
+    config.preReservedUserId === event.user &&
+    event.preReservedCount == null
+  ) {
+    return {
+      ...nextConfig,
+      preReservedUserId: event.user,
+    };
+  }
+
+  if (
     event.preReservedCount == null &&
     !options?.skipAutoAdjust &&
-    event.status &&
-    isGroupClassRoomEventLocked(event.status)
+    isGroupClassRoomEventLockSignal(event)
   ) {
     nextConfig.preReservedCount = (config.preReservedCount ?? 0) + 1;
   }
 
-  if (
-    event.user != null &&
-    event.status &&
-    isGroupClassRoomEventLocked(event.status)
-  ) {
+  if (event.user != null && isGroupClassRoomEventLockSignal(event)) {
     return {
       ...nextConfig,
       preReservedUserId: event.user,
@@ -838,7 +958,31 @@ const patchGroupClassRoomFromEvent = (
   }
 
   if (event.contractor == null) {
-    return item;
+    if (!isGroupClassRoomEventReleased(event) || event.user == null) {
+      return item;
+    }
+
+    const configs = getGroupClassRoomConfigs(item);
+    const patchedConfigs = configs.map(config =>
+      config.preReservedUserId === event.user
+        ? patchGroupClassRoomConfigFromEvent(config, event, options)
+        : config,
+    );
+    const patchedConfig = item.config
+      ? item.config.preReservedUserId === event.user
+        ? patchGroupClassRoomConfigFromEvent(item.config, event, options)
+        : item.config
+      : patchedConfigs.find(
+          config => config.preReservedUserId === event.user,
+        ) ?? patchedConfigs[0];
+
+    return {
+      ...item,
+      ...(patchedConfigs.length > 0 ? {configs: patchedConfigs} : {}),
+      ...(patchedConfig ? {config: patchedConfig} : {}),
+      preReservedUserId: undefined,
+      preReservedCount: Math.max(0, (item.preReservedCount ?? 0) - 1),
+    };
   }
 
   if (!groupClassRoomMatchesEventContractor(item, event.contractor)) {
@@ -853,7 +997,8 @@ const patchGroupClassRoomFromEvent = (
     ? patchGroupClassRoomConfigFromEvent(item.config, event, options)
     : patchedConfigs[0];
 
-  const shouldPatchItemLevelCounts = item.config?.contractorId === event.contractor;
+  const shouldPatchItemLevelCounts =
+    item.config?.contractorId === event.contractor;
 
   const patchedItem: GroupClassRoom = {
     ...item,
@@ -888,14 +1033,20 @@ export const applyGroupClassRoomEventToQueryCache = (
   queryClient: QueryClient,
   event: GroupClassRoomSSEEvent,
   options?: ApplyGroupClassRoomEventOptions,
-): void => {
+): boolean => {
   if (!event.groupClassRoom) {
-    return;
+    return false;
   }
 
   const snapshots = queryClient.getQueriesData<unknown>({
     queryKey: ['GroupClassRooms'],
   });
+
+  if (snapshots.length === 0) {
+    return false;
+  }
+
+  let didPatch = false;
 
   snapshots.forEach(([queryKey, data]) => {
     if (!data) {
@@ -914,6 +1065,8 @@ export const applyGroupClassRoomEventToQueryCache = (
       return;
     }
 
+    didPatch = true;
+
     if (Array.isArray(data)) {
       queryClient.setQueryData(queryKey, nextRooms);
       return;
@@ -931,31 +1084,118 @@ export const applyGroupClassRoomEventToQueryCache = (
       });
     }
   });
+
+  return didPatch;
 };
 
 export const shouldSkipOwnGroupClassRoomLockEvent = (
   event: GroupClassRoomSSEEvent,
   isMyAction: boolean,
-): boolean =>
-  isMyAction &&
-  !!event.status &&
-  isGroupClassRoomEventLocked(event.status) &&
-  !isGroupClassRoomEventReleased(event);
+): boolean => isMyAction && isGroupClassRoomEventLockSignal(event);
 
 export const buildGroupClassRoomOptimisticPreReserveEvent = (
   classRoom: GroupClassRoom,
   contractorId: number,
   userId: number,
   waitingForGroupClass: boolean,
+  organization?: GetAllOrganizationResponse | null,
 ): GroupClassRoomSSEEvent => ({
   key: GROUP_CLASS_ROOM_KEY,
   groupClassRoom: classRoom.id,
   contractor: contractorId,
   user: userId,
   status: resolveGroupClassRoomPreReserveStatus(waitingForGroupClass),
+  isLocked: true,
+  organizationKey: organization?.key,
+  organizationSku: organization?.sku,
   preReservedCount:
     getGroupClassRoomPreReservedCount(classRoom, contractorId) + 1,
 });
+
+export const groupClassRoomPreReservePayloadToSSEEvent = (
+  payload: GroupClassRoomPreReserveQuery,
+  options?: {preReservedCount?: number},
+): GroupClassRoomSSEEvent => ({
+  key: payload.key,
+  groupClassRoom: payload.groupClassRoom,
+  contractor: payload.contractor,
+  user: payload.user,
+  status: payload.status,
+  isLocked: payload.isLocked,
+  organizationKey: payload.organizationKey,
+  organizationSku: payload.organizationSku,
+  ...(options?.preReservedCount != null
+    ? {preReservedCount: options.preReservedCount}
+    : {}),
+});
+
+export const buildGroupClassRoomLockBroadcastEvent = (
+  payload: GroupClassRoomPreReserveQuery,
+  preReservedCount: number,
+): GroupClassRoomSSEEvent => ({
+  ...groupClassRoomPreReservePayloadToSSEEvent(payload, {preReservedCount}),
+  key: payload.key ?? GROUP_CLASS_ROOM_KEY,
+});
+
+export const buildGroupClassRoomReleaseEvent = ({
+  groupClassRoomId,
+  contractorId,
+  userId,
+  organization,
+  preReservedCount,
+}: {
+  groupClassRoomId: number;
+  contractorId: number;
+  userId: number;
+  organization?: GetAllOrganizationResponse | null;
+  preReservedCount?: number;
+}): GroupClassRoomSSEEvent => ({
+  key: GROUP_CLASS_ROOM_KEY,
+  groupClassRoom: groupClassRoomId,
+  contractor: contractorId,
+  user: userId,
+  organizationKey: organization?.key,
+  organizationSku: organization?.sku,
+  status: ReservationStatus.Released,
+  isLocked: undefined,
+  ...(preReservedCount != null ? {preReservedCount} : {}),
+});
+
+let groupClassRoomRefetchTimer: ReturnType<typeof setTimeout> | null = null;
+
+export const scheduleGroupClassRoomRefetch = (
+  queryClient: QueryClient,
+  options?: {
+    includeInactive?: boolean;
+    debugGroupClassRoomId?: number;
+    delayMs?: number;
+  },
+): void => {
+  if (groupClassRoomRefetchTimer) {
+    clearTimeout(groupClassRoomRefetchTimer);
+  }
+
+  const delayMs = options?.delayMs ?? 400;
+
+  groupClassRoomRefetchTimer = setTimeout(() => {
+    groupClassRoomRefetchTimer = null;
+    void refetchGroupClassRoomQueries(queryClient, options);
+  }, delayMs);
+};
+
+export const refetchGroupClassRoomsAfterEvent = (
+  queryClient: QueryClient,
+  options?: {
+    includeInactive?: boolean;
+    debugGroupClassRoomId?: number;
+  },
+): void => {
+  void refetchGroupClassRoomQueries(queryClient, options);
+  scheduleGroupClassRoomRefetch(queryClient, {
+    ...options,
+    delayMs: 1200,
+  });
+};
 
 export const groupClassRoomEventMatchesOrganization = (
   event: GroupClassRoomSSEEvent,
@@ -1000,6 +1240,147 @@ export const findGroupClassRoomCartItemByEvent = (
     return item.groupClassRoomData.contractorId === event.contractor;
   });
 
+type ProcessGroupClassRoomRemoteEventOptions = {
+  queryClient: QueryClient;
+  profileId?: number;
+  organization?: GetAllOrganizationResponse | null;
+  removeFromCart?: (
+    cartId: string,
+    options?: {skipGroupClassRoomRelease?: boolean},
+  ) => Promise<void>;
+};
+
+export const processGroupClassRoomRemoteEvent = async (
+  event: GroupClassRoomSSEEvent,
+  {
+    queryClient,
+    profileId,
+    organization,
+    removeFromCart,
+  }: ProcessGroupClassRoomRemoteEventOptions,
+): Promise<void> => {
+  if (!isGroupClassRoomSSEEvent(event)) {
+    return;
+  }
+
+  const isMyAction = event.user !== undefined && event.user === profileId;
+  const isReleaseEvent = isGroupClassRoomEventReleased(event);
+
+  logGroupClassRoomEventTrace('GCR event received', {
+    event,
+    viewerUserId: profileId,
+    organizationSku: organization?.sku,
+    organizationKey: organization?.key,
+    isMyAction,
+    isReleaseEvent,
+  });
+
+  if (!groupClassRoomEventMatchesOrganization(event, organization)) {
+    logGroupClassRoomHandlerDecision('ignored', 'organization mismatch', event);
+    return;
+  }
+
+  if (!event.groupClassRoom) {
+    logGroupClassRoomHandlerDecision(
+      'ignored',
+      'missing groupClassRoom id',
+      event,
+    );
+    return;
+  }
+
+  const isLockEvent = isGroupClassRoomEventLockSignal(event);
+  const didPatch = applyGroupClassRoomEventToQueryCache(queryClient, event, {
+    skipAutoAdjust: false,
+  });
+
+  logGroupClassRoomHandlerDecision(
+    didPatch ? 'accepted' : 'ignored',
+    didPatch
+      ? `${isReleaseEvent ? 'release' : 'lock'} cache patched`
+      : `${isReleaseEvent ? 'release' : 'lock'} cache unchanged`,
+    event,
+  );
+
+  // List API does not return updated preReservedCount immediately after lock.
+  // Refetching here overwrites optimistic/SSE cache and hides "in purchase" for other users.
+  if (isReleaseEvent) {
+    refetchGroupClassRoomsAfterEvent(queryClient, {
+      includeInactive: true,
+      debugGroupClassRoomId: event.groupClassRoom,
+    });
+
+    logGroupClassRoomHandlerDecision(
+      'accepted',
+      'release event; refetch scheduled',
+      event,
+    );
+  } else if (isLockEvent) {
+    logGroupClassRoomHandlerDecision(
+      'accepted',
+      'lock event; cache-only update (no refetch)',
+      event,
+    );
+  }
+
+  if (event.contractor != null) {
+    applyGroupClassRoomLiveLockFromEvent({
+      groupClassRoomId: event.groupClassRoom,
+      contractorId: event.contractor,
+      userId: event.user,
+      preReservedCount: event.preReservedCount,
+      isRelease: isReleaseEvent,
+    });
+  }
+
+  if (!isReleaseEvent || !removeFromCart) {
+    return;
+  }
+
+  // Actor removes cart locally in Carthook; server echo must not double-remove.
+  if (isMyAction) {
+    return;
+  }
+
+  logGroupClassRoomReleaseFlow('SSE release event processed on viewer', {
+    groupClassRoomId: event.groupClassRoom,
+    contractor: event.contractor,
+    eventUser: event.user,
+    viewerUserId: profileId,
+    status: event.status,
+    isLocked: event.isLocked,
+  });
+
+  try {
+    const cartItems = await getCart();
+    const cartItem = findGroupClassRoomCartItemByEvent(cartItems, event);
+
+    logGroupClassRoomReleaseFlow('SSE release cart lookup', {
+      groupClassRoomId: event.groupClassRoom,
+      cartItemFound: !!cartItem?.CartId,
+      cartId: cartItem?.CartId,
+    });
+
+    if (cartItem?.CartId) {
+      await removeFromCart(cartItem.CartId, {
+        skipGroupClassRoomRelease: true,
+      });
+    }
+  } catch (error) {
+    logGroupClassRoomReleaseFlow('SSE release cart cleanup FAILED', {
+      groupClassRoomId: event.groupClassRoom,
+      error:
+        error instanceof Error
+          ? {name: error.name, message: error.message}
+          : error,
+    });
+    console.error(
+      'Failed to remove group class room item from cart via SSE:',
+      error,
+    );
+  }
+};
+
 export const refetchGroupClassRoomQueries = async (
   queryClient: QueryClient,
   options?: {includeInactive?: boolean; debugGroupClassRoomId?: number},
@@ -1013,12 +1394,30 @@ export const refetchGroupClassRoomQueries = async (
     const snapshots = queryClient.getQueriesData({
       queryKey: ['GroupClassRooms'],
     });
+    const queryData = snapshots[0]?.[1];
+    const rooms = normalizeGroupClassRoomResponse(queryData);
+    const groupClassRoomId = options?.debugGroupClassRoomId;
+    const matchedRoom = groupClassRoomId
+      ? rooms.find(room => room.id === groupClassRoomId)
+      : undefined;
 
-    logGroupClassRoomRefetchSnapshot(
-      'refetch',
-      snapshots[0]?.[1],
-      options?.debugGroupClassRoomId,
-    );
+    logGroupClassRoomSseDebug('REFETCH-DATA', 'refetch', {
+      groupClassRoomId,
+      roomCount: rooms.length,
+      matchedRoomId: matchedRoom?.id,
+      matchedPreReservedCount: matchedRoom
+        ? getGroupClassRoomPreReservedCount(matchedRoom)
+        : undefined,
+      matchedPreReserveWaitingCount: matchedRoom
+        ? getGroupClassRoomPreReserveWaitingCount(matchedRoom)
+        : undefined,
+      rooms: groupClassRoomId
+        ? undefined
+        : rooms.map(room => ({
+            id: room.id,
+            preReservedCount: getGroupClassRoomPreReservedCount(room),
+          })),
+    });
   }
 };
 
@@ -1029,6 +1428,7 @@ export const buildGroupClassRoomPreReservePayload = ({
   organization,
   waitingForGroupClass = false,
   status,
+  isLocked,
 }: {
   userId: number;
   groupClassRoomId: number;
@@ -1036,16 +1436,23 @@ export const buildGroupClassRoomPreReservePayload = ({
   organization?: GetAllOrganizationResponse | null;
   waitingForGroupClass?: boolean;
   status?: ReservationStatus;
-}): GroupClassRoomPreReserveQuery => ({
-  user: userId,
-  groupClassRoom: groupClassRoomId,
-  contractor: contractorId,
-  status: status ?? resolveGroupClassRoomPreReserveStatus(waitingForGroupClass),
-  waitingForGroupClass,
-  key: GROUP_CLASS_ROOM_KEY,
-  organizationKey: organization?.key,
-  organizationSku: organization?.sku,
-});
+  isLocked?: boolean;
+}): GroupClassRoomPreReserveQuery => {
+  const resolvedStatus =
+    status ?? resolveGroupClassRoomPreReserveStatus(waitingForGroupClass);
+
+  return {
+    user: userId,
+    groupClassRoom: groupClassRoomId,
+    contractor: contractorId,
+    status: resolvedStatus,
+    waitingForGroupClass,
+    key: GROUP_CLASS_ROOM_KEY,
+    organizationKey: organization?.key,
+    organizationSku: organization?.sku,
+    isLocked: isLocked ?? false,
+  };
+};
 
 export const buildGroupClassRoomReleasePayload = ({
   userId,
@@ -1067,4 +1474,5 @@ export const buildGroupClassRoomReleasePayload = ({
     organization,
     waitingForGroupClass,
     status: ReservationStatus.Released,
+    isLocked: false,
   });
