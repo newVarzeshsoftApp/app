@@ -784,7 +784,7 @@ export const buildGroupClassRoomCartData = (
 
 export const resolveGroupClassRoomPreReserveStatus = (
   _waitingForGroupClass: boolean,
-): ReservationStatus => ReservationStatus.Reserved;
+): ReservationStatus => ReservationStatus.Locked;
 
 export type GroupClassRoomSSEEvent = {
   key?: string;

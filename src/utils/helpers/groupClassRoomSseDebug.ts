@@ -162,7 +162,107 @@ type GroupClassRoomFlowLogPayload = {
   isLocked?: string | boolean;
   preReservedCount?: number;
   organizationSku?: string;
+  fullEvent?: unknown;
   [key: string]: unknown;
+};
+
+const isGroupClassRoomEventShape = (event?: {
+  key?: string;
+  groupClassRoom?: number;
+}): boolean =>
+  event?.key === GROUP_CLASS_ROOM_KEY || event?.groupClassRoom != null;
+
+const summarizeGroupClassRoomEvent = (event?: {
+  status?: string;
+  isLocked?: string | boolean;
+  user?: number;
+  groupClassRoom?: number;
+  contractor?: number;
+  preReservedCount?: number;
+  organizationSku?: string;
+  organizationKey?: string;
+  key?: string;
+  waitingForGroupClass?: boolean;
+}) => ({
+  status: event?.status,
+  isLocked: event?.isLocked,
+  user: event?.user,
+  groupClassRoom: event?.groupClassRoom,
+  contractor: event?.contractor,
+  preReservedCount: event?.preReservedCount,
+  organizationSku: event?.organizationSku,
+  organizationKey: event?.organizationKey,
+  key: event?.key,
+  waitingForGroupClass: event?.waitingForGroupClass,
+});
+
+/**
+ * Clear console log whenever a GCR CLIENT_REMOTE event is about to be sent.
+ */
+export const logGroupClassRoomEventSending = (
+  event: SharedSSEEvent | GroupClassRoomSSEEvent,
+  meta?: {source?: string; socketConnected?: boolean},
+) => {
+  if (!__DEV__ || !isGroupClassRoomEventShape(event)) {
+    return;
+  }
+
+  const payload = {
+    source: meta?.source ?? 'broadcast',
+    socketConnected: meta?.socketConnected,
+    summary: summarizeGroupClassRoomEvent(event),
+    fullEvent: event,
+  };
+
+  pushEntry('EVENT-SENDING', 'Group class room event is being sent', payload);
+
+  console.log(
+    '%c[GCR-EVENT] SENDING%c status=%s | room=%s | contractor=%s | user=%s',
+    'color:#16a34a;font-weight:bold',
+    'color:inherit',
+    event.status ?? 'n/a',
+    event.groupClassRoom ?? 'n/a',
+    event.contractor ?? 'n/a',
+    event.user ?? 'n/a',
+    payload,
+  );
+};
+
+/**
+ * Clear console log whenever a GCR CLIENT_REMOTE event is received.
+ */
+export const logGroupClassRoomEventReceiving = (
+  event: SharedSSEEvent | GroupClassRoomSSEEvent,
+  meta?: {source?: string; viewerUserId?: number},
+) => {
+  if (!__DEV__ || !isGroupClassRoomEventShape(event)) {
+    return;
+  }
+
+  const payload = {
+    source: meta?.source ?? 'socket',
+    viewerUserId: meta?.viewerUserId,
+    isMyAction:
+      meta?.viewerUserId != null &&
+      event.user != null &&
+      event.user === meta.viewerUserId,
+    summary: summarizeGroupClassRoomEvent(event),
+    fullEvent: event,
+  };
+
+  pushEntry('EVENT-RECEIVED', 'Group class room event was received', payload);
+
+  console.log(
+    '%c[GCR-EVENT] RECEIVED%c status=%s | room=%s | contractor=%s | user=%s | source=%s',
+    'color:#2563eb;font-weight:bold',
+    'color:inherit',
+    event.status ?? 'n/a',
+    event.groupClassRoom ?? 'n/a',
+    event.contractor ?? 'n/a',
+    event.user ?? 'n/a',
+    meta?.source ?? 'socket',
+    payload,
+  );
 };
 
 const logGroupClassRoomFlow = (
@@ -184,7 +284,8 @@ const logGroupClassRoomFlow = (
     payload?.groupClassRoomId != null
       ? `room=${payload.groupClassRoomId}`
       : '';
-  const context = [viewer, actor, room].filter(Boolean).join(' | ');
+  const status = payload?.status != null ? `status=${payload.status}` : '';
+  const context = [viewer, actor, room, status].filter(Boolean).join(' | ');
 
   console.log(
     `%c[GCR] ${stage}%c ${message}${context ? ` (${context})` : ''}`,

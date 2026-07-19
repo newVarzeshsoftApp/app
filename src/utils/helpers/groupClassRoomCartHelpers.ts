@@ -158,5 +158,6 @@ export const releaseGroupClassRoomFromCartItem = async ({
     preReservedCount: releaseEvent.preReservedCount,
     organizationSku: organization?.sku,
     cartId: item.CartId,
+    fullEvent: releaseEvent,
   });
 };

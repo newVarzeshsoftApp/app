@@ -1,6 +1,8 @@
 import {Platform} from 'react-native';
 import {getTokens} from '../helpers/tokenStorage';
 import {
+  logGroupClassRoomEventReceiving,
+  logGroupClassRoomEventSending,
   logGroupClassRoomRawSocketEvent,
   logGroupClassRoomSseDebug,
   setGroupClassRoomSocketConnectedDebug,
@@ -59,7 +61,12 @@ let reconnectAttempts = 0;
 const MAX_RECONNECT_DELAY_MS = 30_000;
 const BASE_RECONNECT_DELAY_MS = 1_000;
 
-const dispatchEvent = (data: SharedSSEEvent) => {
+const dispatchEvent = (
+  data: SharedSSEEvent,
+  source: string = 'dispatch',
+) => {
+  logGroupClassRoomEventReceiving(data, {source});
+
   listenerEntries.forEach(({listener, organizationSku}) => {
     if (
       organizationSku &&
@@ -95,7 +102,7 @@ const ensureCrossTabChannel = () => {
     }
 
     logGroupClassRoomRawSocketEvent('BROADCAST_CHANNEL', payload.event);
-    dispatchEvent(payload.event);
+    dispatchEvent(payload.event, 'broadcast-channel');
   };
 
   logGroupClassRoomSseDebug('CHANNEL', 'cross-tab listener ready', {
@@ -216,7 +223,7 @@ const attachSocketHandlers = (serverUrl: string) => {
 
   socket.on('CLIENT_REMOTE', (data: SharedSSEEvent) => {
     logGroupClassRoomRawSocketEvent('CLIENT_REMOTE', data);
-    dispatchEvent(data);
+    dispatchEvent(data, 'CLIENT_REMOTE');
     // Fan-out server events to other tabs in the same browser (e.g. user B tab).
     publishCrossTabEvent(data);
   });
@@ -306,9 +313,14 @@ export const broadcastClientRemoteEvent = (
   options?: {dispatchLocally?: boolean},
 ): void => {
   logGroupClassRoomRawSocketEvent('EMIT', data);
+  logGroupClassRoomEventSending(data, {
+    source: 'broadcastClientRemoteEvent',
+    socketConnected: !!socket?.connected,
+  });
 
   if (socket?.connected) {
     socket.emit('CLIENT_REMOTE', data);
+    logGroupClassRoomSseDebug('EMIT', 'CLIENT_REMOTE emitted', data);
   } else {
     logGroupClassRoomSseDebug('EMIT', 'socket not connected', data);
   }
@@ -316,7 +328,7 @@ export const broadcastClientRemoteEvent = (
   publishCrossTabEvent(data);
 
   if (options?.dispatchLocally !== false) {
-    dispatchEvent(data);
+    dispatchEvent(data, 'local-dispatch');
   }
 };
 

@@ -46,15 +46,13 @@ export const useGroupClassRoomEvents = ({
         preReservedCount: event.preReservedCount,
         organizationSku: organization?.sku ?? event.organizationSku,
         isMyAction,
+        fullEvent: event,
       };
 
-      // Only log RECEIVED for remote users (viewer B), not for own server echo (viewer A)
-      if (!isMyAction) {
-        if (isReleaseEvent) {
-          logGroupClassRoomReleaseReceived(flowPayload);
-        } else if (isGroupClassRoomEventLockSignal(event)) {
-          logGroupClassRoomPurchaseReceived(flowPayload);
-        }
+      if (isReleaseEvent) {
+        logGroupClassRoomReleaseReceived(flowPayload);
+      } else if (isGroupClassRoomEventLockSignal(event)) {
+        logGroupClassRoomPurchaseReceived(flowPayload);
       }
 
       try {

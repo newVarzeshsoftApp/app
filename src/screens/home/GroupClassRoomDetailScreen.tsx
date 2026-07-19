@@ -351,6 +351,7 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
         isLocked: purchaseBroadcastEvent.isLocked,
         preReservedCount: purchaseBroadcastEvent.preReservedCount,
         organizationSku: organization?.sku,
+        fullEvent: purchaseBroadcastEvent,
       });
 
       await addToCart({
