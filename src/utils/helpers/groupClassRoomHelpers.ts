@@ -192,6 +192,24 @@ export const getGroupClassRoomPreReservedCount = (
   return baseCount;
 };
 
+// Reads the waiting-list pre-reserve count from an API config/item, tolerating
+// the documented snake_case (pre_reserve_waiting_count) alongside camelCase.
+const readGroupClassRoomWaitingCount = (
+  source?: GroupClassRoomConfig | GroupClassRoom,
+): number | undefined => {
+  if (!source) {
+    return undefined;
+  }
+
+  if (typeof source.preReserveWaitingCount === 'number') {
+    return source.preReserveWaitingCount;
+  }
+
+  const rawCount = (source as Record<string, unknown>)
+    .pre_reserve_waiting_count;
+  return typeof rawCount === 'number' ? rawCount : undefined;
+};
+
 export const getGroupClassRoomPreReserveWaitingCount = (
   item: GroupClassRoom,
   filterContractorId?: number,
@@ -201,22 +219,33 @@ export const getGroupClassRoomPreReserveWaitingCount = (
       ? getGroupClassRoomConfig(item, filterContractorId)
       : item.config ?? getGroupClassRoomConfigs(item)[0];
 
-  if (typeof config?.preReserveWaitingCount === 'number') {
-    return config.preReserveWaitingCount;
-  }
-
   const rowContractorId = item.config?.contractorId ?? config?.contractorId;
   const isRowScopedToContractor =
     filterContractorId == null || rowContractorId === filterContractorId;
 
-  if (
-    isRowScopedToContractor &&
-    typeof item.preReserveWaitingCount === 'number'
-  ) {
-    return item.preReserveWaitingCount;
+  let baseCount = 0;
+
+  // The API may return the count as camelCase (preReserveWaitingCount) or the
+  // documented snake_case (pre_reserve_waiting_count); accept either.
+  const configWaitingCount = readGroupClassRoomWaitingCount(config);
+  const itemWaitingCount = readGroupClassRoomWaitingCount(item);
+
+  if (configWaitingCount != null) {
+    baseCount = configWaitingCount;
+  } else if (isRowScopedToContractor && itemWaitingCount != null) {
+    baseCount = itemWaitingCount;
   }
 
-  return 0;
+  if (filterContractorId == null) {
+    return baseCount;
+  }
+
+  const liveLock = getGroupClassRoomLiveLock(item.id, filterContractorId);
+  if (liveLock?.preReserveWaitingCount != null) {
+    return Math.max(baseCount, liveLock.preReserveWaitingCount);
+  }
+
+  return baseCount;
 };
 
 export const findGroupClassRoomInCart = (
@@ -794,16 +823,47 @@ export type GroupClassRoomSSEEvent = {
   organizationKey?: string;
   organizationSku?: string;
   preReservedCount?: number;
+  preReserveWaitingCount?: number;
   filled?: number;
   waitingListCount?: number;
   status?: string;
   isLocked?: string | boolean;
+  // True when the action targets the waiting list (backend "is_waiting").
+  waiting?: boolean;
 };
 
 export const isGroupClassRoomSSEEvent = (
   event: GroupClassRoomSSEEvent,
 ): boolean =>
   event.key === GROUP_CLASS_ROOM_KEY || event.groupClassRoom != null;
+
+// The backend may emit the waiting flag as camelCase (waiting) or the
+// documented snake_case (is_waiting). Normalize both forms here so incoming
+// events reliably drive the waiting-list state.
+export const isGroupClassRoomWaitingEvent = (
+  event: GroupClassRoomSSEEvent,
+): boolean => {
+  const raw = event as Record<string, unknown>;
+  return (
+    event.waiting === true ||
+    raw.isWaiting === true ||
+    raw.is_waiting === true
+  );
+};
+
+// Reads the waiting-list pre-reserve count from an event, tolerating the
+// documented snake_case (pre_reserve_waiting_count) alongside camelCase.
+export const getGroupClassRoomEventWaitingCount = (
+  event: GroupClassRoomSSEEvent,
+): number | undefined => {
+  if (typeof event.preReserveWaitingCount === 'number') {
+    return event.preReserveWaitingCount;
+  }
+
+  const rawCount = (event as Record<string, unknown>)
+    .pre_reserve_waiting_count;
+  return typeof rawCount === 'number' ? rawCount : undefined;
+};
 
 export const isGroupClassRoomEventLocked = (status?: string): boolean =>
   status === ReservationStatus.Locked ||
@@ -895,26 +955,32 @@ const patchGroupClassRoomConfigFromEvent = (
     return config;
   }
 
+  // Waiting-list actions must adjust preReserveWaitingCount, while regular
+  // pre-reserve actions adjust preReservedCount ("pre_reserve_lock" flow).
+  const isWaiting = isGroupClassRoomWaitingEvent(event);
+  const countKey: 'preReservedCount' | 'preReserveWaitingCount' = isWaiting
+    ? 'preReserveWaitingCount'
+    : 'preReservedCount';
+  const eventCount = isWaiting
+    ? getGroupClassRoomEventWaitingCount(event)
+    : event.preReservedCount;
+
   const nextConfig: GroupClassRoomConfig = {
     ...config,
     ...(event.filled != null ? {filled: event.filled} : {}),
     ...(event.waitingListCount != null
       ? {waitingListCount: event.waitingListCount}
       : {}),
-    ...(event.preReservedCount != null
-      ? {preReservedCount: event.preReservedCount}
-      : {}),
+    ...(eventCount != null ? {[countKey]: eventCount} : {}),
   };
 
   if (isGroupClassRoomEventReleased(event)) {
-    const currentCount = config.preReservedCount ?? 0;
+    const currentCount = config[countKey] ?? 0;
     return {
       ...nextConfig,
       preReservedUserId: undefined,
-      preReservedCount:
-        event.preReservedCount != null
-          ? event.preReservedCount
-          : Math.max(0, currentCount - 1),
+      [countKey]:
+        eventCount != null ? eventCount : Math.max(0, currentCount - 1),
     };
   }
 
@@ -922,7 +988,7 @@ const patchGroupClassRoomConfigFromEvent = (
     event.user != null &&
     isGroupClassRoomEventLockSignal(event) &&
     config.preReservedUserId === event.user &&
-    event.preReservedCount == null
+    eventCount == null
   ) {
     return {
       ...nextConfig,
@@ -931,11 +997,11 @@ const patchGroupClassRoomConfigFromEvent = (
   }
 
   if (
-    event.preReservedCount == null &&
+    eventCount == null &&
     !options?.skipAutoAdjust &&
     isGroupClassRoomEventLockSignal(event)
   ) {
-    nextConfig.preReservedCount = (config.preReservedCount ?? 0) + 1;
+    nextConfig[countKey] = (config[countKey] ?? 0) + 1;
   }
 
   if (event.user != null && isGroupClassRoomEventLockSignal(event)) {
@@ -956,6 +1022,16 @@ const patchGroupClassRoomFromEvent = (
   if (item.id !== event.groupClassRoom) {
     return item;
   }
+
+  // Waiting-list actions adjust item-level preReserveWaitingCount instead of
+  // preReservedCount, mirroring the config-level patch logic.
+  const isWaiting = isGroupClassRoomWaitingEvent(event);
+  const countKey: 'preReservedCount' | 'preReserveWaitingCount' = isWaiting
+    ? 'preReserveWaitingCount'
+    : 'preReservedCount';
+  const eventCount = isWaiting
+    ? getGroupClassRoomEventWaitingCount(event)
+    : event.preReservedCount;
 
   if (event.contractor == null) {
     if (!isGroupClassRoomEventReleased(event) || event.user == null) {
@@ -981,7 +1057,7 @@ const patchGroupClassRoomFromEvent = (
       ...(patchedConfigs.length > 0 ? {configs: patchedConfigs} : {}),
       ...(patchedConfig ? {config: patchedConfig} : {}),
       preReservedUserId: undefined,
-      preReservedCount: Math.max(0, (item.preReservedCount ?? 0) - 1),
+      [countKey]: Math.max(0, (item[countKey] ?? 0) - 1),
     };
   }
 
@@ -1004,8 +1080,8 @@ const patchGroupClassRoomFromEvent = (
     ...item,
     ...(patchedConfigs.length > 0 ? {configs: patchedConfigs} : {}),
     ...(patchedConfig ? {config: patchedConfig} : {}),
-    ...(shouldPatchItemLevelCounts && event.preReservedCount != null
-      ? {preReservedCount: event.preReservedCount}
+    ...(shouldPatchItemLevelCounts && eventCount != null
+      ? {[countKey]: eventCount}
       : {}),
     ...(shouldPatchItemLevelCounts &&
     event.filled != null &&
@@ -1019,10 +1095,8 @@ const patchGroupClassRoomFromEvent = (
     return {
       ...patchedItem,
       preReservedUserId: undefined,
-      preReservedCount:
-        event.preReservedCount != null
-          ? event.preReservedCount
-          : Math.max(0, (item.preReservedCount ?? 0) - 1),
+      [countKey]:
+        eventCount != null ? eventCount : Math.max(0, (item[countKey] ?? 0) - 1),
     };
   }
 
@@ -1106,15 +1180,23 @@ export const buildGroupClassRoomOptimisticPreReserveEvent = (
   user: userId,
   status: resolveGroupClassRoomPreReserveStatus(waitingForGroupClass),
   isLocked: true,
+  waiting: waitingForGroupClass,
   organizationKey: organization?.key,
   organizationSku: organization?.sku,
-  preReservedCount:
-    getGroupClassRoomPreReservedCount(classRoom, contractorId) + 1,
+  ...(waitingForGroupClass
+    ? {
+        preReserveWaitingCount:
+          getGroupClassRoomPreReserveWaitingCount(classRoom, contractorId) + 1,
+      }
+    : {
+        preReservedCount:
+          getGroupClassRoomPreReservedCount(classRoom, contractorId) + 1,
+      }),
 });
 
 export const groupClassRoomPreReservePayloadToSSEEvent = (
   payload: GroupClassRoomPreReserveQuery,
-  options?: {preReservedCount?: number},
+  options?: {preReservedCount?: number; preReserveWaitingCount?: number},
 ): GroupClassRoomSSEEvent => ({
   key: payload.key,
   groupClassRoom: payload.groupClassRoom,
@@ -1122,18 +1204,22 @@ export const groupClassRoomPreReservePayloadToSSEEvent = (
   user: payload.user,
   status: payload.status,
   isLocked: payload.isLocked,
+  waiting: payload.waitingForGroupClass,
   organizationKey: payload.organizationKey,
   organizationSku: payload.organizationSku,
   ...(options?.preReservedCount != null
     ? {preReservedCount: options.preReservedCount}
     : {}),
+  ...(options?.preReserveWaitingCount != null
+    ? {preReserveWaitingCount: options.preReserveWaitingCount}
+    : {}),
 });
 
 export const buildGroupClassRoomLockBroadcastEvent = (
   payload: GroupClassRoomPreReserveQuery,
-  preReservedCount: number,
+  counts: {preReservedCount?: number; preReserveWaitingCount?: number},
 ): GroupClassRoomSSEEvent => ({
-  ...groupClassRoomPreReservePayloadToSSEEvent(payload, {preReservedCount}),
+  ...groupClassRoomPreReservePayloadToSSEEvent(payload, counts),
   key: payload.key ?? GROUP_CLASS_ROOM_KEY,
 });
 
@@ -1143,12 +1229,16 @@ export const buildGroupClassRoomReleaseEvent = ({
   userId,
   organization,
   preReservedCount,
+  preReserveWaitingCount,
+  waitingForGroupClass = false,
 }: {
   groupClassRoomId: number;
   contractorId: number;
   userId: number;
   organization?: GetAllOrganizationResponse | null;
   preReservedCount?: number;
+  preReserveWaitingCount?: number;
+  waitingForGroupClass?: boolean;
 }): GroupClassRoomSSEEvent => ({
   key: GROUP_CLASS_ROOM_KEY,
   groupClassRoom: groupClassRoomId,
@@ -1158,7 +1248,9 @@ export const buildGroupClassRoomReleaseEvent = ({
   organizationSku: organization?.sku,
   status: ReservationStatus.Released,
   isLocked: undefined,
+  waiting: waitingForGroupClass,
   ...(preReservedCount != null ? {preReservedCount} : {}),
+  ...(preReserveWaitingCount != null ? {preReserveWaitingCount} : {}),
 });
 
 let groupClassRoomRefetchTimer: ReturnType<typeof setTimeout> | null = null;
@@ -1329,6 +1421,8 @@ export const processGroupClassRoomRemoteEvent = async (
       contractorId: event.contractor,
       userId: event.user,
       preReservedCount: event.preReservedCount,
+      preReserveWaitingCount: getGroupClassRoomEventWaitingCount(event),
+      waiting: isGroupClassRoomWaitingEvent(event),
       isRelease: isReleaseEvent,
     });
   }

@@ -1,5 +1,6 @@
 type GroupClassRoomLiveLock = {
-  preReservedCount: number;
+  preReservedCount?: number;
+  preReserveWaitingCount?: number;
   preReservedUserId?: number;
 };
 
@@ -41,35 +42,57 @@ export const applyGroupClassRoomLiveLockFromEvent = ({
   contractorId,
   userId,
   preReservedCount,
+  preReserveWaitingCount,
+  waiting = false,
   isRelease,
 }: {
   groupClassRoomId: number;
   contractorId: number;
   userId?: number;
   preReservedCount?: number;
+  preReserveWaitingCount?: number;
+  waiting?: boolean;
   isRelease: boolean;
 }): void => {
+  const current = getGroupClassRoomLiveLock(groupClassRoomId, contractorId);
+  // Waiting-list actions track preReserveWaitingCount; regular actions track
+  // preReservedCount ("pre_reserve_lock" flow).
+  const countKey: 'preReservedCount' | 'preReserveWaitingCount' = waiting
+    ? 'preReserveWaitingCount'
+    : 'preReservedCount';
+  const eventCount = waiting ? preReserveWaitingCount : preReservedCount;
+
   if (isRelease) {
-    if (preReservedCount != null && preReservedCount > 0) {
-      setGroupClassRoomLiveLock(groupClassRoomId, contractorId, {
-        preReservedCount,
-        preReservedUserId: undefined,
-      });
+    const resolvedCount =
+      eventCount != null
+        ? eventCount
+        : Math.max(0, (current?.[countKey] ?? 0) - 1);
+
+    const nextLock: GroupClassRoomLiveLock = {
+      ...current,
+      [countKey]: resolvedCount,
+      preReservedUserId: undefined,
+    };
+
+    // Drop the in-memory lock entirely once no optimistic counts remain.
+    if (
+      (nextLock.preReservedCount ?? 0) <= 0 &&
+      (nextLock.preReserveWaitingCount ?? 0) <= 0
+    ) {
+      clearGroupClassRoomLiveLock(groupClassRoomId, contractorId);
       return;
     }
 
-    clearGroupClassRoomLiveLock(groupClassRoomId, contractorId);
+    setGroupClassRoomLiveLock(groupClassRoomId, contractorId, nextLock);
     return;
   }
 
-  const current = getGroupClassRoomLiveLock(groupClassRoomId, contractorId);
   const nextCount =
-    preReservedCount != null
-      ? preReservedCount
-      : (current?.preReservedCount ?? 0) + 1;
+    eventCount != null ? eventCount : (current?.[countKey] ?? 0) + 1;
 
   setGroupClassRoomLiveLock(groupClassRoomId, contractorId, {
-    preReservedCount: nextCount,
+    ...current,
+    [countKey]: nextCount,
     preReservedUserId: userId ?? current?.preReservedUserId,
   });
 };

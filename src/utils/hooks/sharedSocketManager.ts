@@ -30,8 +30,11 @@ export type SharedSSEEvent = {
   contractor?: number;
   price?: number;
   preReservedCount?: number;
+  preReserveWaitingCount?: number;
   filled?: number;
   waitingListCount?: number;
+  // True when the group class action targets the waiting list.
+  waiting?: boolean;
 };
 
 type SSEListener = (event: SharedSSEEvent) => void;

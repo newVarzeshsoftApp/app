@@ -12,6 +12,7 @@ import {
   refetchGroupClassRoomsAfterEvent,
 } from './groupClassRoomHelpers';
 import {
+  getGroupClassRoomLiveLock,
   setGroupClassRoomLiveLock,
 } from './groupClassRoomLiveLocks';
 import {broadcastClientRemoteEvent} from '../hooks/sharedSocketManager';
@@ -57,15 +58,21 @@ export const lockGroupClassRoomAfterPreReserve = ({
   logGroupClassRoomEventTrace('lock after preReserve', {
     groupClassRoomId: classRoom.id,
     contractorId,
+    waitingForGroupClass,
     preReservedCount: lockEvent.preReservedCount,
+    preReserveWaitingCount: lockEvent.preReserveWaitingCount,
   });
 
   if (queryClient) {
     applyGroupClassRoomEventToQueryCache(queryClient, lockEvent);
   }
 
+  const currentLiveLock = getGroupClassRoomLiveLock(classRoom.id, contractorId);
   setGroupClassRoomLiveLock(classRoom.id, contractorId, {
-    preReservedCount: lockEvent.preReservedCount ?? 1,
+    ...currentLiveLock,
+    ...(waitingForGroupClass
+      ? {preReserveWaitingCount: lockEvent.preReserveWaitingCount ?? 1}
+      : {preReservedCount: lockEvent.preReservedCount ?? 1}),
     preReservedUserId: userId,
   });
 
@@ -129,12 +136,14 @@ export const releaseGroupClassRoomFromCartItem = async ({
     throw error;
   }
 
+  const isWaiting = waitingForGroupClass ?? false;
   const releaseEvent = buildGroupClassRoomReleaseEvent({
     groupClassRoomId,
     contractorId,
     userId,
     organization,
-    preReservedCount: 0,
+    waitingForGroupClass: isWaiting,
+    ...(isWaiting ? {preReserveWaitingCount: 0} : {preReservedCount: 0}),
   });
 
   if (queryClient) {

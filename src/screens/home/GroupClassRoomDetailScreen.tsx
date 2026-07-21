@@ -334,7 +334,10 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
 
       const purchaseBroadcastEvent = buildGroupClassRoomLockBroadcastEvent(
         payload,
-        lockEvent.preReservedCount ?? 0,
+        {
+          preReservedCount: lockEvent.preReservedCount,
+          preReserveWaitingCount: lockEvent.preReserveWaitingCount,
+        },
       );
 
       // Fallback emit for gateways that relay client socket events.
