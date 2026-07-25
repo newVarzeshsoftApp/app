@@ -135,6 +135,11 @@ export interface PreReserveQuery {
   isLocked: boolean;
 }
 
+export interface ContractorQuery {
+  type: 'GroupClassRoom';
+  id?: string;
+}
+
 export interface GroupClassRoomQuery {
   dayType?: DayType;
   timeRange?: TimeRanges;
@@ -154,7 +159,7 @@ export interface GroupClassRoomPreReserveQuery {
   contractor: number;
   user: number;
   status: ReservationStatus;
-  waitingForGroupClass?: boolean;
+  isWaiting?: boolean;
   isLocked?: boolean;
   key?: string;
   organizationKey?: string;

@@ -30,6 +30,7 @@ import {useGetGroupClassRoomServices} from '../../utils/hooks/GroupClassRoom/use
 import {useGetGroupClassRoomOrganizationUnit} from '../../utils/hooks/GroupClassRoom';
 import {useGetContractors} from '../../utils/hooks/Contractor';
 import {DayType, TimeRanges} from '../../constants/options';
+import {ContractorQuery} from '../../services/models/requestQueries';
 import {buildGroupClassRoomListParams, validateGroupClassRoomFilters, GroupClassRoomFilterErrors} from '../../utils/helpers/groupClassRoomHelpers';
 import {useNavigation} from '@react-navigation/native';
 import {GroupClassRoomStackParamList} from '../../utils/types/NavigationTypes';
@@ -177,9 +178,6 @@ const GroupClassRoomScreen: React.FC = () => {
     useGetGroupClassRoomServices();
   const {data: organizationUnitsData, isLoading: orgUnitsLoading} =
     useGetGroupClassRoomOrganizationUnit();
-  const {data: contractorsData, isLoading: contractorsLoading} =
-    useGetContractors();
-
   // Bottom sheet refs
   const organizationUnitSheetRef = useRef<BottomSheetMethods>(null);
   const serviceSheetRef = useRef<BottomSheetMethods>(null);
@@ -193,6 +191,19 @@ const GroupClassRoomScreen: React.FC = () => {
     dayType: DayType.ALL,
     timeRange: TimeRanges.ALL,
   });
+
+  const contractorQuery = useMemo((): ContractorQuery => {
+    const query: ContractorQuery = {
+      type: 'GroupClassRoom',
+    };
+    if (filters.service?.value && filters.service.value !== 'all') {
+      query.id = filters.service.value;
+    }
+    return query;
+  }, [filters.service?.value]);
+
+  const {data: contractorsData, isLoading: contractorsLoading} =
+    useGetContractors(contractorQuery);
 
   // Temp states for pickers
   const [tempOrganizationUnit, setTempOrganizationUnit] = useState<string>('');
@@ -300,8 +311,22 @@ const GroupClassRoomScreen: React.FC = () => {
   const saveService = () => {
     const selected = serviceOptions.find(s => s.value === tempService);
     if (selected) {
-      setFilters(prev => ({...prev, service: selected}));
-      setValidationErrors(prev => ({...prev, service: undefined}));
+      const didServiceChange = filters.service?.value !== selected.value;
+      setFilters(prev => ({
+        ...prev,
+        service: selected,
+        // Clear coach when service changes so the list is reloaded for the new service
+        ...(didServiceChange ? {contractor: null} : {}),
+      }));
+      if (didServiceChange) {
+        setTempContractor('');
+        setContractorSearchQuery('');
+      }
+      setValidationErrors(prev => ({
+        ...prev,
+        service: undefined,
+        ...(didServiceChange ? {contractor: undefined} : {}),
+      }));
     }
     serviceSheetRef.current?.close();
   };

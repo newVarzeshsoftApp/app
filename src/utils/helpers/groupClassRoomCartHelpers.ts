@@ -9,9 +9,9 @@ import {
   buildGroupClassRoomReleaseEvent,
   buildGroupClassRoomReleasePayload,
   GroupClassRoomSSEEvent,
-  refetchGroupClassRoomsAfterEvent,
 } from './groupClassRoomHelpers';
 import {
+  applyGroupClassRoomLiveLockFromEvent,
   getGroupClassRoomLiveLock,
   setGroupClassRoomLiveLock,
 } from './groupClassRoomLiveLocks';
@@ -147,12 +147,19 @@ export const releaseGroupClassRoomFromCartItem = async ({
   });
 
   if (queryClient) {
+    // Optimistic clear only — immediate refetch overwrites with stale API data.
     applyGroupClassRoomEventToQueryCache(queryClient, releaseEvent);
-    refetchGroupClassRoomsAfterEvent(queryClient, {
-      includeInactive: true,
-      debugGroupClassRoomId: groupClassRoomId,
-    });
   }
+
+  applyGroupClassRoomLiveLockFromEvent({
+    groupClassRoomId,
+    contractorId,
+    userId,
+    preReservedCount: releaseEvent.preReservedCount,
+    preReserveWaitingCount: releaseEvent.preReserveWaitingCount,
+    waiting: isWaiting,
+    isRelease: true,
+  });
 
   // API POST already broadcasts CLIENT_REMOTE to all clients.
   broadcastClientRemoteEvent(releaseEvent, {dispatchLocally: false});

@@ -141,46 +141,56 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     return null;
   }, []);
 
-  // Auto-remove expired reservation and group class items
+  // Per-CartId guard + serial queue so only the expired item is removed,
+  // and concurrent removeCart read-modify-write races cannot wipe others.
+  const removingCartIdsRef = useRef<Set<string>>(new Set());
+  const expiryQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
+
+  const enqueueExpiredCartRemoval = useCallback(
+    (cartId: string) => {
+      if (removingCartIdsRef.current.has(cartId)) {
+        return;
+      }
+
+      removingCartIdsRef.current.add(cartId);
+
+      expiryQueueRef.current = expiryQueueRef.current
+        .catch(() => undefined)
+        .then(async () => {
+          try {
+            await removeFromCart(cartId);
+          } finally {
+            removingCartIdsRef.current.delete(cartId);
+          }
+        });
+    },
+    [removeFromCart],
+  );
+
+  // Drop guards for cart ids that are no longer in the cart (re-add allowed).
+  useEffect(() => {
+    const activeIds = new Set(items.map(item => item.CartId).filter(Boolean));
+    removingCartIdsRef.current.forEach(cartId => {
+      if (!activeIds.has(cartId)) {
+        removingCartIdsRef.current.delete(cartId);
+      }
+    });
+  }, [items]);
+
+  // Single source of auto-remove for reservation + group class expiry.
   useEffect(() => {
     if (!expiresTimeData?.ttlSecond || items.length === 0) {
       return;
     }
 
     const expiresTimeSeconds = expiresTimeData.ttlSecond;
-    const now = new Date();
 
-    items.forEach(item => {
-      const isExpiringItem =
-        (item.isReserve && item.reservationData) ||
-        (item.isGroupClassRoom && item.groupClassRoomData);
-
-      if (!isExpiringItem || !item.CartId) {
-        return;
-      }
-
-      const startTime = getExpiringItemStartTime(item);
-      if (!startTime) return;
-
-      const elapsedSeconds = (now.getTime() - startTime.getTime()) / 1000;
-
-      if (elapsedSeconds >= expiresTimeSeconds) {
-        removeFromCart(item.CartId);
-      }
-    });
-  }, [expiresTimeData, items, removeFromCart, getExpiringItemStartTime]);
-
-  // Set up interval to check expiration every second
-  useEffect(() => {
-    if (!expiresTimeData?.ttlSecond || items.length === 0) {
-      return;
-    }
-
-    const interval = setInterval(() => {
+    const removeExpiredItems = () => {
       const now = new Date();
-      const expiresTimeSeconds = expiresTimeData.ttlSecond;
 
-      items.forEach(item => {
+      itemsRef.current.forEach(item => {
         const isExpiringItem =
           (item.isReserve && item.reservationData) ||
           (item.isGroupClassRoom && item.groupClassRoomData);
@@ -190,18 +200,27 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
         }
 
         const startTime = getExpiringItemStartTime(item);
-        if (!startTime) return;
+        if (!startTime) {
+          return;
+        }
 
         const elapsedSeconds = (now.getTime() - startTime.getTime()) / 1000;
-
         if (elapsedSeconds >= expiresTimeSeconds) {
-          removeFromCart(item.CartId);
+          enqueueExpiredCartRemoval(item.CartId);
         }
       });
-    }, 1000);
+    };
+
+    removeExpiredItems();
+    const interval = setInterval(removeExpiredItems, 1000);
 
     return () => clearInterval(interval);
-  }, [expiresTimeData, items, removeFromCart, getExpiringItemStartTime]);
+  }, [
+    expiresTimeData?.ttlSecond,
+    items.length,
+    getExpiringItemStartTime,
+    enqueueExpiredCartRemoval,
+  ]);
   const cardComponentMapping: Record<number, React.FC<{data: CartItem}>> = {
     0: CartProductCard,
     1: CartServiceCard,

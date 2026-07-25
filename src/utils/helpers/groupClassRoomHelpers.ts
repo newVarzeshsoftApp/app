@@ -304,11 +304,9 @@ export const isGroupClassRoomPreReservedByMe = ({
     return false;
   }
 
-  if (findGroupClassRoomInCart(cartItems, item.id, contractorId)) {
-    return true;
-  }
-
-  return getGroupClassRoomPreReservedUserId(item, contractorId) === userId;
+  // Cart is the source of truth for "in my cart" UI. Do not fall back to
+  // preReservedUserId — stale API/cache after release would keep showing it.
+  return !!findGroupClassRoomInCart(cartItems, item.id, contractorId);
 };
 
 export const getGroupClassRoomCapacity = (
@@ -1204,7 +1202,7 @@ export const groupClassRoomPreReservePayloadToSSEEvent = (
   user: payload.user,
   status: payload.status,
   isLocked: payload.isLocked,
-  waiting: payload.waitingForGroupClass,
+  waiting: payload.isWaiting,
   organizationKey: payload.organizationKey,
   organizationSku: payload.organizationSku,
   ...(options?.preReservedCount != null
@@ -1540,7 +1538,8 @@ export const buildGroupClassRoomPreReservePayload = ({
     groupClassRoom: groupClassRoomId,
     contractor: contractorId,
     status: resolvedStatus,
-    waitingForGroupClass,
+    // API contract uses isWaiting (blue waiting-list button).
+    isWaiting: waitingForGroupClass,
     key: GROUP_CLASS_ROOM_KEY,
     organizationKey: organization?.key,
     organizationSku: organization?.sku,

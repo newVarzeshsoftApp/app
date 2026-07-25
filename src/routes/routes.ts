@@ -3,6 +3,7 @@ import {
   AllOrganizationQuery,
   CategoryQuery,
   GatewayLogQuery,
+  ContractorQuery,
   GroupClassRoomParticipantsQuery,
   GroupClassRoomPreReserveQuery,
   GroupClassRoomQuery,
@@ -153,7 +154,8 @@ export const routes = {
     getExpiresTime: () => 'reservation/expires-time',
   },
   contractor: {
-    getAll: () => 'contractor',
+    getAll: (query?: ContractorQuery) =>
+      'contractor' + (query ? prepareQuery(query) : ''),
   },
   groupClassRoom: {
     getAll: (query?: GroupClassRoomQuery) =>

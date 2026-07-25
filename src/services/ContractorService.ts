@@ -1,17 +1,18 @@
-import axios, {AxiosResponse} from 'axios';
+import axios from 'axios';
 import {Status} from '../models/enums';
 import {routes} from '../routes/routes';
 import axiosInstance from '../utils/AxiosInstans';
-import {ContractorResponse} from './models/response/ContractorResService';
 import {handleMutationError} from '../utils/helpers/errorHandler';
+import {ContractorQuery} from './models/requestQueries';
+import {ContractorResponse} from './models/response/ContractorResService';
 
 const {baseUrl, contractor} = routes;
 
 const ContractorService = {
-  GetAll: async (): Promise<ContractorResponse> => {
+  GetAll: async (query?: ContractorQuery): Promise<ContractorResponse> => {
     try {
       const response = await axiosInstance.get<ContractorResponse>(
-        baseUrl + contractor.getAll(),
+        baseUrl + contractor.getAll(query),
       );
       if (response.status === Status.Ok) {
         return response.data;
@@ -32,4 +33,3 @@ const ContractorService = {
 };
 
 export default ContractorService;
-

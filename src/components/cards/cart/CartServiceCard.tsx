@@ -105,8 +105,6 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
 
   // State for countdown timer
   const [remainingTime, setRemainingTime] = useState<number | null>(null);
-  // Flag to prevent multiple auto-delete calls
-  const hasAutoDeletedRef = useRef(false);
 
   // Get reservation from ReservationStore to use createdAt (pre-reserve time) instead of addedToCartAt
   const reservationFromStore = useMemo(() => {
@@ -141,7 +139,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
     }
   }, [isReservationItem, reservationData, CartId, product?.id]);
 
-  // Calculate remaining time for reservation and group class items
+  // Countdown UI only — CartScreen owns auto-remove so each item expires alone.
   useEffect(() => {
     const startTime = isGroupClassRoomItem
       ? data.addedToCartAt
@@ -149,12 +147,8 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
 
     if (!isExpiringCartItem || !startTime || !expiresTimeData?.ttlSecond) {
       setRemainingTime(null);
-      hasAutoDeletedRef.current = false;
       return;
     }
-
-    // Reset flag when item changes
-    hasAutoDeletedRef.current = false;
 
     const updateRemainingTime = () => {
       const now = new Date();
@@ -162,22 +156,10 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
       const elapsedSeconds = (now.getTime() - startedAt.getTime()) / 1000;
       const expiresTimeSeconds = expiresTimeData.ttlSecond;
       const remainingSeconds = Math.max(0, expiresTimeSeconds - elapsedSeconds);
-      // Convert to minutes for display
-      const remainingMinutes = remainingSeconds / 60;
-      setRemainingTime(remainingMinutes);
-
-      // If time expired, automatically remove from cart
-      if (remainingSeconds <= 0 && CartId && !hasAutoDeletedRef.current) {
-        hasAutoDeletedRef.current = true; // Set flag to prevent multiple calls
-        // Remove from cart
-        removeFromCart(CartId);
-      }
+      setRemainingTime(remainingSeconds / 60);
     };
 
-    // Update immediately
     updateRemainingTime();
-
-    // Update every second
     const interval = setInterval(updateRemainingTime, 1000);
 
     return () => clearInterval(interval);
@@ -187,8 +169,6 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
     reservationFromStore?.createdAt,
     data.addedToCartAt,
     expiresTimeData,
-    CartId,
-    removeFromCart,
   ]);
 
   // Format remaining time for display
