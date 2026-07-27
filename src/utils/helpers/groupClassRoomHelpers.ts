@@ -42,8 +42,9 @@ import {
   getGroupClassRoomLiveLock,
 } from './groupClassRoomLiveLocks';
 
-const isSubsetOf = (days: number[], allowed: number[]) =>
-  days.length > 0 && days.every(day => allowed.includes(day));
+const sameDaySet = (days: number[], expected: number[]) =>
+  days.length === expected.length &&
+  expected.every(day => days.includes(day));
 
 const sortGroupClassRoomDays = (days: number[]) =>
   [...days].sort(
@@ -135,11 +136,12 @@ export const formatScheduleDaysLabel = (days?: number[]) => {
 
   const sortedDays = sortGroupClassRoomDays(days);
 
-  if (isSubsetOf(sortedDays, GROUP_CLASS_ROOM_EVEN_DAY_IDS)) {
+  // "زوج/فرد" only when the full set is present (e.g. شنبه+دوشنبه+چهارشنبه).
+  if (sameDaySet(sortedDays, GROUP_CLASS_ROOM_EVEN_DAY_IDS)) {
     return 'روزهای زوج';
   }
 
-  if (isSubsetOf(sortedDays, GROUP_CLASS_ROOM_ODD_DAY_IDS)) {
+  if (sameDaySet(sortedDays, GROUP_CLASS_ROOM_ODD_DAY_IDS)) {
     return 'روزهای فرد';
   }
 
