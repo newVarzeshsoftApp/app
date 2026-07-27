@@ -78,8 +78,7 @@ const GroupClassRoomCard: React.FC<GroupClassRoomCardProps> = ({
     });
   }, []);
 
-  const progress =
-    capacity.max > 0 ? capacity.filled / capacity.max : 0;
+  const progress = capacity.max > 0 ? capacity.filled / capacity.max : 0;
   const colors = useMemo(
     () => getCapacityColors(capacity.filled, capacity.max),
     [capacity.filled, capacity.max],
@@ -133,7 +132,7 @@ const GroupClassRoomCard: React.FC<GroupClassRoomCardProps> = ({
         ) : null}
       </View>
 
-      <View className="py-3 items-center flex-row justify-between border-b border-neutral-0 dark:border-neutral-dark-400/50">
+      <View className="py-3 items-center gap-4 flex-row justify-between border-b border-neutral-0 dark:border-neutral-dark-400/50">
         <View className="flex-row gap-2 items-center flex-1">
           <StatusDot isActive={isActive} />
           <BaseText type="title4" className="flex-1">

@@ -1,5 +1,12 @@
-import React, {useCallback, useMemo} from 'react';
-import {View, Image, ScrollView, ActivityIndicator} from 'react-native';
+import React, {useCallback, useMemo, useRef} from 'react';
+import {
+  View,
+  Image,
+  FlatList,
+  ActivityIndicator,
+  NativeScrollEvent,
+  NativeSyntheticEvent,
+} from 'react-native';
 import {
   RouteProp,
   useFocusEffect,
@@ -11,7 +18,8 @@ import NavigationHeader from '../../components/header/NavigationHeader';
 import BaseText from '../../components/BaseText';
 import BaseButton from '../../components/Button/BaseButton';
 import GroupClassRoomCard from '../../components/cards/GroupClassRoom/GroupClassRoomCard';
-import {useGetGroupClassRooms} from '../../utils/hooks/GroupClassRoom/useGetGroupClassRooms';
+import {GROUP_CLASS_ROOM_LIST_PAGE_SIZE} from '../../constants/groupClassRoom';
+import {useGetGroupClassRoomsInfinite} from '../../utils/hooks/GroupClassRoom/useGetGroupClassRoomsInfinite';
 import {GroupClassRoomStackParamList} from '../../utils/types/NavigationTypes';
 import {GroupClassRoom} from '../../services/models/response/GroupClassRoomResService';
 import {
@@ -26,11 +34,17 @@ type GroupClassRoomListRouteProp = RouteProp<
   'groupClassRoomList'
 >;
 
+type GroupClassRoomListItem = {
+  key: string;
+  item: GroupClassRoom;
+  contractorId?: number;
+};
+
 const GroupClassRoomListScreen: React.FC = () => {
   const route = useRoute<GroupClassRoomListRouteProp>();
   const navigation =
     useNavigation<NativeStackNavigationProp<GroupClassRoomStackParamList>>();
-  const query = useMemo(
+  const filters = useMemo(
     () => groupClassRoomListParamsToQuery(route.params ?? {}),
     [route.params],
   );
@@ -40,11 +54,16 @@ const GroupClassRoomListScreen: React.FC = () => {
     : undefined;
 
   const {
-    data: classRoomsData,
+    data,
     isLoading,
     isError,
+    isFetching,
+    isFetchingNextPage,
+    fetchNextPage,
     refetch,
-  } = useGetGroupClassRooms(query);
+  } = useGetGroupClassRoomsInfinite(filters);
+
+  const isLoadingMoreRef = useRef(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -52,13 +71,25 @@ const GroupClassRoomListScreen: React.FC = () => {
     }, [refetch]),
   );
 
-  const classRooms = useMemo(
-    () =>
-      expandGroupClassRoomListItems(
-        normalizeGroupClassRoomResponse(classRoomsData),
-      ),
-    [classRoomsData],
-  );
+  const listItems = useMemo((): GroupClassRoomListItem[] => {
+    const pages = data?.pages ?? [];
+    const rooms = expandGroupClassRoomListItems(
+      pages.flatMap(page => normalizeGroupClassRoomResponse(page)),
+    );
+
+    return rooms.map(item => {
+      const contractorId = resolveGroupClassRoomDetailContractorId(
+        item,
+        selectedContractorId,
+      );
+
+      return {
+        key: `${item.id}-${contractorId ?? item.config?.contractorId ?? 'default'}`,
+        item,
+        contractorId,
+      };
+    });
+  }, [data?.pages, selectedContractorId]);
 
   const navigateToDetail = useCallback(
     (item: GroupClassRoom, waitingList: boolean) => {
@@ -89,7 +120,133 @@ const GroupClassRoomListScreen: React.FC = () => {
     [navigateToDetail],
   );
 
-  const isResultsLoading = isLoading;
+  const canLoadMore = useMemo(() => {
+    const pages = data?.pages ?? [];
+    if (pages.length === 0) {
+      return false;
+    }
+
+    const lastPageCount = normalizeGroupClassRoomResponse(
+      pages[pages.length - 1],
+    ).length;
+
+    // Keep requesting while the latest page still filled a full page.
+    return lastPageCount >= GROUP_CLASS_ROOM_LIST_PAGE_SIZE;
+  }, [data?.pages]);
+
+  const handleLoadMore = useCallback(() => {
+    if (
+      !canLoadMore ||
+      isFetchingNextPage ||
+      isError ||
+      isLoadingMoreRef.current
+    ) {
+      return;
+    }
+
+    isLoadingMoreRef.current = true;
+    void fetchNextPage().finally(() => {
+      isLoadingMoreRef.current = false;
+    });
+  }, [canLoadMore, fetchNextPage, isError, isFetchingNextPage]);
+
+  // FlatList onEndReached is unreliable on web; also trigger near bottom via scroll.
+  const handleScroll = useCallback(
+    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+      const {layoutMeasurement, contentOffset, contentSize} = event.nativeEvent;
+      const distanceFromEnd =
+        contentSize.height - (layoutMeasurement.height + contentOffset.y);
+
+      if (distanceFromEnd < 240) {
+        handleLoadMore();
+      }
+    },
+    [handleLoadMore],
+  );
+
+  const renderItem = useCallback(
+    ({item: row}: {item: GroupClassRoomListItem}) => {
+      const selectedContractor = row.contractorId
+        ? row.item.contractors?.find(
+            contractor => contractor.id === row.contractorId,
+          )
+        : undefined;
+
+      return (
+        <GroupClassRoomCard
+          data={row.item}
+          contractorId={row.contractorId}
+          selectedContractor={selectedContractor}
+          onJoinPress={handleJoinClass}
+          onWaitingListPress={handleWaitingListPress}
+        />
+      );
+    },
+    [handleJoinClass, handleWaitingListPress],
+  );
+
+  const listFooter = useMemo(() => {
+    if (isFetchingNextPage) {
+      return (
+        <View className="py-4 items-center">
+          <ActivityIndicator size="small" color="#bcdc64" />
+        </View>
+      );
+    }
+
+    if (canLoadMore && listItems.length > 0) {
+      return (
+        <View className="py-3 items-center">
+          <BaseButton
+            text="مشاهده بیشتر"
+            type="Outline"
+            color="Black"
+            size="Medium"
+            rounded
+            onPress={handleLoadMore}
+          />
+        </View>
+      );
+    }
+
+    return <View style={{height: 16}} />;
+  }, [canLoadMore, handleLoadMore, isFetchingNextPage, listItems.length]);
+
+  const listEmpty = useMemo(() => {
+    if (isLoading || (isFetching && listItems.length === 0)) {
+      return (
+        <View className="py-10 items-center">
+          <ActivityIndicator size="large" color="#bcdc64" />
+        </View>
+      );
+    }
+
+    if (isError) {
+      return (
+        <View className="py-10 items-center gap-3">
+          <BaseText type="body2" color="muted">
+            خطا در دریافت لیست کلاس‌ها
+          </BaseText>
+          <BaseButton
+            text="تلاش مجدد"
+            type="Outline"
+            color="Black"
+            size="Medium"
+            rounded
+            onPress={() => refetch()}
+          />
+        </View>
+      );
+    }
+
+    return (
+      <View className="py-10 items-center">
+        <BaseText type="body2" color="muted">
+          کلاسی یافت نشد
+        </BaseText>
+      </View>
+    );
+  }, [isError, isFetching, isLoading, listItems.length, refetch]);
 
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-neutral-dark-100 relative">
@@ -109,61 +266,29 @@ const GroupClassRoomListScreen: React.FC = () => {
 
       <NavigationHeader title="نتایج کلاس گروهی" CenterText MainBack />
 
-      <ScrollView
+      <FlatList
         className="flex-1"
+        data={listItems}
+        keyExtractor={row => row.key}
+        renderItem={renderItem}
+        onEndReached={handleLoadMore}
+        onEndReachedThreshold={0.4}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{paddingBottom: 32}}>
-        <View className="Container gap-4 pt-4">
-          {isResultsLoading ? (
-            <View className="py-10 items-center">
-              <ActivityIndicator size="large" color="#bcdc64" />
-            </View>
-          ) : isError ? (
-            <View className="py-10 items-center gap-3">
-              <BaseText type="body2" color="muted">
-                خطا در دریافت لیست کلاس‌ها
-              </BaseText>
-              <BaseButton
-                text="تلاش مجدد"
-                type="Outline"
-                color="Black"
-                size="Medium"
-                rounded
-                onPress={() => refetch()}
-              />
-            </View>
-          ) : classRooms.length > 0 ? (
-            classRooms.map(item => {
-              const itemContractorId = resolveGroupClassRoomDetailContractorId(
-                item,
-                selectedContractorId,
-              );
-              const selectedContractor = itemContractorId
-                ? item.contractors?.find(
-                    contractor => contractor.id === itemContractorId,
-                  )
-                : undefined;
-
-              return (
-                <GroupClassRoomCard
-                  key={`${item.id}-${itemContractorId ?? 'default'}`}
-                  data={item}
-                  contractorId={itemContractorId}
-                  selectedContractor={selectedContractor}
-                  onJoinPress={handleJoinClass}
-                  onWaitingListPress={handleWaitingListPress}
-                />
-              );
-            })
-          ) : (
-            <View className="py-10 items-center">
-              <BaseText type="body2" color="muted">
-                کلاسی یافت نشد
-              </BaseText>
-            </View>
-          )}
-        </View>
-      </ScrollView>
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          paddingTop: 16,
+          paddingBottom: 32,
+          flexGrow: 1,
+          width: '100%',
+          maxWidth: 450,
+          alignSelf: 'center',
+        }}
+        ItemSeparatorComponent={() => <View style={{height: 16}} />}
+        ListFooterComponent={listFooter}
+        ListEmptyComponent={listEmpty}
+      />
     </View>
   );
 };

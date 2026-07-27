@@ -46,8 +46,12 @@ import {
   getGroupClassRoomActionState,
   getGroupClassRoomContractorProfile,
   getGroupClassRoomDayOptions,
+  getGroupClassRoomMaxAttendableSessions,
   getGroupClassRoomPreReserveDisplay,
   getGroupClassRoomPreReserveOthersLabel,
+  isGroupClassRoomPriceListAllowed,
+  pickMaxAllowedPriceList,
+  resolveGroupClassRoomDurationDays,
   resolveGroupClassRoomProductContractor,
 } from '../../utils/helpers/groupClassRoomHelpers';
 import {
@@ -198,6 +202,24 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
   const screenTitle = routeTitle ?? classRoom?.title ?? 'کلاس گروهی';
   const isFlexible = classRoom?.isFlexible ?? false;
   const isResultsLoading = isClassRoomLoading || isProductLoading;
+  const isUnlimitedProduct = !!productData?.unlimited;
+
+  const durationDaysForCap = useMemo(
+    () => resolveGroupClassRoomDurationDays(classRoom, sortedPriceList),
+    [classRoom, sortedPriceList],
+  );
+
+  const maxSessions = useMemo(() => {
+    if (!classRoom) {
+      return null;
+    }
+
+    return getGroupClassRoomMaxAttendableSessions(
+      classRoom,
+      isFlexible ? selectedDays : undefined,
+      durationDaysForCap,
+    );
+  }, [classRoom, durationDaysForCap, isFlexible, selectedDays]);
 
   useEffect(() => {
     if (!productData?.priceList?.length) {
@@ -213,8 +235,24 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
     });
 
     setSortedPriceList(sortedList);
-    setSelectedPriceList(sortedList[0] ?? null);
   }, [productData?.priceList]);
+
+  // When days/duration cap changes, jump to the highest allowed session package.
+  // Manual lower choices are kept until maxSessions (or the list) changes again.
+  useEffect(() => {
+    if (sortedPriceList.length === 0) {
+      setSelectedPriceList(null);
+      return;
+    }
+
+    setSelectedPriceList(
+      pickMaxAllowedPriceList(
+        sortedPriceList,
+        maxSessions,
+        isUnlimitedProduct,
+      ),
+    );
+  }, [isUnlimitedProduct, maxSessions, sortedPriceList]);
 
   useEffect(() => {
     hasInitializedContractor.current = false;
@@ -295,7 +333,12 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
     !!profileData?.id &&
     !!classRoom &&
     (!isFlexible || selectedDays.length > 0) &&
-    (!productData.hasContractor || !!selectedContractor);
+    (!productData.hasContractor || !!selectedContractor) &&
+    isGroupClassRoomPriceListAllowed(
+      selectedPriceList,
+      maxSessions,
+      isUnlimitedProduct,
+    );
 
   const handleAddToCart = useCallback(async () => {
     if (!canSubmit || !productData || !selectedPriceList || !classRoom) return;
@@ -439,29 +482,46 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
         snapPoints={[90]}
         Title={t('select sessions')}>
         <View className="gap-3">
-          {sortedPriceList.map(item => (
-            <React.Fragment key={item.id}>
-              <RadioButton
-                checked={selectedPriceList?.id === item.id}
-                asButton
-                haveArrow
-                onCheckedChange={() => setSelectedPriceList(item)}
-                label={
-                  productData?.unlimited
-                    ? `${t('unlimited')} ${formatNumber(item.price ?? 0)} ﷼ `
-                    : `${item.min ?? 0} ${t('session')} ${formatNumber(
-                        item.price ?? 0,
-                      )} ﷼ `
-                }
-              />
-              <CustomCollapsible isOpened={selectedPriceList?.id === item.id}>
-                <PriceListDetail
-                  ServiceData={productData}
-                  SelectedPriceList={selectedPriceList}
-                />
-              </CustomCollapsible>
-            </React.Fragment>
-          ))}
+          {sortedPriceList.map(item => {
+            const isAllowed = isGroupClassRoomPriceListAllowed(
+              item,
+              maxSessions,
+              isUnlimitedProduct,
+            );
+
+            return (
+              <React.Fragment key={item.id}>
+                <View style={{opacity: isAllowed ? 1 : 0.4}}>
+                  <RadioButton
+                    checked={selectedPriceList?.id === item.id}
+                    asButton
+                    haveArrow
+                    readonly={!isAllowed}
+                    onCheckedChange={() => {
+                      if (!isAllowed) {
+                        return;
+                      }
+                      setSelectedPriceList(item);
+                    }}
+                    label={
+                      productData?.unlimited
+                        ? `${t('unlimited')} ${formatNumber(item.price ?? 0)} ﷼ `
+                        : `${item.min ?? 0} ${t('session')} ${formatNumber(
+                            item.price ?? 0,
+                          )} ﷼ `
+                    }
+                  />
+                </View>
+                <CustomCollapsible
+                  isOpened={isAllowed && selectedPriceList?.id === item.id}>
+                  <PriceListDetail
+                    ServiceData={productData}
+                    SelectedPriceList={selectedPriceList}
+                  />
+                </CustomCollapsible>
+              </React.Fragment>
+            );
+          })}
           <View className="pt-4 pb-2 fixed bottom-0 left-0 right-0 ">
             <BaseButton
               text={t('Confirm')}

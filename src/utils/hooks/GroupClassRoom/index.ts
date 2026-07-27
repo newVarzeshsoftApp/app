@@ -1,4 +1,5 @@
 export {useGetGroupClassRooms} from './useGetGroupClassRooms';
+export {useGetGroupClassRoomsInfinite} from './useGetGroupClassRoomsInfinite';
 export {useGetGroupClassRoomServices} from './useGetGroupClassRoomServices';
 export {useGetGroupClassRoomParticipants} from './useGetGroupClassRoomParticipants';
 export {useGetGroupClassRoomOrganizationUnit} from './useGetGroupClassRoomOrganizationUnit';

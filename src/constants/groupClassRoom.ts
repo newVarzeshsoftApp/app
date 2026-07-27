@@ -1,5 +1,7 @@
 export const GROUP_CLASS_ROOM_KEY = 'GROUP_CLASS_ROOM';
 
+export const GROUP_CLASS_ROOM_LIST_PAGE_SIZE = 10;
+
 // Schedule days from API use 1-7 (same as reserve day1-day7); 7 = یکشنبه.
 export const GROUP_CLASS_ROOM_DAY_LABELS: Record<number, string> = {
   1: 'دوشنبه',

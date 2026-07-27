@@ -6,7 +6,7 @@ import {
   GroupClassRoomSchedule,
 } from '../../services/models/response/GroupClassRoomResService';
 import {User} from '../../services/models/response/UseResrService';
-import {Contractors} from '../../services/models/response/ProductResService';
+import {Contractors, PriceList} from '../../services/models/response/ProductResService';
 import {GetAllOrganizationResponse} from '../../services/models/response/OrganizationResServise';
 import {ColorRingConfig, DayType, TimeRanges} from '../../constants/options';
 import {
@@ -650,6 +650,129 @@ export const getGroupClassRoomDayOptions = (
   );
 };
 
+/**
+ * Days-per-week for max attendable sessions.
+ * Flexible classes use the user's selected days; otherwise schedule days.
+ */
+export const getGroupClassRoomDaysPerWeek = (
+  classRoom: GroupClassRoom,
+  selectedDays?: number[],
+): number => {
+  if (classRoom.isFlexible && selectedDays != null) {
+    return selectedDays.length;
+  }
+
+  return getGroupClassRoomDayOptions(classRoom).length;
+};
+
+/**
+ * Max sessions the member can attend for this class duration.
+ * Duration is in days (30 ≈ 1 month → 4 weeks). Returns null when uncapped.
+ * Optional durationDaysOverride is used when classRoom.durations is missing
+ * (UI often shows duration from PriceList).
+ */
+export const getGroupClassRoomMaxAttendableSessions = (
+  classRoom: GroupClassRoom,
+  selectedDays?: number[],
+  durationDaysOverride?: number,
+): number | null => {
+  const classDuration = classRoom.durations ?? 0;
+  const durationDays =
+    durationDaysOverride != null && durationDaysOverride > 0
+      ? durationDaysOverride
+      : classDuration;
+
+  const daysPerWeek = getGroupClassRoomDaysPerWeek(classRoom, selectedDays);
+
+  if (durationDays <= 0 || daysPerWeek <= 0) {
+    return null;
+  }
+
+  const weeks = Math.floor(durationDays / 7);
+  if (weeks <= 0) {
+    return null;
+  }
+
+  return daysPerWeek * weeks;
+};
+
+/**
+ * Resolves duration in days for the session cap: prefer class durations when
+ * it covers at least one week; otherwise fall back to price-list package duration.
+ */
+export const resolveGroupClassRoomDurationDays = (
+  classRoom: GroupClassRoom | null | undefined,
+  priceLists: Array<{duration?: number}> = [],
+): number => {
+  const classDuration = classRoom?.durations ?? 0;
+  if (classDuration >= 7) {
+    return classDuration;
+  }
+
+  const packageDurations = priceLists
+    .map(priceList => priceList.duration ?? 0)
+    .filter(duration => duration > 0);
+
+  if (packageDurations.length > 0) {
+    return Math.max(...packageDurations);
+  }
+
+  // Small class durations (1–6) are treated as months when no package duration exists.
+  if (classDuration > 0) {
+    return classDuration * 30;
+  }
+
+  return 0;
+};
+
+export const isGroupClassRoomPriceListAllowed = (
+  priceList: PriceList,
+  maxSessions: number | null,
+  isUnlimitedProduct?: boolean,
+): boolean => {
+  if (maxSessions == null) {
+    return true;
+  }
+
+  if (isUnlimitedProduct) {
+    return false;
+  }
+
+  return (priceList.min ?? 0) <= maxSessions;
+};
+
+/**
+ * Highest allowed package by session count (min), then metadata.priority.
+ */
+export const pickMaxAllowedPriceList = (
+  priceLists: PriceList[],
+  maxSessions: number | null,
+  isUnlimitedProduct?: boolean,
+): PriceList | null => {
+  const allowed = priceLists.filter(priceList =>
+    isGroupClassRoomPriceListAllowed(
+      priceList,
+      maxSessions,
+      isUnlimitedProduct,
+    ),
+  );
+
+  if (allowed.length === 0) {
+    return null;
+  }
+
+  return [...allowed].sort((a, b) => {
+    const minDiff = (b.min ?? 0) - (a.min ?? 0);
+    if (minDiff !== 0) {
+      return minDiff;
+    }
+
+    const priorityA = a.metadata?.priority ?? Infinity;
+    const priorityB = b.metadata?.priority ?? Infinity;
+    return priorityA - priorityB;
+  })[0];
+};
+
 export const findGroupClassRoomItem = (
   items: GroupClassRoom[],
   groupClassRoomId: number,
@@ -1120,12 +1243,22 @@ export const applyGroupClassRoomEventToQueryCache = (
 
   let didPatch = false;
 
-  snapshots.forEach(([queryKey, data]) => {
-    if (!data) {
-      return;
+  const patchPageData = (data: unknown): unknown | null => {
+    const rooms = normalizeGroupClassRoomResponse(data);
+    if (rooms.length === 0 && !Array.isArray(data)) {
+      // Empty page / unexpected shape — skip.
+      if (
+        !(
+          typeof data === 'object' &&
+          data !== null &&
+          'content' in data &&
+          Array.isArray((data as {content: unknown}).content)
+        )
+      ) {
+        return null;
+      }
     }
 
-    const rooms = normalizeGroupClassRoomResponse(data);
     const nextRooms = rooms.map(room =>
       patchGroupClassRoomFromEvent(room, event, options),
     );
@@ -1134,14 +1267,11 @@ export const applyGroupClassRoomEventToQueryCache = (
     );
 
     if (!hasChanges) {
-      return;
+      return null;
     }
 
-    didPatch = true;
-
     if (Array.isArray(data)) {
-      queryClient.setQueryData(queryKey, nextRooms);
-      return;
+      return nextRooms;
     }
 
     if (
@@ -1150,11 +1280,57 @@ export const applyGroupClassRoomEventToQueryCache = (
       'content' in data &&
       Array.isArray((data as {content: unknown}).content)
     ) {
-      queryClient.setQueryData(queryKey, {
+      return {
         ...data,
         content: nextRooms,
-      });
+      };
     }
+
+    return null;
+  };
+
+  snapshots.forEach(([queryKey, data]) => {
+    if (!data) {
+      return;
+    }
+
+    // Infinite query cache: { pages, pageParams }
+    if (
+      typeof data === 'object' &&
+      data !== null &&
+      'pages' in data &&
+      Array.isArray((data as {pages: unknown[]}).pages)
+    ) {
+      const infiniteData = data as {pages: unknown[]; pageParams: unknown[]};
+      let pageChanged = false;
+      const nextPages = infiniteData.pages.map(page => {
+        const patched = patchPageData(page);
+        if (patched == null) {
+          return page;
+        }
+        pageChanged = true;
+        return patched;
+      });
+
+      if (!pageChanged) {
+        return;
+      }
+
+      didPatch = true;
+      queryClient.setQueryData(queryKey, {
+        ...infiniteData,
+        pages: nextPages,
+      });
+      return;
+    }
+
+    const patched = patchPageData(data);
+    if (patched == null) {
+      return;
+    }
+
+    didPatch = true;
+    queryClient.setQueryData(queryKey, patched);
   });
 
   return didPatch;

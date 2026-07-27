@@ -137,7 +137,7 @@ export interface PreReserveQuery {
 
 export interface ContractorQuery {
   type: 'GroupClassRoom';
-  id?: string;
+  service?: string;
 }
 
 export interface GroupClassRoomQuery {
@@ -147,6 +147,8 @@ export interface GroupClassRoomQuery {
   organizationUnit?: string;
   service?: string;
   search?: string; // For group-class-room/services
+  limit?: number;
+  offset?: number;
 }
 
 export interface GroupClassRoomParticipantsQuery {

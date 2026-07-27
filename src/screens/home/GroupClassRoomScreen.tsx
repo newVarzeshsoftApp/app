@@ -197,7 +197,7 @@ const GroupClassRoomScreen: React.FC = () => {
       type: 'GroupClassRoom',
     };
     if (filters.service?.value && filters.service.value !== 'all') {
-      query.id = filters.service.value;
+      query.service = filters.service.value;
     }
     return query;
   }, [filters.service?.value]);
