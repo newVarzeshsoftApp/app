@@ -4,18 +4,22 @@ import {routes} from '../routes/routes';
 import axiosInstance from '../utils/AxiosInstans';
 import {handleMutationError} from '../utils/helpers/errorHandler';
 import {ContractorQuery} from './models/requestQueries';
-import {ContractorResponse} from './models/response/ContractorResService';
+import {
+  ContractorResponse,
+  normalizeContractorResponse,
+} from './models/response/ContractorResService';
+import {User} from './models/response/UseResrService';
 
 const {baseUrl, contractor} = routes;
 
 const ContractorService = {
-  GetAll: async (query?: ContractorQuery): Promise<ContractorResponse> => {
+  GetAll: async (query?: ContractorQuery): Promise<User[]> => {
     try {
       const response = await axiosInstance.get<ContractorResponse>(
         baseUrl + contractor.getAll(query),
       );
       if (response.status === Status.Ok) {
-        return response.data;
+        return normalizeContractorResponse(response.data);
       } else {
         throw new Error(`Request failed with status ${response.status}`);
       }

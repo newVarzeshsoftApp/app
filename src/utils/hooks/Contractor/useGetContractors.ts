@@ -1,12 +1,12 @@
 import {useQuery, UseQueryResult} from '@tanstack/react-query';
 import ContractorService from '../../../services/ContractorService';
 import {ContractorQuery} from '../../../services/models/requestQueries';
-import {ContractorResponse} from '../../../services/models/response/ContractorResService';
+import {User} from '../../../services/models/response/UseResrService';
 
 export const useGetContractors = (
   query?: ContractorQuery,
   enabled?: boolean,
-): UseQueryResult<ContractorResponse, Error> => {
+): UseQueryResult<User[], Error> => {
   return useQuery({
     queryKey: ['Contractors', query],
     queryFn: () => ContractorService.GetAll(query),

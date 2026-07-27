@@ -16,8 +16,28 @@ export interface Contractor {
   [key: string]: any;
 }
 
-import {User} from './UseResrService';
+export interface ContractorListResponse {
+  content: User[];
+  total?: number;
+}
 
-// Response is a direct array of User objects, not wrapped in content/total
-export type ContractorResponse = User[];
+// API may return a bare array or a paginated { content, total } payload.
+export type ContractorResponse = User[] | ContractorListResponse;
 
+export const normalizeContractorResponse = (
+  data: ContractorResponse | null | undefined,
+): User[] => {
+  if (!data) {
+    return [];
+  }
+
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data.content)) {
+    return data.content;
+  }
+
+  return [];
+};
