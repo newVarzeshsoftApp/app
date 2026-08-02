@@ -6,7 +6,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {ActivityIndicator, Dimensions, Text, View} from 'react-native';
+import {ActivityIndicator, Text, View} from 'react-native';
+import {getProductDetailImageHeight} from '../../constants/layout';
 import {ShopStackParamList} from '../../utils/types/NavigationTypes';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
@@ -57,7 +58,8 @@ type ServiceDetailProp = NativeStackScreenProps<
 const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
   // Use shared value instead of scroll offset
   const scrollY = useSharedValue(0);
-  const IMageHight = 285;
+  // 4:3 within app content width (not full browser width on web)
+  const IMageHight = getProductDetailImageHeight();
   const {profile: ProfileData} = useAuth();
   const {addToCart} = useCartContext();
 
@@ -330,12 +332,25 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
           scrollEventThrottle={16}
           style={{flex: 1}}>
           <View className="flex-1">
-            <Animated.Image
-              style={[{width: '100%', height: IMageHight}, ImageAnimatedStyle]}
-              source={{
-                uri: base64Image,
-              }}
-            />
+            <Animated.View
+              style={[
+                {
+                  width: '100%',
+                  height: IMageHight,
+                  backgroundColor:
+                    theme === 'dark' ? '#232529' : 'rgba(244,244,245,0.3)',
+                  overflow: 'hidden',
+                },
+                ImageAnimatedStyle,
+              ]}>
+              <Animated.Image
+                style={{width: '100%', height: '100%'}}
+                source={{
+                  uri: base64Image,
+                }}
+                resizeMode="contain"
+              />
+            </Animated.View>
 
             <View className="flex-1">
               <LinearGradient

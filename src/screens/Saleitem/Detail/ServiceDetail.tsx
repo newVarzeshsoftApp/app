@@ -1,5 +1,6 @@
 import React, {useCallback, useLayoutEffect, useMemo, useRef} from 'react';
 import {ActivityIndicator, Dimensions, Image, View} from 'react-native';
+import {getProductDetailImageHeight} from '../../../constants/layout';
 import Animated, {
   interpolate,
   useAnimatedScrollHandler,
@@ -70,7 +71,8 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
     useGetUserSessionByID(data.id);
   // Use shared value instead of scroll offset
   const scrollY = useSharedValue(0);
-  const IMageHight = 285;
+  // 4:3 within app content width (not full browser width on web)
+  const IMageHight = getProductDetailImageHeight();
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -292,12 +294,25 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
           scrollEventThrottle={16}
           style={{flex: 1}}>
           <View className="flex-1">
-            <Animated.Image
-              style={[{width: '100%', height: IMageHight}, ImageAnimatedStyle]}
-              source={{
-                uri: base64Image,
-              }}
-            />
+            <Animated.View
+              style={[
+                {
+                  width: '100%',
+                  height: IMageHight,
+                  backgroundColor:
+                    theme === 'dark' ? '#232529' : 'rgba(244,244,245,0.3)',
+                  overflow: 'hidden',
+                },
+                ImageAnimatedStyle,
+              ]}>
+              <Animated.Image
+                style={{width: '100%', height: '100%'}}
+                source={{
+                  uri: base64Image,
+                }}
+                resizeMode="contain"
+              />
+            </Animated.View>
 
             <View className="flex-1">
               <LinearGradient

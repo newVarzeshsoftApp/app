@@ -123,12 +123,38 @@ export const setCartStorage = async (cart: CartItem[]): Promise<void> => {
 
 export const getCart = async (): Promise<CartItem[]> => {
   try {
+    let raw: string | null = null;
     if (Platform.OS === 'web') {
-      const cart = localStorage.getItem(CART_KEY);
-      return cart ? JSON.parse(cart) : [];
+      raw = localStorage.getItem(CART_KEY);
+    } else {
+      raw = (await EncryptedStorage?.getItem(CART_KEY)) ?? null;
     }
-    const cart = await EncryptedStorage?.getItem(CART_KEY);
-    return cart ? JSON.parse(cart) : [];
+
+    if (!raw) {
+      return [];
+    }
+
+    const cart: CartItem[] = JSON.parse(raw);
+    // Backfill expiry timestamps for legacy items so UI countdown and auto-remove stay in sync
+    let needsPersist = false;
+    const nowIso = new Date().toISOString();
+    const normalized = cart.map(item => {
+      if (item.addedToCartAt) {
+        return item;
+      }
+
+      needsPersist = true;
+      return {
+        ...item,
+        addedToCartAt: item.submitAt || nowIso,
+      };
+    });
+
+    if (needsPersist) {
+      await setCartStorage(normalized);
+    }
+
+    return normalized;
   } catch (error) {
     console.error('Error retrieving cart:', error);
     return [];
@@ -382,23 +408,32 @@ export const addCart = async (
         if (isSamePriceList && isSameContractor) {
           // اگر همه موارد یکسان بود، quantity را افزایش می‌دهیم
           existingItem.quantity += item?.quantity ?? 1;
+          // Preserve original expiry clock; backfill for legacy cart items
+          if (!existingItem.addedToCartAt) {
+            existingItem.addedToCartAt =
+              existingItem.submitAt || new Date().toISOString();
+          }
         } else {
           // اگر متفاوت بودند، آیتم جدید اضافه میشه
+          const nowIso = new Date().toISOString();
           const newItem: CartItem = {
             ...item,
             quantity: item?.quantity ?? 1,
             CartId: generateCartId(),
-            submitAt: new Date().toISOString(),
+            submitAt: nowIso,
+            addedToCartAt: nowIso,
           };
           cart.push(newItem);
         }
       } else {
         // اگر محصول وجود نداشت، آیتم جدید اضافه میشه
+        const nowIso = new Date().toISOString();
         const newItem: CartItem = {
           ...item,
           quantity: item.quantity ?? 1,
           CartId: generateCartId(),
-          submitAt: new Date().toISOString(),
+          submitAt: nowIso,
+          addedToCartAt: nowIso,
         };
         cart.push(newItem);
       }

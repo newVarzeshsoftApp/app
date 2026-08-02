@@ -15,6 +15,8 @@ import Badge from '../../Badge/Badge';
 import BottomSheet, {BottomSheetMethods} from '../../BottomSheet/BottomSheet';
 import {useCartContext} from '../../../utils/CartContext';
 import ContractorInfo from '../../ContractorInfo/ContractorInfo';
+import CartExpiryNotice from './CartExpiryNotice';
+import {useDefaultCartItemRemainingTime} from '../../../utils/hooks/useDefaultCartItemRemainingTime';
 
 type CartPackageCardProps = {
   data: CartItem;
@@ -28,6 +30,7 @@ const CartPackageCard: React.FC<CartPackageCardProps> = ({data}) => {
   const RemoveItemRef = useRef<BottomSheetMethods>(null);
   const showPackageLevelContractor =
     !!product?.hasContractor && !!SelectedContractor;
+  const remainingMinutes = useDefaultCartItemRemainingTime(data);
 
   return (
     <>
@@ -175,6 +178,7 @@ const CartPackageCard: React.FC<CartPackageCardProps> = ({data}) => {
             </View>
           </View>
         </View>
+        <CartExpiryNotice mode="default" remainingMinutes={remainingMinutes} />
       </View>
     </>
   );

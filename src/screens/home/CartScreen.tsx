@@ -47,6 +47,11 @@ import {
   getReservationKey,
 } from '../../utils/helpers/ReservationStorage';
 import {resolveCartItemContractorId, buildPackageSaleOrderSubItems} from '../../utils/helpers/packageContractorStore';
+import {CART_DEFAULT_TTL_SECONDS} from '../../constants/cart';
+import {
+  getCartItemExpiryStartIso,
+  isTimedCartItem,
+} from '../../utils/helpers/cartExpiry';
 type PaymentMethodType = {
   getway?: number;
   isWallet?: boolean;
@@ -110,35 +115,35 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     });
   }, [steps]);
 
-  // Helper to get start time for expiring cart items (reservation + group class)
+  // Helper to get start time for any cart item expiry clock
   const getExpiringItemStartTime = useCallback((item: CartItem): Date | null => {
-    if (item.isGroupClassRoom && item.addedToCartAt) {
-      return new Date(item.addedToCartAt);
+    const isGroupClass =
+      !!item.isGroupClassRoom || !!item.groupClassRoomData?.groupClassRoomId;
+
+    if (isGroupClass) {
+      const startIso = getCartItemExpiryStartIso(item);
+      return startIso ? new Date(startIso) : null;
     }
 
-    if (!item.isReserve || !item.reservationData || !item.product) return null;
+    if (item.isReserve && item.reservationData && item.product) {
+      try {
+        const storeItem = convertCartItemToReservationStoreItem(item);
+        if (storeItem) {
+          const key = getReservationKey(storeItem);
+          const {findReservationByKey} = useReservationStore.getState();
+          const storeReservation = findReservationByKey(key);
 
-    try {
-      const storeItem = convertCartItemToReservationStoreItem(item);
-      if (storeItem) {
-        const key = getReservationKey(storeItem);
-        const {findReservationByKey} = useReservationStore.getState();
-        const storeReservation = findReservationByKey(key);
-
-        if (storeReservation?.createdAt) {
-          return new Date(storeReservation.createdAt);
+          if (storeReservation?.createdAt) {
+            return new Date(storeReservation.createdAt);
+          }
         }
+      } catch {
+        // Fallback to addedToCartAt / submitAt below
       }
-    } catch (error) {
-      // Fallback to addedToCartAt
     }
 
-    // Fallback to addedToCartAt
-    if (item.addedToCartAt) {
-      return new Date(item.addedToCartAt);
-    }
-
-    return null;
+    const startIso = getCartItemExpiryStartIso(item);
+    return startIso ? new Date(startIso) : null;
   }, []);
 
   // Per-CartId guard + serial queue so only the expired item is removed,
@@ -179,33 +184,38 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     });
   }, [items]);
 
-  // Single source of auto-remove for reservation + group class expiry.
+  // Single source of auto-remove: timed items (API TTL) + default 24h for others.
   useEffect(() => {
-    if (!expiresTimeData?.ttlSecond || items.length === 0) {
+    if (items.length === 0) {
       return;
     }
-
-    const expiresTimeSeconds = expiresTimeData.ttlSecond;
 
     const removeExpiredItems = () => {
       const now = new Date();
 
       itemsRef.current.forEach(item => {
-        const isExpiringItem =
-          (item.isReserve && item.reservationData) ||
-          (item.isGroupClassRoom && item.groupClassRoomData);
+        if (!item.CartId) {
+          return;
+        }
 
-        if (!isExpiringItem || !item.CartId) {
+        const timed = isTimedCartItem(item);
+        const ttlSeconds = timed
+          ? expiresTimeData?.ttlSecond
+          : CART_DEFAULT_TTL_SECONDS;
+
+        // Timed items wait for API TTL; skip until available
+        if (!ttlSeconds) {
           return;
         }
 
         const startTime = getExpiringItemStartTime(item);
+        // Legacy items without timestamps get a fresh clock (do not wipe immediately)
         if (!startTime) {
           return;
         }
 
         const elapsedSeconds = (now.getTime() - startTime.getTime()) / 1000;
-        if (elapsedSeconds >= expiresTimeSeconds) {
+        if (elapsedSeconds >= ttlSeconds) {
           enqueueExpiredCartRemoval(item.CartId);
         }
       });

@@ -7,6 +7,7 @@ import React, {
   useState,
 } from 'react';
 import {ActivityIndicator, View} from 'react-native';
+import {getProductDetailImageHeight} from '../../constants/layout';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {useQueryClient} from '@tanstack/react-query';
 import {useTranslation} from 'react-i18next';
@@ -74,7 +75,8 @@ type GroupClassRoomDetailProps = NativeStackScreenProps<
   'groupClassRoomDetail'
 >;
 
-const IMAGE_HEIGHT = 285;
+// 4:3 within app content width (not full browser width on web)
+const IMAGE_HEIGHT = getProductDetailImageHeight();
 
 const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
   navigation,
@@ -545,13 +547,23 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
           style={{flex: 1}}>
           <View className="flex-1">
             {base64Image ? (
-              <Animated.Image
+              <Animated.View
                 style={[
-                  {width: '100%', height: IMAGE_HEIGHT},
+                  {
+                    width: '100%',
+                    height: IMAGE_HEIGHT,
+                    backgroundColor:
+                      theme === 'dark' ? '#232529' : 'rgba(244,244,245,0.3)',
+                    overflow: 'hidden',
+                  },
                   imageAnimatedStyle,
-                ]}
-                source={{uri: base64Image}}
-              />
+                ]}>
+                <Animated.Image
+                  style={{width: '100%', height: '100%'}}
+                  source={{uri: base64Image}}
+                  resizeMode="contain"
+                />
+              </Animated.View>
             ) : (
               <View
                 style={{width: '100%', height: IMAGE_HEIGHT}}

@@ -118,7 +118,7 @@ const GroupClassRoomCard: React.FC<GroupClassRoomCardProps> = ({
   return (
     <View className="BaseServiceCard">
       <View
-        className={`w-full h-[185px] rounded-3xl overflow-hidden ${
+        className={`w-full aspect-[4/3] rounded-3xl overflow-hidden ${
           imageLoading
             ? 'bg-black/20 dark:bg-white/20 animate-pulse'
             : 'bg-neutral-0 dark:bg-neutral-dark-0'
@@ -127,7 +127,7 @@ const GroupClassRoomCard: React.FC<GroupClassRoomCardProps> = ({
           <Image
             style={{width: '100%', height: '100%'}}
             source={{uri: imageSrc}}
-            resizeMode="cover"
+            resizeMode="contain"
           />
         ) : null}
       </View>

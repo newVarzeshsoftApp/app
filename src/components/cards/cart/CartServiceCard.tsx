@@ -26,6 +26,12 @@ import {
 } from '../../../utils/helpers/ReservationStorage';
 import {useGetReservationExpiresTime} from '../../../utils/hooks/Reservation/useGetReservationExpiresTime';
 import {useAuth} from '../../../utils/hooks/useAuth';
+import {
+  getCartItemExpiryStartIso,
+  isTimedCartItem as checkIsTimedCartItem,
+} from '../../../utils/helpers/cartExpiry';
+import CartExpiryNotice from './CartExpiryNotice';
+import {useDefaultCartItemRemainingTime} from '../../../utils/hooks/useDefaultCartItemRemainingTime';
 type CartServiceCardProps = {
   data: CartItem;
 };
@@ -96,15 +102,21 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
   }, [groupClassRoomData, isGroupClassRoomItem]);
 
   // For reservation items, calculate price differently
-  const isReservationItem = isReserve && reservationData;
-  const isExpiringCartItem = isReservationItem || isGroupClassRoomItem;
+  const isReservationItem = !!(isReserve && reservationData);
+  // Shared helper — must match CartScreen auto-remove branching
+  const isTimedItem = checkIsTimedCartItem(data);
 
-  const {data: expiresTimeData} = useGetReservationExpiresTime(
-    !!isExpiringCartItem,
+  const {data: expiresTimeData} = useGetReservationExpiresTime(!!isTimedItem);
+
+  // State for countdown timer (timed items only)
+  const [timedRemainingMinutes, setTimedRemainingMinutes] = useState<
+    number | null
+  >(null);
+
+  const defaultRemainingMinutes = useDefaultCartItemRemainingTime(
+    data,
+    !isTimedItem,
   );
-
-  // State for countdown timer
-  const [remainingTime, setRemainingTime] = useState<number | null>(null);
 
   // Get reservation from ReservationStore to use createdAt (pre-reserve time) instead of addedToCartAt
   const reservationFromStore = useMemo(() => {
@@ -141,12 +153,17 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
 
   // Countdown UI only — CartScreen owns auto-remove so each item expires alone.
   useEffect(() => {
-    const startTime = isGroupClassRoomItem
-      ? data.addedToCartAt
-      : reservationFromStore?.createdAt || data.addedToCartAt;
+    if (!isTimedItem || !expiresTimeData?.ttlSecond) {
+      setTimedRemainingMinutes(null);
+      return;
+    }
 
-    if (!isExpiringCartItem || !startTime || !expiresTimeData?.ttlSecond) {
-      setRemainingTime(null);
+    const startTime = isGroupClassRoomItem
+      ? getCartItemExpiryStartIso(data)
+      : reservationFromStore?.createdAt || getCartItemExpiryStartIso(data);
+
+    if (!startTime) {
+      setTimedRemainingMinutes(null);
       return;
     }
 
@@ -156,7 +173,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
       const elapsedSeconds = (now.getTime() - startedAt.getTime()) / 1000;
       const expiresTimeSeconds = expiresTimeData.ttlSecond;
       const remainingSeconds = Math.max(0, expiresTimeSeconds - elapsedSeconds);
-      setRemainingTime(remainingSeconds / 60);
+      setTimedRemainingMinutes(remainingSeconds / 60);
     };
 
     updateRemainingTime();
@@ -164,23 +181,13 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
 
     return () => clearInterval(interval);
   }, [
-    isExpiringCartItem,
+    isTimedItem,
     isGroupClassRoomItem,
     reservationFromStore?.createdAt,
     data.addedToCartAt,
+    data.submitAt,
     expiresTimeData,
   ]);
-
-  // Format remaining time for display
-  const formatRemainingTime = (minutes: number): string => {
-    if (minutes <= 0) return 'منقضی شده';
-    const hours = Math.floor(minutes / 60);
-    const mins = Math.floor(minutes % 60);
-    if (hours > 0) {
-      return `${hours} ساعت و ${mins} دقیقه`;
-    }
-    return `${mins} دقیقه`;
-  };
 
   // REMOVED: No longer syncing from ReservationStore to Cart
   // Cart is the single source of truth
@@ -646,13 +653,13 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
         }}
       />
       <View className="CardBase gap-3">
-        <View className="w-full h-[185px] bg-neutral-0 dark:bg-neutral-dark-0 rounded-3xl relative overflow-hidden">
+        <View className="w-full aspect-[4/3] bg-neutral-0 dark:bg-neutral-dark-0 rounded-3xl relative overflow-hidden">
           {product?.image?.name && (
             <ResponsiveImage
               customSource={{default: product?.image?.name}}
               ImageType="Media"
-              resizeMode="cover"
-              style={{width: '100%', height: 200}}
+              resizeMode="contain"
+              style={{width: '100%', height: '100%'}}
             />
           )}
         </View>
@@ -1032,34 +1039,17 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
             )}
 
           {/* Expiration Time Info */}
-          {isExpiringCartItem &&
-            expiresTimeData?.ttlSecond &&
-            remainingTime !== null && (
-              <View className="flex-row items-center gap-2 p-3 BaseServiceCard mt-2">
-                <View className="flex-1 gap-2">
-                  <BaseText type="subtitle2">
-                    {remainingTime > 0
-                      ? isGroupClassRoomItem
-                        ? `زمان باقیمانده تا حذف از سبد خرید: ${formatRemainingTime(
-                            remainingTime,
-                          )}`
-                        : `زمان باقیمانده برای تکمیل رزرو: ${formatRemainingTime(
-                            remainingTime,
-                          )}`
-                      : isGroupClassRoomItem
-                        ? 'زمان تکمیل خرید منقضی شده است'
-                        : 'زمان رزرو منقضی شده است'}
-                  </BaseText>
-                  {remainingTime > 0 && (
-                    <BaseText type="subtitle3" color="secondary">
-                      {isGroupClassRoomItem
-                        ? 'در صورت عدم تکمیل خرید در این زمان، آیتم به صورت خودکار از سبد حذف می‌شود'
-                        : 'در صورت عدم تکمیل رزرو در این زمان، رزرو به صورت خودکار حذف می‌شود'}
-                    </BaseText>
-                  )}
-                </View>
-              </View>
-            )}
+          {isTimedItem ? (
+            <CartExpiryNotice
+              mode={isGroupClassRoomItem ? 'groupClass' : 'reservation'}
+              remainingMinutes={timedRemainingMinutes}
+            />
+          ) : (
+            <CartExpiryNotice
+              mode="default"
+              remainingMinutes={defaultRemainingMinutes}
+            />
+          )}
         </View>
       </View>
     </>

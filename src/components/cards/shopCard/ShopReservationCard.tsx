@@ -256,12 +256,13 @@ const ShopReservationCard: React.FC<ShopReservationCardProps> = ({data}) => {
           {/* Title */}
           <View className="flex-row items-center justify-between pb-3 border-b border-neutral-0 dark:border-neutral-dark-400/50 ">
             <View className="flex-1 items-start gap-2">
-              <View className="w-full h-[185px] bg-neutral-0 dark:bg-neutral-dark-0 rounded-3xl overflow-hidden">
+              <View className="w-full aspect-[4/3] bg-neutral-0 dark:bg-neutral-dark-0 rounded-3xl overflow-hidden">
                 <Image
                   style={{width: '100%', height: '100%'}}
                   source={{
                     uri: ImageSrc,
                   }}
+                  resizeMode="contain"
                 />
               </View>
               <View className="flex-row gap-2 items-center">
