@@ -1,5 +1,6 @@
 import {genders, PickerOption} from '../../constants/options';
 import {Product} from '../../services/models/response/ProductResService';
+import moment from 'jalali-moment';
 
 /**
  * Checks if the given object is not empty, undefined, or null.
@@ -297,3 +298,34 @@ export const getPackageFinalPrice = (
   product?: Pick<Product, 'price' | 'subProducts'>,
 ): number =>
   Math.max((product?.price ?? 0) - getPackageDiscountAmount(product), 0);
+
+/**
+ * Jalali date + time for API timestamps (submitAt, createdAt, etc.).
+ * Uses `mm` for minutes — `MM` in moment is month and shows wrong minutes (e.g. 12:08 instead of 12:16 in August).
+ */
+export const formatJalaliDateTime = (value?: string | null): string => {
+  if (!value) {
+    return '-';
+  }
+
+  const parsed = moment(value);
+  if (!parsed.isValid()) {
+    return '-';
+  }
+
+  return parsed.format('jYYYY/jMM/jDD HH:mm');
+};
+
+/** Time-only HH:mm from an API timestamp or time string. */
+export const formatTimeHHmm = (value?: string | null): string => {
+  if (!value) {
+    return '-';
+  }
+
+  const parsed = moment(value);
+  if (!parsed.isValid()) {
+    return '-';
+  }
+
+  return parsed.format('HH:mm');
+};

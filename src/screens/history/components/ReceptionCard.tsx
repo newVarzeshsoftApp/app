@@ -6,7 +6,7 @@ import {OrderStackParamList} from '../../../utils/types/NavigationTypes';
 import {useTranslation} from 'react-i18next';
 import BaseText from '../../../components/BaseText';
 import moment from 'jalali-moment';
-import {formatNumber} from '../../../utils/helpers/helpers';
+import {formatNumber, formatTimeHHmm} from '../../../utils/helpers/helpers';
 import BaseButton from '../../../components/Button/BaseButton';
 import Badge from '../../../components/Badge/Badge';
 import {navigate} from '../../../navigation/navigationRef';
@@ -44,12 +44,12 @@ const ReceptionCard: React.FC<OrderCardProps> = ({item}) => {
           <View className="flex-row gap-2 items-center">
             {item.start && (
               <BaseText type="body3" color="base">
-                {moment(item.start).format('HH:DD')}
+                {formatTimeHHmm(item.start)}
               </BaseText>
             )}
             {item.end && (
               <BaseText type="body3" color="base">
-                {moment(item.end).format('HH:DD')}
+                {formatTimeHHmm(item.end)}
               </BaseText>
             )}
           </View>

@@ -15,8 +15,7 @@ import {MoneySend} from 'iconsax-react-native';
 import BaseText from '../../components/BaseText';
 import BaseButton from '../../components/Button/BaseButton';
 import {useGetUserTransactionById} from '../../utils/hooks/User/useGetUserTransactionById';
-import moment from 'jalali-moment';
-import {formatNumber} from '../../utils/helpers/helpers';
+import {formatNumber, formatJalaliDateTime} from '../../utils/helpers/helpers';
 import {TransactionSourceType} from '../../constants/options';
 import Badge from '../../components/Badge/Badge';
 import {navigate} from '../../navigation/navigationRef';
@@ -122,9 +121,7 @@ const WithdrawDetailScreen: React.FC<WithdrawDetailScreenProps> = ({
                             {t('DateAndTime')}: {''}
                           </BaseText>
                           <BaseText type="body3" color="base">
-                            {moment(data?.submitAt).format(
-                              'jYYYY/jMM/jDD HH:MM',
-                            )}
+                            {formatJalaliDateTime(data?.submitAt)}
                           </BaseText>
                         </View>
                         <View className="flex-row items-center justify-between ">

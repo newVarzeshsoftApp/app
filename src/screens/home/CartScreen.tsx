@@ -91,10 +91,20 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
   );
 
   useEffect(() => {
-    if ((Getways?.length ?? 0) > 0) {
+    if ((Getways?.length ?? 0) > 0 && amountPayable > 0) {
       setPaymentMethod({getway: Getways?.[0]?.id});
     }
-  }, [Getways]);
+  }, [Getways, amountPayable]);
+
+  useEffect(() => {
+    if (amountPayable <= 0) {
+      setPaymentMethod({
+        isWallet: true,
+        getway: undefined,
+        source: undefined,
+      });
+    }
+  }, [amountPayable]);
 
   // Reset step to 1 when cart becomes empty or screen is focused
   useEffect(() => {
@@ -717,7 +727,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     console.log('===========================================');
 
     // Send to backend
-    if (PaymentMethod?.getway) {
+    if (PaymentMethod?.getway && amountPayable > 0) {
       // Gateway payment - send to CreatePayment with same DTO structure as wallet payment
       // Build the same body structure as SaleOrder
       const paymentBody = {
@@ -809,18 +819,23 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                     <View
                       className={`CardBase ${
                         PaymentMethod?.getway && '!border-primary-500'
-                      } `}>
+                      } ${amountPayable <= 0 ? 'opacity-50' : ''}`}
+                      pointerEvents={amountPayable <= 0 ? 'none' : 'auto'}>
                       <View className="flex-row items-center justify-between">
                         <BaseText type="subtitle2">{t('PaywithBank')}</BaseText>
                         <Checkbox
+                          disabled={amountPayable <= 0}
                           checked={PaymentMethod?.getway ? true : false}
-                          onCheckedChange={() =>
+                          onCheckedChange={() => {
+                            if (amountPayable <= 0) {
+                              return;
+                            }
                             setPaymentMethod({
                               getway: Getways?.[0]?.id,
                               source: undefined,
                               isWallet: false,
-                            })
-                          }
+                            });
+                          }}
                         />
                       </View>
                       <View className="gap-2">
@@ -855,6 +870,9 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                                     color="Black"
                                     rounded
                                     onPress={() => {
+                                      if (amountPayable <= 0) {
+                                        return;
+                                      }
                                       setPaymentMethod({
                                         getway: item?.id,
                                         source: undefined,
@@ -872,7 +890,10 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                   )}
                   {/*  خرید با کیف پول  */}
                   <TouchableOpacity
-                    disabled={Number(UserCredit?.result ?? 0) < amountPayable}
+                    disabled={
+                      amountPayable > 0 &&
+                      Number(UserCredit?.result ?? 0) < amountPayable
+                    }
                     onPress={() =>
                       setPaymentMethod({
                         isWallet: true,
@@ -887,6 +908,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                       <BaseText type="subtitle2">{t('PaywithWallet')}</BaseText>
                       <Checkbox
                         disabled={
+                          amountPayable > 0 &&
                           Number(UserCredit?.result ?? 0) < amountPayable
                         }
                         checked={PaymentMethod?.isWallet === true}
@@ -904,10 +926,12 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                       <WalletBalance
                         inWallet
                         NoCredit={
+                          amountPayable > 0 &&
                           Number(UserCredit?.result ?? 0) < amountPayable
                         }
                       />
-                      {Number(UserCredit?.result ?? 0) < amountPayable && (
+                      {amountPayable > 0 &&
+                        Number(UserCredit?.result ?? 0) < amountPayable && (
                         <BaseText type="badge" color="error">
                           موجودی ناکافی
                         </BaseText>
@@ -915,7 +939,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                     </View>
                   </TouchableOpacity>
                   {/*  خرید با خدمت شارژی  */}
-                  {Credits && Credits.total > 0 && (
+                  {Credits && Credits.total > 0 && amountPayable > 0 && (
                     <View
                       className={`CardBase ${
                         PaymentMethod?.source && '!border-primary-500'
@@ -930,7 +954,13 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                             key={index}
                             disabled={disable}
                             className="flex-row items-center gap-2 disabled:opacity-25"
-                            onPress={() => setPaymentMethod({source: item.id})}>
+                            onPress={() =>
+                              setPaymentMethod({
+                                source: item.id,
+                                isWallet: false,
+                                getway: undefined,
+                              })
+                            }>
                             <LinearGradient
                               colors={
                                 PaymentMethod?.source === item.id
@@ -975,7 +1005,11 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                                 }
                                 checked={PaymentMethod?.source === item?.id}
                                 onCheckedChange={() =>
-                                  setPaymentMethod({source: item?.id})
+                                  setPaymentMethod({
+                                    source: item?.id,
+                                    isWallet: false,
+                                    getway: undefined,
+                                  })
                                 }
                               />
                             ) : (

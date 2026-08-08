@@ -1603,52 +1603,9 @@ export const processGroupClassRoomRemoteEvent = async (
     });
   }
 
-  if (!isReleaseEvent || !removeFromCart) {
-    return;
-  }
-
-  // Actor removes cart locally in Carthook; server echo must not double-remove.
-  if (isMyAction) {
-    return;
-  }
-
-  logGroupClassRoomReleaseFlow('SSE release event processed on viewer', {
-    groupClassRoomId: event.groupClassRoom,
-    contractor: event.contractor,
-    eventUser: event.user,
-    viewerUserId: profileId,
-    status: event.status,
-    isLocked: event.isLocked,
-  });
-
-  try {
-    const cartItems = await getCart();
-    const cartItem = findGroupClassRoomCartItemByEvent(cartItems, event);
-
-    logGroupClassRoomReleaseFlow('SSE release cart lookup', {
-      groupClassRoomId: event.groupClassRoom,
-      cartItemFound: !!cartItem?.CartId,
-      cartId: cartItem?.CartId,
-    });
-
-    if (cartItem?.CartId) {
-      await removeFromCart(cartItem.CartId, {
-        skipGroupClassRoomRelease: true,
-      });
-    }
-  } catch (error) {
-    logGroupClassRoomReleaseFlow('SSE release cart cleanup FAILED', {
-      groupClassRoomId: event.groupClassRoom,
-      error:
-        error instanceof Error
-          ? {name: error.name, message: error.message}
-          : error,
-    });
-    console.error(
-      'Failed to remove group class room item from cart via SSE:',
-      error,
-    );
-  }
+  // Cart removal is not driven by remote SSE release events (e.g. panel purchases
+  // for other users). Users remove items manually, via expiry timer, or cart
+  // invalidation on checkout 400 errors.
 };
 
 export const refetchGroupClassRoomQueries = async (

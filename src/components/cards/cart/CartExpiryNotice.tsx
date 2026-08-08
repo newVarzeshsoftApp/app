@@ -26,38 +26,42 @@ const CartExpiryNotice: React.FC<CartExpiryNoticeProps> = ({
   let subtitle: string | null = null;
 
   if (mode === 'groupClass') {
-    title = isExpired
-      ? 'زمان تکمیل خرید منقضی شده است'
-      : `زمان باقیمانده تا حذف از سبد خرید: ${formatted}`;
-    subtitle = isExpired
-      ? null
-      : 'در صورت عدم تکمیل خرید در این زمان، آیتم به صورت خودکار از سبد حذف می‌شود';
+    if (isExpired) {
+      title = 'مهلت خرید تمام شد — از سبد حذف می‌شود';
+    } else {
+      title = `مهلت تکمیل خرید: ${formatted}`;
+      subtitle = 'بدون پرداخت، خودکار از سبد حذف می‌شود';
+    }
   } else if (mode === 'reservation') {
-    title = isExpired
-      ? 'زمان رزرو منقضی شده است'
-      : `زمان باقیمانده برای تکمیل رزرو: ${formatted}`;
-    subtitle = isExpired
-      ? null
-      : 'در صورت عدم تکمیل رزرو در این زمان، رزرو به صورت خودکار حذف می‌شود';
+    if (isExpired) {
+      title = 'مهلت رزرو تمام شد — از سبد حذف می‌شود';
+    } else {
+      title = `مهلت تکمیل رزرو: ${formatted}`;
+      subtitle = 'بدون پرداخت، خودکار از سبد حذف می‌شود';
+    }
+  } else if (isExpired) {
+    title = 'مهلت نگهداری تمام شد — از سبد حذف می‌شود';
   } else {
-    title = isExpired
-      ? 'مهلت نگهداری این آیتم در سبد به پایان رسیده است'
-      : `این آیتم تا ۲۴ ساعت در سبد خرید می‌ماند (${formatted} باقی‌مانده)`;
-    subtitle = isExpired
-      ? null
-      : 'در صورت عدم تکمیل خرید در این بازه، به‌صورت خودکار از سبد حذف می‌شود';
+    title = `نگهداری در سبد: ${formatted}`;
+    subtitle = 'بدون پرداخت، خودکار از سبد حذف می‌شود';
   }
 
   return (
-    <View className="flex-row items-center gap-2 p-3 BaseServiceCard mt-2">
-      <View className="flex-1 gap-1">
-        <BaseText type="caption">{title}</BaseText>
-        {subtitle ? (
-          <BaseText type="caption" color="secondary">
-            {subtitle}
-          </BaseText>
-        ) : null}
-      </View>
+    <View className="mt-1.5 px-2.5 py-2 rounded-2xl bg-neutral-100 dark:bg-neutral-800/50 gap-1">
+      <BaseText
+        type="caption"
+        color="base"
+        className="!text-[14px] leading-4">
+        {title}
+      </BaseText>
+      {subtitle ? (
+        <BaseText
+          type="caption"
+          color="secondary"
+          className="!text-[14px] leading-3.5">
+          {subtitle}
+        </BaseText>
+      ) : null}
     </View>
   );
 };

@@ -5,8 +5,7 @@ import {useTranslation} from 'react-i18next';
 import BaseButton from '../../../components/Button/BaseButton';
 import {SaleOrderByIDRes} from '../../../services/models/response/UseResrService';
 import moment from 'jalali-moment';
-import Badge from '../../../components/Badge/Badge';
-import {formatNumber} from '../../../utils/helpers/helpers';
+import {formatNumber, formatJalaliDateTime, formatTimeHHmm} from '../../../utils/helpers/helpers';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {OrderStackParamList} from '../../../utils/types/NavigationTypes';
 import {navigate} from '../../../navigation/navigationRef';
@@ -39,7 +38,7 @@ const OrderDetailCard: React.FC<OrderDetailProps> = ({item, isReseption}) => {
                 {t('DateAndTime')}: {''}
               </BaseText>
               <BaseText type="body3" color="base">
-                {moment(item.createdAt).format('jYYYY/jMM/jDD HH:MM')}
+                {formatJalaliDateTime(item.createdAt)}
               </BaseText>
             </View>
             {item.saleOrderReceptionId && (
@@ -84,12 +83,12 @@ const OrderDetailCard: React.FC<OrderDetailProps> = ({item, isReseption}) => {
               <View className="flex-row gap-2 items-center">
                 {item.start && (
                   <BaseText type="body3" color="base">
-                    {moment(item.start).format('HH:DD')}
+                    {formatTimeHHmm(item.start)}
                   </BaseText>
                 )}
                 {item.end && (
                   <BaseText type="body3" color="base">
-                    {moment(item.end).format('HH:DD')}
+                    {formatTimeHHmm(item.end)}
                   </BaseText>
                 )}
               </View>

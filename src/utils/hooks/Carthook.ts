@@ -1,5 +1,7 @@
 import {useState, useCallback, useEffect, useMemo} from 'react';
+import {DeviceEventEmitter} from 'react-native';
 import {useQueryClient} from '@tanstack/react-query';
+import {CART_CLEARED_EVENT} from '../helpers/cartInvalidationErrors';
 import {
   getCart,
   addCart,
@@ -174,6 +176,17 @@ export const useCart = () => {
   useEffect(() => {
     refreshCart();
   }, [refreshCart]);
+
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(
+      CART_CLEARED_EVENT,
+      () => {
+        setCartSummary({items: [], totalItems: 0});
+      },
+    );
+
+    return () => subscription.remove();
+  }, []);
 
   return {
     items: sortedCartItems,
