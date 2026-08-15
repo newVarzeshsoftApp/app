@@ -6,7 +6,7 @@ import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {OrderStackParamList} from '../../../utils/types/NavigationTypes';
 import {PaymentRecord} from '../../../services/models/response/UseResrService';
 import moment from 'jalali-moment';
-import {formatNumber} from '../../../utils/helpers/helpers';
+import {formatNumber, formatTimeHHmm} from '../../../utils/helpers/helpers';
 import {PaymentStatus} from '../../../constants/options';
 import Badge from '../../../components/Badge/Badge';
 import BaseButton from '../../../components/Button/BaseButton';
@@ -44,7 +44,7 @@ const PaymentCard: React.FC<PaymentCardProps> = ({item}) => {
           </BaseText>
           <BaseText type="body3" color="base">
             {moment(item?.endPayment ?? '').isValid()
-              ? moment(item?.endPayment ?? '').format(' HH:MM')
+              ? formatTimeHHmm(item?.endPayment)
               : '-'}
           </BaseText>
         </View>

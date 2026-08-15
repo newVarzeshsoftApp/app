@@ -12,6 +12,8 @@ import {useTranslation} from 'react-i18next';
 import BottomSheet, {BottomSheetMethods} from '../../BottomSheet/BottomSheet';
 import {useCartContext} from '../../../utils/CartContext';
 import CreditSubProduct from '../SubProduct';
+import CartExpiryNotice from './CartExpiryNotice';
+import {useDefaultCartItemRemainingTime} from '../../../utils/hooks/useDefaultCartItemRemainingTime';
 type CartCreditCardProps = {
   data: CartItem;
 };
@@ -20,6 +22,7 @@ const CartCreditCard: React.FC<CartCreditCardProps> = ({data}) => {
   const {product, quantity, CartId} = data;
   const {updateItemQuantity, removeFromCart} = useCartContext();
   const RemoveItemRef = useRef<BottomSheetMethods>(null);
+  const remainingMinutes = useDefaultCartItemRemainingTime(data);
   return (
     <>
       <BottomSheet
@@ -110,6 +113,7 @@ const CartCreditCard: React.FC<CartCreditCardProps> = ({data}) => {
             </View>
           </View>
         </View>
+        <CartExpiryNotice mode="default" remainingMinutes={remainingMinutes} />
       </View>
     </>
   );

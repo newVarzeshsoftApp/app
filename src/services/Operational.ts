@@ -3,11 +3,11 @@ import {Status} from '../models/enums';
 import {routes} from '../routes/routes';
 import axiosInstance from '../utils/AxiosInstans';
 import {handleMutationError} from '../utils/helpers/errorHandler';
-import {SaleOrderBody} from './models/request/OperationalReqService';
 import {
-  SaleOrderByIDRes,
-  PaymentResultRes,
-} from './models/response/UseResrService';
+  CreateSaleOrderDto,
+  SaleOrderBody,
+} from './models/request/OperationalReqService';
+import {PaymentResultRes} from './models/response/UseResrService';
 
 const {
   operational: {saleOrder, getPaymentResult},
@@ -15,7 +15,9 @@ const {
 } = routes;
 
 export const OperationalService = {
-  SaleOrder: async (body: SaleOrderBody): Promise<string> => {
+  SaleOrder: async (
+    body: CreateSaleOrderDto | SaleOrderBody,
+  ): Promise<string> => {
     try {
       const response = await axiosInstance.post<{orders: number[]}>(
         baseUrl + saleOrder(),
@@ -29,7 +31,7 @@ export const OperationalService = {
         }
         return orders.join(',');
       } else {
-        throw new Error(`Request failed with status ${response}`);
+        throw new Error(`Request failed with status ${response.status}`);
       }
     } catch (error) {
       console.error('Error in SaleOrder function:', error);

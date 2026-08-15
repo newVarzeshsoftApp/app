@@ -88,6 +88,7 @@ const UserRadioButton: React.FC<UserRadioButtonProps> = ({
             }`}>
             <Image
               style={{width: 36, height: 36}}
+              resizeMode="cover"
               source={
                 base64Image
                   ? {uri: base64Image}

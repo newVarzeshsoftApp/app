@@ -1,4 +1,10 @@
-import {ProductType, RegisteredServiceStatus} from '../../constants/options';
+import {
+  DayType,
+  ProductType,
+  RegisteredServiceStatus,
+  TimeRanges,
+} from '../../constants/options';
+import {ReservationStatus} from '../../models/enums';
 
 export interface AllOrganizationQuery {
   sku?: string;
@@ -6,7 +12,7 @@ export interface AllOrganizationQuery {
   id?: number;
 }
 export interface UserSaleItemQuey {
-  status?: RegisteredServiceStatus;
+  status?: RegisteredServiceStatus | number;
   limit?: number;
   offset?: number;
   type?: number;
@@ -14,11 +20,12 @@ export interface UserSaleItemQuey {
   sortField?: string;
   sortOrder?: -1 | 1;
   isReserved?: boolean;
-  isGift?: boolean;
+  isGift: boolean; // Required in Swagger
   PageNumber?: number;
   PageSize?: number;
   searchQuery?: string;
   isCanceled?: boolean;
+  'product.hasSubProduct'?: boolean;
 }
 //
 export interface UserPaymentQuey {
@@ -126,4 +133,37 @@ export interface PreReserveQuery {
   gender: string;
   specificDate: string;
   isLocked: boolean;
+}
+
+export interface ContractorQuery {
+  type: 'GroupClassRoom';
+  service?: string;
+}
+
+export interface GroupClassRoomQuery {
+  dayType?: DayType;
+  timeRange?: TimeRanges;
+  contractor?: string;
+  organizationUnit?: string;
+  service?: string;
+  search?: string; // For group-class-room/services
+  limit?: number;
+  offset?: number;
+}
+
+export interface GroupClassRoomParticipantsQuery {
+  contractor: number;
+  waitingForGroupClass: boolean;
+}
+
+export interface GroupClassRoomPreReserveQuery {
+  groupClassRoom: number;
+  contractor: number;
+  user: number;
+  status: ReservationStatus;
+  isWaiting?: boolean;
+  isLocked?: boolean;
+  key?: string;
+  organizationKey?: string;
+  organizationSku?: string;
 }

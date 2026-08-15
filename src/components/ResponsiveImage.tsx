@@ -1,14 +1,9 @@
 import React from 'react';
-import {
-  Image,
-  ImageProps,
-  Dimensions,
-  ActivityIndicator,
-  View,
-} from 'react-native';
+import {Image, ImageProps, ActivityIndicator, View} from 'react-native';
 import {SrcSet} from '../services/models/response/OrganizationResServise';
 import {IMAGE_TYPE} from '../models/props';
 import {useBase64ImageFromMedia} from '../utils/hooks/useBase64Image';
+import {getAppContentWidth} from '../constants/layout';
 
 type ResponsiveImageProps = {
   customSource?: SrcSet;
@@ -24,7 +19,7 @@ const getBestImageFromSource = (
     return undefined;
   }
 
-  const {width: screenWidth} = Dimensions.get('window');
+  const contentWidth = getAppContentWidth();
 
   if (customSource['default']) {
     return customSource['default'];
@@ -34,7 +29,7 @@ const getBestImageFromSource = (
     .filter(key => !isNaN(parseInt(key)))
     .sort((a, b) => parseInt(a) - parseInt(b));
 
-  const bestMatch = sortedKeys.find(key => parseInt(key) >= screenWidth);
+  const bestMatch = sortedKeys.find(key => parseInt(key) >= contentWidth);
 
   return bestMatch
     ? customSource[bestMatch]

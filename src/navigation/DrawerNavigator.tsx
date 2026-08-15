@@ -29,26 +29,21 @@ const DrawerNavigator: React.FC = () => {
         return;
       }
       const onBackPress = () => {
-        try {
+        if (navigationRef.canGoBack()) {
           goBackSafe();
-
-          if (!navigationRef.canGoBack()) {
-            Alert.alert(
-              'Exit App',
-              'Do you want to quit the app?',
-              [
-                {text: 'Cancel', style: 'cancel'},
-                {text: 'OK', onPress: () => BackHandler.exitApp()},
-              ],
-              {cancelable: false},
-            );
-          }
-
           return true;
-        } catch (error) {
-          console.warn('Navigation error:', error);
-          return false;
         }
+
+        Alert.alert(
+          'Exit App',
+          'Do you want to quit the app?',
+          [
+            {text: 'Cancel', style: 'cancel'},
+            {text: 'OK', onPress: () => BackHandler.exitApp()},
+          ],
+          {cancelable: false},
+        );
+        return true;
       };
 
       BackHandler.addEventListener('hardwareBackPress', onBackPress);
@@ -60,7 +55,7 @@ const DrawerNavigator: React.FC = () => {
   return (
     <GestureHandlerRootView style={{flex: 1}}>
       <Drawer.Navigator
-        backBehavior="none"
+        backBehavior="history"
         screenOptions={() => ({
           drawerStyle: {width: '100%'},
           drawerType: 'slide',

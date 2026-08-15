@@ -3,8 +3,7 @@ import {Dimensions, Text, TouchableOpacity, View} from 'react-native';
 import BaseText from '../../../components/BaseText';
 import {SaleOrderContent} from '../../../services/models/response/UseResrService';
 import {useTranslation} from 'react-i18next';
-import moment from 'jalali-moment';
-import {formatNumber} from '../../../utils/helpers/helpers';
+import {formatNumber, formatJalaliDateTime} from '../../../utils/helpers/helpers';
 import BaseButton from '../../../components/Button/BaseButton';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {OrderStackParamList} from '../../../utils/types/NavigationTypes';
@@ -83,7 +82,7 @@ const OrderCard: React.FC<OrderCardProps> = ({item}) => {
               {t('DateAndTime')}: {''}
             </BaseText>
             <BaseText type="body3" color="base">
-              {moment(item.submitAt).format('jYYYY/jMM/jDD HH:MM')}
+              {formatJalaliDateTime(item.submitAt)}
             </BaseText>
           </View>
           {item.userOrderLocker && (

@@ -10,11 +10,13 @@ import {
   ReservationPatternsResponse,
   ReservationTag,
   ReservationTagsResponse,
+  ResPreReserveDTO,
   ResponseReserveViewResponseDto,
 } from './models/response/ReservationResService';
 import {
   CancelReservationDto,
   CreateReserveDto,
+  PreReserveDTO,
 } from './models/request/ReservationReqService';
 import {handleMutationError} from '../utils/helpers/errorHandler';
 
@@ -25,6 +27,7 @@ const {
     getPatterns,
     getReservation,
     preReserve,
+    calculatePrice,
     submit,
     cancel,
     getExpiresTime,
@@ -121,6 +124,29 @@ const ReservationService = {
       }
     } catch (error) {
       console.error('Error in PreReserve function:', error);
+      if (axios.isAxiosError(error) && error.response) {
+        handleMutationError(error);
+        throw new Error(
+          error.response?.data?.message || 'Unknown error occurred',
+        );
+      }
+      throw error;
+    }
+  },
+
+  CalculatePrice: async (body: PreReserveDTO): Promise<ResPreReserveDTO> => {
+    try {
+      const response = await axiosInstance.post<
+        PreReserveDTO,
+        AxiosResponse<ResPreReserveDTO>
+      >(baseUrl + calculatePrice(), body);
+      if (response.status === Status.Ok || response.status === Status.Created) {
+        return response.data;
+      } else {
+        throw new Error(`Request failed with status ${response.status}`);
+      }
+    } catch (error) {
+      console.error('Error in CalculatePrice function:', error);
       if (axios.isAxiosError(error) && error.response) {
         handleMutationError(error);
         throw new Error(

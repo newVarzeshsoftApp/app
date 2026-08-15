@@ -2,7 +2,13 @@
   "Global": {
     "Home Screen": "Home Screen",
     "fa": "persian",
-    "en": "english"
+    "en": "english",
+    "Home": "Home",
+    "reserve": "Reserve",
+    "groupClassRoom": "Group Class",
+    "cart": "Cart",
+    "wallet": "Wallet",
+    "myServices": "My Services"
   },
   "Auth": {
     "login": "login"
@@ -138,6 +144,12 @@
       "Price per session": "Price per session",
       "Contractor selection": "Contractor selection",
       "Confirm": "Confirm"
+    },
+    "Package": {
+      "contractorSelection": "Contractor selection",
+      "chooseContractor": "Select contractor",
+      "changeContractor": "Change contractor",
+      "contractorNotSelected": "No contractor selected"
     }
   },
   "Validation": {

@@ -1,13 +1,8 @@
 import React, {useRef, useState, forwardRef, useImperativeHandle} from 'react';
-import {
-  View,
-  StyleSheet,
-  Dimensions,
-  ListRenderItem,
-  FlatList,
-} from 'react-native';
+import {View, StyleSheet, ListRenderItem, FlatList} from 'react-native';
+import {getAppContentWidth} from '../constants/layout';
 
-const {width} = Dimensions.get('window');
+const width = getAppContentWidth();
 
 interface DynamicSliderProps<T> {
   data: T[];
@@ -47,7 +42,6 @@ const DynamicSlider = forwardRef<DynamicSliderHandle, DynamicSliderProps<any>>(
         animated: true,
       });
     };
-
     useImperativeHandle(ref, () => ({
       goToNext,
       goToPrevious,

@@ -15,9 +15,8 @@ import {MoneyRecive} from 'iconsax-react-native';
 import BaseText from '../../components/BaseText';
 import BaseButton from '../../components/Button/BaseButton';
 import {useGetUserTransactionById} from '../../utils/hooks/User/useGetUserTransactionById';
-import moment from 'jalali-moment';
+import {formatNumber, formatJalaliDateTime} from '../../utils/helpers/helpers';
 import {TransactionSourceType} from '../../constants/options';
-import {formatNumber} from '../../utils/helpers/helpers';
 import Badge from '../../components/Badge/Badge';
 import {navigate} from '../../navigation/navigationRef';
 type DepositDetailScreenProps = NativeStackScreenProps<
@@ -106,9 +105,7 @@ const DepositDetailScreen: React.FC<DepositDetailScreenProps> = ({
                             {t('DateAndTime')}: {''}
                           </BaseText>
                           <BaseText type="body3" color="base">
-                            {moment(data?.submitAt).format(
-                              'jYYYY/jMM/jDD HH:MM',
-                            )}
+                            {formatJalaliDateTime(data?.submitAt)}
                           </BaseText>
                         </View>
                         <View className="flex-row items-center justify-between ">

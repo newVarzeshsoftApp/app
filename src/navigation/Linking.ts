@@ -1,10 +1,13 @@
 import {LinkingOptions} from '@react-navigation/native';
+import {DayType, TimeRanges} from '../constants/options';
 import {RootStackParamList} from '../utils/types/NavigationTypes';
 
 const linking: LinkingOptions<RootStackParamList> = {
   prefixes: [
     'http://localhost:3000',
     'https://localhost:3000',
+    'http://localhost:3200',
+    'https://localhost:3200',
     'http://185.126.10.3:3000',
     'https://185.126.10.3:3000',
   ],
@@ -41,19 +44,72 @@ const linking: LinkingOptions<RootStackParamList> = {
             screens: {
               Home: '',
               saleItem: 'sale-items',
-              reserve: 'reserve',
-              reserveDetail: {
-                path: 'reserve/detail',
-                parse: {
-                  tagId: Number,
-                  patternId: (val: string) => (val ? Number(val) : undefined),
-                  saleUnit: (val: string) => (val ? Number(val) : undefined),
+              reserve: {
+                path: 'reserve',
+                initialRouteName: 'reserve',
+                screens: {
+                  reserve: '',
+                  reserveDetail: {
+                    path: 'detail',
+                    parse: {
+                      tagId: Number,
+                      patternId: (val: string) =>
+                        val ? Number(val) : undefined,
+                      saleUnit: (val: string) =>
+                        val ? Number(val) : undefined,
+                    },
+                  },
+                },
+              },
+              groupClassRoom: {
+                path: 'groupClassRoom',
+                initialRouteName: 'groupClassRoom',
+                screens: {
+                  groupClassRoom: '',
+                  groupClassRoomList: {
+                    path: 'list',
+                    parse: {
+                      dayType: (value: string) => value as DayType,
+                      timeRange: (value: string) => value as TimeRanges,
+                      contractor: (value: string) => value,
+                      organizationUnit: (value: string) => value,
+                      service: (value: string) => value,
+                    },
+                    stringify: {
+                      dayType: (value: DayType) => value,
+                      timeRange: (value: TimeRanges) => value,
+                      contractor: (value: string) => value,
+                      organizationUnit: (value: string) => value,
+                      service: (value: string) => value,
+                    },
+                  },
+                  groupClassRoomDetail: {
+                    path: 'detail',
+                    parse: {
+                      groupClassRoomId: Number,
+                      contractorId: Number,
+                      waitingList: (value: string) => value === 'true',
+                      dayType: (value: string) => value as DayType,
+                      timeRange: (value: string) => value as TimeRanges,
+                      contractor: (value: string) => value,
+                      organizationUnit: (value: string) => value,
+                      service: (value: string) => value,
+                      title: (value: string) => decodeURIComponent(value),
+                    },
+                    stringify: {
+                      waitingList: (value?: boolean) =>
+                        value ? 'true' : undefined,
+                      title: (value?: string) =>
+                        value ? encodeURIComponent(value) : undefined,
+                    },
+                  },
                 },
               },
               cart: 'cart',
               myServices: 'my-services',
               wallet: {
                 path: 'wallet',
+                initialRouteName: 'wallet',
                 screens: {
                   wallet: '',
                   ChargeWalletScreen: 'charge',

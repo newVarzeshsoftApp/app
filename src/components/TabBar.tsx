@@ -5,9 +5,8 @@ import {CommonActions} from '@react-navigation/native';
 import {
   CalendarAdd,
   Home2,
-  Message,
+  People,
   Profile,
-  ProfileCircle,
   ShoppingBag,
   Wallet2,
 } from 'iconsax-react-native';
@@ -20,9 +19,6 @@ import BaseText from './BaseText';
 import {useTranslation} from 'react-i18next';
 import {useTheme} from '../utils/ThemeContext';
 import {useCartContext} from '../utils/CartContext';
-import {navigate} from '../navigation/navigationRef';
-import {navigationRef} from '../navigation/navigationRef';
-import {HomeStackParamList} from '../utils/types/NavigationTypes';
 
 const TabBar: React.FC<BottomTabBarProps> = ({
   state,
@@ -35,6 +31,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
   const tabIcons: Record<string, React.ReactElement> = {
     Home: <Home2 size="24" />,
     reserve: <CalendarAdd size="24" />,
+    groupClassRoom: <People size="24" />,
     cart: <ShoppingBag size="24" />,
     wallet: <Wallet2 size="24" />,
     myServices: <Profile size="24" />,
@@ -99,46 +96,42 @@ const TabBar: React.FC<BottomTabBarProps> = ({
             canPreventDefault: true,
           });
 
-          if (!event.defaultPrevented) {
-            // For reserve tab, always reset to the initial screen (reserve)
-            // even if already focused, to reset the stack to initial route
-            if (route.name === 'reserve') {
-              // Navigate to reserve tab first if not focused
-              if (!isFocused) {
-                navigate('Root', {
-                  screen: 'HomeNavigator',
-                  params: {
-                    screen: 'reserve' as keyof HomeStackParamList,
-                  } as any,
-                });
-              }
+          if (event.defaultPrevented) return;
 
-              // Reset ReserveStackNavigator to initial route (reserve)
-              // If we're on a nested route (e.g., reserveDetail), reset the stack to 'reserve'
-              const reserveRoute = state.routes.find(r => r.name === 'reserve');
-              if (
-                reserveRoute?.state &&
-                reserveRoute.state.index !== undefined &&
-                reserveRoute.state.index > 0
-              ) {
-                // Use navigationRef to navigate to reserve tab with undefined params
-                // This will reset the nested ReserveStackNavigator to initial route
-                if (navigationRef.isReady()) {
-                  navigationRef.navigate('Root' as any, {
-                    screen: 'HomeNavigator',
-                    params: {
-                      screen: 'reserve',
-                      params: undefined, // This resets nested stack to initial route
-                    },
-                  });
-                }
-              }
-            } else if (!isFocused) {
-              navigate('Root', {
-                screen: 'HomeNavigator',
-                params: {screen: route.name as keyof HomeStackParamList} as any,
+          const nestedStackTabs: Record<string, string> = {
+            reserve: 'reserve',
+            groupClassRoom: 'groupClassRoom',
+          };
+          const initialNestedScreen = nestedStackTabs[route.name];
+
+          if (initialNestedScreen) {
+            const nestedRoute = state.routes.find(r => r.name === route.name);
+
+            if (
+              isFocused &&
+              nestedRoute?.state?.key &&
+              nestedRoute.state.index !== undefined &&
+              nestedRoute.state.index > 0
+            ) {
+              navigation.dispatch({
+                ...CommonActions.reset({
+                  index: 0,
+                  routes: [{name: initialNestedScreen}],
+                }),
+                target: nestedRoute.state.key,
               });
+              return;
             }
+
+            if (!isFocused) {
+              navigation.navigate(route.name);
+            }
+
+            return;
+          }
+
+          if (!isFocused) {
+            navigation.navigate(route.name);
           }
         };
 

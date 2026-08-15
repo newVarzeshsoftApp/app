@@ -1,7 +1,8 @@
 import {useState, useRef, useCallback} from 'react';
-import {Animated, Easing, Dimensions} from 'react-native';
+import {Animated, Easing} from 'react-native';
 import {VISIBLE_DAYS_COUNT, TIME_COLUMN_WIDTH} from '../utils/constants';
 import {DayEntryDto} from '../../../../services/models/response/ReservationResService';
+import {getAppContentWidth} from '../../../../constants/layout';
 
 interface UsePageNavigationProps {
   totalPages: number;
@@ -38,7 +39,7 @@ export const usePageNavigation = ({totalPages}: UsePageNavigationProps) => {
       const newDirection = direction === 'next' ? 'right' : 'left';
       setSlideDirection(newDirection);
 
-      const screenWidth = Dimensions.get('window').width;
+      const screenWidth = getAppContentWidth();
       const slideDistance =
         (screenWidth - TIME_COLUMN_WIDTH) / VISIBLE_DAYS_COUNT;
 
