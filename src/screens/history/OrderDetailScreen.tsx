@@ -1,6 +1,7 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import React, {useLayoutEffect, useRef, useState} from 'react';
-import {ActivityIndicator, Dimensions, View} from 'react-native';
+import {ActivityIndicator, View} from 'react-native';
+import {getAppContentWidth} from '../../constants/layout';
 import {OrderStackParamList} from '../../utils/types/NavigationTypes';
 import {useTranslation} from 'react-i18next';
 import Animated, {
@@ -112,7 +113,7 @@ const OrderDetailScreen: React.FC<OrderDetailScreenProps> = ({
                         renderItem={({item, index}) => (
                           <View
                             key={index}
-                            style={{width: Dimensions.get('window').width}}
+                            style={{width: getAppContentWidth()}}
                             className="flex-1 w-full  Container  ">
                             <ItemCard item={item} />
                           </View>
@@ -170,7 +171,7 @@ const OrderDetailScreen: React.FC<OrderDetailScreenProps> = ({
                         renderItem={({item, index}) => (
                           <View
                             key={index}
-                            style={{width: Dimensions.get('window').width}}
+                            style={{width: getAppContentWidth()}}
                             className="flex-1 Container ">
                             <TransactionCard inDetail item={item} />
                           </View>

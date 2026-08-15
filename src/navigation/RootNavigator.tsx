@@ -4,14 +4,13 @@ import AuthNavigator from './auth/AuthNavigator';
 import {useTheme} from '../utils/ThemeContext';
 import {
   DefaultTheme,
-  DrawerActions,
   NavigationContainer,
   Theme,
 } from '@react-navigation/native';
 import {ActivityIndicator, Platform, View, StatusBar} from 'react-native';
 import {RootStackParamList} from '../utils/types/NavigationTypes';
 import DrawerNavigator from './DrawerNavigator';
-import {goBackSafe, navigate, navigationRef} from './navigationRef';
+import {navigationRef} from './navigationRef';
 import linking from './Linking';
 import {useAuth} from '../utils/hooks/useAuth';
 import NotFound from '../screens/NotFound';
@@ -21,44 +20,19 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 export const RootNavigator: React.FC = () => {
   const {isLoggedIn, SKU, isLoading} = useAuth();
   const {setInitialRoute} = useNavigationStore();
-  useEffect(() => {
-    if (Platform.OS === 'web') {
-      const handlePopState = (event: PopStateEvent) => {
-        const state = event?.state;
-        if (state?.name === 'Drawer') {
-          window?.history?.back();
-          return;
-        }
-      };
 
-      window.addEventListener('popstate', handlePopState);
-
-      return () => {
-        window.removeEventListener('popstate', handlePopState);
-      };
-    }
-  }, []);
   useEffect(() => {
     !isLoading && setInitialRoute(isLoggedIn);
-  }, [isLoggedIn, isLoading]);
-  useEffect(() => {
-    if (Platform.OS === 'web') {
-      const unsubscribe = navigationRef?.current?.addListener('state', e => {
-        try {
-          if (e?.data?.state) {
-            window?.scrollTo(0, 0);
-          }
-        } catch (error) {
-          console.warn('Navigation state error:', error);
-        }
-      });
+  }, [isLoggedIn, isLoading, setInitialRoute]);
 
-      return () => {
-        if (unsubscribe) {
-          unsubscribe();
-        }
-      };
-    }
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+
+    const unsubscribe = navigationRef.addListener('state', () => {
+      window?.scrollTo(0, 0);
+    });
+
+    return unsubscribe;
   }, []);
   const {theme} = useTheme();
   const isDark = theme === 'dark';

@@ -1,4 +1,41 @@
 import {NavigatorScreenParams} from '@react-navigation/native';
+import {DayType, TimeRanges} from '../../constants/options';
+
+export type GroupClassRoomListParams = {
+  dayType?: DayType;
+  timeRange?: TimeRanges;
+  contractor?: string;
+  organizationUnit?: string;
+  service?: string;
+};
+
+export type GroupClassRoomDetailParams = GroupClassRoomListParams & {
+  groupClassRoomId: number;
+  contractorId: number;
+  waitingList?: boolean;
+  title?: string;
+};
+
+export type ReserveStackParamList = {
+  reserve: undefined;
+  reserveDetail: {
+    tagId: number;
+    patternId?: number;
+    gender?: 'Female' | 'Male' | 'Both';
+    saleUnit?: number;
+    startTime?: string;
+    endTime?: string;
+    start: string;
+    end?: string;
+    days?: string;
+  };
+};
+
+export type GroupClassRoomStackParamList = {
+  groupClassRoom: undefined;
+  groupClassRoomList: GroupClassRoomListParams;
+  groupClassRoomDetail: GroupClassRoomDetailParams;
+};
 
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
@@ -58,18 +95,8 @@ export type WalletStackParamList = {
 export type HomeStackParamList = {
   Home: undefined;
   saleItem: undefined;
-  reserve: undefined;
-  reserveDetail: {
-    tagId: number;
-    patternId?: number;
-    gender?: 'Female' | 'Male' | 'Both';
-    saleUnit?: number;
-    startTime?: string;
-    endTime?: string;
-    start: string;
-    end?: string;
-    days?: string;
-  };
+  reserve: NavigatorScreenParams<ReserveStackParamList> | undefined;
+  groupClassRoom: NavigatorScreenParams<GroupClassRoomStackParamList> | undefined;
   cart: undefined;
   wallet: NavigatorScreenParams<WalletStackParamList> | undefined;
   myServices: undefined;
@@ -85,6 +112,7 @@ type ShopDetail = {
   readonly?: boolean;
   contractorId?: number;
   priceId?: number;
+  fromPackageId?: number;
 };
 export type ShopStackParamList = {
   creditService: undefined;

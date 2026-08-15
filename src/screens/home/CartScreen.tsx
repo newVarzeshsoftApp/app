@@ -46,6 +46,12 @@ import {
   convertCartItemToReservationStoreItem,
   getReservationKey,
 } from '../../utils/helpers/ReservationStorage';
+import {resolveCartItemContractorId, buildPackageSaleOrderSubItems} from '../../utils/helpers/packageContractorStore';
+import {CART_DEFAULT_TTL_SECONDS} from '../../constants/cart';
+import {
+  getCartItemExpiryStartIso,
+  isTimedCartItem,
+} from '../../utils/helpers/cartExpiry';
 type PaymentMethodType = {
   getway?: number;
   isWallet?: boolean;
@@ -73,18 +79,32 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
   const amountPayable = totalAmount + totalTax - totalDiscount;
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // Get reservation expiration time
+  // Get reservation expiration time (also used for group class pre-reserve TTL)
   const hasReservationItems = items.some(
     item => item.isReserve && item.reservationData,
   );
-  const {data: expiresTimeData} =
-    useGetReservationExpiresTime(hasReservationItems);
+  const hasGroupClassRoomItems = items.some(
+    item => item.isGroupClassRoom && item.groupClassRoomData,
+  );
+  const {data: expiresTimeData} = useGetReservationExpiresTime(
+    hasReservationItems || hasGroupClassRoomItems,
+  );
 
   useEffect(() => {
-    if ((Getways?.length ?? 0) > 0) {
+    if ((Getways?.length ?? 0) > 0 && amountPayable > 0) {
       setPaymentMethod({getway: Getways?.[0]?.id});
     }
-  }, [Getways]);
+  }, [Getways, amountPayable]);
+
+  useEffect(() => {
+    if (amountPayable <= 0) {
+      setPaymentMethod({
+        isWallet: true,
+        getway: undefined,
+        source: undefined,
+      });
+    }
+  }, [amountPayable]);
 
   // Reset step to 1 when cart becomes empty or screen is focused
   useEffect(() => {
@@ -105,108 +125,122 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     });
   }, [steps]);
 
-  // Helper to get start time for a reservation item (prefer createdAt from ReservationStore)
-  const getReservationStartTime = useCallback((item: CartItem): Date | null => {
-    if (!item.isReserve || !item.reservationData || !item.product) return null;
+  // Helper to get start time for any cart item expiry clock
+  const getExpiringItemStartTime = useCallback((item: CartItem): Date | null => {
+    const isGroupClass =
+      !!item.isGroupClassRoom || !!item.groupClassRoomData?.groupClassRoomId;
 
-    try {
-      const storeItem = convertCartItemToReservationStoreItem(item);
-      if (storeItem) {
-        const key = getReservationKey(storeItem);
-        const {findReservationByKey} = useReservationStore.getState();
-        const storeReservation = findReservationByKey(key);
+    if (isGroupClass) {
+      const startIso = getCartItemExpiryStartIso(item);
+      return startIso ? new Date(startIso) : null;
+    }
 
-        if (storeReservation?.createdAt) {
-          return new Date(storeReservation.createdAt);
+    if (item.isReserve && item.reservationData && item.product) {
+      try {
+        const storeItem = convertCartItemToReservationStoreItem(item);
+        if (storeItem) {
+          const key = getReservationKey(storeItem);
+          const {findReservationByKey} = useReservationStore.getState();
+          const storeReservation = findReservationByKey(key);
+
+          if (storeReservation?.createdAt) {
+            return new Date(storeReservation.createdAt);
+          }
         }
+      } catch {
+        // Fallback to addedToCartAt / submitAt below
       }
-    } catch (error) {
-      // Fallback to addedToCartAt
     }
 
-    // Fallback to addedToCartAt
-    if (item.addedToCartAt) {
-      return new Date(item.addedToCartAt);
-    }
-
-    return null;
+    const startIso = getCartItemExpiryStartIso(item);
+    return startIso ? new Date(startIso) : null;
   }, []);
 
-  // Auto-remove expired reservation items (no API call needed - server knows it's expired)
-  useEffect(() => {
-    if (!expiresTimeData?.ttlSecond || items.length === 0) {
-      return;
-    }
+  // Per-CartId guard + serial queue so only the expired item is removed,
+  // and concurrent removeCart read-modify-write races cannot wipe others.
+  const removingCartIdsRef = useRef<Set<string>>(new Set());
+  const expiryQueueRef = useRef<Promise<void>>(Promise.resolve());
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
 
-    const expiresTimeSeconds = expiresTimeData.ttlSecond;
-    const now = new Date();
-
-    // Check each reservation item for expiration
-    items.forEach(item => {
-      if (!item.isReserve || !item.reservationData || !item.CartId) {
+  const enqueueExpiredCartRemoval = useCallback(
+    (cartId: string) => {
+      if (removingCartIdsRef.current.has(cartId)) {
         return;
       }
 
-      const startTime = getReservationStartTime(item);
-      if (!startTime) return;
+      removingCartIdsRef.current.add(cartId);
 
-      const elapsedSeconds = (now.getTime() - startTime.getTime()) / 1000;
+      expiryQueueRef.current = expiryQueueRef.current
+        .catch(() => undefined)
+        .then(async () => {
+          try {
+            await removeFromCart(cartId);
+          } finally {
+            removingCartIdsRef.current.delete(cartId);
+          }
+        });
+    },
+    [removeFromCart],
+  );
 
-      if (elapsedSeconds >= expiresTimeSeconds) {
-        console.log(
-          '⏰ [CartScreen] Reservation item expired, removing from cart:',
-          {
-            cartId: item.CartId,
-            productId: item.product?.id,
-            startTime: startTime.toISOString(),
-            elapsedSeconds: elapsedSeconds.toFixed(2),
-            expiresTimeSeconds,
-          },
-        );
-        // Just remove from cart - server already knows it's expired
-        removeFromCart(item.CartId);
+  // Drop guards for cart ids that are no longer in the cart (re-add allowed).
+  useEffect(() => {
+    const activeIds = new Set(items.map(item => item.CartId).filter(Boolean));
+    removingCartIdsRef.current.forEach(cartId => {
+      if (!activeIds.has(cartId)) {
+        removingCartIdsRef.current.delete(cartId);
       }
     });
-  }, [expiresTimeData, items, removeFromCart, getReservationStartTime]);
+  }, [items]);
 
-  // Set up interval to check expiration every second
+  // Single source of auto-remove: timed items (API TTL) + default 24h for others.
   useEffect(() => {
-    if (!expiresTimeData?.ttlSecond || items.length === 0) {
+    if (items.length === 0) {
       return;
     }
 
-    const interval = setInterval(() => {
+    const removeExpiredItems = () => {
       const now = new Date();
-      const expiresTimeSeconds = expiresTimeData.ttlSecond;
 
-      items.forEach(item => {
-        if (!item.isReserve || !item.reservationData || !item.CartId) {
+      itemsRef.current.forEach(item => {
+        if (!item.CartId) {
           return;
         }
 
-        const startTime = getReservationStartTime(item);
-        if (!startTime) return;
+        const timed = isTimedCartItem(item);
+        const ttlSeconds = timed
+          ? expiresTimeData?.ttlSecond
+          : CART_DEFAULT_TTL_SECONDS;
+
+        // Timed items wait for API TTL; skip until available
+        if (!ttlSeconds) {
+          return;
+        }
+
+        const startTime = getExpiringItemStartTime(item);
+        // Legacy items without timestamps get a fresh clock (do not wipe immediately)
+        if (!startTime) {
+          return;
+        }
 
         const elapsedSeconds = (now.getTime() - startTime.getTime()) / 1000;
-
-        if (elapsedSeconds >= expiresTimeSeconds) {
-          console.log(
-            '⏰ [CartScreen] Reservation item expired (interval check), removing:',
-            {
-              cartId: item.CartId,
-              productId: item.product?.id,
-              elapsedSeconds: elapsedSeconds.toFixed(2),
-              expiresTimeSeconds,
-            },
-          );
-          // Just remove from cart - server already knows it's expired
-          removeFromCart(item.CartId);
+        if (elapsedSeconds >= ttlSeconds) {
+          enqueueExpiredCartRemoval(item.CartId);
         }
       });
-    }, 1000); // Check every second
+    };
+
+    removeExpiredItems();
+    const interval = setInterval(removeExpiredItems, 1000);
 
     return () => clearInterval(interval);
-  }, [expiresTimeData, items, removeFromCart, getReservationStartTime]);
+  }, [
+    expiresTimeData?.ttlSecond,
+    items.length,
+    getExpiringItemStartTime,
+    enqueueExpiredCartRemoval,
+  ]);
   const cardComponentMapping: Record<number, React.FC<{data: CartItem}>> = {
     0: CartProductCard,
     1: CartServiceCard,
@@ -562,6 +596,18 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
           )
           .format('YYYY-MM-DD');
 
+        const contractorId = resolveCartItemContractorId(item);
+        const isPackage = item.product?.type === ProductType.Package;
+        const packageSubItems = isPackage
+          ? buildPackageSaleOrderSubItems(
+              item,
+              ProfileData?.id ?? 0,
+              endDateGregorian,
+            )
+          : undefined;
+        const packageLevelContractorId =
+          isPackage && item.product?.hasContractor ? contractorId : null;
+
         return {
           quantity: 1,
           product: item.product.id,
@@ -569,26 +615,46 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
             ? item?.product?.tax ?? 0
             : (amount * (item?.product?.tax ?? 0)) / 100,
           manualPrice: false,
-          type:
-            item.product?.type === ProductType.Package
-              ? 4
-              : item.product?.type ?? 1,
-          contractor: item?.SelectedContractor?.contractorId ?? null,
-          contractorId: item?.SelectedContractor?.contractorId ?? null,
-          start: startDateGregorian, // Gregorian format (YYYY-MM-DD)
-          end: endDateGregorian, // Gregorian format (YYYY-MM-DD)
+          type: isPackage ? 4 : item.product?.type ?? 1,
+          ...(packageLevelContractorId
+            ? {
+                contractor: packageLevelContractorId,
+                contractorId: packageLevelContractorId,
+              }
+            : !isPackage
+            ? {
+                contractor: contractorId,
+                contractorId,
+              }
+            : {}),
+          start: startDateGregorian,
+          end: endDateGregorian,
           isOnline: true,
           user: ProfileData?.id,
           amount: amount,
-          discount:
-            item.product?.type === ProductType.Package
-              ? discount
-              : (amount * discount) / 100,
+          discount: isPackage ? discount : (amount * discount) / 100,
           priceId: item.SelectedPriceList?.id ?? null,
           price: amount,
           duration: item.SelectedPriceList
             ? item.SelectedPriceList.duration
             : item.product.duration,
+          registeredService: 0,
+          waitingForGroupClass: false,
+          ...(packageSubItems?.length ? {items: packageSubItems} : {}),
+          ...(item.isGroupClassRoom && item.groupClassRoomData
+            ? {
+                groupClassRoom: item.groupClassRoomData.groupClassRoomId,
+                waitingForGroupClass:
+                  item.groupClassRoomData.waitingForGroupClass ?? false,
+                ...(item.groupClassRoomData.registeredGroupClassSchedule
+                  ?.length
+                  ? {
+                      registeredGroupClassSchedule:
+                        item.groupClassRoomData.registeredGroupClassSchedule,
+                    }
+                  : {}),
+              }
+            : {}),
         };
       });
 
@@ -661,7 +727,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
     console.log('===========================================');
 
     // Send to backend
-    if (PaymentMethod?.getway) {
+    if (PaymentMethod?.getway && amountPayable > 0) {
       // Gateway payment - send to CreatePayment with same DTO structure as wallet payment
       // Build the same body structure as SaleOrder
       const paymentBody = {
@@ -753,18 +819,23 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                     <View
                       className={`CardBase ${
                         PaymentMethod?.getway && '!border-primary-500'
-                      } `}>
+                      } ${amountPayable <= 0 ? 'opacity-50' : ''}`}
+                      pointerEvents={amountPayable <= 0 ? 'none' : 'auto'}>
                       <View className="flex-row items-center justify-between">
                         <BaseText type="subtitle2">{t('PaywithBank')}</BaseText>
                         <Checkbox
+                          disabled={amountPayable <= 0}
                           checked={PaymentMethod?.getway ? true : false}
-                          onCheckedChange={() =>
+                          onCheckedChange={() => {
+                            if (amountPayable <= 0) {
+                              return;
+                            }
                             setPaymentMethod({
                               getway: Getways?.[0]?.id,
                               source: undefined,
                               isWallet: false,
-                            })
-                          }
+                            });
+                          }}
                         />
                       </View>
                       <View className="gap-2">
@@ -799,6 +870,9 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                                     color="Black"
                                     rounded
                                     onPress={() => {
+                                      if (amountPayable <= 0) {
+                                        return;
+                                      }
                                       setPaymentMethod({
                                         getway: item?.id,
                                         source: undefined,
@@ -816,7 +890,10 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                   )}
                   {/*  خرید با کیف پول  */}
                   <TouchableOpacity
-                    disabled={Number(UserCredit?.result ?? 0) < amountPayable}
+                    disabled={
+                      amountPayable > 0 &&
+                      Number(UserCredit?.result ?? 0) < amountPayable
+                    }
                     onPress={() =>
                       setPaymentMethod({
                         isWallet: true,
@@ -831,6 +908,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                       <BaseText type="subtitle2">{t('PaywithWallet')}</BaseText>
                       <Checkbox
                         disabled={
+                          amountPayable > 0 &&
                           Number(UserCredit?.result ?? 0) < amountPayable
                         }
                         checked={PaymentMethod?.isWallet === true}
@@ -848,10 +926,12 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                       <WalletBalance
                         inWallet
                         NoCredit={
+                          amountPayable > 0 &&
                           Number(UserCredit?.result ?? 0) < amountPayable
                         }
                       />
-                      {Number(UserCredit?.result ?? 0) < amountPayable && (
+                      {amountPayable > 0 &&
+                        Number(UserCredit?.result ?? 0) < amountPayable && (
                         <BaseText type="badge" color="error">
                           موجودی ناکافی
                         </BaseText>
@@ -859,7 +939,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                     </View>
                   </TouchableOpacity>
                   {/*  خرید با خدمت شارژی  */}
-                  {Credits && Credits.total > 0 && (
+                  {Credits && Credits.total > 0 && amountPayable > 0 && (
                     <View
                       className={`CardBase ${
                         PaymentMethod?.source && '!border-primary-500'
@@ -874,7 +954,13 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                             key={index}
                             disabled={disable}
                             className="flex-row items-center gap-2 disabled:opacity-25"
-                            onPress={() => setPaymentMethod({source: item.id})}>
+                            onPress={() =>
+                              setPaymentMethod({
+                                source: item.id,
+                                isWallet: false,
+                                getway: undefined,
+                              })
+                            }>
                             <LinearGradient
                               colors={
                                 PaymentMethod?.source === item.id
@@ -919,7 +1005,11 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                                 }
                                 checked={PaymentMethod?.source === item?.id}
                                 onCheckedChange={() =>
-                                  setPaymentMethod({source: item?.id})
+                                  setPaymentMethod({
+                                    source: item?.id,
+                                    isWallet: false,
+                                    getway: undefined,
+                                  })
                                 }
                               />
                             ) : (

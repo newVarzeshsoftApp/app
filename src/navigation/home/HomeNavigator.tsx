@@ -5,6 +5,7 @@ import HomeScreen from '../../screens/home/HomeScreen';
 import Header from '../../components/Header';
 import TabBar from '../../components/TabBar';
 import ReserveStackNavigator from '../reserve/ReserveStackNavigator';
+import GroupClassRoomStackNavigator from '../groupClassRoom/GroupClassRoomStackNavigator';
 import CartScreen from '../../screens/home/CartScreen';
 import WalletStackNavigator from '../wallet/WalletStackNavigator';
 import MyserviceScreen from '../../screens/home/myServices/MyserviceScreen';
@@ -16,6 +17,7 @@ const HomeNavigator: React.FC = ({navigation}: any) => {
     <Tab.Navigator
       tabBar={props => <TabBar {...props} />}
       initialRouteName="Home"
+      backBehavior="history"
       screenOptions={({route}) => ({
         animation: 'shift',
         unmountOnBlur: true,
@@ -24,10 +26,17 @@ const HomeNavigator: React.FC = ({navigation}: any) => {
           route.name === 'myServices' ||
           route.name === 'cart',
         header: () => <Header navigation={navigation} />,
-        tabBarStyle: route.name === 'reserve' ? {display: 'none'} : undefined,
+        tabBarStyle:
+          route.name === 'reserve' || route.name === 'groupClassRoom'
+            ? {display: 'none'}
+            : undefined,
       })}>
       <Tab.Screen name="myServices" component={MyserviceScreen} />
       <Tab.Screen name="reserve" component={ReserveStackNavigator} />
+      <Tab.Screen
+        name="groupClassRoom"
+        component={GroupClassRoomStackNavigator}
+      />
       <Tab.Screen name="Home" component={HomeScreen} />
       <Tab.Screen name="cart" component={CartScreen} />
       <Tab.Screen name="wallet" component={WalletStackNavigator} />

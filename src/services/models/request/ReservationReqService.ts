@@ -39,3 +39,26 @@ export interface CancelReservationDto {
   id: number; // order id
   penaltyAmount?: number; // penalty amount
 }
+
+export interface PreReserveDTO {
+  product: number;
+  day: string;
+  fromTime: string;
+  toTime: string;
+  gender: string;
+  specificDate: string;
+  isLocked: boolean;
+}
+
+import {ReservationStatus} from '../../models/enums';
+
+export interface GroupClassRoomPreReserveDTO {
+  groupClassRoom: number;
+  contractor: number;
+  user: number;
+  status: ReservationStatus;
+  waitingForGroupClass?: boolean;
+  key?: string;
+  organizationKey?: string;
+  organizationSku?: string;
+}

@@ -7,8 +7,7 @@ import {MoneyRecive, MoneySend} from 'iconsax-react-native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {DrawerStackParamList} from '../../../utils/types/NavigationTypes';
 import {SaleTransaction} from '../../../services/models/response/UseResrService';
-import moment from 'jalali-moment';
-import {formatNumber} from '../../../utils/helpers/helpers';
+import {formatNumber, formatJalaliDateTime} from '../../../utils/helpers/helpers';
 import {
   TransactionSourceType,
   TransactionType,
@@ -127,7 +126,7 @@ const TransactionCard: React.FC<TransactionProps> = ({
             {t('DateAndTime')}: {''}
           </BaseText>
           <BaseText type="body3" color="base">
-            {moment(item.submitAt).format('jYYYY/jMM/jDD HH:MM')}
+            {formatJalaliDateTime(item.submitAt)}
           </BaseText>
         </View>
         <View className="flex-row items-center justify-between ">

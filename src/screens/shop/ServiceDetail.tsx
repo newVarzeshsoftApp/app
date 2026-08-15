@@ -6,7 +6,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {ActivityIndicator, Dimensions, Text, View} from 'react-native';
+import {ActivityIndicator, Text, View} from 'react-native';
+import {getProductDetailImageHeight} from '../../constants/layout';
 import {ShopStackParamList} from '../../utils/types/NavigationTypes';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
@@ -43,6 +44,12 @@ import usePriceCalculations from '../../utils/hooks/usePriceCalculations';
 import {useAuth} from '../../utils/hooks/useAuth';
 import {navigate} from '../../navigation/navigationRef';
 import {useBase64ImageFromMedia} from '../../utils/hooks/useBase64Image';
+import {
+  getPackageContractorSelection,
+  getPackageItemContractorSelection,
+  snapshotToContractors,
+  setPackageItemContractorSelection,
+} from '../../utils/helpers/packageContractorStore';
 
 type ServiceDetailProp = NativeStackScreenProps<
   ShopStackParamList,
@@ -51,7 +58,8 @@ type ServiceDetailProp = NativeStackScreenProps<
 const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
   // Use shared value instead of scroll offset
   const scrollY = useSharedValue(0);
-  const IMageHight = 285;
+  // 4:3 within app content width (not full browser width on web)
+  const IMageHight = getProductDetailImageHeight();
   const {profile: ProfileData} = useAuth();
   const {addToCart} = useCartContext();
 
@@ -123,19 +131,62 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
   }, [data?.priceList, route.params.priceId]);
 
   useEffect(() => {
+    if (!data?.contractors?.length) return;
+
     if (route.params.contractorId) {
-      const foundedContractor = data?.contractors?.find(
-        (item, index) => item?.contractor?.id === route.params.contractorId,
+      const foundedContractor = data.contractors.find(
+        item => item?.contractor?.id === route.params.contractorId,
       );
       if (foundedContractor) {
         setSelectedContractor(foundedContractor);
         return;
       }
     }
-    if (data?.requiredContractor) {
-      setSelectedContractor(data?.contractors?.[0]);
+
+    if (route.params.fromPackageId) {
+      const itemSnapshot = getPackageItemContractorSelection(
+        route.params.fromPackageId,
+        route.params.id,
+      );
+      if (itemSnapshot) {
+        const storedContractor = data.contractors.find(
+          item =>
+            item.contractorId === itemSnapshot.contractorId ||
+            item.contractor?.id === itemSnapshot.contractorId,
+        );
+        setSelectedContractor(
+          storedContractor ?? snapshotToContractors(itemSnapshot),
+        );
+        return;
+      }
+
+      const storedContractorId = getPackageContractorSelection(
+        route.params.fromPackageId,
+      );
+      if (storedContractorId) {
+        const storedContractor = data.contractors.find(
+          item =>
+            item.contractorId === storedContractorId ||
+            item.contractor?.id === storedContractorId,
+        );
+        if (storedContractor) {
+          setSelectedContractor(storedContractor);
+          return;
+        }
+      }
     }
-  }, [data?.requiredContractor, data?.contractors, route.params.priceId]);
+
+    if (data.requiredContractor) {
+      setSelectedContractor(data.contractors[0]);
+    }
+  }, [
+    data?.contractors,
+    data?.requiredContractor,
+    route.params.contractorId,
+    route.params.fromPackageId,
+    route.params.id,
+    route.params.priceId,
+  ]);
 
   useLayoutEffect(() => {
     navigation.setOptions({
@@ -160,6 +211,25 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
 
   const {Discount, PricePreSession, Tax, Total, purchaseProfit} =
     usePriceCalculations({data, SelectedPriceList});
+
+  const isPackagePreview = !!route.params.fromPackageId;
+  const isContractorEditable = !route.params.readonly || isPackagePreview;
+
+  const handleContractorSelect = useCallback(
+    (contractor: Contractors) => {
+      setSelectedContractor(contractor);
+      if (route.params.fromPackageId) {
+        setPackageItemContractorSelection(
+          route.params.fromPackageId,
+          route.params.id,
+          contractor,
+        );
+      }
+      BottomSheetContractorRef.current?.close();
+    },
+    [route.params.fromPackageId, route.params.id],
+  );
+
   const handleAddToCart = useCallback(async () => {
     try {
       await addToCart({
@@ -244,10 +314,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                   key={index}
                   genders={item?.contractor?.gender ?? 0}
                   checked={SelectedContractor === item}
-                  onCheckedChange={() => {
-                    setSelectedContractor(item);
-                    BottomSheetContractorRef.current?.close();
-                  }}
+                  onCheckedChange={() => handleContractorSelect(item)}
                   Name={`${item?.contractor?.firstName} ${item?.contractor?.lastName}`}
                   ImageUrl={item?.contractor?.profile?.name}
                 />
@@ -265,12 +332,25 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
           scrollEventThrottle={16}
           style={{flex: 1}}>
           <View className="flex-1">
-            <Animated.Image
-              style={[{width: '100%', height: IMageHight}, ImageAnimatedStyle]}
-              source={{
-                uri: base64Image,
-              }}
-            />
+            <Animated.View
+              style={[
+                {
+                  width: '100%',
+                  height: IMageHight,
+                  backgroundColor:
+                    theme === 'dark' ? '#232529' : 'rgba(244,244,245,0.3)',
+                  overflow: 'hidden',
+                },
+                ImageAnimatedStyle,
+              ]}>
+              <Animated.Image
+                style={{width: '100%', height: '100%'}}
+                source={{
+                  uri: base64Image,
+                }}
+                resizeMode="contain"
+              />
+            </Animated.View>
 
             <View className="flex-1">
               <LinearGradient
@@ -351,7 +431,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                                 <UserRadioButton
                                   checked={SelectedContractor ? true : false}
                                   asButton
-                                  readonly={route.params.readonly}
+                                  readonly={!isContractorEditable}
                                   genders={
                                     SelectedContractor?.contractor?.gender ??
                                     ProfileData?.gender ??
@@ -372,8 +452,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                                   }
                                 />
                                 {!data?.requiredContractor &&
-                                  !route.params.contractorId &&
-                                  route.params.readonly &&
+                                  isContractorEditable &&
                                   SelectedContractor && (
                                     <BaseButton
                                       noText

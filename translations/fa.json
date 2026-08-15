@@ -5,6 +5,7 @@
     "en": "انگلیسی",
     "Home": "خانه",
     "reserve": "رزرو",
+    "groupClassRoom": "کلاس گروهی",
     "cart": "سبدخرید",
     "wallet": "کیف پول",
     "Error500": "خطای ۵۰۰",
@@ -196,7 +197,12 @@
       "package": "پکیج",
       "description": "توضیحات",
       "addToCart": "افزودن به سبد خرید",
-      "IncludesCount": "شامل {{count}} سرویس"
+      "IncludesCount": "شامل {{count}} سرویس",
+      "contractorSelection": "انتخاب مربی",
+      "chooseContractor": "انتخاب مربی",
+      "changeContractor": "تعویض مربی",
+      "editContractor": "ویرایش مربی",
+      "contractorNotSelected": "مربی انتخاب نشده"
     }
   },
   "Detail": {
@@ -292,7 +298,7 @@
     "OfferedDiscount": "تخفیف هدف مند",
     "Archived": "بایگانی شده",
     "Transfer": "انتقالی",
-    "Reserve": "رزور"
+    "Reserve": "رزرو"
   },
   "Wallet": {
     "WalletCredit": "موجودی کیف پول",
@@ -403,7 +409,7 @@
     "Archived": "بایگانی شده",
     "Transfer": "انتقالی",
     "ProblemWithPayment": "مشکل در پرداخت",
-    "Reserve": "رزور",
+    "Reserve": "رزرو",
     "Status": "وضعیت",
     "DateAndTime": "تاریخ و زمان",
     "Transaction number": "شماره تراکنش",

@@ -63,7 +63,7 @@ export enum TransactionSourceType {
   OfferedDiscount, // تخفیف هدف مند
   Archived, // بایگانی شده
   Transfer, // انتقالی
-  Reserve, // رزور
+  Reserve, // رزرو
 }
 export enum ProductType {
   Product,
@@ -87,6 +87,20 @@ export enum PaymentStatus {
   Ok,
   Nok,
   Reject,
+}
+
+export enum DayType {
+  ALL = 'ALL',
+  EVEN = 'EVEN',
+  ODD = 'ODD',
+  OTHER = 'OTHER',
+}
+
+export enum TimeRanges {
+  ALL = 'ALL',
+  AM = 'AM',
+  PM = 'PM',
+  MIXED = 'MIXED',
 }
 // const receptionAmount = (item.totalAmount || 0) + (item.discount || 0);
 //               const normalOrderAmount = item.normalSaleOrder
