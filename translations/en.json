@@ -149,7 +149,10 @@
       "contractorSelection": "Contractor selection",
       "chooseContractor": "Select contractor",
       "changeContractor": "Change contractor",
-      "contractorNotSelected": "No contractor selected"
+      "contractorNotSelected": "No contractor selected",
+      "Duration": "Duration",
+      "SessionCount": "{{count}} sessions",
+      "CreditAmount": "Credit {{amount}}"
     }
   },
   "Validation": {

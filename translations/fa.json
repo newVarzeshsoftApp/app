@@ -202,7 +202,9 @@
       "chooseContractor": "انتخاب مربی",
       "changeContractor": "تعویض مربی",
       "editContractor": "ویرایش مربی",
-      "contractorNotSelected": "مربی انتخاب نشده"
+      "contractorNotSelected": "مربی انتخاب نشده",
+      "SessionCount": "{{count}} جلسه",
+      "CreditAmount": "اعتبار {{amount}}"
     }
   },
   "Detail": {

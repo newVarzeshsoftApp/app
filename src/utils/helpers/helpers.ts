@@ -1,5 +1,6 @@
 import {genders, PickerOption} from '../../constants/options';
 import {Product} from '../../services/models/response/ProductResService';
+import type {subProducts} from '../../services/models/response/UseResrService';
 import moment from 'jalali-moment';
 
 /**
@@ -298,6 +299,35 @@ export const getPackageFinalPrice = (
   product?: Pick<Product, 'price' | 'subProducts'>,
 ): number =>
   Math.max((product?.price ?? 0) - getPackageDiscountAmount(product), 0);
+
+type SubProductPriceSource = Pick<subProducts, 'price' | 'priceId' | 'amount'> & {
+  product?: Pick<Product, 'price' | 'duration'> | null;
+};
+
+export type SubProductDisplayInfo = {
+  price: number;
+  duration: number;
+  sessionCount: number | null;
+  credit: number | null;
+};
+
+export const getSubProductDisplayInfo = (
+  subProduct?: SubProductPriceSource,
+): SubProductDisplayInfo => {
+  const dedicatedPrice =
+    subProduct?.priceId != null && subProduct.price ? subProduct.price : null;
+
+  return {
+    price:
+      dedicatedPrice?.price ??
+      subProduct?.product?.price ??
+      subProduct?.amount ??
+      0,
+    duration: dedicatedPrice?.duration ?? subProduct?.product?.duration ?? 0,
+    sessionCount: dedicatedPrice?.min ?? null,
+    credit: dedicatedPrice?.credit ?? null,
+  };
+};
 
 /**
  * Jalali date + time for API timestamps (submitAt, createdAt, etc.).
