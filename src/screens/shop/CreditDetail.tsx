@@ -1,5 +1,5 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {useCallback, useLayoutEffect} from 'react';
+import React, {useCallback, useLayoutEffect, useMemo} from 'react';
 import {ActivityIndicator, Image, Platform, Text, View} from 'react-native';
 import {ShopStackParamList} from '../../utils/types/NavigationTypes';
 import {useTranslation} from 'react-i18next';
@@ -44,6 +44,17 @@ const CreditDetail: React.FC<CreditDetailProp> = ({navigation, route}) => {
     },
   });
   const {data, isLoading} = UseGetProductByID(route.params.id);
+  const selectedPriceList = useMemo(() => {
+    if (!route.params.priceId || !data?.priceList?.length) {
+      return null;
+    }
+
+    return (
+      data.priceList.find(item => item.id === route.params.priceId) ?? null
+    );
+  }, [data?.priceList, route.params.priceId]);
+  const displayPrice = selectedPriceList?.price ?? data?.price ?? 0;
+  const displayDuration = selectedPriceList?.duration ?? data?.duration ?? 0;
   const ImageAnimatedStyle = useAnimatedStyle(() => {
     return {
       transform: [
@@ -196,7 +207,7 @@ const CreditDetail: React.FC<CreditDetailProp> = ({navigation, route}) => {
                               <View className="flex-1 w-full Container justify-center items-center  py-4  dark:bg-neutral-dark-300 bg-neutral-0/20 rounded-3xl gap-3">
                                 <View className="flex-row  items-center justify-center gap-1 z-10">
                                   <BaseText type="title1" color="base">
-                                    {formatNumber(data?.price ?? 0)}
+                                    {formatNumber(displayPrice)}
                                   </BaseText>
                                   <BaseText type="title4" color="secondary">
                                     ﷼
@@ -216,9 +227,9 @@ const CreditDetail: React.FC<CreditDetailProp> = ({navigation, route}) => {
                             <View>
                               <BaseText type="body3">
                                 {t('Duration')} :{' '}
-                                {data?.duration === 0
+                                {displayDuration === 0
                                   ? t('noLimitForTime')
-                                  : ConvertDuration(data?.duration ?? 0)}
+                                  : ConvertDuration(displayDuration)}
                               </BaseText>
                             </View>
                             <View className="gap-2">

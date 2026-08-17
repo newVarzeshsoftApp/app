@@ -63,6 +63,7 @@ export interface Product {
   hasPriceList: boolean;
   hasSchedules: boolean;
   hasSubProduct: boolean;
+  showSubProductDetailDataOnApplication?: boolean;
   subProducts?: subProducts[];
   isInsuranceService: boolean;
   isSubscriptionService: boolean;
