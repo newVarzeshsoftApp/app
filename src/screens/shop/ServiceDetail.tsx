@@ -47,9 +47,9 @@ import {useBase64ImageFromMedia} from '../../utils/hooks/useBase64Image';
 import {
   getPackageContractorSelection,
   getPackageItemContractorSelection,
-  snapshotToContractors,
   setPackageItemContractorSelection,
 } from '../../utils/helpers/packageContractorStore';
+import {filterContractorsForRegistration} from '../../utils/helpers/contractorActivity';
 
 type ServiceDetailProp = NativeStackScreenProps<
   ShopStackParamList,
@@ -130,11 +130,16 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
     }
   }, [data?.priceList, route.params.priceId]);
 
+  const selectableContractors = useMemo(
+    () => filterContractorsForRegistration(data?.contractors),
+    [data?.contractors],
+  );
+
   useEffect(() => {
-    if (!data?.contractors?.length) return;
+    if (!selectableContractors.length) return;
 
     if (route.params.contractorId) {
-      const foundedContractor = data.contractors.find(
+      const foundedContractor = selectableContractors.find(
         item => item?.contractor?.id === route.params.contractorId,
       );
       if (foundedContractor) {
@@ -149,22 +154,22 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
         route.params.id,
       );
       if (itemSnapshot) {
-        const storedContractor = data.contractors.find(
+        const storedContractor = selectableContractors.find(
           item =>
             item.contractorId === itemSnapshot.contractorId ||
             item.contractor?.id === itemSnapshot.contractorId,
         );
-        setSelectedContractor(
-          storedContractor ?? snapshotToContractors(itemSnapshot),
-        );
-        return;
+        if (storedContractor) {
+          setSelectedContractor(storedContractor);
+          return;
+        }
       }
 
       const storedContractorId = getPackageContractorSelection(
         route.params.fromPackageId,
       );
       if (storedContractorId) {
-        const storedContractor = data.contractors.find(
+        const storedContractor = selectableContractors.find(
           item =>
             item.contractorId === storedContractorId ||
             item.contractor?.id === storedContractorId,
@@ -176,16 +181,16 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
       }
     }
 
-    if (data.requiredContractor) {
-      setSelectedContractor(data.contractors[0]);
+    if (data?.requiredContractor) {
+      setSelectedContractor(selectableContractors[0]);
     }
   }, [
-    data?.contractors,
     data?.requiredContractor,
     route.params.contractorId,
     route.params.fromPackageId,
     route.params.id,
     route.params.priceId,
+    selectableContractors,
   ]);
 
   useLayoutEffect(() => {
@@ -307,7 +312,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
         snapPoints={[70]}
         Title={t('Contractor List')}>
         <View className="gap-3">
-          {data?.contractors?.map((item, index) => {
+          {selectableContractors.map((item, index) => {
             return (
               <>
                 <UserRadioButton
