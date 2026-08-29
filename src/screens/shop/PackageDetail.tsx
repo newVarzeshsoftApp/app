@@ -7,13 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  ActivityIndicator,
-  Image,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import {ActivityIndicator, Image, Text, View} from 'react-native';
 import {ShopStackParamList} from '../../utils/types/NavigationTypes';
 import Animated, {
   useAnimatedScrollHandler,
@@ -35,8 +29,6 @@ import {UseGetProductByID} from '../../utils/hooks/Product/UseGetProductByID';
 import {TruncatedText} from '../../components/TruncatedText';
 import {FlatList} from 'react-native-gesture-handler';
 import Badge from '../../components/Badge/Badge';
-import ShopCreditService from '../../components/cards/shopCard/ShopCreditService';
-import ShopServiceCard from '../../components/cards/shopCard/ShopServiceCard';
 import PackageDetailServiceCard from '../../components/cards/shopCard/PackageItems/PackageDetailServiceCard';
 import PackageDetailCreditCard from '../../components/cards/shopCard/PackageItems/PackageDetailCreditCard';
 import {subProducts} from '../../services/models/response/UseResrService';
@@ -65,6 +57,7 @@ import {
   setPackageContractorSelection,
   setPackageItemContractorSelection,
 } from '../../utils/helpers/packageContractorStore';
+import {filterContractorsForRegistration} from '../../utils/helpers/contractorActivity';
 
 type ServiceScreenProp = NativeStackScreenProps<
   ShopStackParamList,
@@ -115,12 +108,17 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
     });
   }, [navigation, scrollY, route.params?.title]);
 
+  const selectableContractors = useMemo(
+    () => filterContractorsForRegistration(data?.contractors),
+    [data?.contractors],
+  );
+
   useEffect(() => {
-    if (!data?.hasContractor || !data.contractors?.length) return;
+    if (!data?.hasContractor || !selectableContractors.length) return;
 
     const storedContractorId = getPackageContractorSelection(route.params.id);
     const storedContractor = storedContractorId
-      ? data.contractors.find(
+      ? selectableContractors.find(
           item =>
             item.contractorId === storedContractorId ||
             item.contractor?.id === storedContractorId,
@@ -128,7 +126,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
       : undefined;
 
     if (route.params.contractorId) {
-      const routeContractor = data.contractors.find(
+      const routeContractor = selectableContractors.find(
         item => item.contractor?.id === route.params.contractorId,
       );
       if (routeContractor) {
@@ -143,26 +141,26 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
     }
 
     if (data.requiredContractor) {
-      setSelectedContractor(data.contractors[0]);
+      setSelectedContractor(selectableContractors[0]);
     }
   }, [
-    data?.contractors,
     data?.hasContractor,
     data?.requiredContractor,
     route.params.contractorId,
     route.params.id,
+    selectableContractors,
   ]);
 
   useFocusEffect(
     useCallback(() => {
       setListRefreshKey(prev => prev + 1);
 
-      if (!data?.hasContractor || !data.contractors?.length) return;
+      if (!data?.hasContractor || !selectableContractors.length) return;
 
       const storedContractorId = getPackageContractorSelection(route.params.id);
       if (!storedContractorId) return;
 
-      const storedContractor = data.contractors.find(
+      const storedContractor = selectableContractors.find(
         item =>
           item.contractorId === storedContractorId ||
           item.contractor?.id === storedContractorId,
@@ -171,16 +169,20 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
       if (storedContractor) {
         setSelectedContractor(storedContractor);
       }
-    }, [data?.contractors, data?.hasContractor, route.params.id]),
+    }, [data?.hasContractor, route.params.id, selectableContractors]),
   );
 
   const contractorSheetOptions = useMemo(() => {
     if (contractorSheetProductId && contractorSheetProduct?.contractors?.length) {
-      return contractorSheetProduct.contractors;
+      return filterContractorsForRegistration(contractorSheetProduct.contractors);
     }
 
-    return data?.contractors ?? [];
-  }, [contractorSheetProduct?.contractors, contractorSheetProductId, data?.contractors]);
+    return selectableContractors;
+  }, [
+    contractorSheetProduct?.contractors,
+    contractorSheetProductId,
+    selectableContractors,
+  ]);
 
   const getContractorSheetSelection = useCallback(() => {
     if (contractorSheetProductId) {
@@ -233,15 +235,12 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
     setSelectedContractor(null);
   }, []);
 
-  const cardComponentMapping: Record<number, React.FC<{data: Product}>> = {
-    1: ShopServiceCard,
-    2: ShopCreditService,
-  };
-
   const navigationMapping: Record<number, string> = {
     1: 'serviceDetail',
     2: 'creditDetail',
   };
+  const showSubProductDetailData =
+    data?.showSubProductDetailDataOnApplication ?? true;
 
   const getActiveContractorId = useCallback(() => {
     return (
@@ -257,7 +256,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
   }, []);
 
   const navigateToPackageItem = useCallback(
-    (product: Product) => {
+    (product: Product, priceId?: number | null) => {
       const routeName = navigationMapping[product.type];
       if (!routeName) return;
 
@@ -273,6 +272,7 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
             readonly: true,
             fromPackageId: route.params.id,
             ...(activeContractorId ? {contractorId: activeContractorId} : {}),
+            ...(priceId ? {priceId} : {}),
           },
         },
       });
@@ -306,54 +306,49 @@ const PackageDetail: React.FC<ServiceScreenProp> = ({navigation, route}) => {
         route.params.id,
         activeContractorId,
       );
+      const showContractor = !!product.hasContractor;
+      const itemPriceId = item.priceId ?? item.price?.id ?? null;
 
-      if (product.type === 1 && product.hasContractor) {
+      if (product.type === 1) {
         return (
           <PackageDetailServiceCard
             key={item.id}
-            data={product}
+            subProduct={item}
+            showDetailData={showSubProductDetailData}
+            showContractor={showContractor}
             selectedContractor={itemContractor}
             isContractorRequired={product.requiredContractor}
-            onPressCard={() => navigateToPackageItem(product)}
+            onPressCard={() => navigateToPackageItem(product, itemPriceId)}
             onSelectContractor={() => handleItemContractorSelect(product)}
           />
         );
       }
 
-      if (product.type === 2 && product.hasContractor) {
+      if (product.type === 2) {
         return (
           <PackageDetailCreditCard
             key={item.id}
-            data={product}
+            subProduct={item}
+            showDetailData={showSubProductDetailData}
+            showContractor={showContractor}
             selectedContractor={itemContractor}
             isContractorRequired={product.requiredContractor}
-            onPressCard={() => navigateToPackageItem(product)}
+            onPressCard={() => navigateToPackageItem(product, itemPriceId)}
             onSelectContractor={() => handleItemContractorSelect(product)}
           />
         );
       }
 
-      const CardComponent = cardComponentMapping[product.type];
-      if (!CardComponent) {
-        return <Text>Unknown type: {product.type}</Text>;
-      }
-
-      return (
-        <TouchableOpacity
-          key={item.id}
-          onPress={() => navigateToPackageItem(product)}>
-          <CardComponent data={product} />
-        </TouchableOpacity>
-      );
+      return <Text>Unknown type: {product.type}</Text>;
     },
     [
-      cardComponentMapping,
       data?.contractors,
       getActiveContractorId,
       handleItemContractorSelect,
       listRefreshKey,
       navigateToPackageItem,
       route.params.id,
+      showSubProductDetailData,
     ],
   );
 

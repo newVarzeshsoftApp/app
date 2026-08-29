@@ -77,14 +77,14 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
     }, 500);
   };
   useEffect(() => {
-    if (OTP.length === Config.OTPLength) {
+    if (OTP.length === Config.OTPLength && OrganizationBySKU?.id) {
       VerifyToken.mutate({
         code: OTP,
-        organization: OrganizationBySKU?.id!,
+        organization: OrganizationBySKU.id,
         username: route.params?.username,
       });
     }
-  }, [OTP]);
+  }, [OTP, OrganizationBySKU?.id, route.params?.username]);
 
   return (
     <SafeAreaView className="flex-1 justify-between ">
@@ -153,9 +153,10 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
         } `}>
         <BaseButton
           onPress={() =>
+            OrganizationBySKU?.id &&
             VerifyToken.mutate({
               code: OTP,
-              organization: 0,
+              organization: OrganizationBySKU.id,
               username: route.params?.username,
             })
           }
@@ -164,7 +165,11 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
           rounded
           size="Large"
           text={auth(`Continue`)}
-          disabled={OTP.length !== Config.OTPLength || VerifyToken.isPending}
+          disabled={
+            OTP.length !== Config.OTPLength ||
+            VerifyToken.isPending ||
+            !OrganizationBySKU?.id
+          }
           isLoading={VerifyToken.isPending}
           accessibilityLabel="Continue button"
           accessibilityRole="button"
@@ -179,15 +184,16 @@ const VerifyOTPScreen: React.FC<VerifyOTPScreenProps> = ({
           </BaseText>
           <TouchableOpacity
             onPress={() =>
+              OrganizationBySKU?.id &&
               ResendCode.mutate({
-                organization: 1,
+                organization: OrganizationBySKU.id,
                 username: route.params?.username,
               })
             }
             accessibilityLabel="Resend the code"
             accessibilityRole="button"
-            disabled={!CanResend}>
-            <BaseText type="button1" color={!CanResend ? 'muted' : 'active'}>
+            disabled={!CanResend || !OrganizationBySKU?.id}>
+            <BaseText type="button1" color={!CanResend || !OrganizationBySKU?.id ? 'muted' : 'active'}>
               {auth('Resend the code')}
             </BaseText>
           </TouchableOpacity>

@@ -1,3 +1,4 @@
+import {ActivityField} from '../../../constants/options';
 import {Category} from './CategoryResService';
 import {
   PriceList,
@@ -133,6 +134,7 @@ export interface User {
   postalCode?: string | null;
   personalTaxCode?: string | null;
   hasActivity?: boolean;
+  activityFields?: ActivityField[];
 }
 
 export interface OrganizationUnit {

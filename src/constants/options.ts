@@ -71,6 +71,12 @@ export enum ProductType {
   Credit,
   Package,
 }
+
+export enum ActivityField {
+  Registration = 1, // ثبت نام خدمت جدید
+  RegisteredReception = 2, // پذیرش خدمت ثبت نام شده
+  freeReception = 3, // پذیرش خدمت آزاد
+}
 export enum TransactionType {
   Deposit,
   Settle,

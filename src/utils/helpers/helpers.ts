@@ -1,5 +1,6 @@
 import {genders, PickerOption} from '../../constants/options';
 import {Product} from '../../services/models/response/ProductResService';
+import type {subProducts} from '../../services/models/response/UseResrService';
 import moment from 'jalali-moment';
 
 /**
@@ -182,26 +183,33 @@ export const formatTimeDuration = (totalMinutes: number) => {
 };
 
 export function calculateRemainingDays(subscription: {
-  start: string;
+  start?: string;
   end: string;
 }): number {
-  const startDate = new Date(subscription.start);
-  const endDate = new Date(subscription.end);
-  // Calculate the difference in milliseconds between start and end
-  const differenceInMilliseconds = endDate.getTime() - startDate.getTime();
+  const endDate = moment(subscription.end);
+  if (!endDate.isValid()) {
+    return 0;
+  }
 
-  // Convert milliseconds to days
-  const totalDays = Math.ceil(differenceInMilliseconds / (1000 * 60 * 60 * 24));
+  const remainingDays = endDate
+    .clone()
+    .startOf('day')
+    .diff(moment().startOf('day'), 'days');
 
-  // Calculate how many days have passed since the start date
-  const currentDate = new Date();
-  const elapsedMilliseconds = currentDate.getTime() - startDate.getTime();
-  const elapsedDays = Math.ceil(elapsedMilliseconds / (1000 * 60 * 60 * 24));
+  return remainingDays > 0 ? remainingDays : 0;
+}
 
-  // Calculate remaining days
-  const remainingDays = totalDays - elapsedDays;
+export function isEndDateExpired(end?: string | null): boolean {
+  if (!end) {
+    return false;
+  }
 
-  return remainingDays >= 0 ? remainingDays : 0; // Ensure no negative days
+  const endDate = moment(end);
+  if (!endDate.isValid()) {
+    return false;
+  }
+
+  return moment().startOf('day').isAfter(endDate.clone().startOf('day'));
 }
 export function convertToPersianTimeLabel(value: number): string {
   if (value < 0 || value > 1800) {
@@ -298,6 +306,35 @@ export const getPackageFinalPrice = (
   product?: Pick<Product, 'price' | 'subProducts'>,
 ): number =>
   Math.max((product?.price ?? 0) - getPackageDiscountAmount(product), 0);
+
+type SubProductPriceSource = Pick<subProducts, 'price' | 'priceId' | 'amount'> & {
+  product?: Pick<Product, 'price' | 'duration'> | null;
+};
+
+export type SubProductDisplayInfo = {
+  price: number;
+  duration: number;
+  sessionCount: number | null;
+  credit: number | null;
+};
+
+export const getSubProductDisplayInfo = (
+  subProduct?: SubProductPriceSource,
+): SubProductDisplayInfo => {
+  const dedicatedPrice =
+    subProduct?.priceId != null && subProduct.price ? subProduct.price : null;
+
+  return {
+    price:
+      dedicatedPrice?.price ??
+      subProduct?.product?.price ??
+      subProduct?.amount ??
+      0,
+    duration: dedicatedPrice?.duration ?? subProduct?.product?.duration ?? 0,
+    sessionCount: dedicatedPrice?.min ?? null,
+    credit: dedicatedPrice?.credit ?? null,
+  };
+};
 
 /**
  * Jalali date + time for API timestamps (submitAt, createdAt, etc.).
