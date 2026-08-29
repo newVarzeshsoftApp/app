@@ -14,6 +14,7 @@ import {useGetUserDashboard} from '../../../utils/hooks/User/useGetUserDashboard
 import {
   calculateRemainingDays,
   convertToPersianTimeLabel,
+  isEndDateExpired,
 } from '../../../utils/helpers/helpers';
 import BaseText from '../../BaseText';
 import MedicalBag from '../../../assets/icons/MedicalBag.svg';
@@ -61,10 +62,7 @@ function InfoCards({
           );
           endDate = data?.subscriptionService?.end;
           isWarning = remainingDays > 0 && remainingDays <= 7;
-          isExpired =
-            remainingDays === 0 ||
-            data?.subscriptionService?.status === 1 ||
-            data?.subscriptionService?.status === 3;
+          isExpired = isEndDateExpired(endDate);
         } else {
           isDataAvailable = false;
         }
@@ -85,10 +83,7 @@ function InfoCards({
           );
           endDate = data?.insuranceService?.end;
           isWarning = remainingDays > 0 && remainingDays <= 7;
-          isExpired =
-            remainingDays === 0 ||
-            data?.insuranceService?.status === 1 ||
-            data?.insuranceService?.status === 3;
+          isExpired = isEndDateExpired(endDate);
         } else {
           isDataAvailable = false;
         }
@@ -267,6 +262,11 @@ function InfoCards({
   const openBottomSheet = () => {
     BottomSheetRef.current?.expand();
   };
+  const hasVipLocker = Boolean(data?.vipLocker?.locker?.lockerId);
+  const hasRegularLockers = (data?.lockers?.length ?? 0) > 0;
+  const canOpenCloset =
+    type === 'ClosetInfo' && (hasVipLocker || hasRegularLockers);
+
   return (
     <>
       <BottomSheet
@@ -278,11 +278,7 @@ function InfoCards({
       </BottomSheet>
       <TouchableOpacity
         onPress={() => openBottomSheet()}
-        disabled={
-          type !== 'ClosetInfo' ||
-          (data?.vipLocker && Object.keys(data?.vipLocker).length === 0) ||
-          (data?.lockers && Object.keys(data?.lockers).length === 0)
-        }
+        disabled={!canOpenCloset}
         className="w-full h-[125px]">
         <LinearGradient
           colors={colors}
