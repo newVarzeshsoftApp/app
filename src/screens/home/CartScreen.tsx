@@ -35,7 +35,10 @@ import {ProductType, TransactionSourceType} from '../../constants/options';
 import {useGetUserSaleItem} from '../../utils/hooks/User/useGetUserSaleItem';
 import {useTheme} from '../../utils/ThemeContext';
 import LinearGradient from 'react-native-linear-gradient';
-import {formatNumber} from '../../utils/helpers/helpers';
+import {
+  formatNumber,
+  getReservationSubProductPrice,
+} from '../../utils/helpers/helpers';
 import RadioButton from '../../components/Button/RadioButton/RadioButton';
 import {useAuth} from '../../utils/hooks/useAuth';
 import {navigate} from '../../navigation/navigationRef';
@@ -492,7 +495,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
           discount: subProduct.discount || 0,
           type: subProduct.product?.type || 1,
           tax: subProduct.tax || 0,
-          price: subProduct.product?.price || subProduct.amount || 0,
+          price: getReservationSubProductPrice(subProduct),
           quantity: quantity,
         });
       });
