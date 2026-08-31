@@ -8,7 +8,11 @@ import {useTranslation} from 'react-i18next';
 import {Trash, CloseCircle, Timer1} from 'iconsax-react-native';
 import BaseButton from '../../Button/BaseButton';
 import BaseText from '../../BaseText';
-import {ConvertDuration, formatNumber} from '../../../utils/helpers/helpers';
+import {
+  ConvertDuration,
+  formatNumber,
+  getReservationSubProductPrice,
+} from '../../../utils/helpers/helpers';
 import BottomSheet, {BottomSheetMethods} from '../../BottomSheet/BottomSheet';
 import ContractorInfo from '../../ContractorInfo/ContractorInfo';
 import {useCartContext} from '../../../utils/CartContext';
@@ -343,7 +347,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
             discount: subProduct.discount || 0,
             type: subProduct.product?.type || 1,
             tax: subProduct.tax || 0,
-            price: subProduct.product?.price || subProduct.amount || 0,
+            price: getReservationSubProductPrice(subProduct),
             quantity: 0, // Default to 0 for sub-products not in secondaryServices
             subProductId: subProduct.id,
           } as ReservationSecondaryService;
@@ -424,7 +428,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
         discount: subProduct.discount || 0,
         type: subProduct.product?.type || 1,
         tax: subProduct.tax || 0,
-        price: subProduct.product?.price || subProduct.amount || 0,
+        price: getReservationSubProductPrice(subProduct),
         quantity: newQuantity,
         subProductId: subProduct.id,
       };
@@ -953,7 +957,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
                                   color="secondary"
                                   className="text-start">
                                   قیمت هر واحد {formatNumber(service.price)}{' '}
-                                  تومان میباشد.
+                                  ریال میباشد.
                                 </BaseText>
                               )}
                               {/* <BaseText type="caption" color="secondary">
