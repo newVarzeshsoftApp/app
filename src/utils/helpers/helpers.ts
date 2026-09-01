@@ -307,6 +307,10 @@ export const getPackageFinalPrice = (
 ): number =>
   Math.max((product?.price ?? 0) - getPackageDiscountAmount(product), 0);
 
+export const getReservationSubProductPrice = (
+  subProduct?: {amount?: number | null},
+): number => subProduct?.amount ?? 0;
+
 type SubProductPriceSource = Pick<subProducts, 'price' | 'priceId' | 'amount'> & {
   product?: Pick<Product, 'price' | 'duration'> | null;
 };

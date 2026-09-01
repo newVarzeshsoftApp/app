@@ -6,7 +6,10 @@ import {ScrollView} from 'react-native-gesture-handler';
 import {useTranslation} from 'react-i18next';
 import {CloseCircle, TickCircle} from 'iconsax-react-native';
 import BaseText from '../../components/BaseText';
-import {formatNumber} from '../../utils/helpers/helpers';
+import {
+  formatNumber,
+  getReservationSubProductPrice,
+} from '../../utils/helpers/helpers';
 import BaseButton from '../../components/Button/BaseButton';
 import {useMutation, useQueryClient} from '@tanstack/react-query';
 import {PaymentService} from '../../services/PaymentService';
@@ -222,7 +225,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
           discount: subProduct.discount || 0,
           type: subProduct.product?.type || 1,
           tax: subProduct.tax || 0,
-          price: subProduct.product?.price || subProduct.amount || 0,
+          price: getReservationSubProductPrice(subProduct),
           quantity: quantity,
         });
       });

@@ -25,7 +25,10 @@ import {
   ServiceEntryDto,
   DayEntryDto,
 } from '../../services/models/response/ReservationResService';
-import {formatNumber} from '../../utils/helpers/helpers';
+import {
+  formatNumber,
+  getReservationSubProductPrice,
+} from '../../utils/helpers/helpers';
 import {useTheme} from '../../utils/ThemeContext';
 import {routes} from '../../routes/routes';
 import {useGetReservationExpiresTime} from '../../utils/hooks/Reservation/useGetReservationExpiresTime';
@@ -610,7 +613,7 @@ const PreReserveBottomSheet = forwardRef<
                   discount: subProduct.discount || 0,
                   type: subProduct.product?.type || 1,
                   tax: subProduct.tax || 0,
-                  price: subProduct.product?.price || subProduct.amount || 0,
+                  price: getReservationSubProductPrice(subProduct),
                   quantity: quantity,
                   subProductId: subProduct.id,
                 });
@@ -866,10 +869,8 @@ const PreReserveBottomSheet = forwardRef<
     };
 
     // Get price for a subProduct
-    const getPrice = (subProduct: SubProduct): number => {
-      // Use product.price if available, otherwise use amount
-      return subProduct.product?.price || subProduct.amount || 0;
-    };
+    const getPrice = (subProduct: SubProduct): number =>
+      getReservationSubProductPrice(subProduct);
 
     // Helper function to calculate total from subProducts (including nested)
     const calculateSubProductsTotal = (
@@ -1061,7 +1062,7 @@ const PreReserveBottomSheet = forwardRef<
                             type="badge"
                             color="secondary"
                             className="text-end">
-                            قیمت هر واحد {formatNumber(price)} تومان میباشد.
+                            قیمت هر واحد {formatNumber(price)} ریال میباشد.
                           </BaseText>
                         )}
                         {/* Render nested subProducts if exist */}
@@ -1150,7 +1151,7 @@ const PreReserveBottomSheet = forwardRef<
                                       color="secondary"
                                       className="text-end">
                                       قیمت هر واحد {formatNumber(nestedPrice)}{' '}
-                                      تومان میباشد.
+                                      ریال میباشد.
                                     </BaseText>
                                   )}
                                 </View>
