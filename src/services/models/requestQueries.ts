@@ -123,6 +123,11 @@ export interface ReservationQuery {
   start: string; // "2025/12/01"
   end?: string; // "2025/12/01"
   days?: string; // "1,2" (comma-separated day numbers)
+  organizationUnitId?: number;
+}
+
+export interface ReservationOrganizationUnitQuery {
+  organizationUnitId?: number;
 }
 
 export interface PreReserveQuery {

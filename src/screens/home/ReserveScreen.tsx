@@ -24,10 +24,13 @@ import WheelPicker from '../../components/Picker/WheelPicker';
 import {useTheme} from '../../utils/ThemeContext';
 import {useGetReservationTags} from '../../utils/hooks/Reservation/useGetReservationTags';
 import {useGetReservationPatterns} from '../../utils/hooks/Reservation/useGetReservationPatterns';
+import {useGetReservationOrganizationUnit} from '../../utils/hooks/Reservation/useGetReservationOrganizationUnit';
 import {ReservationTag} from '../../services/models/response/ReservationResService';
 import {useNavigation} from '@react-navigation/native';
 import {ReserveStackParamList} from '../../utils/types/NavigationTypes';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {useIsMultiOrg} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
+import {toOptionalOrganizationUnitId} from '../../utils/helpers/organizationUnits';
 
 // روزهای هفته - دوشنبه = 1 (میلادی)
 const WEEK_DAYS = [
@@ -199,6 +202,7 @@ const GENDER_OPTIONS = [
 ];
 
 interface FilterState {
+  organizationUnit: {value: string; label: string} | null;
   fromDate: DateSelectorState | null;
   toDate: DateSelectorState | null;
   duration: {value: string; label: string; tag?: ReservationTag} | null;
@@ -218,15 +222,25 @@ const ReserveScreen: React.FC = () => {
   const {theme} = useTheme();
   const isDark = theme === 'dark';
   const navigation = useNavigation<ReserveScreenNavigationProp>();
+  const isMultiOrg = useIsMultiOrg();
+  const {
+    data: reservationUnitsData,
+    isLoading: reservationUnitsLoading,
+    isError: reservationUnitsError,
+  } = useGetReservationOrganizationUnit(isMultiOrg);
 
-  // Fetch reservation tags
-  const {data: tagsData, isLoading: tagsLoading} = useGetReservationTags();
-
-  // Fetch reservation patterns
-  const {data: patternsData, isLoading: patternsLoading} =
-    useGetReservationPatterns();
+  const organizationUnitOptions = useMemo(() => {
+    if (!reservationUnitsData || !Array.isArray(reservationUnitsData)) {
+      return [];
+    }
+    return reservationUnitsData.map(unit => ({
+      value: unit.organizationUnitId.toString(),
+      label: unit.organizationUnitTitle,
+    }));
+  }, [reservationUnitsData]);
 
   // Bottom sheet refs
+  const organizationUnitSheetRef = useRef<BottomSheetMethods>(null);
   const fromDateSheetRef = useRef<BottomSheetMethods>(null);
   const toDateSheetRef = useRef<BottomSheetMethods>(null);
   const durationSheetRef = useRef<BottomSheetMethods>(null);
@@ -248,6 +262,38 @@ const ReserveScreen: React.FC = () => {
     jalaliDate: threeDaysLater.format('jYYYY/jM/jD'),
     gregorianDate: threeDaysLater.format('YYYY-MM-DD'),
   };
+
+  // Filter state
+  const [filters, setFilters] = useState<FilterState>({
+    organizationUnit: null,
+    fromDate: defaultFromDate,
+    toDate: defaultToDate,
+    duration: null,
+    selectedDays: [], // خالی به صورت دیفالت
+    fromHour: '10',
+    toHour: '11',
+    service: null,
+    gender: GENDER_OPTIONS[2], // هر دو دیفالت
+  });
+
+  const selectedReservationUnitId = toOptionalOrganizationUnitId(
+    filters.organizationUnit?.value,
+  );
+  const canLoadReservationData =
+    !isMultiOrg || selectedReservationUnitId != null;
+
+  // Fetch reservation tags
+  const {data: tagsData, isLoading: tagsLoading} = useGetReservationTags(
+    selectedReservationUnitId,
+    canLoadReservationData,
+  );
+
+  // Fetch reservation patterns
+  const {data: patternsData, isLoading: patternsLoading} =
+    useGetReservationPatterns(
+      selectedReservationUnitId,
+      canLoadReservationData,
+    );
 
   // Convert tags to duration options
   const durationOptions = useMemo(() => {
@@ -274,18 +320,6 @@ const ReserveScreen: React.FC = () => {
     }));
     return [allServicesOption, ...patternOptions];
   }, [patternsData]);
-
-  // Filter state
-  const [filters, setFilters] = useState<FilterState>({
-    fromDate: defaultFromDate,
-    toDate: defaultToDate,
-    duration: null,
-    selectedDays: [], // خالی به صورت دیفالت
-    fromHour: '10',
-    toHour: '11',
-    service: null,
-    gender: GENDER_OPTIONS[2], // هر دو دیفالت
-  });
 
   // Generate hours from selected service pattern or all tags
   const fromHours = useMemo(() => {
@@ -426,7 +460,20 @@ const ReserveScreen: React.FC = () => {
         service: serviceOptions[0], // "همه خدمات" is first
       }));
     }
-  }, [serviceOptions.length]);
+  }, [filters.service, selectedReservationUnitId, serviceOptions]);
+
+  React.useEffect(() => {
+    if (!isMultiOrg || organizationUnitOptions.length !== 1) {
+      return;
+    }
+
+    setFilters(prev => {
+      if (prev.organizationUnit) {
+        return prev;
+      }
+      return {...prev, organizationUnit: organizationUnitOptions[0]};
+    });
+  }, [isMultiOrg, organizationUnitOptions]);
 
   // Auto-set duration and time range when service is selected
   React.useEffect(() => {
@@ -512,6 +559,7 @@ const ReserveScreen: React.FC = () => {
   const [tempToHour, setTempToHour] = useState<string>('11');
   const [tempService, setTempService] = useState<string>('1');
   const [tempGender, setTempGender] = useState<string>('Both');
+  const [tempOrganizationUnit, setTempOrganizationUnit] = useState<string>('');
 
   const iconColor = useMemo(() => (isDark ? '#55575C' : '#AAABAD'), [isDark]);
 
@@ -628,6 +676,15 @@ const ReserveScreen: React.FC = () => {
       onClear: () => void;
       removable: boolean;
     }[] = [];
+
+    if (filters.organizationUnit) {
+      chips.push({
+        key: 'organizationUnit',
+        label: filters.organizationUnit.label,
+        onClear: () => {},
+        removable: false,
+      });
+    }
 
     // Duration - not removable
     if (filters.duration) {
@@ -832,6 +889,23 @@ const ReserveScreen: React.FC = () => {
     genderSheetRef.current?.close();
   };
 
+  const saveOrganizationUnit = () => {
+    const selected = organizationUnitOptions.find(
+      unit => unit.value === tempOrganizationUnit,
+    );
+    if (selected) {
+      setFilters(prev => {
+        const didChange = prev.organizationUnit?.value !== selected.value;
+        return {
+          ...prev,
+          organizationUnit: selected,
+          ...(didChange ? {duration: null, service: null} : {}),
+        };
+      });
+    }
+    organizationUnitSheetRef.current?.close();
+  };
+
   return (
     <View className="flex-1 bg-neutral-100 dark:bg-neutral-dark-100 relative">
       {/* Background shapes */}
@@ -859,6 +933,43 @@ const ReserveScreen: React.FC = () => {
         <View className="Container gap-6 pt-4">
           {/* Filter Card */}
           <View className="p-5 rounded-3xl gap-6 BaseServiceCard">
+            {isMultiOrg ? (
+              <View className="gap-3">
+                <BaseText type="title4" color="base">
+                  شعبه
+                </BaseText>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (organizationUnitOptions.length > 0) {
+                      const defaultValue =
+                        filters.organizationUnit?.value ||
+                        organizationUnitOptions[0].value;
+                      setTempOrganizationUnit(defaultValue);
+                      setTimeout(() => {
+                        organizationUnitSheetRef.current?.expand();
+                      }, 0);
+                    }
+                  }}
+                  disabled={
+                    reservationUnitsLoading ||
+                    reservationUnitsError ||
+                    organizationUnitOptions.length === 0
+                  }
+                  className="h-12 py-3 px-4 flex-row items-center justify-between border border-neutral-300 dark:border-neutral-dark-400 rounded-full bg-neutral-0 dark:bg-neutral-dark-200">
+                  <BaseText
+                    type="subtitle2"
+                    color={filters.organizationUnit ? 'base' : 'muted'}>
+                    {reservationUnitsLoading
+                      ? 'در حال بارگذاری...'
+                      : reservationUnitsError
+                      ? 'خطا در دریافت شعبه‌ها'
+                      : filters.organizationUnit?.label || 'انتخاب شعبه'}
+                  </BaseText>
+                  <ArrowDown2 size={20} color={iconColor} />
+                </TouchableOpacity>
+              </View>
+            ) : null}
+
             {/* تاریخ */}
             <View className="gap-3">
               <BaseText type="title4" color="base">
@@ -918,6 +1029,8 @@ const ReserveScreen: React.FC = () => {
                   color={filters.service ? 'base' : 'muted'}>
                   {patternsLoading
                     ? 'در حال بارگذاری...'
+                    : isMultiOrg && !filters.organizationUnit
+                    ? 'ابتدا شعبه را انتخاب کنید'
                     : filters.service?.label || 'انتخاب خدمت'}
                 </BaseText>
                 <ArrowDown2 size={20} color={iconColor} />
@@ -1139,9 +1252,14 @@ const ReserveScreen: React.FC = () => {
             color="Black"
             size="Large"
             rounded
-            disabled={!filters.duration || !filters.service}
+            disabled={
+              !filters.duration ||
+              !filters.service ||
+              (isMultiOrg && !filters.organizationUnit)
+            }
             onPress={() => {
               if (!filters.duration?.tag || !filters.service) return;
+              if (isMultiOrg && !filters.organizationUnit) return;
 
               // Convert days array to comma-separated string
               const daysStr = filters.selectedDays.join(',');
@@ -1181,6 +1299,13 @@ const ReserveScreen: React.FC = () => {
                 navigateParams.patternId = filters.service.pattern.id;
               }
 
+              const organizationUnitId = toOptionalOrganizationUnitId(
+                filters.organizationUnit?.value,
+              );
+              if (organizationUnitId !== undefined) {
+                navigateParams.organizationUnitId = organizationUnitId;
+              }
+
               // Navigate to detail screen
               navigation.navigate('reserveDetail', navigateParams);
             }}
@@ -1189,6 +1314,40 @@ const ReserveScreen: React.FC = () => {
       </Animated.View>
 
       {/* Bottom Sheets */}
+      {isMultiOrg ? (
+        <BottomSheet
+          ref={organizationUnitSheetRef}
+          Title="انتخاب شعبه"
+          snapPoints={[60]}
+          buttonText="تایید"
+          disablePan
+          onButtonPress={saveOrganizationUnit}>
+          {organizationUnitOptions.length > 0 ? (
+            <WheelPicker
+              values={organizationUnitOptions}
+              defaultValue={
+                tempOrganizationUnit ||
+                filters.organizationUnit?.value ||
+                organizationUnitOptions[0]?.value ||
+                ''
+              }
+              onChange={item => setTempOrganizationUnit(item.value)}
+              position="SINGLE"
+            />
+          ) : (
+            <View className="py-10 items-center">
+              <BaseText type="body2" color="muted">
+                {reservationUnitsLoading
+                  ? 'در حال بارگذاری...'
+                  : reservationUnitsError
+                  ? 'خطا در دریافت شعبه‌ها'
+                  : 'شعبه‌ای یافت نشد'}
+              </BaseText>
+            </View>
+          )}
+        </BottomSheet>
+      ) : null}
+
       {/* از تاریخ */}
       <BottomSheet
         ref={fromDateSheetRef}
@@ -1238,7 +1397,11 @@ const ReserveScreen: React.FC = () => {
         ) : (
           <View className="py-10 items-center">
             <BaseText type="body2" color="muted">
-              در حال بارگذاری...
+              {isMultiOrg && !filters.organizationUnit
+                ? 'ابتدا شعبه را انتخاب کنید'
+                : tagsLoading
+                ? 'در حال بارگذاری...'
+                : 'موردی یافت نشد'}
             </BaseText>
           </View>
         )}
@@ -1312,7 +1475,11 @@ const ReserveScreen: React.FC = () => {
         ) : (
           <View className="py-10 items-center">
             <BaseText type="body2" color="muted">
-              {patternsLoading ? 'در حال بارگذاری...' : 'خدمتی یافت نشد'}
+              {isMultiOrg && !filters.organizationUnit
+                ? 'ابتدا شعبه را انتخاب کنید'
+                : patternsLoading
+                ? 'در حال بارگذاری...'
+                : 'خدمتی یافت نشد'}
             </BaseText>
           </View>
         )}

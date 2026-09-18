@@ -23,6 +23,9 @@ import {
 import Animated from 'react-native-reanimated';
 import CreditSubProduct from '../../../components/cards/SubProduct';
 import {navigate} from '../../../navigation/navigationRef';
+import HistoryLocationMeta from '../../../components/organizationUnit/HistoryLocationMeta';
+import {getHistoricalOrganizationUnitTitle} from '../../../utils/helpers/organizationUnits';
+import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetOrganizationBySKU';
 type CreditDetailProp = NativeStackNavigationProp<
   SaleItemStackParamList,
   'saleItemDetail'
@@ -42,6 +45,7 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
   route,
 }) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Detail'});
+  const {data: organization} = useGetOrganizationBySKU();
   const {data: UserChargingService, isLoading: UserChargingServiceisLoading} =
     useGetUserChargingServiceByID(data.id);
   const scrollY = useSharedValue(0);
@@ -224,6 +228,12 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
                           {formatNumber(item?.remain ?? 0)}
                         </BaseText>
                       </View>
+                      <HistoryLocationMeta
+                        organizationUnitTitle={getHistoricalOrganizationUnitTitle(
+                          item,
+                          organization?.organizationUnits,
+                        )}
+                      />
                     </View>
                   );
                 })

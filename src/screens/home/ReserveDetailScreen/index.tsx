@@ -10,7 +10,10 @@ import Animated, {
   useAnimatedScrollHandler,
 } from 'react-native-reanimated';
 import axios from 'axios';
-import {HomeStackParamList, ReserveStackParamList} from '../../../utils/types/NavigationTypes';
+import {
+  HomeStackParamList,
+  ReserveStackParamList,
+} from '../../../utils/types/NavigationTypes';
 import BaseText from '../../../components/BaseText';
 import BaseButton from '../../../components/Button/BaseButton';
 import {ArrowRight2, InfoCircle} from 'iconsax-react-native';
@@ -48,6 +51,7 @@ import {BottomSheetMethods} from '../../../components/BottomSheet/BottomSheet';
 import {useReservationStore} from '../../../store/reservationStore';
 import {getCart} from '../../../utils/helpers/CartStorage';
 import {ReservationQuery} from '../../../services/models/requestQueries';
+import {toOptionalOrganizationUnitId} from '../../../utils/helpers/organizationUnits';
 
 type ReserveDetailRouteProp = RouteProp<ReserveStackParamList, 'reserveDetail'>;
 
@@ -180,6 +184,12 @@ const ReserveDetailScreen: React.FC = () => {
       baseQuery.days = Array.isArray(params.days)
         ? params.days.join(',')
         : params.days;
+    }
+    const organizationUnitId = toOptionalOrganizationUnitId(
+      params.organizationUnitId,
+    );
+    if (organizationUnitId !== undefined) {
+      baseQuery.organizationUnitId = organizationUnitId;
     }
 
     return baseQuery as ReservationQuery;

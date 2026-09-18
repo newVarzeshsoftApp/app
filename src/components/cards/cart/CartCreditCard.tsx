@@ -104,13 +104,11 @@ const CartCreditCard: React.FC<CartCreditCardProps> = ({data}) => {
             <BaseText type="subtitle3" color="secondary">
               {t('usedFor')}
             </BaseText>
-            <View className="flex-row items-center gap-1 ">
-              <CreditSubProduct
-                subProducts={data.product?.subProducts}
-                hasSubProduct={data.product?.hasSubProduct}
-                inCard
-              />
-            </View>
+            <CreditSubProduct
+              subProducts={data.product?.subProducts}
+              hasSubProduct={data.product?.hasSubProduct}
+              inCard
+            />
           </View>
         </View>
         <CartExpiryNotice mode="default" remainingMinutes={remainingMinutes} />

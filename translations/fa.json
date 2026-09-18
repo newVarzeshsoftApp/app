@@ -110,9 +110,13 @@
     "without": "بدون",
     "open Closet": "باز کردن کمد",
     "noLimit": "بدون محدودیت",
+    "couldNotFit": "...",
+    "allBranches": "همه شعبه‌ها",
+    "branch": "شعبه",
+    "saleUnit": "واحد فروش",
     "allServicesInCategory": "تمام خدمات در دسته‌بندی",
     "allServicesInSalesUnit": "تمام خدمات در واحد فروش",
-    "allServicesInOrganizationalUnit": "تمام خدمات در واحد سازمانی"
+    "allServicesInOrganizationalUnit": "تمام خدمات شعبه"
   },
 
   "Cart": {
@@ -225,6 +229,8 @@
     "NoHistory": "تاریخچه استفاده ای وجود ندارد",
     "MettingsCredit": "تعداد جلسات",
     "contractor": "مربی",
+    "branch": "شعبه",
+    "saleUnit": "واحد فروش",
     "MettingCredit": "تعداد جلسه",
     "uses": "موارد استفاده",
     "orderNumber": "شماره سفارش",
@@ -276,6 +282,8 @@
     "Contractor": "پیمانکار",
     "view": "مشاهده",
     "date": "تاریخ",
+    "branch": "شعبه",
+    "saleUnit": "واحد فروش",
     "Name": "نام",
     "deposit": "واریز",
     "without Closet": "بدون کمد",

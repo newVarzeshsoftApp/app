@@ -34,6 +34,13 @@ import {useCancelReservation} from '../../../utils/hooks/Reservation/useCancelRe
 import {useQueryClient} from '@tanstack/react-query';
 import momentJalali from 'jalali-moment';
 import CancelReservationConfirmSheet from '../../../components/Reservation/CancelReservationConfirmSheet';
+import ServiceOrganizationUnits from '../../../components/organizationUnit/ServiceOrganizationUnits';
+import HistoryLocationMeta from '../../../components/organizationUnit/HistoryLocationMeta';
+import {SaleUnitType} from '../../../constants/options';
+import {
+  getHistoricalOrganizationUnitTitle,
+  toOptionalOrganizationUnitId,
+} from '../../../utils/helpers/organizationUnits';
 type ServiceDetailNavigationProp = NativeStackNavigationProp<
   SaleItemStackParamList,
   'saleItemDetail'
@@ -204,12 +211,20 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
             end: endDate,
             startTime: data?.reservedStartTime || undefined,
             endTime: data?.reservedEndTime || undefined,
+            ...(toOptionalOrganizationUnitId(data?.organizationUnit?.id) != null
+              ? {
+                  organizationUnitId: toOptionalOrganizationUnitId(
+                    data.organizationUnit?.id,
+                  ),
+                }
+              : {}),
           },
         },
       },
     } as any);
   }, [
     data?.end,
+    data?.organizationUnit?.id,
     data?.reservedEndTime,
     data?.reservedStartTime,
     data?.start,
@@ -224,7 +239,9 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
     (penaltyAmount: number | undefined) => {
       if (!orderId) return;
       // Only include penaltyAmount if it's defined and > 0
-      const mutationPayload: {id: number; penaltyAmount?: number} = {id: orderId};
+      const mutationPayload: {id: number; penaltyAmount?: number} = {
+        id: orderId,
+      };
       if (penaltyAmount !== undefined && penaltyAmount > 0) {
         mutationPayload.penaltyAmount = penaltyAmount;
       }
@@ -338,6 +355,10 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                           {data.product?.title}
                         </BaseText>
                       </View>
+                      <ServiceOrganizationUnits
+                        isService={data.type === SaleUnitType.Service}
+                        units={data.product?.deliveryOrganizationUnits}
+                      />
                       <View className="gap-2">
                         {data.contractor && (
                           <ContractorInfo
@@ -584,6 +605,12 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                                     : '-'}
                                 </BaseText>
                               </View>
+                              <HistoryLocationMeta
+                                organizationUnitTitle={getHistoricalOrganizationUnitTitle(
+                                  item,
+                                  OrganizationBySKU?.organizationUnits,
+                                )}
+                              />
                             </View>
                           );
                         })

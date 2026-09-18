@@ -7,13 +7,22 @@ import {MoneyRecive, MoneySend} from 'iconsax-react-native';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {DrawerStackParamList} from '../../../utils/types/NavigationTypes';
 import {SaleTransaction} from '../../../services/models/response/UseResrService';
-import {formatNumber, formatJalaliDateTime} from '../../../utils/helpers/helpers';
+import {
+  formatNumber,
+  formatJalaliDateTime,
+} from '../../../utils/helpers/helpers';
 import {
   TransactionSourceType,
   TransactionType,
 } from '../../../constants/options';
 import Badge from '../../../components/Badge/Badge';
 import {navigate} from '../../../navigation/navigationRef';
+import HistoryLocationMeta from '../../../components/organizationUnit/HistoryLocationMeta';
+import {
+  getHistoricalOrganizationUnitTitle,
+  getHistoricalSaleUnitTitle,
+} from '../../../utils/helpers/organizationUnits';
+import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetOrganizationBySKU';
 
 type NavigationProps = NativeStackNavigationProp<DrawerStackParamList>;
 type TransactionProps = {
@@ -27,6 +36,7 @@ const TransactionCard: React.FC<TransactionProps> = ({
   summaryView,
 }) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
+  const {data: organization} = useGetOrganizationBySKU();
   const isWithdraw = [
     TransactionType.Settle,
     TransactionType.Withdraw,
@@ -139,6 +149,16 @@ const TransactionCard: React.FC<TransactionProps> = ({
             ریال
           </BaseText>
         </View>
+        {isWithdraw ? (
+          <HistoryLocationMeta
+            organizationUnitTitle={getHistoricalOrganizationUnitTitle(
+              item,
+              organization?.organizationUnits,
+            )}
+            saleUnitTitle={getHistoricalSaleUnitTitle(item)}
+            showSaleUnit
+          />
+        ) : null}
         {!isWithdraw && item.credit && (
           <View className="flex-row items-center justify-between ">
             <BaseText type="body3" color="secondary">

@@ -3,7 +3,10 @@ import {Dimensions, Text, TouchableOpacity, View} from 'react-native';
 import BaseText from '../../../components/BaseText';
 import {SaleOrderContent} from '../../../services/models/response/UseResrService';
 import {useTranslation} from 'react-i18next';
-import {formatNumber, formatJalaliDateTime} from '../../../utils/helpers/helpers';
+import {
+  formatNumber,
+  formatJalaliDateTime,
+} from '../../../utils/helpers/helpers';
 import BaseButton from '../../../components/Button/BaseButton';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {OrderStackParamList} from '../../../utils/types/NavigationTypes';
@@ -12,11 +15,18 @@ import BottomSheet, {
 } from '../../../components/BottomSheet/BottomSheet';
 import Badge from '../../../components/Badge/Badge';
 import {navigate} from '../../../navigation/navigationRef';
+import HistoryLocationMeta from '../../../components/organizationUnit/HistoryLocationMeta';
+import {
+  getHistoricalOrganizationUnitTitle,
+  getHistoricalSaleUnitTitle,
+} from '../../../utils/helpers/organizationUnits';
+import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetOrganizationBySKU';
 interface OrderCardProps {
   item: SaleOrderContent;
 }
 const OrderCard: React.FC<OrderCardProps> = ({item}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
+  const {data: organization} = useGetOrganizationBySKU();
   const sheetRef = useRef<BottomSheetMethods>(null);
   const {height} = Dimensions.get('screen');
 
@@ -85,6 +95,14 @@ const OrderCard: React.FC<OrderCardProps> = ({item}) => {
               {formatJalaliDateTime(item.submitAt)}
             </BaseText>
           </View>
+          <HistoryLocationMeta
+            organizationUnitTitle={getHistoricalOrganizationUnitTitle(
+              item,
+              organization?.organizationUnits,
+            )}
+            saleUnitTitle={getHistoricalSaleUnitTitle(item)}
+            showSaleUnit
+          />
           {item.userOrderLocker && (
             <View className="flex-row items-center justify-between ">
               <BaseText type="body3" color="secondary">
