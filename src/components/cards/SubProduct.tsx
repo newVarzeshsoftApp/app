@@ -28,6 +28,12 @@ const CreditSubProduct: React.FC<SubProductProps> = ({
         allServicesInSalesUnit: t('allServicesInSalesUnit'),
         allServicesInBranch: t('allServicesInOrganizationalUnit'),
         noLimit: t('noLimit'),
+        allServices: t('allServices'),
+        categoryNoun: t('categoryNoun'),
+        salesUnitNoun: t('saleUnit'),
+        inCategory: t('inCategory'),
+        inSalesUnit: t('inSalesUnit'),
+        inBranch: t('inBranch'),
       },
       organization?.organizationUnits,
     );

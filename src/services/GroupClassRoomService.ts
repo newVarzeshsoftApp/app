@@ -7,6 +7,7 @@ import {
   GroupClassRoomPreReserveQuery,
   GroupClassRoomQuery,
 } from './models/requestQueries';
+import {toOptionalOrganizationUnitId} from '../utils/helpers/organizationUnits';
 import {
   GroupClassRoomParticipantsResponse,
   GroupClassRoomResponse,
@@ -48,10 +49,16 @@ const GroupClassRoomService = {
     }
   },
 
-  GetServices: async (): Promise<GroupClassRoomServicesResponse> => {
+  GetServices: async (
+    organizationUnitId?: number,
+  ): Promise<GroupClassRoomServicesResponse> => {
     try {
+      const unitId = toOptionalOrganizationUnitId(organizationUnitId);
       const response = await axiosInstance.get<GroupClassRoomServicesResponse>(
-        baseUrl + groupClassRoom.getServices(),
+        baseUrl +
+          groupClassRoom.getServices(
+            unitId ? {organizationUnitId: unitId} : undefined,
+          ),
       );
       if (response.status === Status.Ok) {
         return response.data;

@@ -32,6 +32,7 @@ import {useGetContractors} from '../../utils/hooks/Contractor';
 import {DayType, TimeRanges} from '../../constants/options';
 import {ContractorQuery} from '../../services/models/requestQueries';
 import {buildGroupClassRoomListParams, validateGroupClassRoomFilters, GroupClassRoomFilterErrors} from '../../utils/helpers/groupClassRoomHelpers';
+import {toOptionalOrganizationUnitId} from '../../utils/helpers/organizationUnits';
 import {useNavigation} from '@react-navigation/native';
 import {GroupClassRoomStackParamList} from '../../utils/types/NavigationTypes';
 import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -173,17 +174,12 @@ const GroupClassRoomScreen: React.FC = () => {
   const navigation = useNavigation<GroupClassRoomScreenNavigationProp>();
   const {profile} = useAuth();
 
-  // Fetch data
-  const {data: servicesData, isLoading: servicesLoading} =
-    useGetGroupClassRoomServices();
   const {data: organizationUnitsData, isLoading: orgUnitsLoading} =
     useGetGroupClassRoomOrganizationUnit();
-  // Bottom sheet refs
   const organizationUnitSheetRef = useRef<BottomSheetMethods>(null);
   const serviceSheetRef = useRef<BottomSheetMethods>(null);
   const contractorSheetRef = useRef<BottomSheetMethods>(null);
 
-  // Filter state
   const [filters, setFilters] = useState<FilterState>({
     organizationUnit: null,
     service: null,
@@ -192,18 +188,32 @@ const GroupClassRoomScreen: React.FC = () => {
     timeRange: TimeRanges.ALL,
   });
 
+  const selectedGroupClassUnitId = toOptionalOrganizationUnitId(
+    filters.organizationUnit?.value,
+  );
+  const canLoadDependentFilters = selectedGroupClassUnitId != null;
+
+  const {data: servicesData, isLoading: servicesLoading} =
+    useGetGroupClassRoomServices(
+      selectedGroupClassUnitId,
+      canLoadDependentFilters,
+    );
+
   const contractorQuery = useMemo((): ContractorQuery => {
     const query: ContractorQuery = {
       type: 'GroupClassRoom',
     };
+    if (selectedGroupClassUnitId != null) {
+      query.organizationUnitId = selectedGroupClassUnitId;
+    }
     if (filters.service?.value && filters.service.value !== 'all') {
       query.service = filters.service.value;
     }
     return query;
-  }, [filters.service?.value]);
+  }, [filters.service?.value, selectedGroupClassUnitId]);
 
   const {data: contractorsData, isLoading: contractorsLoading} =
-    useGetContractors(contractorQuery);
+    useGetContractors(contractorQuery, canLoadDependentFilters);
 
   // Temp states for pickers
   const [tempOrganizationUnit, setTempOrganizationUnit] = useState<string>('');
@@ -294,16 +304,29 @@ const GroupClassRoomScreen: React.FC = () => {
       if (prev.service) return prev;
       return {...prev, service: serviceOptions[0]};
     });
-  }, [serviceOptions]);
+  }, [selectedGroupClassUnitId, serviceOptions]);
 
-  // Save handlers
   const saveOrganizationUnit = () => {
     const selected = organizationUnitOptions.find(
       o => o.value === tempOrganizationUnit,
     );
     if (selected) {
-      setFilters(prev => ({...prev, organizationUnit: selected}));
-      setValidationErrors(prev => ({...prev, organizationUnit: undefined}));
+      const didChange = filters.organizationUnit?.value !== selected.value;
+      setFilters(prev => ({
+        ...prev,
+        organizationUnit: selected,
+        ...(didChange ? {service: null, contractor: null} : {}),
+      }));
+      if (didChange) {
+        setTempService('');
+        setTempContractor('');
+        setContractorSearchQuery('');
+      }
+      setValidationErrors(prev => ({
+        ...prev,
+        organizationUnit: undefined,
+        ...(didChange ? {service: undefined, contractor: undefined} : {}),
+      }));
     }
     organizationUnitSheetRef.current?.close();
   };

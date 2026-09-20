@@ -127,36 +127,84 @@ export const getHistoricalSaleUnitTitle = (source: {
 }): string | undefined =>
   pickTitle(source.saleUnit?.title, source.SaleUnit?.title);
 
+export type SubProductRestrictionTranslators = {
+  allServicesInCategory: string;
+  allServicesInSalesUnit: string;
+  allServicesInBranch: string;
+  noLimit: string;
+  allServices: string;
+  categoryNoun: string;
+  salesUnitNoun: string;
+  inCategory: string;
+  inSalesUnit: string;
+  inBranch: string;
+};
+
 export const getSubProductRestrictionTitle = (
   item: subProducts,
-  translators: {
-    allServicesInCategory: string;
-    allServicesInSalesUnit: string;
-    allServicesInBranch: string;
-    noLimit: string;
-  },
+  translators: SubProductRestrictionTranslators,
   organizationUnits?: OrganizationUnitItem[] | null,
 ): string => {
-  if (item.product?.title) {
-    return item.product.title;
-  }
-
-  if (item.category?.title) {
-    return `${translators.allServicesInCategory} ${item.category.title}`;
-  }
-
+  const serviceTitle = pickTitle(item.product?.title);
+  const categoryTitle = pickTitle(item.category?.title);
   const saleUnitTitle = getHistoricalSaleUnitTitle(item);
-  if (saleUnitTitle) {
-    return `${translators.allServicesInSalesUnit} ${saleUnitTitle}`;
-  }
-
   const organizationUnitTitle = getHistoricalOrganizationUnitTitle(
     item,
     organizationUnits,
   );
-  if (organizationUnitTitle) {
-    return `${translators.allServicesInBranch} ${organizationUnitTitle}`;
+
+  const filledCount = [
+    serviceTitle,
+    categoryTitle,
+    saleUnitTitle,
+    organizationUnitTitle,
+  ].filter(Boolean).length;
+
+  if (filledCount === 0) {
+    return translators.noLimit;
   }
 
-  return translators.noLimit;
+  if (filledCount === 1) {
+    if (serviceTitle) {
+      return serviceTitle;
+    }
+    if (categoryTitle) {
+      return `${translators.allServicesInCategory} ${categoryTitle}`;
+    }
+    if (saleUnitTitle) {
+      return `${translators.allServicesInSalesUnit} ${saleUnitTitle}`;
+    }
+    if (organizationUnitTitle) {
+      return `${translators.allServicesInBranch} ${organizationUnitTitle}`;
+    }
+    return translators.noLimit;
+  }
+
+  let head = '';
+  if (serviceTitle) {
+    head = serviceTitle;
+    if (categoryTitle) {
+      head += ` ${translators.inCategory} ${categoryTitle}`;
+    }
+    if (saleUnitTitle) {
+      head += categoryTitle
+        ? `، ${translators.inSalesUnit} ${saleUnitTitle}`
+        : ` ${translators.inSalesUnit} ${saleUnitTitle}`;
+    }
+  } else if (categoryTitle) {
+    head = `${translators.allServices} ${translators.categoryNoun} ${categoryTitle}`;
+    if (saleUnitTitle) {
+      head += ` ${translators.inSalesUnit} ${saleUnitTitle}`;
+    }
+  } else if (saleUnitTitle) {
+    head = `${translators.allServices} ${translators.salesUnitNoun} ${saleUnitTitle}`;
+  }
+
+  if (organizationUnitTitle) {
+    return head
+      ? `${head} ${translators.inBranch} ${organizationUnitTitle}`
+      : `${translators.allServicesInBranch} ${organizationUnitTitle}`;
+  }
+
+  return head;
 };

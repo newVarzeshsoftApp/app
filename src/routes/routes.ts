@@ -7,6 +7,7 @@ import {
   GroupClassRoomParticipantsQuery,
   GroupClassRoomPreReserveQuery,
   GroupClassRoomQuery,
+  GroupClassRoomServicesQuery,
   IntroductionMethodQuery,
   PreReserveQuery,
   ProductQuery,
@@ -164,9 +165,8 @@ export const routes = {
   groupClassRoom: {
     getAll: (query?: GroupClassRoomQuery) =>
       'group-class-room' + (query ? prepareQuery(query) : ''),
-    getServices: (query?: GroupClassRoomQuery) =>
-      'group-class-room/services' +
-      (query?.search ? prepareQuery({search: query.search}) : ''),
+    getServices: (query?: GroupClassRoomServicesQuery) =>
+      'group-class-room/services' + (query ? prepareQuery(query) : ''),
     getParticipants: (id: number, query: GroupClassRoomParticipantsQuery) =>
       `group-class-room/participants/${id}` + prepareQuery(query),
     getOrganizationUnit: () => 'group-class-room/organization-unit',
