@@ -189,7 +189,9 @@ export interface subProducts {
   amount?: number | null;
   tax?: number;
   OrganizationUnit?: OrganizationUnit | null;
+  organizationUnit?: OrganizationUnit | null;
   SaleUnit?: SaleUnit | null;
+  saleUnit?: SaleUnit | null;
   organizationUnitId?: number | null;
   parentId?: number;
   productId?: number;
@@ -253,6 +255,8 @@ export interface SessionDetail {
   lockers?: number[];
   contractor?: User;
   quantity?: number;
+  organizationUnit?: OrganizationUnit;
+  organizationUnitId?: number;
 }
 
 export type SessionDetails = SessionDetail[];
@@ -261,6 +265,8 @@ export interface ChargingServiceByIDRes {
   submitAt: string;
   amount: number;
   remain: number;
+  organizationUnit?: OrganizationUnit;
+  organizationUnitId?: number;
 }
 export interface GetUserSaleOrderRes {
   content: SaleOrderContent[];
@@ -294,6 +300,8 @@ export interface SaleOrderContent {
   items?: SaleOrderItem[];
   shiftWork?: Record<string, unknown>;
   shiftWorkId?: number;
+  organizationUnit?: OrganizationUnit;
+  organizationUnitId?: number;
   saleUnit?: SaleUnit;
   saleUnitId?: number;
   lockers?: LockerObj[];
@@ -651,6 +659,8 @@ export interface SaleTransaction {
   isTransfer?: boolean;
   meta?: any; //need Review
   user?: User;
+  organizationUnit?: OrganizationUnit;
+  saleUnit?: SaleUnit;
   fiscalYearId?: number;
   organizationUnitId?: number;
   userId?: number;

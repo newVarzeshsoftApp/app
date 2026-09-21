@@ -42,6 +42,7 @@ const CreditCard: React.FC<{data: Content}> = ({data}) => {
       </View>
       <View className="pt-3 gap-3">
         <CreditSubProduct
+          inCard
           subProducts={data.product?.subProducts}
           hasSubProduct={data.product?.hasSubProduct}
         />

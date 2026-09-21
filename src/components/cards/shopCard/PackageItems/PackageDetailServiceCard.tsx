@@ -13,6 +13,8 @@ import {
 import {TruncatedText} from '../../../TruncatedText';
 import {useBase64ImageFromMedia} from '../../../../utils/hooks/useBase64Image';
 import PackageDetailItemContractor from './PackageDetailItemContractor';
+import ServiceOrganizationUnits from '../../../organizationUnit/ServiceOrganizationUnits';
+import {ProductType} from '../../../../constants/options';
 
 type PackageDetailServiceCardProps = {
   subProduct: subProducts;
@@ -69,6 +71,10 @@ const PackageDetailServiceCard: React.FC<PackageDetailServiceCardProps> = ({
       </View>
       <View className="gap-2 pt-3">
         <BaseText type="title4">{product?.title ?? ''}</BaseText>
+        <ServiceOrganizationUnits
+          isService={product?.type === ProductType.Service}
+          units={product?.deliveryOrganizationUnits}
+        />
         {product?.isCashBack ? (
           <View className="flex-row">
             <Badge GiftMode defaultMode value={t('shopGift')} />

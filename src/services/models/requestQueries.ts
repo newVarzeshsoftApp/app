@@ -123,6 +123,11 @@ export interface ReservationQuery {
   start: string; // "2025/12/01"
   end?: string; // "2025/12/01"
   days?: string; // "1,2" (comma-separated day numbers)
+  organizationUnitId?: number;
+}
+
+export interface ReservationOrganizationUnitQuery {
+  organizationUnitId?: number;
 }
 
 export interface PreReserveQuery {
@@ -138,6 +143,12 @@ export interface PreReserveQuery {
 export interface ContractorQuery {
   type: 'GroupClassRoom';
   service?: string;
+  organizationUnitId?: number;
+}
+
+export interface GroupClassRoomServicesQuery {
+  organizationUnitId?: number;
+  search?: string;
 }
 
 export interface GroupClassRoomQuery {
@@ -146,7 +157,7 @@ export interface GroupClassRoomQuery {
   contractor?: string;
   organizationUnit?: string;
   service?: string;
-  search?: string; // For group-class-room/services
+  search?: string;
   limit?: number;
   offset?: number;
 }

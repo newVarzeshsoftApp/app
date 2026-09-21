@@ -7,9 +7,11 @@ import {
   GroupClassRoomParticipantsQuery,
   GroupClassRoomPreReserveQuery,
   GroupClassRoomQuery,
+  GroupClassRoomServicesQuery,
   IntroductionMethodQuery,
   PreReserveQuery,
   ProductQuery,
+  ReservationOrganizationUnitQuery,
   ReservationQuery,
   UserPaymentQuey,
   UserSaleItemQuey,
@@ -140,8 +142,11 @@ export const routes = {
     createConfig: () => 'config',
   },
   reservation: {
-    getTags: () => 'reservation/tags',
-    getPatterns: () => 'reservation/patterns',
+    getTags: (query?: ReservationOrganizationUnitQuery) =>
+      'reservation/tags' + (query ? prepareQuery(query) : ''),
+    getPatterns: (query?: ReservationOrganizationUnitQuery) =>
+      'reservation/patterns' + (query ? prepareQuery(query) : ''),
+    getOrganizationUnit: () => 'reservation/organization-unit',
     getReservation: (query: ReservationQuery) => {
       const {tagId, ...restQuery} = query;
       return `reservation/${tagId}` + prepareQuery(restQuery);
@@ -160,8 +165,8 @@ export const routes = {
   groupClassRoom: {
     getAll: (query?: GroupClassRoomQuery) =>
       'group-class-room' + (query ? prepareQuery(query) : ''),
-    getServices: (query?: GroupClassRoomQuery) =>
-      'group-class-room/services' + (query?.search ? prepareQuery({search: query.search}) : ''),
+    getServices: (query?: GroupClassRoomServicesQuery) =>
+      'group-class-room/services' + (query ? prepareQuery(query) : ''),
     getParticipants: (id: number, query: GroupClassRoomParticipantsQuery) =>
       `group-class-room/participants/${id}` + prepareQuery(query),
     getOrganizationUnit: () => 'group-class-room/organization-unit',

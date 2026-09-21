@@ -1,5 +1,5 @@
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
-import React, {useEffect, useLayoutEffect, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {
   ActivityIndicator,
   Platform,
@@ -19,14 +19,27 @@ import {Category} from '../../services/models/response/CategoryResService';
 import {manualItem} from './constant/constant';
 import {Product} from '../../services/models/response/ProductResService';
 import {UseGetProduct} from '../../utils/hooks/Product/UseGetProduct';
-import CategoryList from './components/CategoryList';
+import CategoryList, {FilterChipItem} from './components/CategoryList';
 import ShopServiceCard from '../../components/cards/shopCard/ShopServiceCard';
 import BaseText from '../../components/BaseText';
 import {navigate} from '../../navigation/navigationRef';
+import {
+  useGetOrganizationBySKU,
+  useIsMultiOrg,
+} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
+import {productMatchesOrganizationUnit} from '../../utils/helpers/organizationUnits';
 
 type ServiceScreenProp = NativeStackScreenProps<ShopStackParamList, 'service'>;
-const ServiceScreen: React.FC<ServiceScreenProp> = ({navigation, route}) => {
+
+const ALL_BRANCH_FILTER: FilterChipItem = {
+  id: 'all',
+  title: 'همه',
+};
+
+const ServiceScreen: React.FC<ServiceScreenProp> = ({navigation}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Shop.Service'});
+  const isMultiOrg = useIsMultiOrg();
+  const {data: organization} = useGetOrganizationBySKU();
   const scrollY = useSharedValue(0);
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: event => {
@@ -52,7 +65,9 @@ const ServiceScreen: React.FC<ServiceScreenProp> = ({navigation, route}) => {
 
   const [SelectedCategory, setSelectedCategory] =
     useState<Category>(manualItem);
-  const {data: CategoryData, isLoading: CategoryIsLoading} = useGetCategory({
+  const [selectedBranch, setSelectedBranch] =
+    useState<FilterChipItem>(ALL_BRANCH_FILTER);
+  const {data: CategoryData} = useGetCategory({
     type: {equals: ProductType.Service},
   });
   const [offset, setOffset] = useState(0);
@@ -60,6 +75,18 @@ const ServiceScreen: React.FC<ServiceScreenProp> = ({navigation, route}) => {
   const augmentedCategoryData = CategoryData
     ? [manualItem, ...CategoryData]
     : [];
+  const branchFilterItems = useMemo<FilterChipItem[]>(() => {
+    const units = organization?.organizationUnits ?? [];
+    return [
+      ALL_BRANCH_FILTER,
+      ...units.map(unit => ({
+        id: unit.id,
+        title: unit.title,
+      })),
+    ];
+  }, [organization?.organizationUnits]);
+  const selectedOrganizationUnitId =
+    selectedBranch.id === 'all' ? undefined : Number(selectedBranch.id);
   const {
     data: ProductData,
     isLoading: ProductIsLoading,
@@ -78,10 +105,55 @@ const ServiceScreen: React.FC<ServiceScreenProp> = ({navigation, route}) => {
     setData([]);
   }, [SelectedCategory]);
   useEffect(() => {
-    if (ProductData?.content) {
-      setData(prevItems => [...prevItems, ...ProductData.content]);
+    if (!ProductData?.content) {
+      return;
     }
-  }, [ProductData]);
+    setData(prevItems => {
+      if (offset === 0) {
+        return ProductData.content;
+      }
+      const existingIds = new Set(prevItems.map(item => item.id));
+      const nextItems = ProductData.content.filter(
+        item => !existingIds.has(item.id),
+      );
+      return nextItems.length ? [...prevItems, ...nextItems] : prevItems;
+    });
+  }, [ProductData, offset]);
+  useEffect(() => {
+    if (selectedOrganizationUnitId == null) {
+      return;
+    }
+    if (ProductIsLoading || ProductDataIsFetching || ProductIsError) {
+      return;
+    }
+    if (!ProductData) {
+      return;
+    }
+    if (!ProductData.content?.length) {
+      return;
+    }
+    if (data.length < (ProductData.total ?? 0)) {
+      setOffset(prevOffset => prevOffset + limit);
+    }
+  }, [
+    selectedOrganizationUnitId,
+    ProductIsLoading,
+    ProductDataIsFetching,
+    ProductIsError,
+    ProductData,
+    data.length,
+  ]);
+  const visibleData = useMemo(
+    () =>
+      data.filter(item =>
+        productMatchesOrganizationUnit(item, selectedOrganizationUnitId),
+      ),
+    [data, selectedOrganizationUnitId],
+  );
+  const isLoadingMorePages =
+    selectedOrganizationUnitId != null &&
+    (ProductIsLoading || ProductDataIsFetching) &&
+    data.length < (ProductData?.total ?? 0);
   const loadMore = () => {
     if (
       !ProductIsError &&
@@ -95,14 +167,25 @@ const ServiceScreen: React.FC<ServiceScreenProp> = ({navigation, route}) => {
   return (
     <View className="flex-1  ">
       <Animated.FlatList
-        data={data}
+        data={visibleData}
         onScroll={scrollHandler}
         ListHeaderComponent={
-          <CategoryList
-            data={augmentedCategoryData}
-            selectedCategory={SelectedCategory}
-            onCategorySelect={setSelectedCategory}
-          />
+          <View>
+            <CategoryList
+              data={augmentedCategoryData}
+              selectedCategory={SelectedCategory}
+              onCategorySelect={setSelectedCategory}
+              paddingBottom={isMultiOrg ? 8 : 24}
+            />
+            {isMultiOrg ? (
+              <CategoryList
+                data={branchFilterItems}
+                selectedCategory={selectedBranch}
+                onCategorySelect={setSelectedBranch}
+                paddingTop={0}
+              />
+            ) : null}
+          </View>
         }
         onEndReached={loadMore}
         keyExtractor={(item, index) => `key-${index}`}
@@ -127,14 +210,14 @@ const ServiceScreen: React.FC<ServiceScreenProp> = ({navigation, route}) => {
         scrollEventThrottle={16}
         style={{flex: 1}}
         ListFooterComponent={
-          ProductIsLoading ? (
+          ProductIsLoading || isLoadingMorePages ? (
             <View style={{marginTop: 16, alignItems: 'center'}}>
               <ActivityIndicator size="large" color="#bcdd64" />
             </View>
           ) : null
         }
         ListEmptyComponent={
-          !ProductIsLoading && !ProductIsError ? (
+          !ProductIsLoading && !ProductIsError && !isLoadingMorePages ? (
             <View className="flex-1 items-center justify-center flex-row py-10">
               <BaseText type="subtitle1" color="secondary">
                 {t('noServicesFound')}
@@ -148,7 +231,7 @@ const ServiceScreen: React.FC<ServiceScreenProp> = ({navigation, route}) => {
         contentContainerStyle={{
           paddingTop: 80,
           flexGrow: 1,
-          paddingBottom: ProductIsLoading ? 40 : 20,
+          paddingBottom: ProductIsLoading || isLoadingMorePages ? 40 : 20,
         }}
       />
     </View>

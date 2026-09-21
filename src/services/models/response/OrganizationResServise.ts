@@ -27,6 +27,18 @@ export type Logo = {
   isPrivate: boolean;
 };
 
+export type OrganizationUnitItem = {
+  id: number;
+  title: string;
+  sourceId: number;
+  organizationId?: number;
+};
+
+export type DeliveryOrganizationUnit = {
+  organizationUnitId: number;
+  organizationUnitTitle: string;
+};
+
 export type GetAllOrganizationResponse = {
   banners: Banner[];
   id: number;
@@ -39,4 +51,5 @@ export type GetAllOrganizationResponse = {
   imageUrl: string | null;
   officialLogo: Logo;
   brandedLogo: Logo;
+  organizationUnits?: OrganizationUnitItem[];
 };

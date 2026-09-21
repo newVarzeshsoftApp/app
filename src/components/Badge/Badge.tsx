@@ -15,6 +15,7 @@ function Badge({
   defaultMode,
   CreditMode,
   GiftMode,
+  numberOfLines,
 }: IBadge) {
   return (
     <View
@@ -30,6 +31,7 @@ function Badge({
       {GiftMode && <Gift variant="Bold" color="#A27EB7" />}
       <BaseText
         type="subtitle3"
+        numberOfLines={numberOfLines}
         color={
           CreditMode ? 'supportive1' : GiftMode ? 'supportive2' : textColor
         }>

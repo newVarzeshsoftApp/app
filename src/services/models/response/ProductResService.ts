@@ -1,3 +1,5 @@
+import {ActivityField} from '../../../constants/options';
+import {DeliveryOrganizationUnit} from './OrganizationResServise';
 import {subProducts, User} from './UseResrService';
 export interface Contractors {
   contractorId?: number;
@@ -8,6 +10,7 @@ export interface Contractors {
   id?: number;
   percent?: number;
   updatedAt?: string;
+  activityFields?: ActivityField[] | number[] | string[];
 }
 export interface Product {
   title: string;
@@ -83,6 +86,7 @@ export interface Product {
   tagProductParent: any | null;
   lockerLocation: any | null;
   categoryId: number;
+  deliveryOrganizationUnits?: DeliveryOrganizationUnit[];
 }
 
 export interface ProductPageRes {

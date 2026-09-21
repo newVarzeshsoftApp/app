@@ -1,8 +1,12 @@
-import React from 'react';
-import {Text, View} from 'react-native';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
 import {subProducts} from '../../services/models/response/UseResrService';
 import Badge from '../Badge/Badge';
 import {useTranslation} from 'react-i18next';
+import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
+import {getSubProductRestrictionTitle} from '../../utils/helpers/organizationUnits';
+
+const MAX_VISIBLE_IN_CARD = 2;
 
 type SubProductProps = {
   hasSubProduct?: boolean;
@@ -15,43 +19,69 @@ const CreditSubProduct: React.FC<SubProductProps> = ({
   inCard,
 }) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Home'});
-  const getTitle = (item: subProducts): string => {
-    if (item.product?.title) {
-      return item.product?.title;
-    } else if (item?.category?.title) {
-      return `${t('allServicesInCategory')} ${item.category?.title}`;
-    } else if (item.SaleUnit?.title) {
-      return `${t('allServicesInSalesUnit')} ${item.SaleUnit?.title}`;
-    } else if (item.OrganizationUnit?.title) {
-      return `${t('allServicesInOrganizationalUnit')} ${
-        item.OrganizationUnit?.title
-      }`;
+  const {data: organization} = useGetOrganizationBySKU();
+  const getTitle = (item: subProducts): string =>
+    getSubProductRestrictionTitle(
+      item,
+      {
+        allServicesInCategory: t('allServicesInCategory'),
+        allServicesInSalesUnit: t('allServicesInSalesUnit'),
+        allServicesInBranch: t('allServicesInOrganizationalUnit'),
+        noLimit: t('noLimit'),
+        allServices: t('allServices'),
+        categoryNoun: t('categoryNoun'),
+        salesUnitNoun: t('saleUnit'),
+        inCategory: t('inCategory'),
+        inSalesUnit: t('inSalesUnit'),
+        inBranch: t('inBranch'),
+      },
+      organization?.organizationUnits,
+    );
+  const items = useMemo(() => {
+    if (!hasSubProduct) {
+      return [];
     }
-    return t('noLimit');
-  };
+    return subProducts ?? [];
+  }, [hasSubProduct, subProducts]);
+  const visibleItems = inCard
+    ? items.slice(0, MAX_VISIBLE_IN_CARD)
+    : items;
+  const hasOverflow = inCard && items.length > MAX_VISIBLE_IN_CARD;
+
   return (
     <View
-      className={`flex-row items-center gap-1  ${
-        inCard ? ' overflow-hidden' : 'flex-wrap gap-3'
-      }`}>
+      className={
+        inCard
+          ? 'w-full gap-1 items-start'
+          : 'w-full flex-row flex-wrap items-center gap-3'
+      }>
       {hasSubProduct ? (
-        subProducts?.map((item, index) => {
-          return (
+        <>
+          {visibleItems.map((item, index) => (
             <Badge
               key={index}
               defaultMode
               textColor="secondaryPurple"
               value={getTitle(item)}
-              className="w-fit"
+              numberOfLines={inCard ? 1 : undefined}
+              className="max-w-full"
             />
-          );
-        })
+          ))}
+          {hasOverflow ? (
+            <Badge
+              defaultMode
+              textColor="muted"
+              value={t('couldNotFit')}
+              className="max-w-full"
+            />
+          ) : null}
+        </>
       ) : (
         <Badge
           defaultMode
           textColor="secondaryPurple"
           value={t('noLimit')}
-          className="w-fit"
+          className="max-w-full"
         />
       )}
     </View>

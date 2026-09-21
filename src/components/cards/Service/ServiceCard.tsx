@@ -12,6 +12,8 @@ import {ColorRingConfig} from '../../../constants/options';
 import {TypeTextColor} from '../../../models/stylingTypes';
 import {useBase64ImageFromMedia} from '../../../utils/hooks/useBase64Image';
 import StatusDot from '../../StatusDot';
+import ServiceOrganizationUnits from '../../organizationUnit/ServiceOrganizationUnits';
+import {SaleUnitType} from '../../../constants/options';
 
 const ServiceCard: React.FC<{data: Content}> = ({data}) => {
   const progress =
@@ -75,6 +77,10 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
         </View>
       </View>
       <View className="pt-3 gap-3">
+        <ServiceOrganizationUnits
+          isService={data?.type === SaleUnitType.Service}
+          units={data?.product?.deliveryOrganizationUnits}
+        />
         <View className="flex-row items-center justify-between">
           {data?.contractor ? (
             <ContractorInfo

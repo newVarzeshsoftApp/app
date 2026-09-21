@@ -5,10 +5,20 @@ import {useTranslation} from 'react-i18next';
 import BaseButton from '../../../components/Button/BaseButton';
 import {SaleOrderByIDRes} from '../../../services/models/response/UseResrService';
 import moment from 'jalali-moment';
-import {formatNumber, formatJalaliDateTime, formatTimeHHmm} from '../../../utils/helpers/helpers';
+import {
+  formatNumber,
+  formatJalaliDateTime,
+  formatTimeHHmm,
+} from '../../../utils/helpers/helpers';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {OrderStackParamList} from '../../../utils/types/NavigationTypes';
 import {navigate} from '../../../navigation/navigationRef';
+import HistoryLocationMeta from '../../../components/organizationUnit/HistoryLocationMeta';
+import {
+  getHistoricalOrganizationUnitTitle,
+  getHistoricalSaleUnitTitle,
+} from '../../../utils/helpers/organizationUnits';
+import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetOrganizationBySKU';
 type OrderDetailProps = {
   item: SaleOrderByIDRes;
   isReseption?: boolean;
@@ -20,6 +30,7 @@ type NavigationProps = NativeStackNavigationProp<
 
 const OrderDetailCard: React.FC<OrderDetailProps> = ({item, isReseption}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
+  const {data: organization} = useGetOrganizationBySKU();
   return (
     <View className="CardBase">
       <View className="gap-2">
@@ -31,6 +42,16 @@ const OrderDetailCard: React.FC<OrderDetailProps> = ({item, isReseption}) => {
             {item.id}
           </BaseText>
         </View>
+        <HistoryLocationMeta
+          organizationUnitTitle={getHistoricalOrganizationUnitTitle(
+            item,
+            organization?.organizationUnits,
+          )}
+          saleUnitTitle={
+            isReseption ? undefined : getHistoricalSaleUnitTitle(item)
+          }
+          showSaleUnit={!isReseption}
+        />
         {!isReseption ? (
           <>
             <View className="flex-row items-center justify-between ">

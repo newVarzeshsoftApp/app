@@ -17,6 +17,8 @@ import {useCartContext} from '../../../utils/CartContext';
 import ContractorInfo from '../../ContractorInfo/ContractorInfo';
 import CartExpiryNotice from './CartExpiryNotice';
 import {useDefaultCartItemRemainingTime} from '../../../utils/hooks/useDefaultCartItemRemainingTime';
+import ServiceOrganizationUnits from '../../organizationUnit/ServiceOrganizationUnits';
+import {ProductType} from '../../../constants/options';
 
 type CartPackageCardProps = {
   data: CartItem;
@@ -138,32 +140,41 @@ const CartPackageCard: React.FC<CartPackageCardProps> = ({data}) => {
 
                   if (!showItemContractor) {
                     return (
-                      <Badge
-                        key={`item-${index}`}
-                        CreditMode={item.product?.type === 2}
-                        defaultMode
-                        textColor="supportive5"
-                        className="w-fit"
-                        value={item.product?.title ?? ''}
-                      />
+                      <View key={`item-${index}`} className="gap-1">
+                        <Badge
+                          CreditMode={item.product?.type === 2}
+                          defaultMode
+                          textColor="supportive5"
+                          className="w-fit"
+                          value={item.product?.title ?? ''}
+                        />
+                        <ServiceOrganizationUnits
+                          isService={item.product?.type === ProductType.Service}
+                          units={item.product?.deliveryOrganizationUnits}
+                        />
+                      </View>
                     );
                   }
 
                   return (
-                    <View
-                      key={`item-${index}`}
-                      className="flex-row items-center justify-between gap-2">
-                      <Badge
-                        CreditMode={item.product?.type === 2}
-                        defaultMode
-                        textColor="supportive5"
-                        className="w-fit shrink"
-                        value={item.product?.title ?? ''}
-                      />
-                      <ContractorInfo
-                        fullName={contractorName}
-                        imageName={itemContractor.imageName}
-                        gender={itemContractor.gender}
+                    <View key={`item-${index}`} className="gap-1">
+                      <View className="flex-row items-center justify-between gap-2">
+                        <Badge
+                          CreditMode={item.product?.type === 2}
+                          defaultMode
+                          textColor="supportive5"
+                          className="w-fit shrink"
+                          value={item.product?.title ?? ''}
+                        />
+                        <ContractorInfo
+                          fullName={contractorName}
+                          imageName={itemContractor.imageName}
+                          gender={itemContractor.gender}
+                        />
+                      </View>
+                      <ServiceOrganizationUnits
+                        isService={item.product?.type === ProductType.Service}
+                        units={item.product?.deliveryOrganizationUnits}
                       />
                     </View>
                   );

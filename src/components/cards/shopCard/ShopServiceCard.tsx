@@ -7,6 +7,8 @@ import {useTranslation} from 'react-i18next';
 import {formatNumber} from '../../../utils/helpers/helpers';
 import {TruncatedText} from '../../TruncatedText';
 import {useBase64ImageFromMedia} from '../../../utils/hooks/useBase64Image';
+import ServiceOrganizationUnits from '../../organizationUnit/ServiceOrganizationUnits';
+import {ProductType} from '../../../constants/options';
 type ShopServiceProps = {
   data: Product;
 };
@@ -41,6 +43,10 @@ const ShopServiceCard: React.FC<ShopServiceProps> = ({data}) => {
       </View>
       <View className="gap-2 pt-3">
         <BaseText type="title4">{data.title}</BaseText>
+        <ServiceOrganizationUnits
+          isService={data.type === ProductType.Service}
+          units={data.deliveryOrganizationUnits}
+        />
         {data.isCashBack && (
           <View className="flex-row">
             <Badge GiftMode defaultMode value={t('shopGift')} />
@@ -51,16 +57,23 @@ const ShopServiceCard: React.FC<ShopServiceProps> = ({data}) => {
             {/*{data.unlimited*/}
             {/*  ? t('unlimitedServicePrice')*/}
             {/*  : t('SingleservicePrice')}{' '}*/}
-            {
-              t('unlimitedServicePrice')
-            }{' :'}
+            {t('unlimitedServicePrice')}
+            {' :'}
           </BaseText>
           <BaseText type="body3" color="secondaryPurple">
             {/*{formatNumber(data.price ?? 0)} ﷼*/}
-            {(data?.priceList && data?.priceList?.length>1)
-                ? `${formatNumber(data?.priceList?.sort((a,b)=>a.price-b.price)[0]?.price ?? 0)}  تا ${formatNumber(data?.priceList?.sort((a,b)=>b.price-a.price)[0]?.price ?? 0)}`
-                : formatNumber(data?.priceList?.[0]?.price ?? data.price ??0)
-            } ﷼
+            {data?.priceList && data?.priceList?.length > 1
+              ? `${formatNumber(
+                  data?.priceList?.sort((a, b) => a.price - b.price)[0]
+                    ?.price ?? 0,
+                )}  تا ${formatNumber(
+                  data?.priceList?.sort((a, b) => b.price - a.price)[0]
+                    ?.price ?? 0,
+                )}`
+              : formatNumber(
+                  data?.priceList?.[0]?.price ?? data.price ?? 0,
+                )}{' '}
+            ﷼
           </BaseText>
         </View>
 

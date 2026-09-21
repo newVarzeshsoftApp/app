@@ -1,28 +1,35 @@
 import React from 'react';
 import {FlatList, View} from 'react-native';
 import BaseButton from '../../../components/Button/BaseButton';
-import {Category} from '../../../services/models/response/CategoryResService';
 
-interface CategoryListProps {
-  data: Category[];
-  selectedCategory: Category;
-  onCategorySelect: (category: Category) => void;
+export type FilterChipItem = {
+  id: string | number;
+  title: string;
+};
 
+interface CategoryListProps<T extends FilterChipItem> {
+  data: T[];
+  selectedCategory: T;
+  onCategorySelect: (item: T) => void;
   itemSpacing?: number;
   listPadding?: number;
+  paddingTop?: number;
+  paddingBottom?: number;
 }
 
-const CategoryList: React.FC<CategoryListProps> = ({
+function CategoryList<T extends FilterChipItem>({
   data,
   selectedCategory,
   onCategorySelect,
   itemSpacing = 8,
   listPadding = 20,
-}) => {
+  paddingTop = 20,
+  paddingBottom = 24,
+}: CategoryListProps<T>) {
   return (
     <FlatList
       data={data}
-      style={{paddingBottom: 24, paddingTop: 20}}
+      style={{paddingBottom, paddingTop}}
       keyExtractor={(item, index) => `header-key-${index}`}
       horizontal
       showsHorizontalScrollIndicator={false}
@@ -40,6 +47,6 @@ const CategoryList: React.FC<CategoryListProps> = ({
       ItemSeparatorComponent={() => <View style={{width: itemSpacing}} />}
     />
   );
-};
+}
 
 export default CategoryList;

@@ -19,6 +19,11 @@ import {formatNumber, formatJalaliDateTime} from '../../utils/helpers/helpers';
 import {TransactionSourceType} from '../../constants/options';
 import Badge from '../../components/Badge/Badge';
 import {navigate} from '../../navigation/navigationRef';
+import HistoryLocationMeta from '../../components/organizationUnit/HistoryLocationMeta';
+import {
+  getHistoricalOrganizationUnitTitle,
+  getHistoricalSaleUnitTitle,
+} from '../../utils/helpers/organizationUnits';
 type WithdrawDetailScreenProps = NativeStackScreenProps<
   OrderStackParamList,
   'WithdrawDetail'
@@ -170,6 +175,13 @@ const WithdrawDetailScreen: React.FC<WithdrawDetailScreenProps> = ({
                             {formatNumber(data?.amount)} ریال
                           </BaseText>
                         </View>
+                        <HistoryLocationMeta
+                          organizationUnitTitle={getHistoricalOrganizationUnitTitle(
+                            data,
+                          )}
+                          saleUnitTitle={getHistoricalSaleUnitTitle(data)}
+                          showSaleUnit
+                        />
                         <View className="flex-row items-center justify-between ">
                           <BaseText type="body3" color="secondary">
                             {t('Source')}: {''}
