@@ -28,6 +28,7 @@ export type ReserveStackParamList = {
     start: string;
     end?: string;
     days?: string;
+    organizationUnitId?: number;
   };
 };
 
@@ -96,7 +97,9 @@ export type HomeStackParamList = {
   Home: undefined;
   saleItem: undefined;
   reserve: NavigatorScreenParams<ReserveStackParamList> | undefined;
-  groupClassRoom: NavigatorScreenParams<GroupClassRoomStackParamList> | undefined;
+  groupClassRoom:
+    | NavigatorScreenParams<GroupClassRoomStackParamList>
+    | undefined;
   cart: undefined;
   wallet: NavigatorScreenParams<WalletStackParamList> | undefined;
   myServices: undefined;

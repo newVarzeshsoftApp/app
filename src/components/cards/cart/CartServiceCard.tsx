@@ -36,6 +36,8 @@ import {
 } from '../../../utils/helpers/cartExpiry';
 import CartExpiryNotice from './CartExpiryNotice';
 import {useDefaultCartItemRemainingTime} from '../../../utils/hooks/useDefaultCartItemRemainingTime';
+import ServiceOrganizationUnits from '../../organizationUnit/ServiceOrganizationUnits';
+import {ProductType} from '../../../constants/options';
 type CartServiceCardProps = {
   data: CartItem;
 };
@@ -802,6 +804,10 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
           <BaseText type="subtitle2" color="secondaryPurple">
             {t('order Detail')}
           </BaseText>
+          <ServiceOrganizationUnits
+            isService={product?.type === ProductType.Service}
+            units={product?.deliveryOrganizationUnits}
+          />
           <View className="flex-row items-center justify-between">
             <BaseText type="subtitle3" color="secondary">
               {t('Number of sessions')} :

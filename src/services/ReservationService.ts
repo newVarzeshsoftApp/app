@@ -6,9 +6,8 @@ import {PreReserveQuery, ReservationQuery} from './models/requestQueries';
 import {
   AuthResponseSignUpDto,
   ReservationExpiresTimeRes,
-  ReservationPattern,
+  ReservationOrganizationUnitResponse,
   ReservationPatternsResponse,
-  ReservationTag,
   ReservationTagsResponse,
   ResPreReserveDTO,
   ResponseReserveViewResponseDto,
@@ -19,12 +18,14 @@ import {
   PreReserveDTO,
 } from './models/request/ReservationReqService';
 import {handleMutationError} from '../utils/helpers/errorHandler';
+import {toOptionalOrganizationUnitId} from '../utils/helpers/organizationUnits';
 
 const {
   baseUrl,
   reservation: {
     getTags,
     getPatterns,
+    getOrganizationUnit,
     getReservation,
     preReserve,
     calculatePrice,
@@ -35,10 +36,40 @@ const {
 } = routes;
 
 const ReservationService = {
-  GetTags: async (): Promise<ReservationTagsResponse> => {
+  GetOrganizationUnit:
+    async (): Promise<ReservationOrganizationUnitResponse> => {
+      try {
+        const response =
+          await axiosInstance.get<ReservationOrganizationUnitResponse>(
+            baseUrl + getOrganizationUnit(),
+          );
+        if (response.status === Status.Ok) {
+          return response.data;
+        } else {
+          throw new Error(`Request failed with status ${response.status}`);
+        }
+      } catch (error) {
+        console.error(
+          'Error in GetReservationOrganizationUnit function:',
+          error,
+        );
+        if (axios.isAxiosError(error) && error.response) {
+          handleMutationError(error);
+          throw new Error(
+            error.response?.data?.message || 'Unknown error occurred',
+          );
+        }
+        throw error;
+      }
+    },
+
+  GetTags: async (
+    organizationUnitId?: number,
+  ): Promise<ReservationTagsResponse> => {
     try {
+      const unitId = toOptionalOrganizationUnitId(organizationUnitId);
       const response = await axiosInstance.get<ReservationTagsResponse>(
-        baseUrl + getTags(),
+        baseUrl + getTags(unitId ? {organizationUnitId: unitId} : undefined),
       );
       if (response.status === Status.Ok) {
         return response.data;
@@ -57,10 +88,14 @@ const ReservationService = {
     }
   },
 
-  GetPatterns: async (): Promise<ReservationPatternsResponse> => {
+  GetPatterns: async (
+    organizationUnitId?: number,
+  ): Promise<ReservationPatternsResponse> => {
     try {
+      const unitId = toOptionalOrganizationUnitId(organizationUnitId);
       const response = await axiosInstance.get<ReservationPatternsResponse>(
-        baseUrl + getPatterns(),
+        baseUrl +
+          getPatterns(unitId ? {organizationUnitId: unitId} : undefined),
       );
       if (response.status === Status.Ok) {
         return response.data;

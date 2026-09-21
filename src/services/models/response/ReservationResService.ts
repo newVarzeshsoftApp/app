@@ -1,4 +1,8 @@
 import {Product} from './ProductResService';
+import {DeliveryOrganizationUnit} from './OrganizationResServise';
+
+export type ReservationOrganizationUnit = DeliveryOrganizationUnit;
+export type ReservationOrganizationUnitResponse = ReservationOrganizationUnit[];
 
 export interface ReservationTag {
   id: number;

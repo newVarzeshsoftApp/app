@@ -79,7 +79,7 @@ const PackageDetailCreditCard: React.FC<PackageDetailCreditCardProps> = ({
           </BaseText>
         ) : null}
       </View>
-      <View className="pt-3 gap-3">
+      <View className="pt-3 gap-2">
         <View className="flex-row items-center justify-between">
           <BaseText type="subtitle3" color="secondary">
             {t('usedFor')}

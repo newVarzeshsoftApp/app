@@ -50,6 +50,8 @@ import {
   setPackageItemContractorSelection,
 } from '../../utils/helpers/packageContractorStore';
 import {filterContractorsForRegistration} from '../../utils/helpers/contractorActivity';
+import ServiceOrganizationUnits from '../../components/organizationUnit/ServiceOrganizationUnits';
+import {ProductType} from '../../constants/options';
 
 type ServiceDetailProp = NativeStackScreenProps<
   ShopStackParamList,
@@ -375,6 +377,10 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                       <BaseText color="base" type="title3">
                         {route.params.title}
                       </BaseText>
+                      <ServiceOrganizationUnits
+                        isService={data?.type === ProductType.Service}
+                        units={data?.deliveryOrganizationUnits}
+                      />
                       {isLoading ? (
                         <View
                           style={{

@@ -5,6 +5,7 @@ import {ReservationQuery} from '../../../../services/models/requestQueries';
 import {TimeSlot} from '../utils/types';
 import {formatDate} from '../utils/helpers';
 import {VISIBLE_DAYS_COUNT} from '../utils/constants';
+import {toOptionalOrganizationUnitId} from '../../../../utils/helpers/organizationUnits';
 
 interface UseReservationDataParams {
   tagId?: number;
@@ -16,6 +17,7 @@ interface UseReservationDataParams {
   start?: string;
   end?: string;
   days?: number[] | string;
+  organizationUnitId?: number;
 }
 
 export const useReservationData = (params: UseReservationDataParams) => {
@@ -35,6 +37,12 @@ export const useReservationData = (params: UseReservationDataParams) => {
       baseQuery.days = Array.isArray(params.days)
         ? params.days.join(',')
         : params.days;
+    }
+    const organizationUnitId = toOptionalOrganizationUnitId(
+      params.organizationUnitId,
+    );
+    if (organizationUnitId !== undefined) {
+      baseQuery.organizationUnitId = organizationUnitId;
     }
 
     return baseQuery as ReservationQuery;

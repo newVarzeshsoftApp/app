@@ -72,6 +72,14 @@ export enum ProductType {
   Package,
 }
 
+export enum SaleUnitType {
+  Product,
+  Service,
+  Credit,
+  Reception,
+  Package,
+}
+
 export enum ActivityField {
   Registration = 1, // ثبت نام خدمت جدید
   RegisteredReception = 2, // پذیرش خدمت ثبت نام شده
