@@ -6,10 +6,25 @@ import {ArrowUp, FlashCircle} from 'iconsax-react-native';
 import BaseText from '../../BaseText';
 import moment from 'jalali-moment';
 import {formatNumber} from '../../../utils/helpers/helpers';
+import {
+  formatForcedEndDate,
+  getSessionCount,
+  isChargeBySession,
+} from '../../../utils/helpers/chargingServiceDisplay';
 import CreditSubProduct from '../SubProduct';
 
 const CreditCard: React.FC<{data: Content}> = ({data}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Home'});
+  const chargeBySession = isChargeBySession(data.product);
+  const remainingCredit = (data?.credit ?? 0) - (data?.usedCredit ?? 0);
+  const remainingSessions = chargeBySession
+    ? getSessionCount(remainingCredit, data.product)
+    : null;
+  const forcedEndDateLabel = formatForcedEndDate(data.product, {
+    usePersianLocale: true,
+  });
+  const showsSessions = remainingSessions !== null;
+
   return (
     <View className="BaseServiceCard">
       <View className="flex-row items-start justify-between pb-4 border-b border-neutral-0 dark:border-neutral-dark-400/50">
@@ -26,10 +41,10 @@ const CreditCard: React.FC<{data: Content}> = ({data}) => {
             </BaseText>
             <View className="flex-row gap-1 items-center">
               <BaseText type="title2" color="base">
-                {formatNumber((data?.credit ?? 0) - (data?.usedCredit ?? 0))}
+                {formatNumber(showsSessions ? remainingSessions : remainingCredit)}
               </BaseText>
               <BaseText type="subtitle3" color="base">
-                ریال
+                {showsSessions ? 'جلسه' : 'ریال'}
               </BaseText>
             </View>
           </View>
@@ -59,12 +74,13 @@ const CreditCard: React.FC<{data: Content}> = ({data}) => {
           </BaseText>
           <BaseText type="body3" color="secondary">
             {t('end')} {''} : {''}
-            {moment(data.end)
-              .local(
-                // @ts-ignore
-                'fa',
-              )
-              .format('jYYYY/jMM/jDD')}
+            {forcedEndDateLabel ??
+              moment(data.end)
+                .local(
+                  // @ts-ignore
+                  'fa',
+                )
+                .format('jYYYY/jMM/jDD')}
           </BaseText>
         </View>
       </View>

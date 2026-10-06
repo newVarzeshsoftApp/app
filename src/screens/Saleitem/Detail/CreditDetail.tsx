@@ -10,6 +10,11 @@ import {FlashCircle, RepeatCircle} from 'iconsax-react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import BaseText from '../../../components/BaseText';
 import {formatNumber} from '../../../utils/helpers/helpers';
+import {
+  formatForcedEndDate,
+  getSessionCount,
+  isChargeBySession,
+} from '../../../utils/helpers/chargingServiceDisplay';
 import BaseButton from '../../../components/Button/BaseButton';
 import {useTranslation} from 'react-i18next';
 import Badge from '../../../components/Badge/Badge';
@@ -45,6 +50,17 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
   route,
 }) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Detail'});
+  const chargeBySession = isChargeBySession(data.product);
+  const remainingCredit = (data?.credit ?? 0) - (data?.usedCredit ?? 0);
+  const remainingSessions = chargeBySession
+    ? getSessionCount(remainingCredit, data.product)
+    : null;
+  const initialSessions = chargeBySession
+    ? getSessionCount(data?.credit, data.product)
+    : null;
+  const forcedEndDateLabel = formatForcedEndDate(data.product);
+  const showsRemainingSessions = remainingSessions !== null;
+  const showsInitialSessions = initialSessions !== null;
   const {data: organization} = useGetOrganizationBySKU();
   const {data: UserChargingService, isLoading: UserChargingServiceisLoading} =
     useGetUserChargingServiceByID(data.id);
@@ -109,11 +125,13 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
                   <View className="flex-row items-center gap-2">
                     <BaseText type="title1" color="base">
                       {formatNumber(
-                        (data?.credit ?? 0) - (data?.usedCredit ?? 0),
+                        showsRemainingSessions
+                          ? remainingSessions
+                          : remainingCredit,
                       )}
                     </BaseText>
                     <BaseText type="title3" color="secondary">
-                      ریال
+                      {showsRemainingSessions ? 'جلسه' : 'ریال'}
                     </BaseText>
                   </View>
                   <View className="flex-row items-center gap-1">
@@ -121,10 +139,12 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
                       {t('Initial charge')}
                     </BaseText>
                     <BaseText type="subtitle2" color="muted">
-                      {formatNumber(data?.credit)}
+                      {formatNumber(
+                        showsInitialSessions ? initialSessions : data?.credit,
+                      )}
                     </BaseText>
                     <BaseText type="subtitle2" color="muted">
-                      ریال
+                      {showsInitialSessions ? 'جلسه' : 'ریال'}
                     </BaseText>
                   </View>
                 </View>
@@ -161,7 +181,7 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
                 </BaseText>
                 <BaseText type="body3" color="muted">
                   {t('end')} {''} : {''}
-                  {moment(data.end).format('jYYYY/jMM/jDD')}
+                  {forcedEndDateLabel ?? moment(data.end).format('jYYYY/jMM/jDD')}
                 </BaseText>
               </View>
             </View>
@@ -178,6 +198,13 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
                 </View>
               ) : UserChargingService && UserChargingService?.length > 0 ? (
                 UserChargingService.map((item, index) => {
+                  const usedSessions = chargeBySession
+                    ? getSessionCount(item?.amount, data.product)
+                    : null;
+                  const historyRemainingSessions = chargeBySession
+                    ? getSessionCount(item?.remain, data.product)
+                    : null;
+
                   return (
                     <View
                       key={index}
@@ -217,7 +244,9 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
                           {t('Amount')}:
                         </BaseText>
                         <BaseText type="body3" color="base">
-                          {formatNumber(item?.amount ?? 0)}
+                          {usedSessions !== null
+                            ? `${formatNumber(usedSessions)} جلسه`
+                            : formatNumber(item?.amount ?? 0)}
                         </BaseText>
                       </View>
                       <View className="justify-between items-center flex-row">
@@ -225,7 +254,9 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
                           {t('RemainingAmout')}:
                         </BaseText>
                         <BaseText type="body3" color="base">
-                          {formatNumber(item?.remain ?? 0)}
+                          {historyRemainingSessions !== null
+                            ? `${formatNumber(historyRemainingSessions)} جلسه`
+                            : formatNumber(item?.remain ?? 0)}
                         </BaseText>
                       </View>
                       <HistoryLocationMeta
