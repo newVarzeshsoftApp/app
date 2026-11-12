@@ -15,6 +15,7 @@ import {useBase64ImageFromMedia} from '../../../../utils/hooks/useBase64Image';
 import PackageDetailItemContractor from './PackageDetailItemContractor';
 import ServiceOrganizationUnits from '../../../organizationUnit/ServiceOrganizationUnits';
 import {ProductType} from '../../../../constants/options';
+import {useIsOrgFeatureEnabled} from '../../../../utils/hooks/Organization/useOrgConfigs';
 
 type PackageDetailServiceCardProps = {
   subProduct: subProducts;
@@ -40,6 +41,7 @@ const PackageDetailServiceCard: React.FC<PackageDetailServiceCardProps> = ({
     keyPrefix: 'Shop.Package',
   });
   const product = subProduct.product;
+  const showGift = useIsOrgFeatureEnabled('showGift');
   const display = getSubProductDisplayInfo(subProduct);
   const {data: imageSrc, isLoading} = useBase64ImageFromMedia(
     product?.image?.name,
@@ -75,7 +77,7 @@ const PackageDetailServiceCard: React.FC<PackageDetailServiceCardProps> = ({
           isService={product?.type === ProductType.Service}
           units={product?.deliveryOrganizationUnits}
         />
-        {product?.isCashBack ? (
+        {product?.isCashBack && showGift ? (
           <View className="flex-row">
             <Badge GiftMode defaultMode value={t('shopGift')} />
           </View>

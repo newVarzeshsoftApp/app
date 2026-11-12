@@ -23,12 +23,14 @@ import {ProductType, TransactionSourceType} from '../../constants/options';
 import {ReservationData} from '../../utils/helpers/CartStorage';
 import {resolveCartItemContractorId, buildPackageSaleOrderSubItems} from '../../utils/helpers/packageContractorStore';
 import {useGetPaymentResult} from '../../utils/hooks/Operational/useGetPaymentResult';
+import {useIsOrgFeatureEnabled} from '../../utils/hooks/Organization/useOrgConfigs';
 type PaymentScreenProps = NativeStackScreenProps<
   DrawerStackParamList,
   'Paymentresult'
 >;
 const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'payment'});
+  const canPayOnline = useIsOrgFeatureEnabled('onlinePayment');
   const queryClient = useQueryClient();
   const [PaymentData, setPaymentData] = useState<PaymentVerifyRes | null>(null);
   const {profile: ProfileData} = useAuth();
@@ -702,7 +704,7 @@ const PaymentScreen: React.FC<PaymentScreenProps> = ({navigation, route}) => {
               )}
             </View>
             <View className="gap-2">
-              {!isSuccses && (
+              {!isSuccses && canPayOnline && (
                 <BaseButton
                   onPress={CreateNewPayment}
                   disabled={!PaymentData}

@@ -10,6 +10,7 @@ export const useGetOrganizationBySKU = (): UseQueryResult<
   return useQuery({
     queryKey: ['OrganizationBySKU'],
     queryFn: () => OrganizationServise.GetOrganizationBySKU(),
+    staleTime: 5 * 60 * 1000,
   });
 };
 

@@ -10,7 +10,10 @@
     "wallet": "کیف پول",
     "Error500": "خطای ۵۰۰",
     "more": "مشاهده بیشتر",
-    "myServices": "خدمات من"
+    "myServices": "خدمات من",
+    "featureUnavailable": "این قابلیت برای این مجموعه فعال نیست",
+    "onlinePaymentUnavailable": "پرداخت آنلاین برای این مجموعه فعال نیست",
+    "backHome": "بازگشت به خانه"
   },
   "Auth": {
     "login": "ورود",

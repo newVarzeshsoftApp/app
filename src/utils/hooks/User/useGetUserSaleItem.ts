@@ -8,9 +8,11 @@ import {UserSaleItemQuey} from '../../../services/models/requestQueries';
 
 export const useGetUserSaleItem = (
   query: UserSaleItemQuey,
+  enabled = true,
 ): UseQueryResult<GetUserSaleItemRes, Error> => {
   return useQuery({
     queryKey: ['UserSaleItem', query],
     queryFn: () => UserService.GetUserSaleItem(query),
+    enabled,
   });
 };

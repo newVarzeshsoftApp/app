@@ -13,12 +13,14 @@ import {navigate} from '../../../navigation/navigationRef';
 import HistoryLocationMeta from '../../../components/organizationUnit/HistoryLocationMeta';
 import {getHistoricalOrganizationUnitTitle} from '../../../utils/helpers/organizationUnits';
 import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetOrganizationBySKU';
+import {useIsOrgFeatureEnabled} from '../../../utils/hooks/Organization/useOrgConfigs';
 interface OrderCardProps {
   item: SaleOrderContent;
 }
 const ReceptionCard: React.FC<OrderCardProps> = ({item}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
   const {data: organization} = useGetOrganizationBySKU();
+  const showLocker = useIsOrgFeatureEnabled('showLocker');
   const Titles = useMemo(() => {
     return item?.items?.map((item, index) => item.title).join(', ');
   }, [item?.items]);
@@ -76,6 +78,7 @@ const ReceptionCard: React.FC<OrderCardProps> = ({item}) => {
           )}
         />
 
+        {showLocker && (
         <View className="flex-row items-center justify-between ">
           <BaseText type="body3" color="secondary">
             {t('Closet')}: {''}
@@ -114,6 +117,7 @@ const ReceptionCard: React.FC<OrderCardProps> = ({item}) => {
             )}
           </View>
         </View>
+        )}
         <View className="flex-row items-center justify-between ">
           <BaseText type="body3" color="secondary">
             {t('Total amount')}: {''}
