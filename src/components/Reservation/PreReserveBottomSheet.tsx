@@ -33,6 +33,7 @@ import {useTheme} from '../../utils/ThemeContext';
 import {routes} from '../../routes/routes';
 import {useGetReservationExpiresTime} from '../../utils/hooks/Reservation/useGetReservationExpiresTime';
 import {useCartContext} from '../../utils/CartContext';
+import {useIsOrgFeatureEnabled} from '../../utils/hooks/Organization/useOrgConfigs';
 import {useAuth} from '../../utils/hooks/useAuth';
 import {useReservationStore} from '../../store/reservationStore';
 import {
@@ -173,6 +174,7 @@ const PreReserveBottomSheet = forwardRef<
     const {theme} = useTheme();
     const isDark = theme === 'dark';
     const {profile} = useAuth();
+    const showGift = useIsOrgFeatureEnabled('showGift');
     const {
       removeFromCart,
       updateReservationItemData,
@@ -1198,7 +1200,7 @@ const PreReserveBottomSheet = forwardRef<
                 )}
 
                 {/* Gift - Only show if > 0 */}
-                {gift > 0 && (
+                {gift > 0 && showGift && (
                   <View className="flex-row justify-between">
                     <BaseText
                       type="subtitle2"

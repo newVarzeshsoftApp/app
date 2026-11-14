@@ -31,6 +31,7 @@ import {navigate} from '../../../navigation/navigationRef';
 import HistoryLocationMeta from '../../../components/organizationUnit/HistoryLocationMeta';
 import {getHistoricalOrganizationUnitTitle} from '../../../utils/helpers/organizationUnits';
 import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetOrganizationBySKU';
+import {useIsOrgFeatureEnabled} from '../../../utils/hooks/Organization/useOrgConfigs';
 type CreditDetailProp = NativeStackNavigationProp<
   SaleItemStackParamList,
   'saleItemDetail'
@@ -62,6 +63,7 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
   const showsRemainingSessions = remainingSessions !== null;
   const showsInitialSessions = initialSessions !== null;
   const {data: organization} = useGetOrganizationBySKU();
+  const canBuyOnline = useIsOrgFeatureEnabled('onlineSale');
   const {data: UserChargingService, isLoading: UserChargingServiceisLoading} =
     useGetUserChargingServiceByID(data.id);
   const scrollY = useSharedValue(0);
@@ -149,7 +151,7 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
                   </View>
                 </View>
               </View>
-              {data.product?.isOnline && (
+              {data.product?.isOnline && canBuyOnline && (
                 <View className="flex-1 w-full max-w-[160px] ">
                   <BaseButton
                     type="Fill"

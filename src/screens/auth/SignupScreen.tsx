@@ -27,6 +27,8 @@ import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrga
 import Picker from '../../components/Picker/Picker';
 import Logo from '../../components/Logo';
 import {navigate} from '../../navigation/navigationRef';
+import {useIsOrgFeatureEnabled} from '../../utils/hooks/Organization/useOrgConfigs';
+import FeatureUnavailable from '../../components/organization/FeatureUnavailable';
 type SignupScreenProps = NativeStackScreenProps<AuthStackParamList, 'Signup'>;
 const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Input'});
@@ -49,6 +51,7 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
     onError: handleMutationError,
   });
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
+  const canSignup = useIsOrgFeatureEnabled('onlineSignup');
   const onSubmit: SubmitHandler<SignupSchemaType> = async data => {
     SignUpMutation.mutate({
       email: data.email?.trim() || undefined,
@@ -77,6 +80,14 @@ const SignupScreen: React.FC<SignupScreenProps> = ({navigation}) => {
   } = methods;
   const {height: screenHeight} = Dimensions.get('screen');
   const bigScreen = screenHeight > 800;
+
+  if (!canSignup) {
+    return (
+      <FeatureUnavailable
+        onBack={() => navigate('Auth', {screen: 'Login'})}
+      />
+    );
+  }
 
   return (
     <View style={{flex: 1}} className="flex-1">

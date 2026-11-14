@@ -8,7 +8,10 @@
     "groupClassRoom": "Group Class",
     "cart": "Cart",
     "wallet": "Wallet",
-    "myServices": "My Services"
+    "myServices": "My Services",
+    "featureUnavailable": "This feature is not available for this organization",
+    "onlinePaymentUnavailable": "Online payment is not available for this organization",
+    "backHome": "Back to home"
   },
   "Auth": {
     "login": "login"

@@ -38,7 +38,10 @@ import LinearGradient from 'react-native-linear-gradient';
 import {
   formatNumber,
   getReservationSubProductPrice,
+  CART_DEFAULT_TTL_SECONDS,
 } from '../../utils/helpers/helpers';
+import {useOrgConfigs} from '../../utils/hooks/Organization/useOrgConfigs';
+import FeatureUnavailable from '../../components/organization/FeatureUnavailable';
 import RadioButton from '../../components/Button/RadioButton/RadioButton';
 import {useAuth} from '../../utils/hooks/useAuth';
 import {navigate} from '../../navigation/navigationRef';
@@ -63,6 +66,13 @@ type PaymentMethodType = {
 type CartScreenProps = BottomTabScreenProps<HomeStackParamList, 'cart'>;
 const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Cart'});
+  const {isEnabled} = useOrgConfigs();
+  const canPayOnline = isEnabled('onlinePayment');
+  const canUseWallet = isEnabled('walletUsage');
+  const canUseCart =
+    isEnabled('onlineSale') ||
+    isEnabled('reservation') ||
+    isEnabled('groupClassRoom');
   const queryClient = useQueryClient();
   const {totalItems, items, emptyCart, removeFromCart} = useCartContext();
   const [steps, setSteps] = useState<1 | 2>(1);
@@ -94,20 +104,30 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
   );
 
   useEffect(() => {
-    if ((Getways?.length ?? 0) > 0 && amountPayable > 0) {
-      setPaymentMethod({getway: Getways?.[0]?.id});
-    }
-  }, [Getways, amountPayable]);
-
-  useEffect(() => {
     if (amountPayable <= 0) {
       setPaymentMethod({
         isWallet: true,
         getway: undefined,
         source: undefined,
       });
+      return;
     }
-  }, [amountPayable]);
+
+    if (canPayOnline && (Getways?.length ?? 0) > 0) {
+      setPaymentMethod({getway: Getways?.[0]?.id});
+      return;
+    }
+
+    setPaymentMethod(current => {
+      if (current?.getway && !canPayOnline) {
+        return null;
+      }
+      if (current?.isWallet && !canUseWallet) {
+        return null;
+      }
+      return current;
+    });
+  }, [Getways, amountPayable, canPayOnline, canUseWallet]);
 
   // Reset step to 1 when cart becomes empty or screen is focused
   useEffect(() => {
@@ -771,6 +791,9 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
       SaleOrder.mutate(saleOrderBody);
     }
   };
+  if (!canUseCart) {
+    return <FeatureUnavailable />;
+  }
   return (
     <View className="flex-1 relative">
       <ScrollView
@@ -818,7 +841,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
               ) : (
                 <View className="gap-4">
                   <BaseText>{t('payment Methode')}</BaseText>
-                  {(Getways?.length ?? 0) > 0 && (
+                  {canPayOnline && (Getways?.length ?? 0) > 0 && (
                     <View
                       className={`CardBase ${
                         PaymentMethod?.getway && '!border-primary-500'
@@ -892,6 +915,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                     </View>
                   )}
                   {/*  خرید با کیف پول  */}
+                  {canUseWallet && (
                   <TouchableOpacity
                     disabled={
                       amountPayable > 0 &&
@@ -941,6 +965,7 @@ const CartScreen: React.FC<CartScreenProps> = ({navigation, route}) => {
                       )}
                     </View>
                   </TouchableOpacity>
+                  )}
                   {/*  خرید با خدمت شارژی  */}
                   {Credits && Credits.total > 0 && amountPayable > 0 && (
                     <View

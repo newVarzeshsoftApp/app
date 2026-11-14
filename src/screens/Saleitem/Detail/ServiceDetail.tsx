@@ -10,6 +10,7 @@ import Animated, {
 import {Content} from '../../../services/models/response/UseResrService';
 import BaseText from '../../../components/BaseText';
 import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetOrganizationBySKU';
+import {useOrgConfigs} from '../../../utils/hooks/Organization/useOrgConfigs';
 import {useTranslation} from 'react-i18next';
 import moment from 'jalali-moment';
 import BaseButton from '../../../components/Button/BaseButton';
@@ -60,6 +61,10 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
   route,
 }) => {
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
+  const {isEnabled} = useOrgConfigs();
+  const showLocker = isEnabled('showLocker');
+  const canBuyOnline = isEnabled('onlineSale');
+  const canReserve = isEnabled('reservation');
 
   const bottomsheetRef = useRef<BottomSheetMethods>(null);
   const cancelSheetRef = useRef<BottomSheetMethods>(null);
@@ -460,7 +465,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                         )}
                       </View>
                       <View className="flex-row gap-2">
-                        {data.isOnline && (
+                        {data.isOnline && canBuyOnline && (
                           <BaseButton
                             color="Black"
                             onPress={() => {
@@ -494,7 +499,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                       </View>
 
                       {/* Reservation actions (only when coming from reservations section + active) */}
-                      {isActiveReservation && (
+                      {isActiveReservation && canReserve && (
                         <View className="gap-2 mt-2">
                           <BaseButton
                             color="Black"
@@ -558,6 +563,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                                   {item.quantity}
                                 </BaseText>
                               </View>
+                              {showLocker && (
                               <View className="justify-between items-center flex-row">
                                 <BaseText type="body3" color="secondary">
                                   {t('lockers')}:
@@ -574,6 +580,7 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                                   })}
                                 </View>
                               </View>
+                              )}
                               <View className="justify-between items-center flex-row">
                                 <BaseText type="body3" color="secondary">
                                   {t('entry')}:

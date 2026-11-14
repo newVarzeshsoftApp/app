@@ -1,3 +1,7 @@
+import type {OrgConfigsInput} from '../../../utils/helpers/orgConfigs';
+
+export type {OrgConfigs, OrgConfigsInput} from '../../../utils/helpers/orgConfigs';
+
 export type SrcSet = Record<string, string>;
 
 export type Banner = {
@@ -52,4 +56,5 @@ export type GetAllOrganizationResponse = {
   officialLogo: Logo;
   brandedLogo: Logo;
   organizationUnits?: OrganizationUnitItem[];
+  configs?: OrgConfigsInput | null;
 };
