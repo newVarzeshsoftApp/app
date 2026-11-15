@@ -38,7 +38,6 @@ import LinearGradient from 'react-native-linear-gradient';
 import {
   formatNumber,
   getReservationSubProductPrice,
-  CART_DEFAULT_TTL_SECONDS,
 } from '../../utils/helpers/helpers';
 import {useOrgConfigs} from '../../utils/hooks/Organization/useOrgConfigs';
 import FeatureUnavailable from '../../components/organization/FeatureUnavailable';
