@@ -15,6 +15,7 @@ import {
 } from '../../../utils/helpers/helpers';
 import moment from 'jalali-moment';
 import usePriceCalculations from '../../../utils/hooks/usePriceCalculations';
+import {useOrgConfigs} from '../../../utils/hooks/Organization/useOrgConfigs';
 type PriceListDetailProps = {
   SelectedPriceList: PriceList | null;
   ServiceData?: Product;
@@ -27,6 +28,9 @@ const PriceListDetail: React.FC<PriceListDetailProps> = ({
   const {theme} = useTheme();
   const iconColor = theme === 'dark' ? '#55575c' : '#aaabad';
   const {t} = useTranslation('translation', {keyPrefix: 'Shop.Service'});
+  const {isEnabled} = useOrgConfigs();
+  const showGift = isEnabled('showGift');
+  const showPurchaseProfit = isEnabled('showPurchaseProfit');
   const {Discount, PricePreSession, Tax, Total, purchaseProfit, shopGift} =
     usePriceCalculations({data, SelectedPriceList});
   return (
@@ -76,7 +80,7 @@ const PriceListDetail: React.FC<PriceListDetailProps> = ({
       </View>
       {/* discount PART */}
       {Discount > 0 ||
-        (purchaseProfit > 0 && (
+        (purchaseProfit > 0 && showPurchaseProfit && (
           <View className="CardBase gap-3">
             {Discount > 0 && (
               <View className="flex-row items-center justify-between gap-2">
@@ -88,7 +92,7 @@ const PriceListDetail: React.FC<PriceListDetailProps> = ({
                 </BaseText>
               </View>
             )}
-            {purchaseProfit > 0 && (
+            {purchaseProfit > 0 && showPurchaseProfit && (
               <View className="flex-row items-center justify-between">
                 <BaseText type="body3" color="secondary">
                   {t('Purchase profit')} :
@@ -102,7 +106,7 @@ const PriceListDetail: React.FC<PriceListDetailProps> = ({
         ))}
 
       {/* CashBack PART */}
-      {(SelectedPriceList?.cashBackPercentage ?? 0) > 0 && (
+      {(SelectedPriceList?.cashBackPercentage ?? 0) > 0 && showGift && (
         <View className="GiftCard gap-6">
           <View className="flex-row items-center gap-2">
             <Gift variant="Bold" color="#A27EB7" />

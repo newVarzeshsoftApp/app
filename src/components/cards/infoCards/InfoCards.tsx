@@ -23,6 +23,8 @@ import BMI from '../../../assets/icons/BMI.svg';
 import Badge from '../../Badge/Badge';
 import OpenCloset from '../../../screens/home/components/OpenCloset';
 import BottomSheet, {BottomSheetMethods} from '../../BottomSheet/BottomSheet';
+import {useOrgConfigs} from '../../../utils/hooks/Organization/useOrgConfigs';
+import {canOpenOrganizationLocker} from '../../../utils/helpers/orgConfigs';
 
 function InfoCards({
   type,
@@ -30,6 +32,7 @@ function InfoCards({
   type: 'MembershipInfo' | 'InsuranceInfo' | 'ClosetInfo' | 'BMIInfo';
 }) {
   const {theme} = useTheme();
+  const {configs} = useOrgConfigs();
   const {data, isSuccess} = useGetUserDashboard();
   const {t} = useTranslation('translation', {keyPrefix: 'Home'});
 
@@ -265,17 +268,33 @@ function InfoCards({
   const hasVipLocker = Boolean(data?.vipLocker?.locker?.lockerId);
   const hasRegularLockers = (data?.lockers?.length ?? 0) > 0;
   const canOpenCloset =
-    type === 'ClosetInfo' && (hasVipLocker || hasRegularLockers);
+    type === 'ClosetInfo' &&
+    canOpenOrganizationLocker(configs) &&
+    (hasVipLocker || hasRegularLockers);
+  const isCardEnabled =
+    type === 'MembershipInfo'
+      ? configs.showMembership
+      : type === 'InsuranceInfo'
+      ? configs.showInsurance
+      : type === 'ClosetInfo'
+      ? configs.showLocker
+      : configs.showBmi;
+
+  if (!isCardEnabled) {
+    return null;
+  }
 
   return (
     <>
-      <BottomSheet
-        snapPoints={[50, 80]}
-        ref={BottomSheetRef}
-        scrollView
-        Title={t('open Closet')}>
-        <OpenCloset />
-      </BottomSheet>
+      {canOpenCloset && (
+        <BottomSheet
+          snapPoints={[50, 80]}
+          ref={BottomSheetRef}
+          scrollView
+          Title={t('open Closet')}>
+          <OpenCloset />
+        </BottomSheet>
+      )}
       <TouchableOpacity
         onPress={() => openBottomSheet()}
         disabled={!canOpenCloset}

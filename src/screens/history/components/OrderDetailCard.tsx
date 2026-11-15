@@ -19,6 +19,9 @@ import {
   getHistoricalSaleUnitTitle,
 } from '../../../utils/helpers/organizationUnits';
 import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetOrganizationBySKU';
+import {useOrgConfigs} from '../../../utils/hooks/Organization/useOrgConfigs';
+import {ProductType} from '../../../constants/options';
+import Badge from '../../../components/Badge/Badge';
 type OrderDetailProps = {
   item: SaleOrderByIDRes;
   isReseption?: boolean;
@@ -31,6 +34,12 @@ type NavigationProps = NativeStackNavigationProp<
 const OrderDetailCard: React.FC<OrderDetailProps> = ({item, isReseption}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
   const {data: organization} = useGetOrganizationBySKU();
+  const {isEnabled} = useOrgConfigs();
+  const showLocker = isEnabled('showLocker');
+  const showChargingSettlement = isEnabled('chargingServiceSettlement');
+  const hasChargingService = (item.items ?? []).some(
+    orderItem => orderItem.type === ProductType.Credit,
+  );
   return (
     <View className="CardBase">
       <View className="gap-2">
@@ -116,6 +125,7 @@ const OrderDetailCard: React.FC<OrderDetailProps> = ({item, isReseption}) => {
             </View>
           </>
         )}
+        {showLocker && (
         <View className="flex-row items-center justify-between ">
           <BaseText type="body3" color="secondary">
             {t('Closet')}: {''}
@@ -171,6 +181,7 @@ const OrderDetailCard: React.FC<OrderDetailProps> = ({item, isReseption}) => {
             </View>
           )}
         </View>
+        )}
         <View className="flex-row items-center justify-between ">
           <BaseText type="body3" color="secondary">
             {t('Total amount')}: {''}
@@ -209,15 +220,19 @@ const OrderDetailCard: React.FC<OrderDetailProps> = ({item, isReseption}) => {
             {formatNumber(item.totalAmount)}﷼
           </BaseText>
         </View>
-        <View className="flex-row items-center justify-between ">
-          <BaseText type="body3" color="secondary">
-            {t('Debt')}: {''}
-          </BaseText>
-          <BaseText type="body3" color="base">
-            {formatNumber((item?.totalAmount ?? 0) - (item?.settleAmount ?? 0))}{' '}
-            ﷼
-          </BaseText>
-        </View>
+        {(showChargingSettlement || !hasChargingService) && (
+          <View className="flex-row items-center justify-between ">
+            <BaseText type="body3" color="secondary">
+              {t('Debt')}: {''}
+            </BaseText>
+            <BaseText type="body3" color="base">
+              {formatNumber(
+                (item?.totalAmount ?? 0) - (item?.settleAmount ?? 0),
+              )}{' '}
+              ﷼
+            </BaseText>
+          </View>
+        )}
       </View>
     </View>
   );

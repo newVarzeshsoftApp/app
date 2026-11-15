@@ -41,6 +41,8 @@ import {useGetGetway} from '../../utils/hooks/Getway/useGetGetway';
 import {navigate} from '../../navigation/navigationRef';
 import {useGetAllWalletGift} from '../../utils/hooks/User/useGetAllWalletGift';
 import {WalletGiftItem} from '../../services/models/response/WalletGiftResServise';
+import {useOrgConfigs} from '../../utils/hooks/Organization/useOrgConfigs';
+import FeatureUnavailable from '../../components/organization/FeatureUnavailable';
 type WalletScreenProps = NativeStackScreenProps<
   WalletStackParamList,
   'ChargeWalletScreen'
@@ -49,7 +51,15 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
   navigation,
   route,
 }) => {
-  const {data: walletGift} = useGetAllWalletGift({});
+  const {isEnabled} = useOrgConfigs();
+  const canChargeWallet = isEnabled('walletCharge');
+  const canPayOnline = isEnabled('onlinePayment');
+  const showGiftPackages = isEnabled('showGift');
+  const {t: featureText} = useTranslation('translation', {keyPrefix: 'Global'});
+  const {data: walletGift} = useGetAllWalletGift(
+    {},
+    canChargeWallet && showGiftPackages,
+  );
   useEffect(() => {
     const parent = navigation.getParent();
     // Hide the tab bar when ChargeWalletScreen is focused
@@ -271,6 +281,15 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
     control,
     formState: {errors, isValid},
   } = methods;
+  if (!canChargeWallet) {
+    return <FeatureUnavailable />;
+  }
+  if (!canPayOnline) {
+    return (
+      <FeatureUnavailable message={featureText('onlinePaymentUnavailable')} />
+    );
+  }
+  const giftPackages = showGiftPackages ? walletGift : undefined;
   return (
     <View style={{flex: 1}}>
       <View className="absolute -top-[25%] web:rotate-[10deg]  web:-left-[30%]  android:-right-[80%] ios:-right-[80%]  opacity-45 w-[600px] h-[600px]">
@@ -331,12 +350,12 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
                     </View>
                     <View
                       className={
-                        walletGift && walletGift.length > 0
+                        giftPackages && giftPackages.length > 0
                           ? 'gap-4'
                           : 'flex-wrap flex-row justify-between web:h-[120px]'
                       }>
-                      {walletGift && walletGift.length > 0
-                        ? walletGift?.map((item: any, index: number) => (
+                      {giftPackages && giftPackages.length > 0
+                        ? giftPackages?.map((item: any, index: number) => (
                             <View key={item.id}>
                               <PriceButton
                                 isSelected={
@@ -429,7 +448,7 @@ const ChargeWalletScreen: React.FC<WalletScreenProps> = ({
                           if (currentAmount === 0) return null; // No amount entered, return null
 
                           // Find matching gift for the entered amount
-                          const matchingGift = walletGift?.find(
+                          const matchingGift = giftPackages?.find(
                             gift =>
                               currentAmount >= gift.fromPrice &&
                               currentAmount <= gift.toPrice,

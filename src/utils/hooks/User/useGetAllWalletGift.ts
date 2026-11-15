@@ -2,9 +2,13 @@ import {useQuery} from '@tanstack/react-query';
 import WalletGiftService from '../../../services/walletGiftService';
 import {AdvertisementQuery} from '../../../services/models/requestQueries';
 
-export const useGetAllWalletGift = (query: AdvertisementQuery) => {
+export const useGetAllWalletGift = (
+  query: AdvertisementQuery,
+  enabled = true,
+) => {
   return useQuery({
     queryKey: ['walletGift', query],
     queryFn: () => WalletGiftService.GetAllWalletGift(query),
+    enabled,
   });
 };

@@ -17,10 +17,25 @@ import BaseText from '../../../components/BaseText';
 import {CalendarTick, ArrowUp} from 'iconsax-react-native';
 import {useTranslation} from 'react-i18next';
 import {navigate} from '../../../navigation/navigationRef';
+import {useIsOrgFeatureEnabled} from '../../../utils/hooks/Organization/useOrgConfigs';
 
 const MyserviceScreen: React.FC = () => {
   const {t} = useTranslation('translation', {keyPrefix: 'Drawer'});
   const {theme} = useTheme();
+  const showMembership = useIsOrgFeatureEnabled('showMembership');
+  const showLocker = useIsOrgFeatureEnabled('showLocker');
+  const showInsurance = useIsOrgFeatureEnabled('showInsurance');
+  const showBmi = useIsOrgFeatureEnabled('showBmi');
+  const leftCards = [
+    showMembership ? ('MembershipInfo' as const) : null,
+    showLocker ? ('ClosetInfo' as const) : null,
+  ].filter(
+    (card): card is 'MembershipInfo' | 'ClosetInfo' => card !== null,
+  );
+  const rightCards = [
+    showInsurance ? ('InsuranceInfo' as const) : null,
+    showBmi ? ('BMIInfo' as const) : null,
+  ].filter((card): card is 'InsuranceInfo' | 'BMIInfo' => card !== null);
 
   // Fetch reservations data (same as MainShop)
   const {data: reservationsData, isLoading: reservationsLoading} =
@@ -124,16 +139,24 @@ const MyserviceScreen: React.FC = () => {
     <>
       <View className="Container py-5 web:pt-[85px] gap-5">
         <WalletBalance />
-        <View className="flex-row items-center justify-center gap-4">
-          <View className="gap-4 flex-1">
-            <InfoCards type="MembershipInfo" />
-            <InfoCards type="ClosetInfo" />
+        {(leftCards.length > 0 || rightCards.length > 0) && (
+          <View className="flex-row items-center justify-center gap-4">
+            {leftCards.length > 0 && (
+              <View className="gap-4 flex-1">
+                {leftCards.map(type => (
+                  <InfoCards key={type} type={type} />
+                ))}
+              </View>
+            )}
+            {rightCards.length > 0 && (
+              <View className="gap-4 flex-1">
+                {rightCards.map(type => (
+                  <InfoCards key={type} type={type} />
+                ))}
+              </View>
+            )}
           </View>
-          <View className="gap-4 flex-1">
-            <InfoCards type="InsuranceInfo" />
-            <InfoCards type="BMIInfo" />
-          </View>
-        </View>
+        )}
       </View>
     </>
   );

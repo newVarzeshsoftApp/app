@@ -10,6 +10,7 @@ import {handleMutationError} from '../../../utils/helpers/errorHandler';
 import {openLockerBody} from '../../../services/models/request/ManagerLockerReqService';
 import {useTranslation} from 'react-i18next';
 import {useTheme} from '../../../utils/ThemeContext';
+import {useIsOrgFeatureEnabled} from '../../../utils/hooks/Organization/useOrgConfigs';
 
 type OpenLockerMutationInput = openLockerBody & {type: 'vip' | 'regular'};
 const getLockerKey = (type: 'vip' | 'regular', lockerId: number) =>
@@ -19,6 +20,7 @@ const OpenCloset: React.FC = () => {
   const {data} = useGetUserDashboard();
   const {theme} = useTheme();
   const {t} = useTranslation('translation', {keyPrefix: 'Home'});
+  const canOpenLocker = useIsOrgFeatureEnabled('openLocker');
 
   // stateها را با کلید ترکیبی مدیریت می‌کنیم
   const [openLockers, setOpenLockers] = useState<{[key: string]: boolean}>({});
@@ -115,27 +117,29 @@ const OpenCloset: React.FC = () => {
                       <BaseText>{data.vipLocker?.locker?.lockerNumber}</BaseText>
                     </View>
                   </View>
-                  <BaseButton
-                    isLoading={loadingLockerKey === vipKey}
-                    disabled={openLockers[vipKey]}
-                    onPress={() =>
-                      OpenLocker({
-                        lockerId: vipId,
-                        relayNumber: data.vipLocker?.locker?.relayNumber,
-                        relayOnTime: data.vipLocker?.locker?.relayOnTime,
-                        type: 'vip',
-                      })
-                    }
-                    text={
-                      openLockers[vipKey]
-                        ? `${t('open')} ${remainingTimes[vipKey]} ثانیه`
-                        : t('openCloset')
-                    }
-                    type={openLockers[vipKey] ? 'Fill' : 'Outline'}
-                    color={openLockers[vipKey] ? 'Primary' : 'Black'}
-                    rounded
-                    size="Small"
-                  />
+                  {canOpenLocker && (
+                    <BaseButton
+                      isLoading={loadingLockerKey === vipKey}
+                      disabled={openLockers[vipKey]}
+                      onPress={() =>
+                        OpenLocker({
+                          lockerId: vipId,
+                          relayNumber: data.vipLocker?.locker?.relayNumber,
+                          relayOnTime: data.vipLocker?.locker?.relayOnTime,
+                          type: 'vip',
+                        })
+                      }
+                      text={
+                        openLockers[vipKey]
+                          ? `${t('open')} ${remainingTimes[vipKey]} ثانیه`
+                          : t('openCloset')
+                      }
+                      type={openLockers[vipKey] ? 'Fill' : 'Outline'}
+                      color={openLockers[vipKey] ? 'Primary' : 'Black'}
+                      rounded
+                      size="Small"
+                    />
+                  )}
                 </View>
               );
             })()}
@@ -171,27 +175,29 @@ const OpenCloset: React.FC = () => {
                     </View>
                   </View>
 
-                  <BaseButton
-                    isLoading={loadingLockerKey === regKey}
-                    disabled={openLockers[regKey]}
-                    onPress={() =>
-                      OpenLocker({
-                        lockerId: item.lockerId,
-                        relayNumber: item.relayNumber,
-                        relayOnTime: item.relayOnTime,
-                        type: 'regular',
-                      })
-                    }
-                    text={
-                      openLockers[regKey]
-                        ? `${t('open')} ${remainingTimes[regKey]} ثانیه`
-                        : t('openCloset')
-                    }
-                    type={openLockers[regKey] ? 'Fill' : 'Outline'}
-                    color={openLockers[regKey] ? 'Primary' : 'Black'}
-                    rounded
-                    size="Small"
-                  />
+                  {canOpenLocker && (
+                    <BaseButton
+                      isLoading={loadingLockerKey === regKey}
+                      disabled={openLockers[regKey]}
+                      onPress={() =>
+                        OpenLocker({
+                          lockerId: item.lockerId,
+                          relayNumber: item.relayNumber,
+                          relayOnTime: item.relayOnTime,
+                          type: 'regular',
+                        })
+                      }
+                      text={
+                        openLockers[regKey]
+                          ? `${t('open')} ${remainingTimes[regKey]} ثانیه`
+                          : t('openCloset')
+                      }
+                      type={openLockers[regKey] ? 'Fill' : 'Outline'}
+                      color={openLockers[regKey] ? 'Primary' : 'Black'}
+                      rounded
+                      size="Small"
+                    />
+                  )}
                 </View>
               );
             })}

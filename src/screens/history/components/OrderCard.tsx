@@ -21,12 +21,20 @@ import {
   getHistoricalSaleUnitTitle,
 } from '../../../utils/helpers/organizationUnits';
 import {useGetOrganizationBySKU} from '../../../utils/hooks/Organization/useGetOrganizationBySKU';
+import {useOrgConfigs} from '../../../utils/hooks/Organization/useOrgConfigs';
+import {ProductType} from '../../../constants/options';
 interface OrderCardProps {
   item: SaleOrderContent;
 }
 const OrderCard: React.FC<OrderCardProps> = ({item}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'History'});
   const {data: organization} = useGetOrganizationBySKU();
+  const {isEnabled} = useOrgConfigs();
+  const showLocker = isEnabled('showLocker');
+  const showChargingSettlement = isEnabled('chargingServiceSettlement');
+  const hasChargingService = (item.items ?? []).some(
+    orderItem => orderItem.type === ProductType.Credit,
+  );
   const sheetRef = useRef<BottomSheetMethods>(null);
   const {height} = Dimensions.get('screen');
 
@@ -103,7 +111,7 @@ const OrderCard: React.FC<OrderCardProps> = ({item}) => {
             saleUnitTitle={getHistoricalSaleUnitTitle(item)}
             showSaleUnit
           />
-          {item.userOrderLocker && (
+          {showLocker && item.userOrderLocker && (
             <View className="flex-row items-center justify-between ">
               <BaseText type="body3" color="secondary">
                 {t('Closet')}: {''}
@@ -121,7 +129,10 @@ const OrderCard: React.FC<OrderCardProps> = ({item}) => {
               {formatNumber(item.totalAmount)} ﷼
             </BaseText>
           </View>
-          {(item?.totalAmount ?? 0) - (item?.settleAmount ?? 0) === 0 ? null : (
+          {(item?.totalAmount ?? 0) - (item?.settleAmount ?? 0) === 0 ||
+          (!showChargingSettlement && hasChargingService)
+            ? null
+            : (
             <View className="flex-row items-center justify-between ">
               <BaseText type="body3" color="secondary">
                 {t('Debt')}: {''}

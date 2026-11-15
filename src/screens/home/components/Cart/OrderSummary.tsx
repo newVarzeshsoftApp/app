@@ -2,6 +2,7 @@ import React from 'react';
 import {View} from 'react-native';
 import BaseText from '../../../../components/BaseText';
 import {formatNumber} from '../../../../utils/helpers/helpers';
+import {useIsOrgFeatureEnabled} from '../../../../utils/hooks/Organization/useOrgConfigs';
 
 interface OrderSummaryProps {
   totalItems?: number;
@@ -21,7 +22,9 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   totalShopGift = 0,
   amountPayable = 0,
   t,
-}) => (
+}) => {
+  const showGift = useIsOrgFeatureEnabled('showGift');
+  return (
   <View className="gap-4">
     <BaseText>{t('order Summery')}</BaseText>
     <View className="CardBase">
@@ -53,7 +56,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
           </BaseText>
         </View>
       )}
-      {totalShopGift > 0 && (
+      {totalShopGift > 0 && showGift && (
         <View className="flex-row items-center justify-between">
           <BaseText type="subtitle3" color="supportive2">
             {t('shopGift')} :
@@ -72,7 +75,8 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
         </BaseText>
       </View>
     </View>
-  </View>
-);
+    </View>
+  );
+};
 
 export default OrderSummary;

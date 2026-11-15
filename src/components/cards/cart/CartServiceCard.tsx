@@ -38,11 +38,14 @@ import CartExpiryNotice from './CartExpiryNotice';
 import {useDefaultCartItemRemainingTime} from '../../../utils/hooks/useDefaultCartItemRemainingTime';
 import ServiceOrganizationUnits from '../../organizationUnit/ServiceOrganizationUnits';
 import {ProductType} from '../../../constants/options';
+import {useIsOrgFeatureEnabled} from '../../../utils/hooks/Organization/useOrgConfigs';
 type CartServiceCardProps = {
   data: CartItem;
 };
 const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Cart'});
+  const showGift = useIsOrgFeatureEnabled('showGift');
+  const showPurchaseProfit = useIsOrgFeatureEnabled('showPurchaseProfit');
   const {profile} = useAuth();
   const {
     product,
@@ -848,7 +851,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
               </BaseText>
             </View>
           )}
-          {product?.isCashBack && (
+          {product?.isCashBack && showGift && (
             <View className="flex-row items-center justify-between">
               <BaseText type="subtitle3" color="supportive2">
                 {t('shopGift')} :
@@ -858,7 +861,7 @@ const CartServiceCard: React.FC<CartServiceCardProps> = ({data}) => {
               </BaseText>
             </View>
           )}
-          {purchaseProfit > 0 && (
+          {purchaseProfit > 0 && showPurchaseProfit && (
             <View className="flex-row items-center justify-between">
               <BaseText type="subtitle3" color="secondary">
                 {t('Purchase profit')} :

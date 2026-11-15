@@ -6,10 +6,17 @@ import ServiceScreen from '../../screens/shop/ServiceScreen';
 import CreditDetail from '../../screens/shop/CreditDetail';
 import PackageDetail from '../../screens/shop/PackageDetail';
 import ServiceDetail from '../../screens/shop/ServiceDetail';
+import FeatureUnavailable from '../../components/organization/FeatureUnavailable';
+import {useIsOrgFeatureEnabled} from '../../utils/hooks/Organization/useOrgConfigs';
 
 const Stack = createNativeStackNavigator<ShopStackParamList>();
 
 const ShopNavigator: React.FC = ({navigation}: any) => {
+  const onlineSaleEnabled = useIsOrgFeatureEnabled('onlineSale');
+  if (!onlineSaleEnabled) {
+    return <FeatureUnavailable />;
+  }
+
   return (
     <Stack.Navigator
       screenOptions={({route}) => ({

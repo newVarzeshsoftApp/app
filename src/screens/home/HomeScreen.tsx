@@ -9,6 +9,7 @@ import {Survey} from '../../services/models/response/SurveyResService';
 import {BannerContent} from '../../services/models/response/AdsResService';
 import MainPageSurveyCard from './components/MainPageSurveyCard';
 import moment from 'jalali-moment';
+import {useIsOrgFeatureEnabled} from '../../utils/hooks/Organization/useOrgConfigs';
 
 // داده‌های تستی بنر - برای تست و اپدیت استفاده کنید
 const TEST_BANNER_DATA: BannerContent[] = [
@@ -81,9 +82,11 @@ const TEST_BANNER_DATA: BannerContent[] = [
 const USE_TEST_DATA = false;
 
 const HomeScreen: React.FC = () => {
+  const showSurvey = useIsOrgFeatureEnabled('showSurvey');
+  const showOnlineSale = useIsOrgFeatureEnabled('onlineSale');
   const {data: Ads, isLoading} = useGetAds({limit: 100, sortField: 'priority'});
   const {data: UnansweredSurvey, isLoading: isUnansweredSurveyLoading} =
-    useGetUnansweredSurvey();
+    useGetUnansweredSurvey(showSurvey);
   const surveys = useMemo<Survey[]>(() => {
     if (Array.isArray(UnansweredSurvey)) {
       return UnansweredSurvey;
@@ -95,7 +98,8 @@ const HomeScreen: React.FC = () => {
     return [];
   }, [UnansweredSurvey]);
 
-  const hasSurvey = !isUnansweredSurveyLoading && surveys.length > 0;
+  const hasSurvey =
+    showSurvey && !isUnansweredSurveyLoading && surveys.length > 0;
   const previewSurvey = hasSurvey ? surveys[0] : undefined;
   const isSingleSurvey = hasSurvey && surveys.length === 1;
 
@@ -138,9 +142,13 @@ const HomeScreen: React.FC = () => {
       keyExtractor={(item, index) => 'key' + index}
       ListHeaderComponent={renderHeader}
       ListFooterComponent={
-        <View className="flex-1 pb-[125px]">
-          <MainShop />
-        </View>
+        showOnlineSale ? (
+          <View className="flex-1 pb-[125px]">
+            <MainShop />
+          </View>
+        ) : (
+          <View className="pb-[125px]" />
+        )
       }
       showsVerticalScrollIndicator={false}
     />

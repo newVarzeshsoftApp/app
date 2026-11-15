@@ -9,11 +9,13 @@ import {TruncatedText} from '../../TruncatedText';
 import {useBase64ImageFromMedia} from '../../../utils/hooks/useBase64Image';
 import ServiceOrganizationUnits from '../../organizationUnit/ServiceOrganizationUnits';
 import {ProductType} from '../../../constants/options';
+import {useIsOrgFeatureEnabled} from '../../../utils/hooks/Organization/useOrgConfigs';
 type ShopServiceProps = {
   data: Product;
 };
 const ShopServiceCard: React.FC<ShopServiceProps> = ({data}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Shop.Service'});
+  const showGift = useIsOrgFeatureEnabled('showGift');
   const {data: ImageSrc, isLoading} = useBase64ImageFromMedia(
     data?.image?.name,
     'Media',
@@ -47,7 +49,7 @@ const ShopServiceCard: React.FC<ShopServiceProps> = ({data}) => {
           isService={data.type === ProductType.Service}
           units={data.deliveryOrganizationUnits}
         />
-        {data.isCashBack && (
+        {data.isCashBack && showGift && (
           <View className="flex-row">
             <Badge GiftMode defaultMode value={t('shopGift')} />
           </View>

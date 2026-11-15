@@ -4,6 +4,7 @@ import { Control, FieldValues, Path, UseFormRegister, UseFormWatch } from 'react
 import { TextProps } from 'react-native/Libraries/Text/Text';
 import { ImageSourcePropType } from 'react-native';
 import { PickerOption } from '../constants/options';
+import {OrgConfigKey} from '../utils/helpers/orgConfigs';
 
 export type ISpinnerProps = {
   svgClassName?: string;
@@ -41,6 +42,7 @@ export type MenuItem = {
   title: string;
   Icon: React.ElementType;
   slug:string
+  feature?: OrgConfigKey;
   children: { title: string,slug:string }[];
 };
 export interface IButtonProps extends PressableProps {

@@ -31,12 +31,14 @@ import LinearGradient from 'react-native-linear-gradient';
 import Logo from '../../components/Logo';
 import {navigate, resetNavigationHistory} from '../../navigation/navigationRef';
 import {MediaService} from '../../services/MediaService';
+import {useIsOrgFeatureEnabled} from '../../utils/hooks/Organization/useOrgConfigs';
 
 type LoginScreenProps = NativeStackScreenProps<AuthStackParamList, 'Login'>;
 
 const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
   const [Rememberme, setRememberme] = useState(false);
   const {data: organization} = useGetOrganizationBySKU();
+  const canSignup = useIsOrgFeatureEnabled('onlineSignup');
   const {t} = useTranslation('translation', {keyPrefix: 'Input'});
   const queryClient = useQueryClient();
   const [GradientColors, setGradientColors] = useState<string[] | null>(null);
@@ -281,22 +283,24 @@ const LoginScreen: React.FC<LoginScreenProps> = ({navigation}) => {
             accessibilityRole="button"
             accessibilityHint="Submits the login form"
           />
-          <View className="flex items-center flex-row justify-center gap-2">
-            <BaseText
-              type="button1"
-              color="muted"
-              accessibilityLabel="Not registered text">
-              {auth('notRegistered')}
-            </BaseText>
-            <TouchableOpacity
-              onPress={() => navigate('Auth', {screen: 'Signup'})}
-              accessibilityLabel="Navigate to Signup screen"
-              accessibilityRole="button">
-              <BaseText type="button1" color="active">
-                {auth('signup')}
+          {canSignup && (
+            <View className="flex items-center flex-row justify-center gap-2">
+              <BaseText
+                type="button1"
+                color="muted"
+                accessibilityLabel="Not registered text">
+                {auth('notRegistered')}
               </BaseText>
-            </TouchableOpacity>
-          </View>
+              <TouchableOpacity
+                onPress={() => navigate('Auth', {screen: 'Signup'})}
+                accessibilityLabel="Navigate to Signup screen"
+                accessibilityRole="button">
+                <BaseText type="button1" color="active">
+                  {auth('signup')}
+                </BaseText>
+              </TouchableOpacity>
+            </View>
+          )}
         </View>
       </Animated.ScrollView>
     </View>

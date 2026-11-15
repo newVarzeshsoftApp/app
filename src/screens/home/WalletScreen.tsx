@@ -11,11 +11,13 @@ import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {WalletStackParamList} from '../../utils/types/NavigationTypes';
 import {Refresh} from 'iconsax-react-native';
 import {navigate} from '../../navigation/navigationRef';
+import {useIsOrgFeatureEnabled} from '../../utils/hooks/Organization/useOrgConfigs';
 
 type WalletScreenProps = NativeStackScreenProps<WalletStackParamList, 'wallet'>;
 const WalletScreen: React.FC<WalletScreenProps> = ({navigation, route}) => {
   const {data, isLoading, refetch} = useGetUserCredit();
   const {t} = useTranslation('translation', {keyPrefix: 'Wallet'});
+  const canChargeWallet = useIsOrgFeatureEnabled('walletCharge');
   const renderHeader = () => (
     <View className="Container py-5 web:pt-[85px] gap-5">
       <View className="CardBase h-[180px] justify-center items-center relative overflow-hidden">
@@ -37,26 +39,28 @@ const WalletScreen: React.FC<WalletScreenProps> = ({navigation, route}) => {
             {t('WalletCredit')}
           </BaseText>
         </View>
-        <View className="z-10">
-          <BaseButton
-            type="Fill"
-            size="Large"
-            rounded
-            color="Black"
-            onPress={() =>
-              navigate('Root', {
-                screen: 'HomeNavigator',
-                params: {
-                  screen: 'wallet',
+        {canChargeWallet && (
+          <View className="z-10">
+            <BaseButton
+              type="Fill"
+              size="Large"
+              rounded
+              color="Black"
+              onPress={() =>
+                navigate('Root', {
+                  screen: 'HomeNavigator',
                   params: {
-                    screen: 'ChargeWalletScreen',
+                    screen: 'wallet',
+                    params: {
+                      screen: 'ChargeWalletScreen',
+                    },
                   },
-                },
-              })
-            }
-            text={t('Wallet Recharge')}
-          />
-        </View>
+                })
+              }
+              text={t('Wallet Recharge')}
+            />
+          </View>
+        )}
         <View className="absolute  w-full -bottom-10 left-1  h-full web:opacity-80 blur-xl -z-1">
           <Image
             source={require('../../assets/images/shade/shape/WalletShade.png')}

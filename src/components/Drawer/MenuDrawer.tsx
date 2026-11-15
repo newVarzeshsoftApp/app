@@ -12,6 +12,7 @@ import {DrawerContentComponentProps} from '@react-navigation/drawer';
 import Collapsible from 'react-native-collapsible';
 import {CommonActions} from '@react-navigation/native';
 import {navigate} from '../../navigation/navigationRef';
+import {useOrgConfigs} from '../../utils/hooks/Organization/useOrgConfigs';
 
 const getActiveRouteName = (state: NavigationState | undefined): string => {
   try {
@@ -34,6 +35,7 @@ const getActiveRouteName = (state: NavigationState | undefined): string => {
 
 const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
   const {t} = useTranslation('translation', {keyPrefix: 'Drawer'});
+  const {isEnabled} = useOrgConfigs();
   const {theme} = useTheme();
   const [openSections, setOpenSections] = useState<{[key: number]: boolean}>(
     () => {
@@ -57,6 +59,10 @@ const MenuDrawer: React.FC<DrawerContentComponentProps> = props => {
   return (
     <>
       {menuItems.map((item, index) => {
+        if (item.feature && !isEnabled(item.feature)) {
+          return null;
+        }
+
         return (
           <View key={index}>
             {/* Parent Item */}

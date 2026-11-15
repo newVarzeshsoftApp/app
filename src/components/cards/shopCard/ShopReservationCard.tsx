@@ -18,6 +18,7 @@ import BaseButton from '../../Button/BaseButton';
 import BottomSheet, {BottomSheetMethods} from '../../BottomSheet/BottomSheet';
 import {useCancelReservation} from '../../../utils/hooks/Reservation/useCancelReservation';
 import {useQueryClient} from '@tanstack/react-query';
+import {useIsOrgFeatureEnabled} from '../../../utils/hooks/Organization/useOrgConfigs';
 import {useGetReservationTags} from '../../../utils/hooks/Reservation/useGetReservationTags';
 import {navigate} from '../../../navigation/navigationRef';
 import StatusDot from '../../StatusDot';
@@ -32,6 +33,7 @@ const ShopReservationCard: React.FC<ShopReservationCardProps> = ({data}) => {
   const {theme} = useTheme();
   const isDark = theme === 'dark';
   const queryClient = useQueryClient();
+  const canReserve = useIsOrgFeatureEnabled('reservation');
   const cancelBottomSheetRef = useRef<BottomSheetMethods>(null);
   const cancelReservationMutation = useCancelReservation();
   const {data: tagsData, isLoading: tagsLoading} = useGetReservationTags();
@@ -340,7 +342,7 @@ const ShopReservationCard: React.FC<ShopReservationCardProps> = ({data}) => {
             )}
 
             {/* Only show buttons if reservation is active and usable */}
-            {Useable && (
+            {Useable && canReserve && (
               <View className="flex-row items-center w-full gap-2 mt-2">
                 <View className="flex-1">
                   <BaseButton

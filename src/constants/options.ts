@@ -27,6 +27,7 @@ export const menuItems: MenuItem[] = [
   {
     title: 'shop',
     slug: 'ShopNavigator',
+    feature: 'onlineSale',
     Icon: Shop,
     children: [
       {title: 'creditService', slug: 'creditService'},
@@ -48,6 +49,7 @@ export const menuItems: MenuItem[] = [
   {
     title: 'survey',
     slug: 'SurveyNavigator',
+    feature: 'showSurvey',
     Icon: MessageQuestion,
     children: [{title: 'surveyList', slug: 'SurveyList'}],
   },

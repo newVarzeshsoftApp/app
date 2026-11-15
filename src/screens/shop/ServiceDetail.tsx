@@ -11,6 +11,7 @@ import {getProductDetailImageHeight} from '../../constants/layout';
 import {ShopStackParamList} from '../../utils/types/NavigationTypes';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {useGetOrganizationBySKU} from '../../utils/hooks/Organization/useGetOrganizationBySKU';
+import {useIsOrgFeatureEnabled} from '../../utils/hooks/Organization/useOrgConfigs';
 import BottomSheet, {
   BottomSheetMethods,
 } from '../../components/BottomSheet/BottomSheet';
@@ -66,6 +67,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
   const {addToCart} = useCartContext();
 
   const {data: OrganizationBySKU} = useGetOrganizationBySKU();
+  const showPurchaseProfit = useIsOrgFeatureEnabled('showPurchaseProfit');
   const bottomsheetRef = useRef<BottomSheetMethods>(null);
   const BottomSheetPriceListRef = useRef<BottomSheetMethods>(null);
   const BottomSheetContractorRef = useRef<BottomSheetMethods>(null);
@@ -516,7 +518,7 @@ const ServiceDetail: React.FC<ServiceDetailProp> = ({navigation, route}) => {
                                 </BaseText>
                               </View>
                             )}
-                            {purchaseProfit > 0 && (
+                            {purchaseProfit > 0 && showPurchaseProfit && (
                               <View className="flex-row items-center justify-between gap-2">
                                 <BaseText type="body3" color="secondary">
                                   {t('Purchase profit')} :

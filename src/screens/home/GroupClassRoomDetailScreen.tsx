@@ -10,6 +10,7 @@ import {ActivityIndicator, View} from 'react-native';
 import {getProductDetailImageHeight} from '../../constants/layout';
 import {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {useQueryClient} from '@tanstack/react-query';
+import {useIsOrgFeatureEnabled} from '../../utils/hooks/Organization/useOrgConfigs';
 import {useTranslation} from 'react-i18next';
 import Animated, {
   interpolate,
@@ -88,6 +89,7 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
   const {theme} = useTheme();
   const {t} = useTranslation('translation', {keyPrefix: 'Shop.Service'});
   const queryClient = useQueryClient();
+  const showPurchaseProfit = useIsOrgFeatureEnabled('showPurchaseProfit');
 
   const {
     groupClassRoomId,
@@ -696,7 +698,7 @@ const GroupClassRoomDetailScreen: React.FC<GroupClassRoomDetailProps> = ({
                                 </BaseText>
                               </View>
                             )}
-                            {purchaseProfit > 0 && (
+                            {purchaseProfit > 0 && showPurchaseProfit && (
                               <View className="flex-row items-center justify-between gap-2">
                                 <BaseText type="body3" color="secondary">
                                   {t('Purchase profit')} :

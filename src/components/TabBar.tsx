@@ -19,6 +19,8 @@ import BaseText from './BaseText';
 import {useTranslation} from 'react-i18next';
 import {useTheme} from '../utils/ThemeContext';
 import {useCartContext} from '../utils/CartContext';
+import {useOrgConfigs} from '../utils/hooks/Organization/useOrgConfigs';
+import {isHomeTabEnabled} from '../utils/helpers/orgConfigs';
 
 const TabBar: React.FC<BottomTabBarProps> = ({
   state,
@@ -37,6 +39,7 @@ const TabBar: React.FC<BottomTabBarProps> = ({
     myServices: <Profile size="24" />,
   };
   const {totalItems} = useCartContext();
+  const {configs} = useOrgConfigs();
   const focusedRoute = state.routes[state.index];
   const focusedDescriptor = descriptors[focusedRoute.key];
   const tabBarStyle = focusedDescriptor.options.tabBarStyle as
@@ -51,6 +54,10 @@ const TabBar: React.FC<BottomTabBarProps> = ({
      bg-neutral-0/80 border border-neutral-0 dark:border-neutral-dark-400/40 
      px-4 py-2 rounded-full shadow-lg gap-1">
       {state.routes.map((route, index) => {
+        if (!isHomeTabEnabled(configs, route.name)) {
+          return null;
+        }
+
         const {options} = descriptors[route.key];
         const label =
           typeof options.tabBarLabel === 'string'
