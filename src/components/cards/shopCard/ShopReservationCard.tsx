@@ -1,6 +1,6 @@
 import React, {useMemo, useRef, useCallback} from 'react';
 import {Image, View, Alert} from 'react-native';
-import {Content} from '../../../services/models/response/UseResrService';
+import SaleItemPersonLabel, {SaleItemCardProps} from '../Service/SaleItemPersonLabel';
 import BaseText from '../../BaseText';
 import {useTranslation} from 'react-i18next';
 import {useBase64ImageFromMedia} from '../../../utils/hooks/useBase64Image';
@@ -24,11 +24,7 @@ import {navigate} from '../../../navigation/navigationRef';
 import StatusDot from '../../StatusDot';
 import CancelReservationConfirmSheet from '../../Reservation/CancelReservationConfirmSheet';
 
-type ShopReservationCardProps = {
-  data: Content;
-};
-
-const ShopReservationCard: React.FC<ShopReservationCardProps> = ({data}) => {
+const ShopReservationCard: React.FC<SaleItemCardProps> = ({data, viewerId}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Shop.Reservation'});
   const {theme} = useTheme();
   const isDark = theme === 'dark';
@@ -273,6 +269,12 @@ const ShopReservationCard: React.FC<ShopReservationCardProps> = ({data}) => {
               </View>
             </View>
           </View>
+
+          <SaleItemPersonLabel
+            role="owner"
+            person={data.user}
+            viewerId={viewerId}
+          />
 
           {/* Reservation Details - Two Column Layout */}
           <View className="gap-3 pt-1 ">

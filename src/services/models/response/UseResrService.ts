@@ -234,7 +234,8 @@ export interface Content {
   reservedStartTime?: string | null;
   reservedEndTime?: string | null;
   contractor?: User;
-  user?: User;
+  user?: User | null;
+  consumer?: User | null;
   organizationUnit?: OrganizationUnit;
   product?: ProductService;
   usable?: boolean;
@@ -249,6 +250,8 @@ export interface GetUserSaleItemRes {
   content: Content[];
 }
 export interface SessionDetail {
+  user?: User | null;
+  consumer?: User | null;
   start?: string; // ISO date string
   end?: string; // ISO date string
   submitAt?: string; // ISO date string

@@ -1,13 +1,13 @@
 import React from 'react';
 import {TouchableOpacity, View} from 'react-native';
-import {Content} from '../../../services/models/response/UseResrService';
+import SaleItemPersonLabel, {SaleItemCardProps} from './SaleItemPersonLabel';
 import {ArrowUp, Box1} from 'iconsax-react-native';
 import BaseText from '../../BaseText';
 import moment from 'jalali-moment';
 import {useTranslation} from 'react-i18next';
 import Badge from '../../Badge/Badge';
 
-const PackageCard: React.FC<{data: Content}> = ({data}) => {
+const PackageCard: React.FC<SaleItemCardProps> = ({data, viewerId}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Home'});
 
   return (
@@ -28,6 +28,11 @@ const PackageCard: React.FC<{data: Content}> = ({data}) => {
         </TouchableOpacity>
       </View>
       <View className="pt-3 gap-3">
+        <SaleItemPersonLabel
+          role="owner"
+          person={data.user}
+          viewerId={viewerId}
+        />
         <View className="flex flex-row flex-wrap gap-1">
           {data.product?.hasSubProduct ? (
             data.product?.subProducts?.map((item, index) => {

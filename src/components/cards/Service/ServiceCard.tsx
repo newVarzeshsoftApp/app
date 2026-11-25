@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import {Image, View} from 'react-native';
-import {Content} from '../../../services/models/response/UseResrService';
+import SaleItemPersonLabel, {SaleItemCardProps} from './SaleItemPersonLabel';
 import {Circle} from 'react-native-progress';
 import BaseText from '../../BaseText';
 import {useTranslation} from 'react-i18next';
@@ -15,7 +15,7 @@ import StatusDot from '../../StatusDot';
 import ServiceOrganizationUnits from '../../organizationUnit/ServiceOrganizationUnits';
 import {SaleUnitType} from '../../../constants/options';
 
-const ServiceCard: React.FC<{data: Content}> = ({data}) => {
+const ServiceCard: React.FC<SaleItemCardProps> = ({data, viewerId}) => {
   const progress =
     data?.credit && data?.usedCredit && data?.credit > 0
       ? data?.usedCredit / data?.credit
@@ -77,6 +77,11 @@ const ServiceCard: React.FC<{data: Content}> = ({data}) => {
         </View>
       </View>
       <View className="pt-3 gap-3">
+        <SaleItemPersonLabel
+          role="owner"
+          person={data.user}
+          viewerId={viewerId}
+        />
         <ServiceOrganizationUnits
           isService={data?.type === SaleUnitType.Service}
           units={data?.product?.deliveryOrganizationUnits}

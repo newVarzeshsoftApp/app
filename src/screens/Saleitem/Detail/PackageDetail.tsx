@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import SaleItemPersonLabel, {SaleItemCardProps} from '../../../components/cards/Service/SaleItemPersonLabel';
+import {useAuth} from '../../../utils/hooks/useAuth';
 import {Content} from '../../../services/models/response/UseResrService';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
 import {SaleItemStackParamList} from '../../../utils/types/NavigationTypes';
@@ -47,12 +49,14 @@ const PackageDetail: React.FC<PackageDetailProps> = ({
   navigation,
   route,
 }) => {
+  const {profile} = useAuth();
+  const viewerId = profile?.id;
   const {t} = useTranslation('translation', {keyPrefix: 'Detail'});
   const {data: userSaleItem, isLoading: userIsloading} = useGetUserSaleItem({
     parent: data.id,
   });
   const scrollY = useSharedValue(0);
-  const cardComponentMapping: Record<number, React.FC<{data: Content}>> = {
+  const cardComponentMapping: Record<number, React.FC<SaleItemCardProps>> = {
     0: ProductCard,
     1: ServiceCard,
     2: CreditCard,
@@ -76,13 +80,13 @@ const PackageDetail: React.FC<PackageDetailProps> = ({
                 },
               })
             }>
-            <CardComponent key={item.id} data={item} />
+            <CardComponent key={item.id} viewerId={viewerId} data={item} />
           </TouchableOpacity>
         );
       }
       return <Text>Unknown type: {item.type}</Text>;
     },
-    [cardComponentMapping],
+    [cardComponentMapping, viewerId],
   );
   const scrollHandler = useAnimatedScrollHandler({
     onScroll: event => {
@@ -135,6 +139,11 @@ const PackageDetail: React.FC<PackageDetailProps> = ({
                 <BaseText type="title3" color="supportive5">
                   {data.title}
                 </BaseText>
+                <SaleItemPersonLabel
+                  role="owner"
+                  person={data.user}
+                  viewerId={viewerId}
+                />
                 <BaseButton
                   type="Fill"
                   color="Supportive5-Blue"

@@ -1,7 +1,7 @@
 import React from 'react';
 import {useTranslation} from 'react-i18next';
 import {TouchableOpacity, View} from 'react-native';
-import {Content} from '../../../services/models/response/UseResrService';
+import SaleItemPersonLabel, {SaleItemCardProps} from './SaleItemPersonLabel';
 import {ArrowUp, FlashCircle} from 'iconsax-react-native';
 import BaseText from '../../BaseText';
 import moment from 'jalali-moment';
@@ -13,7 +13,7 @@ import {
 } from '../../../utils/helpers/chargingServiceDisplay';
 import CreditSubProduct from '../SubProduct';
 
-const CreditCard: React.FC<{data: Content}> = ({data}) => {
+const CreditCard: React.FC<SaleItemCardProps> = ({data, viewerId}) => {
   const {t} = useTranslation('translation', {keyPrefix: 'Home'});
   const chargeBySession = isChargeBySession(data.product);
   const remainingCredit = (data?.credit ?? 0) - (data?.usedCredit ?? 0);
@@ -56,6 +56,11 @@ const CreditCard: React.FC<{data: Content}> = ({data}) => {
         </TouchableOpacity>
       </View>
       <View className="pt-3 gap-3">
+        <SaleItemPersonLabel
+          role="owner"
+          person={data.user}
+          viewerId={viewerId}
+        />
         <CreditSubProduct
           inCard
           subProducts={data.product?.subProducts}
