@@ -43,7 +43,7 @@ export type TypeBadgeColor =
   | 'error';
 
 
-  export type IStyle‌TypeButton ="Fill" | "Tonal" |"Outline"| "TextButton" 
+export type IStyleTypeButton = 'Fill' | 'Tonal' | 'Outline' | 'TextButton';
   export type IColorButton ="Primary" | "Black"| "Success"  |"Supportive1-Yellow" | "Supportive5-Blue" | "Error"
   export type IIconVariant ="Bold" | "Linear"
   export type ISizeButton ="Medium" | "Large"| "Small"
