@@ -1,7 +1,6 @@
 {
   "ServiceUsage": {
     "owner": "صاحب خدمت: {{name}}",
-    "consumer": "مصرف‌کننده: {{name}}",
     "userById": "کاربر {{id}}",
     "summary": "استفادهٔ من: {{mine}} جلسه · استفادهٔ دیگران: {{others}} جلسه"
   },
@@ -240,6 +239,7 @@
     "noLimit": "بدون محدودیت",
     "AllCredit": "تعداد کل",
     "usedHistory": "تاریخچه استفاده",
+    "consumer": "مصرف‌کننده: {{name}}",
     "NoHistory": "تاریخچه استفاده ای وجود ندارد",
     "MettingsCredit": "تعداد جلسات",
     "contractor": "مربی",

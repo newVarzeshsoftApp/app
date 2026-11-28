@@ -18,7 +18,7 @@ type Props = {
 };
 
 export default function SaleItemPersonLabel({person, role, viewerId}: Props) {
-  const {t} = useTranslation('translation', {keyPrefix: 'ServiceUsage'});
+  const {t} = useTranslation('translation');
   if (viewerId == null || person?.id == null || person.id === viewerId) {
     return null;
   }
@@ -26,11 +26,13 @@ export default function SaleItemPersonLabel({person, role, viewerId}: Props) {
   const fullName = [person.firstName?.trim(), person.lastName?.trim()]
     .filter(Boolean)
     .join(' ');
-  const name = fullName || t('userById', {id: person.id});
+  const name = fullName || t('ServiceUsage.userById', {id: person.id});
+  const labelKey =
+    role === 'consumer' ? 'Detail.consumer' : 'ServiceUsage.owner';
 
   return (
     <BaseText type="body3" color="secondary">
-      {t(role, {name})}
+      {t(labelKey, {name})}
     </BaseText>
   );
 }
