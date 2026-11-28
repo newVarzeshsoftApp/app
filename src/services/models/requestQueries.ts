@@ -20,7 +20,7 @@ export interface UserSaleItemQuey {
   sortField?: string;
   sortOrder?: -1 | 1;
   isReserved?: boolean;
-  isGift: boolean; // Required in Swagger
+  isGift?: boolean;
   PageNumber?: number;
   PageSize?: number;
   searchQuery?: string;

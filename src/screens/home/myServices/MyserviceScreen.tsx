@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import {useAuth} from '../../../utils/hooks/useAuth';
 import InfoCards from '../../../components/cards/infoCards/InfoCards';
 import WalletBalance from '../components/WalletBalance';
 import MyServise from '../components/MyServise';
@@ -20,6 +21,8 @@ import {navigate} from '../../../navigation/navigationRef';
 import {useIsOrgFeatureEnabled} from '../../../utils/hooks/Organization/useOrgConfigs';
 
 const MyserviceScreen: React.FC = () => {
+  const {profile} = useAuth();
+  const viewerId = profile?.id;
   const {t} = useTranslation('translation', {keyPrefix: 'Drawer'});
   const {theme} = useTheme();
   const showMembership = useIsOrgFeatureEnabled('showMembership');
@@ -69,10 +72,10 @@ const MyserviceScreen: React.FC = () => {
             },
           });
         }}>
-        <ShopReservationCard data={item} />
+        <ShopReservationCard viewerId={viewerId} data={item} />
       </TouchableOpacity>
     );
-  }, []);
+  }, [viewerId]);
 
   const reservationsSection =
     filteredReservations.length > 0 ? (

@@ -1,5 +1,7 @@
 import React, {useLayoutEffect} from 'react';
 import {ActivityIndicator, Image, ScrollView, Text, View} from 'react-native';
+import SaleItemPersonLabel from '../../../components/cards/Service/SaleItemPersonLabel';
+import {useAuth} from '../../../utils/hooks/useAuth';
 
 import {Content} from '../../../services/models/response/UseResrService';
 import {NativeStackNavigationProp} from '@react-navigation/native-stack';
@@ -50,6 +52,8 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
   navigation,
   route,
 }) => {
+  const {profile} = useAuth();
+  const viewerId = profile?.id;
   const {t} = useTranslation('translation', {keyPrefix: 'Detail'});
   const chargeBySession = isChargeBySession(data.product);
   const remainingCredit = (data?.credit ?? 0) - (data?.usedCredit ?? 0);
@@ -123,6 +127,11 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
                     </BaseText>
                   </View>
                 </View>
+                <SaleItemPersonLabel
+                  role="owner"
+                  person={data.user}
+                  viewerId={viewerId}
+                />
                 <View className="items-center gap-2">
                   <View className="flex-row items-center gap-2">
                     <BaseText type="title1" color="base">

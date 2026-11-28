@@ -1,5 +1,8 @@
 import React, {useCallback, useLayoutEffect, useMemo, useRef} from 'react';
 import {ActivityIndicator, Dimensions, Image, View} from 'react-native';
+import SaleItemPersonLabel from '../../../components/cards/Service/SaleItemPersonLabel';
+import {useAuth} from '../../../utils/hooks/useAuth';
+import {getSharedSessionUsage} from '../../../utils/helpers/sessionUsage';
 import {getProductDetailImageHeight} from '../../../constants/layout';
 import Animated, {
   interpolate,
@@ -69,6 +72,8 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
   const bottomsheetRef = useRef<BottomSheetMethods>(null);
   const cancelSheetRef = useRef<BottomSheetMethods>(null);
   const {height} = Dimensions.get('screen');
+  const {profile} = useAuth();
+  const viewerId = profile?.id;
   const {t} = useTranslation('translation', {keyPrefix: 'Detail'});
   const {addToCart} = useCart();
   const queryClient = useQueryClient();
@@ -81,6 +86,8 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
   );
   const {data: UserSession, isLoading: UserSessionisLoading} =
     useGetUserSessionByID(data.id);
+  const usage = getSharedSessionUsage(UserSession, viewerId, data.user?.id);
+  const {t: tUsage} = useTranslation('translation', {keyPrefix: 'ServiceUsage'});
   // Use shared value instead of scroll offset
   const scrollY = useSharedValue(0);
   // 4:3 within app content width (not full browser width on web)
@@ -360,6 +367,11 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                           {data.product?.title}
                         </BaseText>
                       </View>
+                      <SaleItemPersonLabel
+                        role="owner"
+                        person={data.user}
+                        viewerId={viewerId}
+                      />
                       <ServiceOrganizationUnits
                         isService={data.type === SaleUnitType.Service}
                         units={data.product?.deliveryOrganizationUnits}
@@ -531,6 +543,11 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                         <BaseText type="title4" color="secondary">
                           {t('usedHistory')}
                         </BaseText>
+                        {usage && (
+                          <BaseText type="body3" color="secondary">
+                            {tUsage('summary', usage)}
+                          </BaseText>
+                        )}
                       </View>
                       {UserSessionisLoading ? (
                         <View className="flex-1 py-10">
@@ -542,6 +559,11 @@ const ServiceDetail: React.FC<ServiceDetailProps> = ({
                             <View
                               key={index}
                               className="p-5 rounded-3xl  gap-5 bg-white/40 dark:bg-neutral-dark-300/40 shadow-custom  border border-white dark:border-neutral-dark-300">
+                              <SaleItemPersonLabel
+                                role="consumer"
+                                person={item.consumer}
+                                viewerId={viewerId}
+                              />
                               {!data.contractor && item.contractor && (
                                 <View className="justify-between items-center flex-row">
                                   <BaseText type="body3" color="secondary">

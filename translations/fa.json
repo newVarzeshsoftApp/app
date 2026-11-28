@@ -1,4 +1,10 @@
 {
+  "ServiceUsage": {
+    "owner": "صاحب خدمت: {{name}}",
+    "consumer": "مصرف‌کننده: {{name}}",
+    "userById": "کاربر {{id}}",
+    "summary": "استفادهٔ من: {{mine}} جلسه · استفادهٔ دیگران: {{others}} جلسه"
+  },
   "Global": {
     "Home Screen": "صفحه خانه",
     "fa": "فارسی",

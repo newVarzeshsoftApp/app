@@ -1,4 +1,4 @@
-import React, {useCallback, useState, useEffect} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {
   Text,
   TouchableOpacity,
@@ -7,6 +7,8 @@ import {
   FlatList,
   Platform,
 } from 'react-native';
+import type {SaleItemCardProps} from '../../../components/cards/Service/SaleItemPersonLabel';
+import {useAuth} from '../../../utils/hooks/useAuth';
 import BaseText from '../../../components/BaseText';
 import {useTranslation} from 'react-i18next';
 import {ArrowUp} from 'iconsax-react-native';
@@ -17,16 +19,18 @@ import CreditCard from '../../../components/cards/Service/CreditCard';
 import ReceptionCard from '../../../components/cards/Service/ReceptionCard';
 import PackageCard from '../../../components/cards/Service/PackageCard';
 import ShopReservationCard from '../../../components/cards/shopCard/ShopReservationCard';
-import {useGetUserSaleItem} from '../../../utils/hooks/User/useGetUserSaleItem';
-import {useNavigation} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {DrawerStackParamList} from '../../../utils/types/NavigationTypes';
+import {useGetUserSaleItemPages} from '../../../utils/hooks/User/useGetUserSaleItem';
 import {limit} from '../../../constants/options';
 import {navigate} from '../../../navigation/navigationRef';
-type NavigationProp = NativeStackNavigationProp<
-  DrawerStackParamList,
-  'HomeNavigator'
->;
+
+const cardComponentMapping: Record<number, React.FC<SaleItemCardProps>> = {
+  0: ProductCard,
+  1: ServiceCard,
+  2: CreditCard,
+  3: ReceptionCard,
+  4: PackageCard,
+};
+
 function MyServise({
   inMoreScreen = false,
   isReserved = false,
@@ -34,43 +38,28 @@ function MyServise({
   inMoreScreen?: boolean;
   isReserved?: boolean;
 }) {
-  const cardComponentMapping: Record<number, React.FC<{data: Content}>> = {
-    0: ProductCard,
-    1: ServiceCard,
-    2: CreditCard,
-    3: ReceptionCard,
-    4: PackageCard,
-  };
-
+  const {profile} = useAuth();
+  const viewerId = profile?.id;
   const {t} = useTranslation('translation', {keyPrefix: 'Home'});
-  // const navigation = useNavigation<NavigationProp>();
-  const [offset, setOffset] = useState(0);
-  const [data, setData] = useState<Content[]>([]);
   const {
-    data: fetchedData,
+    data: pages,
     isLoading,
     isError,
     isFetching,
-  } = useGetUserSaleItem({
-    limit: limit,
-    isReserved: isReserved,
-    offset,
-    status: 0,
-  });
-
-  useEffect(() => {
-    if (fetchedData?.content) {
-      setData(prevItems => [...prevItems, ...fetchedData?.content]);
-    }
-  }, [fetchedData]);
-  const loadMore = () => {
-    if (
-      !isError &&
-      !isFetching &&
-      data.length < (fetchedData?.total ?? 5) &&
+    hasNextPage,
+    fetchNextPage,
+  } = useGetUserSaleItemPages({isReserved, status: 0}, limit);
+  const firstPage = pages?.pages[0];
+  const data = useMemo(
+    () =>
       inMoreScreen
-    ) {
-      setOffset(prevOffset => prevOffset + limit);
+        ? pages?.pages.flatMap(page => page.content) ?? []
+        : firstPage?.content ?? [],
+    [firstPage, inMoreScreen, pages],
+  );
+  const loadMore = () => {
+    if (inMoreScreen && hasNextPage && !isFetching) {
+      fetchNextPage();
     }
   };
 
@@ -94,7 +83,7 @@ function MyServise({
                 },
               });
             }}>
-            <ShopReservationCard data={item} />
+            <ShopReservationCard viewerId={viewerId} data={item} />
           </TouchableOpacity>
         );
       }
@@ -114,13 +103,13 @@ function MyServise({
                 },
               });
             }}>
-            <CardComponent data={item} />
+            <CardComponent viewerId={viewerId} data={item} />
           </TouchableOpacity>
         );
       }
       return <Text>Unknown type: {item?.type}</Text>;
     },
-    [cardComponentMapping, isReserved],
+    [isReserved, viewerId],
   );
 
   return (
@@ -130,7 +119,7 @@ function MyServise({
           <BaseText type="title3" color="secondary">
             {t('myService')}
           </BaseText>
-          {(fetchedData?.total ?? 1) > 4 && (
+          {(firstPage?.total ?? 1) > 4 && (
             <TouchableOpacity
               onPress={() => {
                 navigate('Root', {
@@ -156,7 +145,7 @@ function MyServise({
           ItemSeparatorComponent={() => <View style={{height: 16}} />}
           onEndReached={loadMore}
           // onEndReachedThreshold={0.2}
-          keyExtractor={(item, index) => `key` + index}
+          keyExtractor={item => String(item.id)}
           showsVerticalScrollIndicator={false}
           showsHorizontalScrollIndicator={false}
           ListFooterComponent={
