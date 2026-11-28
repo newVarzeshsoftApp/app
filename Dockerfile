@@ -1,5 +1,5 @@
 # Stage 1: Dependencies
-FROM node:20-alpine AS deps
+FROM mirror.gcr.io/library/node:20-alpine AS deps
 WORKDIR /app
 
 # Copy package files first for better layer caching
@@ -17,14 +17,14 @@ RUN --mount=type=cache,target=/root/.npm \
     npm ci --prefer-offline --legacy-peer-deps
 
 # Stage 2: Build
-FROM node:20-alpine AS builder
+FROM mirror.gcr.io/library/node:20-alpine AS builder
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
 # Stage 3: Runner
-FROM node:20-alpine AS runner
+FROM mirror.gcr.io/library/node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=development
