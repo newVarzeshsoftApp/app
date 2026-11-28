@@ -1,9 +1,11 @@
 {
   "ServiceUsage": {
     "owner": "Service owner: {{name}}",
-    "consumer": "Session consumer: {{name}}",
     "userById": "User {{id}}",
     "summary": "My sessions: {{mine}} · Sessions used by others: {{others}}"
+  },
+  "Detail": {
+    "consumer": "Session consumer: {{name}}"
   },
   "Global": {
     "Home Screen": "Home Screen",

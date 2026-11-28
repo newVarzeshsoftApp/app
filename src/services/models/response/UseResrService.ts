@@ -270,6 +270,8 @@ export interface ChargingServiceByIDRes {
   remain: number;
   organizationUnit?: OrganizationUnit;
   organizationUnitId?: number;
+  user?: User | null;
+  consumer?: User | null;
 }
 export interface GetUserSaleOrderRes {
   content: SaleOrderContent[];

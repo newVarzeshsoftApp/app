@@ -1,5 +1,5 @@
 import { PressableProps, TextStyle } from 'react-native';
-import {IColorButton, IIconVariant, ISizeButton, IStyle‌TypeButton, ITextType, TypeBadgeColor, TypeTextColor} from './stylingTypes';
+import {IColorButton, IIconVariant, ISizeButton, IStyleTypeButton, ITextType, TypeBadgeColor, TypeTextColor} from './stylingTypes';
 import { Control, FieldValues, Path, UseFormRegister, UseFormWatch } from 'react-hook-form';
 import { TextProps } from 'react-native/Libraries/Text/Text';
 import { ImageSourcePropType } from 'react-native';
@@ -46,7 +46,7 @@ export type MenuItem = {
   children: { title: string,slug:string }[];
 };
 export interface IButtonProps extends PressableProps {
-  type: IStyle‌TypeButton;             // Custom style type for the button
+  type: IStyleTypeButton;             // Custom style type for the button
   size?:ISizeButton
   color:IColorButton;
   LinkButton?:boolean;

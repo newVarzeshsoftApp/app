@@ -220,6 +220,11 @@ const CreditDetail: React.FC<CreditDetailProps> = ({
                     <View
                       key={index}
                       className="p-5 rounded-3xl gap-5 bg-white/40 dark:bg-neutral-dark-300/40 shadow-custom  border border-white dark:border-neutral-dark-300">
+                      <SaleItemPersonLabel
+                        role="consumer"
+                        person={item.consumer}
+                        viewerId={viewerId}
+                      />
                       <View className="justify-between items-center flex-row">
                         <BaseText type="body3" color="secondary">
                           {t('orderNumber')}:
